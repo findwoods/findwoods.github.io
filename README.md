@@ -1,3 +1,8 @@
+---
+layout: default
+title: Math Test
+---
+
 # findwoods.github.io
 
 

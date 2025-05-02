@@ -1,6 +1,7 @@
 ---
 layout: default
 title: Math
+
 ---
 
 （你原来 README.md 的内容粘贴到这里，包括公式）

@@ -1,30 +1,12 @@
 ---
 layout: default
-title: Math
-
+title: Math Test
 ---
 
-（你原来 README.md 的内容粘贴到这里，包括公式）
+这是一个行内公式：$a^2 + b^2 = c^2$
 
-
-# findwoods.github.io
-
-
-- 电压是正弦波：
+这是一个块级公式：
 
 $$
-\begin{aligned}
-V_{C}(t) & =-\frac{I_{\max }}{\omega C} \cos (\omega t) \\
-& =-V_{\max } \cos (\omega t) \\
-& \left.=V_{\max } \sin \left(\omega t-\frac{\pi}{2}\right)\right)
-\end{aligned}
+\int_{-\infty}^\infty e^{-x^2} dx = \sqrt{\pi}
 $$
-
-- 额外的 $\pi/2$ 是电压的相位。
-- 电容器两端的电压滞后电流：
-
-$$
-\phi=-\pi/2
-$$
-
-$\phi=-\pi/2$

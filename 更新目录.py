@@ -17,7 +17,7 @@ EXCLUDED_DIRECTORIES = ["_layouts"]
 EXCLUDED_FILES = ["index0.html", output_file_local, output_file_github] # 排除两个索引文件自身
 
 # 定义顶层目录的期望顺序
-PREDEFINED_ORDER = ["MQST", "MathODE", "PhysLab", "ChemLab", "PhysChem", "线性代数"]
+PREDEFINED_ORDER = ["线性代数", "MQST", "MathODE", "PhysLab", "ChemLab", "PhysChem"]
 
 def generate_html_for_directory(current_dir_path, root_path_for_links, is_top_level=False, base_url_prefix=""):
     """

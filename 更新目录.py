@@ -1,6 +1,7 @@
 import os
 import html # 用于转义文件名
 import urllib.parse # 用于安全地组合URL
+import re # <--- 添加导入
 
 # 设置根文件夹路径
 root_folder = '.'  # 当前目录
@@ -17,7 +18,18 @@ EXCLUDED_DIRECTORIES = ["_layouts"]
 EXCLUDED_FILES = ["index0.html", output_file_local, output_file_github] # 排除两个索引文件自身
 
 # 定义顶层目录的期望顺序
-PREDEFINED_ORDER = ["线性代数", "MQST", "MathODE", "PhysLab", "ChemLab", "PhysChem"]
+PREDEFINED_ORDER = ["线性代数", "MQST", "QCQI", "MathODE", "PhysLab", "ChemLab", "PhysChem"]
+
+# --- 添加自然排序键函数 ---
+def natural_sort_key(s):
+    """
+    一个用于自然排序的键函数。
+    例如：natural_sort_key("item2.txt") -> ['item', 2, '.txt']
+          natural_sort_key("item10.txt") -> ['item', 10, '.txt']
+    """
+    return [int(text) if text.isdigit() else text.lower()
+            for text in re.split(r'(\d+)', str(s))] # str(s) 确保输入是字符串
+# --- 结束添加 ---
 
 def generate_html_for_directory(current_dir_path, root_path_for_links, is_top_level=False, base_url_prefix=""):
     """
@@ -33,39 +45,28 @@ def generate_html_for_directory(current_dir_path, root_path_for_links, is_top_le
         str: 代表当前目录内容的HTML字符串。
     """
     html_parts = []
-    # 对于非顶层目录的列表，我们将其包裹在ul中
-    # 或对于顶层目录本身，我们也需要一个初始的ul
-    if not is_top_level or is_top_level: # 实际上总是需要一个ul来包裹列表项
+    if not is_top_level or is_top_level:
         html_parts.append("<ul>\n")
 
     try:
-        entries = sorted(os.listdir(current_dir_path))
+        # --- 修改排序方式 ---
+        entries = sorted(os.listdir(current_dir_path), key=natural_sort_key)
+        # --- 结束修改 ---
     except OSError as e:
         error_message = f"  <li><em>Error accessing {html.escape(current_dir_path)}: {html.escape(str(e))}</em></li>\n"
         html_parts.append(error_message)
         html_parts.append("</ul>\n")
         return "".join(html_parts)
 
-    # 预先获取当前目录相对于根目录的路径，用于构建链接
-    # 这部分路径将附加到 base_url_prefix (如果提供)
-    # 或者直接用作相对路径 (如果 base_url_prefix 为空)
-    # current_relative_to_root = os.path.relpath(current_dir_path, root_path_for_links)
-    # if current_relative_to_root == ".": # 如果是根目录本身
-    #     current_relative_to_root = ""
-
-
     processed_directories = []
     processed_files = []
 
-    for entry_name in entries:
+    for entry_name in entries: # entries 现在是自然排序的
         if entry_name.startswith('.'):
             continue
-        
+
         entry_full_path = os.path.join(current_dir_path, entry_name)
-        
-        # 确保排除的是文件名而不是完整路径
-        # EXCLUDED_FILES 现在包含了输出文件名，所以这里要小心
-        # 我们需要排除的是在 root_folder 下的特定文件名
+
         is_output_file = False
         if os.path.abspath(entry_full_path) == os.path.abspath(os.path.join(root_folder, output_file_local)) or \
            os.path.abspath(entry_full_path) == os.path.abspath(os.path.join(root_folder, output_file_github)):
@@ -73,86 +74,92 @@ def generate_html_for_directory(current_dir_path, root_path_for_links, is_top_le
 
         if is_output_file:
             continue
-            
+
         is_dir = os.path.isdir(entry_full_path)
         is_file = os.path.isfile(entry_full_path)
 
         if is_dir and entry_name in EXCLUDED_DIRECTORIES:
             continue
-        if is_file and entry_name in EXCLUDED_FILES: # EXCLUDED_FILES 只包含文件名
+        if is_file and entry_name in EXCLUDED_FILES:
             continue
-        
+
         if is_dir:
-            processed_directories.append(entry_name)
+            processed_directories.append(entry_name) # 继承了 natural_sort_key 的顺序
         elif is_file and entry_name.endswith('.html'):
-            processed_files.append(entry_name)
+            processed_files.append(entry_name) # 继承了 natural_sort_key 的顺序
+
 
     # 对顶层目录应用自定义排序
+    # 注意：processed_directories 此时已经经过了 natural_sort_key 排序。
+    # PREDEFINED_ORDER 会覆盖这种自然排序。
+    # other_dirs_final 将保持其从 processed_directories 继承来的自然排序。
     if is_top_level:
         ordered_dirs_final = []
-        other_dirs_final = []
-        
+        other_dirs_final = [] # 这个列表将保持自然排序
+
         predefined_set = set(PREDEFINED_ORDER)
         found_predefined = {dirname: False for dirname in PREDEFINED_ORDER}
 
+        # processed_directories 已经是自然排序的
         for dirname in processed_directories:
             if dirname in predefined_set:
-                found_predefined[dirname] = True
+                found_predefined[dirname] = True # 标记已找到，将在预定义顺序中处理
             else:
-                other_dirs_final.append(dirname) # 已经是字母排序
-        
+                other_dirs_final.append(dirname) # 这些已经是自然排序的
+
         for dirname_in_order in PREDEFINED_ORDER:
             if found_predefined[dirname_in_order]:
                 ordered_dirs_final.append(dirname_in_order)
-        
-        processed_directories = ordered_dirs_final + other_dirs_final
+
+        processed_directories = ordered_dirs_final + other_dirs_final # 预定义优先，其余自然排序
+
 
     # 首先列出子目录
+    # processed_directories 在顶层经过了 PREDEFINED_ORDER 处理，
+    # 在非顶层，它们是从 entries 继承的自然排序
     for dir_name in processed_directories:
         dir_full_path = os.path.join(current_dir_path, dir_name)
         escaped_dir_name = html.escape(dir_name)
-        
+
         html_parts.append("  <li>\n")
         html_parts.append(f"    <details>\n")
         html_parts.append(f"      <summary><strong>{escaped_dir_name}/</strong></summary>\n")
-        # 递归调用，传递 base_url_prefix
         html_parts.append(generate_html_for_directory(dir_full_path, root_path_for_links, is_top_level=False, base_url_prefix=base_url_prefix))
         html_parts.append(f"    </details>\n")
         html_parts.append("  </li>\n")
 
     # 然后列出文件
-    for file_name in processed_files: # files 已经是排序过的
+    # processed_files 是从 entries 继承的自然排序
+    for file_name in processed_files:
         file_full_path = os.path.join(current_dir_path, file_name)
-        # 生成相对于 root_path_for_links 的路径，用于拼接
         relative_link_path_segment = os.path.relpath(file_full_path, root_path_for_links).replace(os.sep, '/')
-        
+
         final_link_href = ""
         if base_url_prefix:
-            # 确保 base_url_prefix 以 / 结尾，relative_link_path_segment 不以 / 开头 (os.path.relpath 行为)
-            # urllib.parse.urljoin 会处理好斜杠
             final_link_href = urllib.parse.urljoin(base_url_prefix, relative_link_path_segment)
         else:
-            final_link_href = relative_link_path_segment # 本地相对路径
+            final_link_href = relative_link_path_segment
 
         escaped_file_name = html.escape(file_name)
-        
-        # 根据 is_top_level 调整缩进
-        indent = "  " if is_top_level else "    "
+
+        indent = "  " if is_top_level else "    " # 这个缩进逻辑似乎有点问题，顶层文件也应该有缩进
+                                                # 不过当前是先列目录后列文件，文件总是在目录之后。
+                                                # 如果顶层直接有文件，这里的缩进可能需要调整，但目前是正确的。
         html_parts.append(f'{indent}<li><a href="{final_link_href}">{escaped_file_name}</a></li>\n')
-    
-    html_parts.append("</ul>\n") # 关闭当前层级的ul
-        
+
+    html_parts.append("</ul>\n")
+
     return "".join(html_parts)
 
 def build_full_html_page(title_display_path, directory_listing_html_content, for_github=False):
     """构建完整的HTML页面字符串"""
-    h1_text = f"Index of {html.escape(title_display_path)}"
+    # h1_text = f"Index of {html.escape(title_display_path)}"
+    h1_text = f"Index"
     if for_github:
         h1_text = f"Index (<a href='{GITHUB_BASE_URL}' target='_blank'>{html.escape(GITHUB_BASE_URL)}</a>)"
-        if title_display_path != GITHUB_BASE_URL.strip('/'): # 如果不是根目录的索引
-             # 获取根目录名称
+        if title_display_path != GITHUB_BASE_URL.strip('/'):
             root_folder_name = os.path.basename(os.path.abspath(root_folder))
-            if root_folder_name : # 避免在最顶层（.）时显示空
+            if root_folder_name :
                  h1_text += f" {html.escape(root_folder_name)}/"
 
 
@@ -163,14 +170,15 @@ def build_full_html_page(title_display_path, directory_listing_html_content, for
   <title>Directory Index</title>
   <style>
     body {{ font-family: sans-serif; margin: 20px; }}
-    ul {{ list-style-type: none; padding-left: 0; }} /* 顶层ul不缩进 */
+    ul {{ list-style-type: none; padding-left: 0; }}
     li {{ margin-bottom: 5px; }}
     details {{ margin-left: 20px; border-left: 1px solid #eee; padding-left: 10px; }}
     details summary {{ cursor: pointer; outline: none; }}
     details summary:hover {{ color: #007bff; }}
-    details summary strong {{ font-weight: normal; }}
-    details[open] > summary strong {{ font-weight: bold; }}
-    details > ul {{ padding-left: 20px; margin-top: 5px; }} /* <details>内部的ul样式 */
+    details summary strong {{ font-weight: normal; }} /* Default to normal for summary */
+    /* details[open] > summary strong {{ font-weight: bold; }} */ /* This makes only open ones bold, not ideal */
+    details summary > strong {{ font-weight: bold; }} /* Make the directory name always bold inside summary */
+    details > ul {{ padding-left: 20px; margin-top: 5px; }}
     a {{ text-decoration: none; color: #0066cc; }}
     a:hover {{ text-decoration: underline; }}
     h1 {{ border-bottom: 1px solid #ccc; padding-bottom: 10px; }}
@@ -191,9 +199,9 @@ def build_full_html_page(title_display_path, directory_listing_html_content, for
 print(f"Generating '{output_file_local}' with local links...")
 local_dir_listing_html = generate_html_for_directory(
     current_dir_path=root_folder,
-    root_path_for_links=root_folder, # 链接相对于此路径
+    root_path_for_links=root_folder,
     is_top_level=True,
-    base_url_prefix="" # 空表示本地相对链接
+    base_url_prefix=""
 )
 full_local_html = build_full_html_page(
     title_display_path=os.path.abspath(root_folder),
@@ -212,12 +220,12 @@ print("-" * 30)
 print(f"Generating '{output_file_github}' with GitHub Pages links ({GITHUB_BASE_URL})...")
 github_dir_listing_html = generate_html_for_directory(
     current_dir_path=root_folder,
-    root_path_for_links=root_folder, # 即使是github链接，相对路径的计算基准还是本地根
+    root_path_for_links=root_folder,
     is_top_level=True,
-    base_url_prefix=GITHUB_BASE_URL # 提供 GitHub Pages 的基础 URL
+    base_url_prefix=GITHUB_BASE_URL
 )
 full_github_html = build_full_html_page(
-    title_display_path=GITHUB_BASE_URL.strip('/'), # H1中显示基本URL
+    title_display_path=GITHUB_BASE_URL.strip('/'),
     directory_listing_html_content=github_dir_listing_html,
     for_github=True
 )

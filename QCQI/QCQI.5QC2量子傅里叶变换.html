@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QCQI.5QC2量子傅里叶变换</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js"></script>
+  <script>
+    // 在 DOMContentLoaded 后调用 renderMathInElement
+    document.addEventListener("DOMContentLoaded", function() {
+      renderMathInElement(document.body, {
+  "delimiters": [
+    {
+      "left": "$$",
+      "right": "$$",
+      "display": true
+    },
+    {
+      "left": "$",
+      "right": "$",
+      "display": false
+    }
+  ],
+  "ignoredTags": [
+    "script",
+    "noscript",
+    "style",
+    "textarea",
+    "pre",
+    "option"
+  ],
+  "throwOnError": false
+});
+    });
+</script>
+  <style>
+    html {
+      font-size: 100%;
+    }
+    body {
+      margin: 0 auto;
+      padding: 1rem;
+      max-width: 70ch;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      line-height: 1.7;
+      background-color: #fdfdfd;
+      color: #333;
+    }
+    img, video, svg {
+        max-width: 100%;
+        height: auto;
+        display: block;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        line-height: 1.3;
+    }
+    code {
+      background: #f0f0f0;
+      padding: 0.2em 0.4em;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    pre {
+      background: #f0f0f0;
+      padding: 1em;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 0.9em;
+    }
+    pre code {
+        padding: 0;
+        background: none;
+        font-size: 1em;
+    }
+    a {
+        color: #007bff;
+        text-decoration: none;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+    .katex-display {
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 0.2em;
+    }
+    .katex {
+        font-size: 1.05em;
+    }
+  </style>
+</head>
+<body>
+<h1>5 量子傅里叶变换及其应用</h1>
+<p>如果你制造的是量子计算机，那么每个间谍都会想要得到它。我们的密码都将失效，他们将会读取我们的电子邮件，直到我们使用量子加密来阻止他们。</p>
+<p>——Jennifer 和 Peter Shor</p>
+<p>为了读取我们的电子邮件，间谍和他们的量子机器是多么令人讨厌；不过可以放心，他们还不知道如何因子分解 12 或 15 。</p>
+<p>——olker Strassen</p>
+<p>计算机编程是一种艺术形式，就像诗歌和音乐的创作一样。</p>
+<p>——高德纳</p>
+<p>迄今为止，量子计算里最引人注目的发现在于量子计算机可以有效地完成某些在经典计算机上无法完成的任务。例如，截止到本书写作时，人们认为利用最好的经典算法即所谓的数域筛法（number field sieve）来求 $n$ 比特整数的素因子分解需要 $\exp \left(\Theta\left(n^{1 / 3} \log {}^{2 / 3} n\right)\right)$ 次操作。这对于被分解数的规模是指数量级的，因此通常素因子分解问题在经典计算机上被认为是难解问题：即使是中等长度的数字，因子分解问题也会很快变得不可能。与之相反的是，量子算法可以使用 $O\left(n^{2} \log n \log \log n\right)$ 次操作来完成同样的任务，即量子计算机在因子分解问题上可以指数量级地快于已知的最好经典算法。这个结果本身就很重要，但是最令人激动的是由此引出的问题：还有哪些在经典计算机上不可解的问题，在量子计算机上可以被有效求解？</p>
+<p>本章阐述量子傅里叶变换，它是量子因子分解和许多其他有趣的量子算法的关键部分。从 5.1 节开始讲的量子傅里叶变换是一个对量子振幅进行傅里叶变换的有效量子算法。它并没有加速在经典数据上的傅里叶变换的经典任务，但是可以实现一个重要任务——相位估计，即估计西算子在特定条件下的特征值，这将在 5.2 节描述。相位估计使得我们可以解决其他一些有趣的问题，包括 5.3 节涉及的求阶问题（order－finding problem）和因子分解问题（factoring problem）。而在下一章中可以看到，相位估计还可以和量子搜索问题相结合用来解决搜索问题中的有关解的计数</p>
+<p>（counting solutions）问题。 5.4 节是本章的最后一节，讨论如何利用量子傅里叶变换来解决隐含子群问题（hidden subgroup problem ）。隐含子群问题是相位估计和求阶问题的一个推广，而离散对数（discrete logarithm）问题是它的一个特例。离散对数问题是另一个被认为在经典计算机上的难解问题，而它具有有效的量子算法。</p>
+<h1>5.1 量子傅里叶变换</h1>
+<p>一个好的想法可以变得越来越简单，并能解决它原本针对的问题之外的问题。</p>
+<p>——Robert Tarjan</p>
+<p>在数学或计算机科学领域，解决问题的最有用的方法之一就是把这个问题转化为已知解决方案的其他问题。有些这类变换出现得非常频繁，并且适用于非常多不同的场合，以至于形成了对这些变换自身的研究领域。量子计算的一个重大发现就是某些这样的变换在量子计算机上的计算可以比在经典计算机上快得多，这个发现使得人们可以在量子计算机上构建快速算法。</p>
+<p>离散傅里叶变换就是这类变换之一。在通常的数学记号里，离散傅里叶变换以一个复向量 $x_{0}, \cdots, x_{N-1}$ 作为输入，其中向量的长度 $N$ 是固定参数，它输出的变换后的数据是如下定义的复向量 $y_{0}, \cdots, y_{N-1}$ ：</p>
+<p>$$
+\begin{equation*}
+y_{k} \equiv \frac{1}{\sqrt{N}} \sum_{j=0}^{N-1} x_{j} \mathrm{e}^{2 \pi \mathrm{i} j k / N} \tag{5.1}
+\end{equation*}
+$$</p>
+<p>量子傅里叶变换是与它完全相同的变换，尽管其常用符号会有些不同。量子傅里叶变换是定义在一组标准正交基 $|0\rangle, \cdots,|N-1\rangle$ 上的一个线性算子，它在基矢态上的作用为</p>
+<p>$$
+\begin{equation*}
+|j\rangle \longrightarrow \frac{1}{\sqrt{N}} \sum_{k=0}^{N-1} \mathrm{e}^{2 \pi \mathrm{i} j k / N}|k\rangle \tag{5.2}
+\end{equation*}
+$$</p>
+<p>等价地，对任意态的作用可以写成</p>
+<p>$$
+\begin{equation*}
+\sum_{j=0}^{N-1} x_{j}|j\rangle \longrightarrow \sum_{k=0}^{N-1} y_{k}|k\rangle \tag{5.3}
+\end{equation*}
+$$</p>
+<p>其中，振幅 $y_{k}$ 是振幅 $x_{j}$ 进行离散傅里叶变换后的值。虽然从定义上看不是很显然，但这个变换确实是一个西变换，因此可以作为量子计算机上的动力学过程来实现。我们将通过构造一个计算傅里叶变换的具体量子电路来说明傅里叶变换的西性。当然，直接证明傅里叶变换的西性也很容易。</p>
+<p>习题5.1 证明式（5.2）定义的线性变换是酉变换。</p>
+<p>习题 5.2 计算 $n$ 量子比特状态 $|00 \cdots 0\rangle$ 的傅里叶变换。</p>
+<p>下面取 $N=2^{n}$ ，其中 $n$ 是某个整数，且 $|0\rangle, \cdots,\left|2^{n}-1\right\rangle$ 是 $n$ 量子比特的量子计算机的计算</p>
+<p>基。我们需要把状态 $|j\rangle$ 写成二进制形式 $j=j_{1} j_{2} \cdots j_{n}$ 。更正式地，$j=j_{1} 2^{n-1}+j_{2} 2^{n-2}+\cdots+j_{n} 2^{0}$ 。方便起见，我们用记号 $0 . j_{l} j_{l+1} \cdots j_{m}$ 来表示二进制小数 $j_{l} / 2+j_{l+1} / 4+\cdots+j_{m} / 2^{m-l+1}$ 。</p>
+<p>通过简单的代数运算，可以给出量子傅里叶变换的乘积形式：</p>
+<p>$$
+\begin{equation*}
+\left|j_{1}, \cdots, j_{n}\right\rangle \rightarrow \frac{\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 j_{n}}|1\rangle\right)\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 \cdot j_{n-1} j_{n}}|1\rangle\right) \cdots\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 \cdot j_{1} j_{2} \cdots j_{n}}|1\rangle\right)}{2^{n / 2}} \tag{5.4}
+\end{equation*}
+$$</p>
+<p>这个乘积形式非常有用，甚至可以当作量子傅里叶变换的定义。我们马上将看到，这种表示使得我们可以构造计算傅里叶变换的有效量子电路，给出量子傅里叶变换西性的证明，并且为基于量子傅里叶变换的算法提供灵感。作为一个附带的结果，我们在练习中得到了经典的快速傅里叶变换。</p>
+<p>式（5.4）和式（5.2）的等价性可以由简单的代数运算得到：</p>
+<p>$$
+\begin{align*}
+|j\rangle &amp; \rightarrow \frac{1}{2^{n / 2}} \sum_{k=0}^{2^{n}-1} \mathrm{e}^{2 \pi \mathrm{i} j k / 2^{n}}|k\rangle  \tag{5.5}\\
+&amp; =\frac{1}{2^{n / 2}} \sum_{k_{1}=0}^{1} \cdots \sum_{k_{n}=0}^{1} \mathrm{e}^{2 \pi \mathrm{i} j\left(\sum_{l=1}^{n} k_{l} 2^{-l}\right.}\left|k_{1} \cdots k_{n}\right\rangle  \tag{5.6}\\
+&amp; =\frac{1}{2^{n / 2}} \sum_{k_{1}=0}^{1} \cdots \sum_{k_{n}=0}^{1} \bigotimes_{l=1}^{n} \mathrm{e}^{2 \pi \mathrm{i} j k_{l} 2^{-l}}\left|k_{l}\right\rangle  \tag{5.7}\\
+&amp; =\frac{1}{2^{n / 2}} \bigotimes_{l=1}^{n}\left[\sum_{k_{l}=0}^{1} \mathrm{e}^{2 \pi \mathrm{i} j k_{l} 2^{-t}}\left|k_{l}\right\rangle\right]  \tag{5.8}\\
+&amp; =\frac{1}{2^{n / 2}} \bigotimes_{l=1}^{n}\left[|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 2^{-l}}|1\rangle\right]  \tag{5.9}\\
+&amp; =\frac{\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 . j_{n}}|1\rangle\right)\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 . j_{n-1} j_{n}}|1\rangle\right) \cdots\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 . j_{1} j_{2} \cdots j_{n}}|1\rangle\right)}{2^{n / 2}} \tag{5.10}
+\end{align*}
+$$</p>
+<p>式（5.4）的乘积表示使得推导量子傅里叶变换的有效电路变得容易。图 5－1 就给出了这样的一个电路，其中门 $R_{k}$ 表示西变换</p>
+<p>$$
+R_{k} \equiv\left[\begin{array}{cc}
+1 &amp; 0  \tag{5.11}\\
+0 &amp; \mathrm{e}^{2 \pi \mathrm{i} / 2^{k}}
+\end{array}\right]
+$$</p>
+<p>为了证明图 5－1 所示电路是计算量子傅里叶变换的电路，考虑当输入态为 $\left|j_{1}, \cdots, j_{n}\right\rangle$ 时的变化过程。对第一量子比特执行阿达玛门之后，产生状态</p>
+<p>$$
+\begin{equation*}
+\frac{1}{2^{1 / 2}}\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 \cdot j_{1}}|1\rangle\right)\left|j_{2} \cdots j_{n}\right\rangle \tag{5.12}
+\end{equation*}
+$$</p>
+<p>因为当 $j_{1}=1$ 时， $\mathrm{e}^{2 \pi \mathrm{i} 0 \cdot j_{1}}=-1$ ，否则为 +1 。执行受控 $R_{2}$ 门之后得到状态</p>
+<p>$$
+\begin{equation*}
+\frac{1}{2^{1 / 2}}\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 \cdot j_{1} j_{2}}|1\rangle\right)\left|j_{2} \cdots j_{n}\right\rangle \tag{5.13}
+\end{equation*}
+$$</p>
+<p>继续执行受控 $R_{3}$ 门，$R_{4}$ 门直到 $R_{n}$ 门，每一个门都在第一个 $|1\rangle$ 的系数的相位上增加一个附加比特。在这个过程的最后，我们得到状态</p>
+<p>$$
+\begin{equation*}
+\frac{1}{2^{1 / 2}}\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 \cdot j_{1} j_{2} \cdots j_{n}}|1\rangle\right)\left|j_{2} \cdots j_{n}\right\rangle \tag{5.14}
+\end{equation*}
+$$</p>
+<p>下面，我们对第二量子比特做同样的操作。阿达玛门使得状态变为</p>
+<p>$$
+\begin{equation*}
+\frac{1}{2^{2 / 2}}\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 \cdot j_{1} j_{2} \cdots j_{n}}|1\rangle\right)\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 \cdot j_{2}}|1\rangle\right)\left|j_{3} \cdots j_{n}\right\rangle \tag{5.15}
+\end{equation*}
+$$</p>
+<p>执行受控 $R_{2}$ 门直至 $R_{n-1}$ 门，产生状态</p>
+<p>$$
+\begin{equation*}
+\frac{1}{2^{2 / 2}}\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 \cdot j_{1} j_{2} \cdots j_{n}}|1\rangle\right)\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 \cdot j_{2} \cdots j_{n}}|1\rangle\right)\left|j_{3} \cdots j_{n}\right\rangle \tag{5.16}
+\end{equation*}
+$$</p>
+<p>对每个量子比特执行这样的操作，得到最终状态</p>
+<p>$$
+\begin{equation*}
+\frac{1}{2^{n / 2}}\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 \cdot j_{1} j_{2} \cdots j_{n}}|1\rangle\right)\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 \cdot j_{2} \cdots j_{n}}|1\rangle\right) \cdots\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 \cdot j_{n}}|1\rangle\right) \tag{5.17}
+\end{equation*}
+$$</p>
+<p>最后用交换操作（参考 1.3.4节给出的一个电路描述）来逆转量子比特的顺序，为清晰起见，图 5－1省略了这些交换。经过交换操作后，量子比特的状态变为</p>
+<p>$$
+\begin{equation*}
+\frac{1}{2^{n / 2}}\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 \cdot j_{n}}|1\rangle\right)\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 \cdot j_{n-1} j_{n}}|1\rangle\right) \cdots\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 \cdot j_{1} j_{2} \cdots j_{n}}|1\rangle\right) \tag{5.18}
+\end{equation*}
+$$</p>
+<p>与式（5.4）对比，可以看出这正是量子傅里叶变换所期望的输出。这也证明了量子傅里叶变换是西的，因为电路中的每个门都是西的。专题 5.1 给出了一个在三量子比特上的量子傅里叶变换的具体电路。</p>
+<p><img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-044.jpg?height=705&amp;width=2985&amp;top_left_y=3725&amp;top_left_x=316" /></p>
+<p>图 5－1 量子傅里叶变换的有效电路。这个电路从量子傅里叶变换的乘积表示（式（5.4））很容易可以推导得到。这里没有给出电路末端逆转量子比特顺序的交换门和输出态的归一化因子 $1 / \sqrt{2}$</p>
+<p>专题5.1 三量子比特量子傅里叶变换</p>
+<p>我们来看一个三量子比特量子傅里叶变换的具体电路：</p>
+<p><img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-045.jpg?height=501&amp;width=1257&amp;top_left_y=471&amp;top_left_x=1233" /></p>
+<p>$S$ 和 $T$ 是相位门和 $\pi / 8$ 门。在这个例子里量子傅里叶变换的矩阵表示为</p>
+<p>$$
+\frac{1}{\sqrt{8}}\left[\begin{array}{cccccccc}
+1 &amp; 1 &amp; 1 &amp; 1 &amp; 1 &amp; 1 &amp; 1 &amp; 1  \tag{5.19}\\
+1 &amp; \omega &amp; \omega^{2} &amp; \omega^{3} &amp; \omega^{4} &amp; \omega^{5} &amp; \omega^{6} &amp; \omega^{7} \\
+1 &amp; \omega^{2} &amp; \omega^{4} &amp; \omega^{6} &amp; 1 &amp; \omega^{2} &amp; \omega^{4} &amp; \omega^{6} \\
+1 &amp; \omega^{3} &amp; \omega^{6} &amp; \omega^{1} &amp; \omega^{4} &amp; \omega^{7} &amp; \omega^{2} &amp; \omega^{5} \\
+1 &amp; \omega^{4} &amp; 1 &amp; \omega^{4} &amp; 1 &amp; \omega^{4} &amp; 1 &amp; \omega^{4} \\
+1 &amp; \omega^{5} &amp; \omega^{2} &amp; \omega^{7} &amp; \omega^{4} &amp; \omega^{1} &amp; \omega^{6} &amp; \omega^{3} \\
+1 &amp; \omega^{6} &amp; \omega^{4} &amp; \omega^{2} &amp; 1 &amp; \omega^{6} &amp; \omega^{4} &amp; \omega^{2} \\
+1 &amp; \omega^{7} &amp; \omega^{6} &amp; \omega^{5} &amp; \omega^{4} &amp; \omega^{3} &amp; \omega^{2} &amp; \omega^{1}
+\end{array}\right]
+$$</p>
+<p>其中 $\omega=\mathrm{e}^{2 \pi \mathrm{i} / 8}=\sqrt{\mathrm{i}}$ 。</p>
+<p>图 5－1 中的电路用了多少个门？在第一量子比特上，作用了 1 个阿达玛门和 $n-1$ 个条件旋转门，总共 $n$ 个门。接下来第二量子比特上作用了 1 个阿达玛门和 $n-2$ 个条件旋转门，因此总共有 $n-1$ 个门。以此类推，可以看到需要 $n+(n-1)+\cdots+1=n(n+1) / 2$ 个门，再加上交换涉及的门。其中，至多需要 $n / 2$ 次交换，而每次交换操作可以用 3 个受控非门来完成。因此这个电路提供了一个执行量子傅里叶变换的 $\Theta\left(n^{2}\right)$ 算法。</p>
+<p>与之相比，计算 $2^{n}$ 元素的离散傅里叶变换的最好经典算法，如快速傅里叶变换（FFT）需要 $\Theta\left(n 2^{n}\right)$ 个门。这就是说，相比于在量子计算机上执行量子傅里叶变换，在经典计算机上实现傅里叶变换需要指数多的操作次数。</p>
+<p>表面上这看起来很棒，因为傅里叶变换是实际中很多数据处理应用的关键步骤。例如，在计算机语音识别中，音素识别的第一步就是对数字化声音进行傅里叶变换。我们能用量子傅里叶变换来加速这些傅里叶变换的计算吗？不幸的是，我们还不知道要怎么才能做到这一点。原因在于量子计算机的振幅不能通过测量直接访问，因此没办法确定原状态的傅里叶变换的振幅。更糟糕的是，一般没有有效的方法来制备傅里叶变换的初始态。因此，寻找量子傅里叶变换的用途比我们希望的更微妙。在本章和下一章我们设计了几个算法，它们巧妙地运用了量子傅里叶变换。</p>
+<p>习题5.3（经典快速傅里叶变换）假设在经典计算机上对一个 $2^{n}$ 维的复向量进行傅里叶变换。证明基于式（5.1）的方法来进行傅里叶变换需要 $\Theta\left(2^{2 n}\right)$ 个基本算术运算。基于式（5.4），找到一种方法将这个数量级降到 $\Theta\left(n 2^{n}\right)$ 。</p>
+<p>习题 5.4 给出受控 $R_{k}$ 门到单量子比特门和受控非门的分解。</p>
+<p>习题 5.5 给出逆量子傅里叶变换的量子电路。</p>
+<p>习题5.6（近似量子傅里叶变换）量子傅里叶变换的量子电路构造，表面上所用到的门的精度需为量子比特数目的指数量级。然而，多项式规模的量子电路根本不需要这样的精度。例如，令</p>
+<p>$U$ 是 $n$ 个量子比特上的理想傅里叶变换，$V$ 是以精度 $\Delta=1 / p(n)$ 作用受控 $R_{k}$ 门后得到的结果，其中 $p(n)$ 是某个多项式。证明误差 $E(U, V) \equiv \max _{|\psi\rangle} |(U-V)|\psi\rangle |$ 的大小是 $\Theta\left(n^{2} / p(n)\right)$ ，且每个门的多项式精度对于保证输出状态的多项式精度是足够的。</p>
+<h1>5.2 相位估计</h1>
+<p>傅里叶变换是一个称为相位估计（phase estimation）的通用过程的关键所在，而相位估计又是许多量子算法的关键所在。假设西算子 $U$ 对应于特征向量 $|u\rangle$ 的特征值为 $\mathrm{e}^{2 \pi \mathrm{i} \varphi}$ ，其中 $\varphi$ 是未知的。相位估计算法的目标就是估计 $\varphi$ 的值。为进行估计，我们假设有一个可用的黑盒（black boxes，有时候称为 oracles），它可以制备态 $|u\rangle$ 及执行受控 $U^{2^{j}}$ 操作，其中 $j$ 是适当的非负整数。黑盒的使用表明相位估计过程本身不是一个完整的量子算法，而是一种和其他子程序结合后，可以完成有意义计算任务的子程序或模块。在相位估计的具体应用中，我们会描述这些黑盒是如何进行的，并把它们和相位估计过程结合起来，完成真正有用的任务。不过我们暂时要把它们想象为黑盒。</p>
+<p>量子相位估计使用两个寄存器。第一个寄存器包含初始态为 $|0\rangle$ 的 $t$ 个量子比特。如何选择 $t$取决于两件事：希望精确估计 $\varphi$ 的位数及所期望的成功概率。 $t$ 对这两个量的依赖可从下面分析中自然得出。</p>
+<p>第二个寄存器的初始态为 $|u\rangle$ ，它的量子比特数目需要能足够存储 $|u\rangle$ 。相位估计分为两个阶段。首先，应用图 5－2 所示电路。该电路以作用阿达玛门到第一寄存器开始，接着作用受控 $U$ 门到第二寄存器，$U$ 以 2 的幂次自乘。容易看出第一寄存器的最终状态是</p>
+<p>$$
+\begin{align*}
+\frac{1}{2^{t / 2}}\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 2^{t-1} \varphi}|1\rangle\right)\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 2^{t-2} \varphi}|1\rangle\right) &amp; \cdots\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 2^{0} \varphi}|1\rangle\right) \\
+&amp; =\frac{1}{2^{t / 2}} \sum_{k=0}^{2^{t}-1} \mathrm{e}^{2 \pi \mathrm{i} \varphi k}|k\rangle \tag{5.20}
+\end{align*}
+$$</p>
+<p>在这个过程中我们忽略了对第二寄存器的描述，因为它在计算过程中始终处于状态 $|u\rangle$ 。</p>
+<p>习题5.7 证明图 5－2 中的受控 $U$ 操作把状态 $|j\rangle|u\rangle$ 变为 $|j\rangle U^{j}|u\rangle$ 。通过这样的证明，可以获得对图 5－2 中电路更深人的认识。（注意这并不依赖于 $|u\rangle$ 是 $U$ 的本征态。）</p>
+<p>相位估计的第二阶段是应用逆量子傅里叶变换到第一寄存器上。这可以通过反转上一节（习题5.5）的量子傅里叶变换电路来得到，并且可以在 $\Theta\left(t^{2}\right)$ 步内完成。相位估计的第三也即最后阶段，是通过用计算基进行测量读出第一个寄存器的状态。我们将证明这给出了 $\varphi$ 的一个相当好的估计。算法的整体框架在图 5－3 给出。</p>
+<p>为了更清晰地理解为什么相位估计可行，假设 $\varphi$ 恰好可以表示为 $t$ 比特，即 $\varphi=0 . \varphi_{1} \cdots \varphi_{t}$ 。则相位估计第一阶段的结果状态式（5.2）可以写成</p>
+<p>$$
+\begin{equation*}
+\frac{1}{2^{t / 2}}\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 . \varphi_{t}}|1\rangle\right)\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 . \varphi_{t-1} \varphi_{t}}|1\rangle\right) \cdots\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 . \varphi_{1} \varphi_{2} \cdots \varphi_{t}}|1\rangle\right) \tag{5.21}
+\end{equation*}
+$$</p>
+<p>相位估计的第二阶段是作用逆量子傅里叶变换。通过比较上式和傅里叶变换的积表示式（5.4），我们看到第二阶段的输出状态是 $\left|\varphi_{1} \cdots \varphi_{t}\right\rangle$ ，在计算基中的测量正确地给出了 $\varphi$ ！</p>
+<p><img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-047.jpg?height=1368&amp;width=2979&amp;top_left_y=875&amp;top_left_x=372" /></p>
+<p>图 5－2 相位估计的第一阶段，右边略去了归一化因子 $1 / \sqrt{2}$</p>
+<p><img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-047.jpg?height=466&amp;width=1408&amp;top_left_y=2751&amp;top_left_x=1169" /></p>
+<p>图 5－3 相位估计的全过程的框架。顶上的 $t$ 量子比特（如通常情况下，＂＂表示线束）是第一寄存器，而底下的量子比特是第二寄存器，其量子比特的数目为进行 $U$ 所需的。 $|u\rangle$ 是 $U$ 的特征值为 $\mathrm{e}^{2 \pi \mathrm{i} \varphi}$ 的本征态。测量输出的是 $\varphi$ 的一个近似，精确到 $t-\left\lceil\log \left(2+\frac{1}{2 \epsilon}\right)\right\rceil$ 比特，其成功概率至少为 $1-\epsilon$</p>
+<p>总之，给定西算子 $U$ 的特征向量 $|u\rangle$ ，相位估计算法可以估计对应的特征值的相位 $\varphi$ 。该过程的一个核心本质特点是进行逆傅里叶变换的能力，</p>
+<p>$$
+\begin{equation*}
+\frac{1}{2^{t / 2}} \sum_{j=0}^{2^{t}-1} \mathrm{e}^{2 \pi i \varphi \rho}|j\rangle|u\rangle \rightarrow|\tilde{\varphi}\rangle|u\rangle \tag{5.22}
+\end{equation*}
+$$</p>
+<p>其中状态 $|\tilde{\varphi}\rangle$ 是 $\varphi$ 的一个好的估计。</p>
+<h2>性能与要求</h2>
+<p>上述分析适合 $\varphi$ 可以精确地展开成 $t$ 比特二进制数的理想情况。如果不是这样会如何？事实上，我们描述的过程将会以很高的概率产生 $\varphi$ 的一个相当不错的近似，正如式（5.22）所示。为了证明这点需要细致的处理。</p>
+<p>令 $b$ 是 0 到 $2^{t}-1$ 范围内的一个整数，它使得 $b / 2^{t}=0 . b_{1} \cdots b_{t}$ 是在小于 $\varphi$ 的数中对于 $\varphi$ 的 $t$ 比特最佳近似，即 $\varphi$ 和 $b / 2^{t}$ 之间的差 $\delta \equiv \varphi-b / 2^{t}$ 满足 $0 \leqslant \delta \leqslant 2^{-t}$ 。我们要证明，在相位估</p>
+<p>计过程的最后做的观测会产生一个接近 $b$ 的结果，从而以高概率精确地估计 $\varphi$ 。作用逆量子傅里叶变换到状态（式（5.20））上，产生状态</p>
+<p>$$
+\begin{equation*}
+\frac{1}{2^{t}} \sum_{k, l=0}^{2^{t}-1} \mathrm{e}^{\frac{-2 \pi i k l}{2^{t}}} \mathrm{e}^{2 \pi \mathrm{i} \varphi k}|l\rangle \tag{5.23}
+\end{equation*}
+$$</p>
+<p>令 $\alpha_{l}$ 为 $\left|(b+l)\left(\bmod 2^{t}\right)\right\rangle$ 的振幅，</p>
+<p>$$
+\begin{equation*}
+\alpha_{l} \equiv \frac{1}{2^{t}} \sum_{k=0}^{2^{t}-1}\left(\mathrm{e}^{2 \pi \mathrm{i}\left(\varphi-(b+l) / 2^{t}\right)}\right)^{k} \tag{5.24}
+\end{equation*}
+$$</p>
+<p>这是一个几何级数的和，因此</p>
+<p>$$
+\begin{align*}
+\alpha_{l} &amp; =\frac{1}{2^{t}}\left(\frac{1-\mathrm{e}^{2 \pi \mathrm{i}\left(2^{t} \varphi-(b+l)\right)}}{1-\mathrm{e}^{2 \pi \mathrm{i}\left(\varphi-(b+l) / 2^{t}\right)}}\right)  \tag{5.25}\\
+&amp; =\frac{1}{2^{t}}\left(\frac{1-\mathrm{e}^{2 \pi \mathrm{i}\left(2^{t} \delta-l\right)}}{1-\mathrm{e}^{2 \pi \mathrm{i}\left(\delta-l / 2^{t}\right)}}\right) \tag{5.26}
+\end{align*}
+$$</p>
+<p>假设最终输出的测量结果是 $m$ ，我们的目标是对得到满足 $|m-b| &gt; e$ 的 $m$ 的概率给出估计的界，其中 $e$ 是刻画容许误差的一个正整数。观测到这样的 $m$ 的概率如下：</p>
+<p>$$
+\begin{equation*}
+p(|m-b| &gt; e)=\sum_{-2^{t-1} &lt; l \leqslant-(e+1)}\left|\alpha_{l}\right|^{2}+\sum_{e+1 \leqslant l \leqslant 2^{t-1}}\left|\alpha_{l}\right|^{2} \tag{5.27}
+\end{equation*}
+$$</p>
+<p>但对于任意实数 $\theta$ ，有 $|1-\exp (\mathrm{i} \theta)| \leqslant 2$ ，因此</p>
+<p>$$
+\begin{equation*}
+\left|\alpha_{l}\right| \leqslant \frac{2}{2^{t}\left|1-\mathrm{e}^{2 \pi \mathrm{i}\left(\delta-l / 2^{t}\right)}\right|} \tag{5.28}
+\end{equation*}
+$$</p>
+<p>由初等几何或微积分知识可知，当 $-\pi \leqslant \theta \leqslant \pi$ 时，有 $|1-\exp (\mathrm{i} \theta)| \geqslant 2|\theta| / \pi$ 。但是当 $-2^{t-1} &lt; $ $l \leqslant 2^{t-1}$ 时，我们有 $-\pi \leqslant 2 \pi\left(\delta-l / 2^{t}\right) \leqslant \pi$ 。因此</p>
+<p>$$
+\begin{equation*}
+\left|\alpha_{l}\right| \leqslant \frac{1}{2^{t+1}\left(\delta-l / 2^{t}\right)} \tag{5.29}
+\end{equation*}
+$$</p>
+<p>结合式（5.27）和式（5.29）可以得到</p>
+<p>$$
+\begin{equation*}
+p(|m-b| &gt; e) \leqslant \frac{1}{4}\left[\sum_{l=-2^{t-1}+1}^{-(e+1)} \frac{1}{\left(l-2^{t} \delta\right)^{2}}+\sum_{l=e+1}^{2^{t-1}} \frac{1}{\left(l-2^{t} \delta\right)^{2}}\right] \tag{5.30}
+\end{equation*}
+$$</p>
+<p>又因为 $0 \leqslant 2^{t} \delta \leqslant 1$ ，我们有</p>
+<p>$$
+\begin{align*}
+p(|m-b| &gt; e) &amp; \leqslant \frac{1}{4}\left[\sum_{l=-2^{t-1}+1}^{-(e+1)} \frac{1}{l^{2}}+\sum_{l=e+1}^{2^{t-1}} \frac{1}{(l-1)^{2}}\right]  \tag{5.31}\\
+&amp; \leqslant \frac{1}{2} \sum_{l=e}^{2^{t-1}-1} \frac{1}{l^{2}}  \tag{5.32}\\
+&amp; \leqslant \frac{1}{2} \int_{e-1}^{2^{t-1}-1} \mathrm{~d} l \frac{1}{l^{2}}  \tag{5.33}\\
+&amp; =\frac{1}{2(e-1)} \tag{5.34}
+\end{align*}
+$$</p>
+<p>假设我们希望近似 $\varphi$ 的精度达到 $2^{-n}$ ，则可选择 $e=2^{t-n}-1 。$ 通过在相位估计算法中利用 $t=n+p$量子比特，我们从式（5.34）可以看到，获得这个精度的近似的概率至少为 $1-1 / 2\left(2^{p}-2\right)$ 。因此，要以至少 $1-\epsilon$ 的成功概率得到 $\varphi$ 的精确到 $n$ 比特的近似量，我们选择</p>
+<p>$$
+\begin{equation*}
+t=n+\left\lceil\log \left(2+\frac{1}{2 \epsilon}\right)\right\rceil \tag{5.35}
+\end{equation*}
+$$</p>
+<p>为了利用相位估计算法，我们需要能制备 $U$ 的本征态 $|u\rangle$ 。如果我们不知道如何制备这样一个本征态会如何？假设我们制备了其他某个状态 $|\psi\rangle$ 来代替 $|u\rangle$ 。把这个状态按照 $U$ 的本征态 $|u\rangle$ 展</p>
+<p><img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-049.jpg?height=147&amp;width=3485&amp;top_left_y=2951&amp;top_left_x=154" />一个接近 $\sum_{u} c_{u}\left|\widetilde{\varphi_{u}}\right\rangle|u\rangle$ 的输出状态，其中 $\widetilde{\varphi_{u}}$ 是相位 $\varphi_{u}$ 的一个很好的近似。因此，我们期望第一寄存器的读数将是 $\varphi_{u}$ 的一个很好的近似，其中 $u$ 是以 $\left|c_{u}\right|^{2}$ 概率随机选取的。这个严格化的论证留作习题 5.8。这个过程允许我们以算法中引人一些附加的随机性为代价，避免制备（可能未知的）本征态。</p>
+<p>习题5.8 假设相位估计算法把状态 $|0\rangle|u\rangle$ 变为状态 $\left|\widetilde{\varphi_{u}}\right\rangle|u\rangle$ ，使得给定输人 $|0\rangle\left(\sum_{u} c_{u}|u\rangle\right)$ 时，算法的输出为 $\sum_{u} c_{u}\left|\widetilde{\varphi_{u}}\right\rangle|u\rangle$ 。证明如果 $t$ 是按照式（5.35）来选择的，则在相位估计算法最后得到 $\varphi_{n}$的精确到 $n$ 比特的近似量的概率至少是 $\left|c_{u}\right|^{2}(1-\epsilon)$ 。</p>
+<p>为什么相位估计有意义呢？就其本身而言，从物理上看，相位估计解决了一个重要且有趣的问题：如何估计一个给定特征向量的西算子的特征值。它的实际用途在于，其他一些有趣的问题可以归结为相位估计，这在接下来的章节中将得以展现。相位估计算法总结如下。</p>
+<h2>算法（量子相位估计）</h2>
+<p>输入：（1）进行受控 $U^{j}$ 操作的黑盒，其中 $j$ 为整数；（2）$U$ 的一个具有特征值为 $\mathrm{e}^{2 \pi i \varphi_{u}}$ 的本征态 $|u\rangle$ ；（3）初始化为 $|0\rangle$ 的 $t=n+\left\lceil\log \left(2+\frac{1}{2 \epsilon}\right)\right\rceil$ 个量子比特。</p>
+<p>输出：对 $\varphi_{u}$ 的 $n$ 比特近似 $\widetilde{\varphi_{u}}$ 。</p>
+<p>运行时间：$O\left(t^{2}\right)$ 次操作和一个受控 $U^{j}$ 的黑盒，成功概率至少是 $1-\epsilon_{\circ}$</p>
+<p>过程：</p>
+<p>1.$|0\rangle|u\rangle$ 初态</p>
+<p>2.$\rightarrow \frac{1}{\sqrt{2^{t}}} \sum_{j=0}^{2^{t}-1}|j\rangle|u\rangle \quad$ 产生叠加</p>
+<p>3.$\rightarrow \frac{1}{\sqrt{2^{t}}} \sum_{j=0}^{2^{t}-1}|j\rangle U^{j}|u\rangle \quad$ 作用黑盒 $=\frac{1}{\sqrt{2^{t}}} \sum_{j=0}^{2^{t}-1} \mathrm{e}^{2 \pi \mathrm{i} j \varphi_{u}}|j\rangle|u\rangle \quad$ 黑盒的结果</p>
+<p>4.$\rightarrow\left|\widetilde{\varphi_{u}}\right\rangle|u\rangle \quad$ 作用逆傅里叶变换</p>
+<p>5.$\rightarrow \widetilde{\varphi_{u}} \quad$ 测量第一寄存器</p>
+<p>习题5.9 令 $U$ 是一个特征值为 $\pm 1$ 的西变换，它作用在一个状态 $|\psi\rangle$ 上。利用相位估计过程，构造一个量子电路，使得 $|\psi\rangle$ 坍缩到 $U$ 的两个本征空间之一，并给出最终状态所在空间的一个经典指示器。与习题 4.34 的结果进行比较。</p>
+<h1>5.3 应用：求阶与因子分解问题</h1>
+<p>相位估计过程可以用来解决各种有趣的问题。现在我们来描述其中最有趣的两个问题：求阶问题（order－finding problem）和因子分解问题（factoring problem）。事实上，这两个问题是等价的。因此，在 5.3.1 节我们阐述求阶问题的一个量子算法，而在 5.3.2 节解释求阶问题如何蕴含求因子分解问题的能力。</p>
+<p>为了理解因子分解和求阶的量子算法，我们需要一些数论的背景知识。所有用到的材料都收集在附录 D 里。下面两节给出的描述集中在问题的量子方面，这只需要对模算术（modular arithmetic ）比较熟悉即可读懂。我们引用的数论结论的证明细节可以在附录 D 里找到。</p>
+<p>求阶和因子分解问题的快速量子算法的吸引力至少体现在以下 3 个方面。首先，在我们看来最重要的是，它们为量子计算机可能比经典计算机更强大的观点提供了证据，并对强丘奇－图灵论题提出了可信的挑战。其次，这两个问题都有足够的内在价值来证明对任何新颖算法的兴趣，不管算法是经典的还是量子的。最后，从实践的观点来看最重要的是，求阶和因子分解的有效算法可以用来破解 RSA 公钥密码系统（附录 E）。</p>
+<h2>5.3.1 应用：求阶</h2>
+<p>对于满足 $x &lt; N$ 且无公因子的正整数 $x$ 和 $N, x$ 模 $N$ 的阶定义为满足 $x^{r}=1(\bmod N)$ 的最小正整数 $r$ 。求阶问题就是对指定的 $x$ 和 $N$ 确定阶。求阶问题被认为是经典计算机上的一个难题，因为没有发现算法使用 $O(L)$ 的多项式规模的资源就能求解该问题，其中 $L \equiv\lceil\log (N)\rceil$ 是表示 $N$ 所需要的比特数。本节说明怎样使用相位估计得到求阶的一个有效的量子算法。</p>
+<p>习题 5.10 证明 $x=5$ 模 $N=21$ 的阶是 6 。</p>
+<p>习题 5.11 证明 $x$ 的阶满足 $r \leqslant N$ 。</p>
+<p>求阶的量子算法就是将相位估计算法应用到如下酉算子上：</p>
+<p>$$
+\begin{equation*}
+U|y\rangle \equiv|x y(\bmod N)\rangle \tag{5.36}
+\end{equation*}
+$$</p>
+<p>其中 $y \in{0,1}^{L}$ 。（注意到在此处及下文，当 $N \leqslant y \leqslant 2^{L}-1$ 时，我们约定 $x y(\bmod N)$ 就是 $y$ ，即 $U$ 的作用仅当 $0 \leqslant y \leqslant N-1$ 时是非平凡的）。简单的计算表明，对整数 $0 \leqslant s \leqslant r-1$ 定义的状态</p>
+<p>$$
+\begin{equation*}
+\left|u_{s}\right\rangle \equiv \frac{1}{\sqrt{r}} \sum_{k=0}^{r-1} \exp \left[\frac{-2 \pi \mathrm{i} s k}{r}\right]\left|x^{k} \bmod N\right\rangle \tag{5.37}
+\end{equation*}
+$$</p>
+<p>是 $U$ 的本征态，因为</p>
+<p>$$
+\begin{align*}
+U\left|u_{s}\right\rangle &amp; =\frac{1}{\sqrt{r}} \sum_{k=0}^{r-1} \exp \left[\frac{-2 \pi \mathrm{i} s k}{r}\right]\left|x^{k+1} \bmod N\right\rangle  \tag{5.38}\\
+&amp; =\exp \left[\frac{2 \pi \mathrm{i} s}{r}\right]\left|u_{s}\right\rangle \tag{5.39}
+\end{align*}
+$$</p>
+<p>利用相位估计过程，我们可以以高精度得到相应的特征值 $\exp (2 \pi \mathrm{i} s / r)$ ，再花一点功夫就可以得到阶 $r$ 。</p>
+<p>习题5.12 证明 $U$ 是酉的（提示：$x$ 与 $N$ 是互质的，于是有模 $N$ 的逆）。</p>
+<p>应用相位估计过程有两个重要的要求：必须有对任意整数 $j$ 能够有效地实现受控 $U^{2^{j}}$ 操作，以及必须能够有效制备具有非平凡特征值的本征态 $\left|u_{s}\right\rangle$ ，或者至少是这样的本征态的一个叠加。第一个要求用模幂运算（modular exponentiation）的过程即可满足，通过该过程我们可以用 $O\left(L^{3}\right)$个门实现整个受控 $U^{2^{j}}$ 的序列，具体如专题 5.2 所述。</p>
+<h2>专题 5.2 模幂运算</h2>
+<p>在求阶算法中，如何计算相位估计算法中使用的受控 $U^{2^{j}}$ 操作序列？即我们希望计算变换</p>
+<p>$$
+\begin{align*}
+|z\rangle|y\rangle &amp; \rightarrow|z\rangle U^{z_{t} 2^{t-1}} \cdots U^{z_{1} 2^{0}}|y\rangle  \tag{5.40}\\
+&amp; =|z\rangle\left|x^{z_{t} 2^{t-1}} \times \cdots \times x^{z_{1} 2^{0}} y(\bmod N)\right\rangle  \tag{5.41}\\
+&amp; =|z\rangle\left|x^{z} y(\bmod N)\right\rangle \tag{5.42}
+\end{align*}
+$$</p>
+<p>因此相位估计中使用的受控 $U^{2^{j}}$ 操作序列等价于用一个模幕运算 $x^{z}(\bmod N)$ 乘以第二寄存器的内容，其中 $z$ 是第一寄存器的内容。这个操作可以简单地用可逆计算的技术来完成。其基本思想是以可逆的方式在第三寄存器中计算关于 $z$ 的函数 $x^{z}(\bmod N)$ ，然后以可逆的方</p>
+<p>式把 $x^{z}(\bmod N)$ 与第二寄存器的内容相乘，并用退计算的技巧完成计算后擦除第三寄存器的内容。模幕运算的算法分为两个阶段。第一阶段是用带模乘法计算 $x^{2}(\bmod N)$ ，即对 $x$ 模 $N$ 取平方；然后通过 $x^{2}(\bmod N)$ 的平方来计算 $x^{4}(\bmod N)$ ；一直进行下去，直到对所有 $j$从 0 到 $t-1$ 计算出 $x^{2^{j}}(\bmod N)$ 。这里 $t=2 L+1+\lceil\log (2+1 /(2 \epsilon))\rceil=O(L)$ ，所以总共有 $t-1=O(L)$ 次平方操作，每个需要 $O\left(L^{2}\right)$ 规模的代价（这个代价假设了用人们孩童时代所学的熟知的乘法算法来实现平方）。因此第一阶段总的代价是 $O\left(L^{3}\right)$ 。第二阶段的算法基于我们已经注意到的事实</p>
+<p>$$
+\begin{equation*}
+x^{z}(\bmod N)=\left(x^{z_{t} 2^{t-1}}(\bmod N)\right)\left(x^{z_{t-1} 2^{t-2}}(\bmod N)\right) \cdots\left(x^{z_{1} 2^{0}}(\bmod N)\right) \tag{5.43}
+\end{equation*}
+$$</p>
+<p>执行 $t-1$ 次带模乘法（每次代价 $O\left(L^{2}\right)$ ），可以看到以上乘积可以用 $O\left(L^{3}\right)$ 个门来计算。这对我们的目的是足够有效的，但是基于更有效的乘法算法可以有更有效的算法（参考＂背景资料与延伸阅读＂）。利用3.2.5 节的技术，可以直接构造一个带有 $t$ 比特寄存器和 $L$ 比特寄存器的可逆电路，它从 $(z, y)$ 状态开始到输出 $\left(z, x^{z} y(\bmod N)\right)$ 要用到 $O\left(L^{3}\right)$ 个门。该电路可以转换为用 $O\left(L^{3}\right)$ 个门计算变换 $|z\rangle|y\rangle \rightarrow|z\rangle\left|x^{z} y(\bmod N)\right\rangle$ 的量子电路。</p>
+<p>第二个要求需要一点技巧：制备 $\left|u_{s}\right\rangle$ 要求我们知道 $r$ ，而这是不可能的。幸运的是，有一个巧妙的观察可以使我们规避制备 $\left|u_{s}\right\rangle$ 的问题，即</p>
+<p>$$
+\begin{equation*}
+\frac{1}{\sqrt{r}} \sum_{s=0}^{r-1}\left|u_{s}\right\rangle=|1\rangle \tag{5.44}
+\end{equation*}
+$$</p>
+<p>在进行相位估计的过程中，如果第一寄存器使用 $t=2 L+1+\left\lceil\log \left(2+\frac{1}{2 \epsilon}\right)\right\rceil$ 个量子比特（参考图 5－3），并把第二寄存器制备成 $|1\rangle$ 状态——其构造是容易的——则可以知道对于每个在 0 到 $r-1$ 范围内的 $s$ ，我们都将以不小于 $(1-\epsilon) / r$ 的概率得到相位 $\varphi \approx s / r$ 的精确到 $2 L+1$ 比特的估计。求阶算法的框架如图 5－4 所示。</p>
+<p><img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-052.jpg?height=548&amp;width=2205&amp;top_left_y=3908&amp;top_left_x=805" /></p>
+<p>图 5－4 求阶算法的量子电路。第二寄存器初始化为态 $|1\rangle$ ，但如果用习题 5.14 的方法它可以初始化为 $|0\rangle$ 。利用 5.3.2 节的归约，这个电路还可以用作因子分解</p>
+<p>习题 5.13 证明式（5.44）（提示：$\sum_{s=0}^{r-1} \exp (-2 \pi \mathrm{i} s k / r)=r \delta_{k 0}$ ），即证明</p>
+<p>$$
+\begin{equation*}
+\frac{1}{\sqrt{r}} \sum_{s=0}^{r-1} \mathrm{e}^{2 \pi \mathrm{i} s k / r}\left|u_{s}\right\rangle=\left|x^{k} \bmod N\right\rangle \tag{5.45}
+\end{equation*}
+$$</p>
+<p>习题 5.14 若初始化第二寄存器为 $|1\rangle$ ，在逆傅里叶变换之前，求阶算法产生的量子态为</p>
+<p>$$
+\begin{equation*}
+|\psi\rangle=\sum_{j=0}^{2^{t}-1}|j\rangle U^{j}|1\rangle=\sum_{j=0}^{2^{t}-1}|j\rangle\left|x^{j} \bmod N\right\rangle \tag{5.46}
+\end{equation*}
+$$</p>
+<p>证明如果我们把 $U^{j}$ 替换成不同的酉变换 $V$ ，如下</p>
+<p>$$
+\begin{equation*}
+V|j\rangle|k\rangle=|j\rangle\left|k+x^{j} \bmod N\right\rangle \tag{5.47}
+\end{equation*}
+$$</p>
+<p>且让第二寄存器从 $|0\rangle$ 开始，将得到同样的状态。同时说明如何用 $O\left(L^{3}\right)$ 个门构造 $V$ 。</p>
+<h2>连分式展开</h2>
+<p>求阶到相位估计的归约可以通过描述如何由相位估计算法的结果 $\varphi \approx s / r$ 得到答案 $r$ 而完成。我们只知道 $\varphi$ 近似到 $2 L+1$ 位，但我们还预先知道它是一个有理数——两个有界整数之比 ——而且，如果我们能计算这样的离 $\varphi$ 最近的分数，我们就可能得到 $r$ 。</p>
+<p>值得注意的是，存在有效算法来完成这个任务，它被称为连分式算法。关于该方法的一个例子在专题 5.3 中给出。该算法之所以能满足我们的要求是因为有如下定理，其证明在附录 D 中给出。</p>
+<p>定理5.1 设 $s / r$ 是一个满足</p>
+<p>$$
+\begin{equation*}
+\left|\frac{s}{r}-\varphi\right| \leqslant \frac{1}{2 r^{2}} \tag{5.48}
+\end{equation*}
+$$</p>
+<p>的有理数，则 $s / r$ 是 $\varphi$ 的连分式的一个渐近值，从而可以利用连分式算法在 $O\left(L^{3}\right)$ 次操作之内计算。</p>
+<p>由于 $\varphi$ 是 $s / r$ 精确到 $2 L+1$ 位的一个近似，且 $r \leqslant N \leqslant 2^{L}$ ，所以有 $|s / r-\varphi| \leqslant 2^{-2 L-1} \leqslant$ $1 / 2 r^{2}$ ，从而可以应用该定理。</p>
+<p>总之，给定 $\varphi$ ，连分式算法可以有效地产生没有公因子的数 $s^{\prime}$ 和 $r^{\prime}$ ，使得 $s^{\prime} / r^{\prime}=s / r$ 。数 $r^{\prime}$是阶的候选者。我们可以通过计算 $x^{r^{\prime}} \bmod N$ 看结果是否为 1 来检查它是否为阶。如果是，则 $r^{\prime}$是 $x$ 模 $N$ 的阶，我们的任务就完成了。</p>
+<h2>专题 5.3 连分式算法</h2>
+<p>连分式算法的思想是只用整数把实数描述为如下形式：</p>
+<p>$$
+\begin{equation*}
+\left[a_{0}, \cdots, a_{M}\right] \equiv a_{0}+\frac{1}{a_{1}+\frac{1}{a_{2}+\frac{1}{1 \cdot+\frac{1}{a_{M}}}}} \tag{5.49}
+\end{equation*}
+$$</p>
+<p>其中 $a_{0}, \cdots, a_{M}$ 是正整数（为了方便用于量子计算，允许 $a_{0}=0$ ）。我们定义这个连分式的第 $m$ 个渐近值 $(0 \leqslant m \leqslant M)$ 为 $\left[a_{0}, \cdots, a_{m}\right]$ 。连分式算法是一个确定任意实数的连分式展</p>
+<p>开的方法，通过下面的例子很容易明白。假设我们想要把 $31 / 13$ 分解为连分式。第一步就是把 $31 / 13$ 分成整数和分数部分</p>
+<p>$$
+\begin{equation*}
+\frac{31}{13}=2+\frac{5}{13} \tag{5.50}
+\end{equation*}
+$$</p>
+<p>下面把分数部分倒过来，得到</p>
+<p>$$
+\begin{equation*}
+\frac{31}{13}=2+\frac{1}{\frac{13}{5}} \tag{5.51}
+\end{equation*}
+$$</p>
+<p>这些步骤——分开后倒转——应用到 $13 / 5$ ，得到</p>
+<p>$$
+\begin{equation*}
+\frac{31}{13}=2+\frac{1}{2+\frac{3}{5}}=2+\frac{1}{2+\frac{1}{\frac{5}{3}}} \tag{5.52}
+\end{equation*}
+$$</p>
+<p>下面分开和倒转 $5 / 3$ ：</p>
+<p>$$
+\begin{equation*}
+\frac{31}{13}=2+\frac{1}{2+\frac{1}{1+\frac{2}{3}}}=2+\frac{1}{2+\frac{1}{1+\frac{1}{3}}} \tag{5.53}
+\end{equation*}
+$$</p>
+<p>连分式分解现在终止了，因为</p>
+<p>$$
+\begin{equation*}
+\frac{3}{2}=1+\frac{1}{2} \tag{5.54}
+\end{equation*}
+$$</p>
+<p>可以写成一个分子是1的形式而不需要倒转，这就给出了 $31 / 13$ 的最终连分式表示</p>
+<p>$$
+\begin{equation*}
+\frac{31}{13}=2+\frac{1}{2+\frac{1}{1+\frac{1}{1+\frac{1}{2}}}} \tag{5.55}
+\end{equation*}
+$$</p>
+<p>显然对任意有理数连分式算法经过有限步＂分开和倒转＂后终止，因为出现的分子是严格递减的（例子中是 $31,5,3,2,1$ ）。这个过程终止的速度有多快？事实上如果 $\varphi=s / r$ 是一个有理数，并且 $s$ 和 $r$ 是 $L$ 比特的整数，则 $\varphi$ 的连分式展开可以用 $O\left(L^{3}\right)$ 次操作计算出来—— $O(L)$ 个＂分开和倒转＂步骤，每个步骤用 $O\left(L^{2}\right)$ 个基本算术门。</p>
+<h2>性能</h2>
+<p>在什么情况下求阶算法会失败？这里有两种可能性。首先，相位估计过程可能会给出 $s / r$ 的一个糟糕的估计。这种情况发生的概率至多为 $\epsilon$ ，并且可以通过电路规模可忽略的增大来减小。更严重的是，$s$ 和 $r$ 可能有公因子。这时连分式算法返回的 $r^{\prime}$ 是 $r$ 的一个因子而不是 $r$ 本身。幸运的是，至少有 3 种方法可以解决这个问题。</p>
+<p>最直接的方法大概就是注意到，对于在 0 到 $r-1$ 的范围内随机选取的 $s$ ，它与 $r$ 很可能是互质的，在这种情况下连分式算法必然返回 $r$ 。为了明确这一点，注意到由问题4.1可知，小于 $r$ 的素数的数目至少为 $r / 2 \log r$ ，因此 $s$ 是素数（从而与 $r$ 互质）的可能性至少是 $1 / 2 \log (r) &gt; 1 / 2 \log (N)$ 。那么重复算法 $2 \log (N)$ 次，将会以很高的概率得到一个相位 $s / r$ ，使得 $s$ 和 $r$ 互质，于是用连分式算法可以得到期望的 $r$ 。</p>
+<p>第二种方法是如果 $r^{\prime} \neq r$ ，则 $r^{\prime}$ 肯定是 $r$ 的一个因子，除非 $s=0$ ，这种情况发生的概率为 $1 / r &lt; 1 / 2$ ，不过经过几次重复后，这种情况就可以不考虑了。假设我们用 $a^{\prime} \equiv a^{r^{\prime}}(\bmod N)$ 来代</p>
+<p>替 $a$ ，则 $a^{\prime}$ 的阶是 $r / r^{\prime}$ 。我们重复算法尝试计算 $a^{\prime}$ 的阶。如果成功，那么可以计算 $a$ 的阶，因为 $r=r^{\prime} \times r / r^{\prime}$ 。如果失败，那么得到的是 $r / r^{\prime}$ 的因子 $r^{\prime \prime}$ ，这样我们可以计算 $a^{\prime \prime} \equiv\left(a^{\prime}\right)^{r^{\prime \prime}}(\bmod N)$的阶。迭代这个过程，直到确定 $a$ 的阶。最多需要 $\log (r)=O(L)$ 次迭代，因为每次重复都把当前的候选对象 $a^{\prime \prime} \ldots$ 的阶降低至少一半。</p>
+<p>第三种方法比前两种方法都要好，因为它只需要常数次的尝试而不是 $O(L)$ 次的重复。它的思路是把相位估计——连分式过程重复两次，第一次得到 $r_{1}^{\prime}, s_{1}^{\prime}$ ，第二次得到 $r_{2}^{\prime}, s_{2}^{\prime}$ 。假设 $s_{1}^{\prime}$ 和 $s_{2}^{\prime}$ 没有公因子，$r$ 可以通过取 $r_{1}^{\prime}$ 和 $r_{2}^{\prime}$ 的最小公倍数得到。 $s_{1}^{\prime}$ 和 $s_{2}^{\prime}$ 没有公因子的概率为</p>
+<p>$$
+\begin{equation*}
+1-\sum_{q} p\left(q \mid s_{1}^{\prime}\right) p\left(q \mid s_{2}^{\prime}\right) \tag{5.56}
+\end{equation*}
+$$</p>
+<p>其中，对所有素数 $q$ 求和，并且 $p(x \mid y)$ 表示 $x$ 整除 $y$ 的概率。如果 $q$ 整除 $s_{1}^{\prime}$ ，则它一定也可以整除真正的 $s$ 和第一次迭代的 $s_{1}$ ，因此为了估计 $p\left(q \mid s_{1}^{\prime}\right)$ 的上界，只要估计 $p\left(q \mid s_{1}\right)$ 的上界，其中 $s_{1}$ 是从 0 到 $r-1$ 中均匀分布选出的。容易看出 $p\left(q \mid s_{1}\right) \leqslant 1 / q$ ，因此 $p\left(q \mid s_{1}^{\prime}\right) \leqslant 1 / q$ 。类似地， $p\left(q \mid s_{2}^{\prime}\right) \leqslant 1 / q$ ，因此 $s_{1}^{\prime}$ 和 $s_{2}^{\prime}$ 没有公因子的概率是</p>
+<p>$$
+\begin{equation*}
+1-\sum_{q} p\left(q \mid s_{1}^{\prime}\right) p\left(q \mid s_{2}^{\prime}\right) \geqslant 1-\sum_{q} \frac{1}{q^{2}} \tag{5.57}
+\end{equation*}
+$$</p>
+<p>右边项可以用不同的方法来估计上界。在习题 5.16 中提供了一个简单的技术，给出</p>
+<p>$$
+\begin{equation*}
+1-\sum_{q} p\left(q \mid s_{1}^{\prime}\right) p\left(q \mid s_{2}^{\prime}\right) \geqslant \frac{1}{4} \tag{5.58}
+\end{equation*}
+$$</p>
+<p>因此得到正确 $r$ 的概率至少为 $1 / 4$ 。</p>
+<p>习题5.15 证明正整数 $x$ 和 $y$ 的最小公倍数是 $x y / \operatorname{gcd}(x, y)$ ，因此若 $x$ 和 $y$ 是 $L$ 比特的数，则可以在 $O\left(L^{2}\right)$ 次操作内算出。</p>
+<p>习题 5.16 对所有的 $x \geqslant 2$ ，证明 $\int_{x}^{x+1} 1 / y^{2} \mathrm{~d} y \geqslant 2 / 3 x^{2}$ ，并证明</p>
+<p>$$
+\begin{equation*}
+\sum_{q} \frac{1}{q^{2}} \leqslant \frac{3}{2} \int_{2}^{\infty} \frac{1}{y^{2}} \mathrm{~d} y=\frac{3}{4} \tag{5.59}
+\end{equation*}
+$$</p>
+<p>由上式可知式（5.58）成立。</p>
+<p>这个算法需要消耗多少资源？阿达玛变换需要 $O(L)$ 个门，逆傅里叶变换需要 $O\left(L^{2}\right)$ 个门。量子电路的主要资源消耗在求模幂，这需要 $O\left(L^{3}\right)$ 个门，因此整个量子电路的门数也是 $O\left(L^{3}\right)$个。连分式算法又增加了 $O\left(L^{3}\right)$ 个门，因为要用 $O\left(L^{3}\right)$ 个门来得到 $r^{\prime}$ 。利用第 3 种方法从 $r^{\prime}$ 中得到 $r$ ，我们只需要重复这个过程常数次来得到阶 $r$ ，总共消耗 $O\left(L^{3}\right)$ 规模的资源。算法总结如下。</p>
+<h2>算法（量子求阶）</h2>
+<p>输入：（1）进行变换 $|j\rangle|k\rangle \rightarrow|j\rangle\left|x^{j} k \bmod N\right\rangle$ 的黑盒 $U_{x, N}$ ，其中 N 有 $L$ 位，$x$ 与 $N$ 互质；（2）初始化为 $|0\rangle$ 的 $t=2 L+1+\left\lceil\log \left(2+\frac{1}{2 \epsilon}\right)\right\rceil$ 个量子比特；（3）初始化为状态 $|1\rangle$ 的 $L$ 个</p>
+<h2>量子比特。</h2>
+<p>输出：最小的整数 $r &gt; 0$ ，使得 $x^{r}=1(\bmod N)$ 。</p>
+<p>运行时间：$O\left(L^{3}\right)$ 次操作，成功概率是 $O(1)$ 。</p>
+<p>过程：</p>
+<p>1.$|0\rangle|1\rangle$</p>
+<p>初始状态</p>
+<p>2.$\rightarrow \frac{1}{\sqrt{2^{t}}} \sum_{j=0}^{2^{t}-1}|j\rangle|1\rangle$</p>
+<p>产生叠加</p>
+<p>3.$\rightarrow \frac{1}{\sqrt{2^{t}}} \sum_{j=0}^{2^{t}-1}|j\rangle\left|x^{j} \bmod N\right\rangle \quad$ 作用 $U_{x, N}$</p>
+<p>$$
+\approx \frac{1}{\sqrt{r 2^{t}}} \sum_{s=0}^{r-1} \sum_{j=0}^{2^{t}-1} \mathrm{e}^{2 \pi \mathrm{i} s j / r}|j\rangle\left|u_{s}\right\rangle
+$$</p>
+<p>4.$\left.\rightarrow \frac{1}{\sqrt{r}} \sum_{s=0}^{r-1}|\widetilde{s / r\rangle}| u_{s}\right\rangle$</p>
+<p>在第一寄存器上作用逆傅里叶变换</p>
+<p>5.$\rightarrow \widetilde{s / r}$</p>
+<p>测量第一寄存器</p>
+<p>6.$\rightarrow r$</p>
+<p>应用连分式算法</p>
+<h2>5.3.2 应用：因子分解</h2>
+<p>区分素数和合数，以及将合数分解为素因子，是整个算术中最重要且最有用的问题之一。 $[\cdots \cdots]$ 科学的尊严似乎要求每一个有助于解决这样优雅和著名的问题的努力要得到积极的支持。</p>
+<p>——高斯，高德纳引用</p>
+<p>给定一个正合数 $N$ ，什么样的一组素数乘起来和它相等？因为求阶的快速算法可以很容易地变成因子分解的快速算法，所以因子分解问题实际上等价于我们刚刚研究的求阶问题。本节我们解释将因子分解问题归约为求阶问题的方法，并给出该归约的一个简单例子。</p>
+<p>把因子分解归约为求阶的过程分为两个基本步骤。第一步是证明如果我们能够找到方程 $x^{2}=$ $1(\bmod N)$ 的一个非平凡解 $x \neq \pm 1(\bmod N)$ ，那么就可以计算出 $N$ 的一个因子。第二步是证明一个随机选择的与 $N$ 互质的 $y$ 很可能有偶数的阶 $r$ ，使得 $y^{r / 2} \neq \pm 1(\bmod N)$ ，因此 $x \equiv$ $y^{r / 2}(\bmod N)$ 是 $x^{2}=1(\bmod N)$ 的一个非平凡的解。这两步体现在下面的定理，定理的证明可以在 D. 3 节中找到。</p>
+<p>定理5.2 假设 $N$ 是一个 $L$ 比特的合数，$x$ 是方程 $x^{2}=1(\bmod N)$ 在整数范围 $1 \leqslant x \leqslant N$ 内的一个非平凡解，即，既不满足 $x=1(\bmod N)$ ，也不满足 $x=N-1=-1(\bmod N) 。$ 则 $\operatorname{gcd}(x-1, N)$和 $\operatorname{gcd}(x+1, N)$ 中至少有一个是 $N$ 的非平凡因子，这可用 $O\left(L^{3}\right)$ 次操作得到。</p>
+<p>定理5.3 假设 $N=p_{1}^{\alpha_{1}} \cdots p_{m}^{\alpha_{m}}$ 是一个正的奇合数的素因子分解，令 $x$ 是在 $1 \leqslant x \leqslant N-1$ 内均匀随机选出的与 $N$ 互质的整数，令 $r$ 是 $x$ 模 $N$ 的阶，则</p>
+<p>$$
+\begin{equation*}
+p\left(r \text { 是偶数且 } x^{r / 2} \neq-1(\bmod N)\right) \geqslant 1-\frac{1}{2^{m-1}} \tag{5.60}
+\end{equation*}
+$$</p>
+<p>定理 5.2 和 5.3 结合起来可以得到一个算法，它能以很高概率返回任意合数 $N$ 的一个非平凡因子。（根据目前所知）除了用到的求阶子程序，算法所有步骤都可以在经典计算机上有效执行。重复这个过程，可以求出 $N$ 的完整素因子分解。算法总结如下。</p>
+<p>算法（因子分解到求阶的归约）</p>
+<p>输入：一个合数 $N$ 。</p>
+<p>输出：$N$ 的一个非平凡因子。</p>
+<p>运行时间：$O\left((\log N)^{3}\right)$ 次操作，成功概率是 $O(1)$ 。</p>
+<h2>步骤：</h2>
+<p>1.若 $N$ 是偶数，返回因子 2 。</p>
+<p>2.判定对于整数 $a \geqslant 1$ 和 $b \geqslant 2$ 是否有 $N=a^{b}$ 。如果是则返回因子 $a$（利用习题5.17的经典算法）。</p>
+<p>3.随机在 1 到 $N-1$ 的范围内选择 $x$ ，若 $\operatorname{gcd}(x, N) &gt; 1$ ，则返回因子 $\operatorname{gcd}(x, N)$ 。</p>
+<p>4.利用求阶子程序，求出 $x$ 模 $N$ 的阶 $r$ 。</p>
+<p>5.若 $r$ 是偶数且 $x^{r / 2} \neq-1(\bmod N)$ ，则计算 $\operatorname{gcd}\left(x^{r / 2}-1, N\right)$ 和 $\operatorname{gcd}\left(x^{r / 2}+1, N\right)$ ，如果这两个数中有一个是非平凡因子，则返回该数。否则，算法失败。</p>
+<p>算法的步骤 1 和步骤 2 要么返回一个因子，要么保证 $N$ 是一个含有多于 1 个素因子的奇数。这些步骤可以分别用 $O(1)$ 和 $O\left(L^{3}\right)$ 次操作完成。步骤 3 要么返回一个因子，要么随机从 ${0,1,2, \cdots, N-1}$ 里选取 $x$ 。步骤 4 调用求阶子程序，计算 $x$ 模 $N$ 的阶 $r$ 。步骤 $\mathbf{5}$ 结束算法，因为定理 5.3 以至少 $1 / 2$ 的概率保证 $r$ 为偶数且 $x^{r / 2} \neq-1(\bmod N)$ ，并且定理 5.2 保证要么 $\operatorname{gcd}\left(x^{r / 2}-1, N\right)$ 要么 $\operatorname{gcd}\left(x^{r / 2}+1, N\right)$ 是 $N$ 的非平凡因子。专题 5.4 给出这个利用量子求阶子程序算法的一个例子。</p>
+<h2>专题 5.4 用量子力学方式对 15 进行因子分解</h2>
+<p>通过对 $N=15$ 分解因子，来说明量子因子分解算法中的求阶，相位估计和连分式展开。首先，我们选择一个与 $N$ 没有公因子的随机数，假设选的是 7 。然后，我们用量子求阶算法来计算 $x$ 相对 $N$ 的阶：从状态 $|0\rangle|0\rangle$ 开始，通过对第一寄存器作用 $t=11$ 次阿达玛变换得到状态</p>
+<p>$$
+\begin{equation*}
+\frac{1}{\sqrt{2^{t}}} \sum_{k=0}^{2^{t}-1}|k\rangle|0\rangle=\frac{1}{\sqrt{2^{t}}}\left[|0\rangle+|1\rangle+|2\rangle+\cdots+\left|2^{t}-1\right\rangle\right]|0\rangle \tag{5.61}
+\end{equation*}
+$$</p>
+<p>选择这样的 $t$ 保证了误差概率 $\epsilon$ 至多为 $1 / 4$ 。下一步，计算 $f(k)=x^{k} \bmod N$ ，并把结果放到第二寄存器中：</p>
+<p>$$
+\begin{align*}
+&amp; \frac{1}{\sqrt{2^{t}}} \sum_{k=0}^{2^{t}-1}|k\rangle\left|x^{k} \bmod N\right\rangle  \tag{5.62}\\
+&amp; \quad=\frac{1}{\sqrt{2^{t}}}[|0\rangle|1\rangle+|1\rangle|7\rangle+|2\rangle|4\rangle+|3\rangle|13\rangle+|4\rangle|1\rangle+|5\rangle|7\rangle+|6\rangle|4\rangle+\cdots]
+\end{align*}
+$$</p>
+<p>再作用逆傅里叶变换 $F T^{\dagger}$ 到第一寄存器后测量它。分析所得结果分布的一个方法是，计算第一寄存器的约化密度矩阵，并对它作用 $F T^{\dagger}$ ，然后计算测量统计量。不过，因为第二寄存器上没有进一步的操作，我们可以应用隐含测量原理（4.4节）来代替，假设第二寄存器也被测量了，随机得到 $1,7,4,13$ 的结果。假设我们得到 4 （哪个结果都可以），这意味着输入到 $F T^{\dagger}$ 的状态为 $\left.\sqrt{\frac{4}{2^{t}}}[2\rangle+|6\rangle+|10\rangle+|14\rangle+\cdots\right]$ 。作用 $F T^{\dagger}$ 之后，我们得到某个状态 $\sum_{\ell} \alpha_{\ell}|\ell\rangle$ ，其所对应的的概率分布如下图所示 $\left(\right.$ 取 $\left.2^{t}=2048\right)$ 。</p>
+<p><img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-058.jpg?height=792&amp;width=2624&amp;top_left_y=2285&amp;top_left_x=503" /></p>
+<p>因此最终测量是以几乎恰好每个 $1 / 4$ 的概率给出 $0,512,1024$ 或 1536 中的一个结果。假设得到 $\ell=1536$ ，那么计算连分式展开就得到 $1536 / 2048=1 /(1+(1 / 3))$ ，这样 $3 / 4$ 成为展开式的一个渐近值，于是得到 $r=4$ 是 $x=7$ 的阶。恰巧，$r$ 是偶数，且 $x^{r / 2} \bmod N=$ $7^{2} \bmod 15=4 \neq-1 \bmod 15$ ，因此算法有效：计算最大公因子 $\operatorname{gcd}\left(x^{2}-1,15\right)=3$ 和 $\operatorname{gcd}\left(x^{2}+1,15\right)=5$ ，得到 $15=3 \times 5$ 。</p>
+<p>习题 5.17 假设 $N$ 的长度为 $L$ 比特。本习题的目的是找出一个有效的经典算法，判定 $N=a^{b}$ 是否对某些整数 $a \geqslant 1$ 和 $b \geqslant 2$ 成立。这可以按如下步骤达到。</p>
+<p>1.证明若这样的 $b$ 存在，则满足 $b \leqslant L$ 。</p>
+<p>2.证明为计算 $\log _{2} N$ ，对 $b \leqslant L$ 计算 $x=y / b$ ，以及计算两个最接近 $2^{x}$ 的整数 $u_{1}$ 和 $u_{2}$ 至多需要 $O\left(L^{2}\right)$ 次操作。</p>
+<p>3.证明为计算 $u_{1}^{b}$ 和 $u_{2}^{b}$（反复使用平方）和检查它们是否等于 $N$ 至多需要 $O\left(L^{2}\right)$ 次操作。</p>
+<p>4.将前面的结果结合起来给出一个 $O\left(L^{3}\right)$ 的算法，以判定 $N=a^{b}$ 是否对整数 $a$ 和 $b$ 成立。</p>
+<p>习题5.18（因子分解 91）假设我们希望因子分解 $N=91$ ，确认第一步和第二步会通过。对于第三步，假设选择 $x=4$ ，它与 91 互质。计算 $x$ 相对 $N$ 的阶，并证明 $x^{r / 2} \bmod 91=64 \neq$ $-1(\bmod 91)$ ，因此算法会成功，并给出 $\operatorname{gcd}(64-1,91)=7$ 。</p>
+<p>这不是你见过的分解 91 的最有效的方法。的确，如果所有的计算都在经典计算机上运行，这个归约不会得到一个有效的因子分解算法，因为还不知道在经典计算机上解决求阶问题的有效解法。</p>
+<p>习题 5.19 证明 $N=15$ 是需要用到求阶子程序的最小数，即它是既非偶数又非某个更小整数的幂的最小合数。</p>
+<h1>5.4 量子傅里叶变换的一般应用</h1>
+<p>迄今为止，我们在本章描述的量子傅里叶变换的主要应用是相位估计和求阶。用这些技术可以解决哪些其他问题？本节中，我们定义一个称为隐含子群问题的非常一般的问题，并描述一个解决该问题的有效量子算法。这个问题包含了所有已知的量子傅里叶变换的指数加速应用，它可以被视为求周期函数的未知周期的一种推广，在函数定义域和值域结构非常复杂的情况下。为了以最容易理解的方式来描述该问题，我们从两个更具体的应用出发：求（一维函数的）周期和离散对数问题，然后再回到一般的隐含子群问题。注意本节的阐述比本章中前面的小节更简明和概念化，这意味着，希望掌握全部细节的读者必须付出更多的努力！</p>
+<h2>5.4.1 周期查找</h2>
+<p>考虑下面的问题。假设 $f$ 是一个输出为单比特的周期函数，满足对于某个未知的 $0 &lt; r &lt; 2^{L}$ ，有 $f(x+r)=f(x)$ ，其中 $x, r \in{0,1,2, \cdots}$ 。给定一个量子黑盒 $U$ ，它执行西变换 $U|x\rangle|y\rangle \rightarrow$ $|x\rangle|y \oplus f(x)\rangle(\oplus$ 表示模 2 加），需要多少次黑盒查询和其他操作才能确定 $r$ 呢？注意在实际中， $U$ 作用在一个有限域上，它的大小取决于对 $r$ 期望的精度。下面有一个量子算法可以使用一次查询和 $O\left(L^{2}\right)$ 次其他操作对问题进行求解。</p>
+<h2>算法（周期查找）</h2>
+<p>输入：（1）一个执行操作 $U|x\rangle|y\rangle \rightarrow|x\rangle|y \oplus f(x)\rangle$ 的黑盒；（2）一个存储函数值的状态，初始化为 $|0\rangle$ ；（3）$t$ 个初始化为 $|0\rangle$ 的量子比特，其中 $t=O(L+\log (1 / \epsilon))$ 。</p>
+<p>输出：最小的整数 $r &gt; 0$ ，使得 $f(x+r)=f(x)$ 。</p>
+<p>运行时间：一次对 $U$ 的使用和 $O\left(L^{2}\right)$ 次操作，成功概率为 $O(1)$ 。</p>
+<p>步骤：</p>
+<p>1.$|0\rangle|0\rangle$</p>
+<p>初始态</p>
+<p>2.$\rightarrow \frac{1}{\sqrt{2^{t}}} \sum_{x=0}^{2^{t}-1}|x\rangle|0\rangle$产生叠加</p>
+<p>3.$\rightarrow \frac{1}{\sqrt{2^{t}}} \sum_{x=0}^{2^{t}-1}|x\rangle|f(x)\rangle$</p>
+<p>执行 $U$</p>
+<p>$$
+\approx \frac{1}{\sqrt{r 2^{t}}} \sum_{\ell=0}^{r-1} \sum_{x=0}^{2^{t}-1} \mathrm{e}^{2 \pi \mathrm{i} \ell x / r}|x\rangle|\hat{f}(\ell)\rangle
+$$</p>
+<p>4.$\rightarrow \frac{1}{\sqrt{r}} \sum_{\ell=0}^{r-1}|\widetilde{\ell / r}\rangle|\hat{f}(\ell)\rangle \quad$ 对第一个寄存器作用逆傅里叶变换</p>
+<p>5.$\rightarrow \widetilde{\ell / r}$ 对第一个寄存器进行测量</p>
+<p>6.$\rightarrow r$ 应用连分式算法</p>
+<p>理解这个算法的关键是步骤 3，它基于相位估计，并且和量子求阶算法基本相同，我们在其中引人了状态</p>
+<p>$$
+\begin{equation*}
+|\hat{f}(\ell)\rangle \equiv \frac{1}{\sqrt{r}} \sum_{x=0}^{r-1} \mathrm{e}^{-2 \pi \mathrm{i} \ell x / r}|f(x)\rangle \tag{5.63}
+\end{equation*}
+$$</p>
+<p>它是 $|f(x)\rangle$ 的傅里叶变换。步骤 3 中的等式基于</p>
+<p>$$
+\begin{equation*}
+|f(x)\rangle=\frac{1}{\sqrt{r}} \sum_{\ell=0}^{r-1} \mathrm{e}^{2 \pi i \ell x / r}|\hat{f}(\ell)\rangle \tag{5.64}
+\end{equation*}
+$$</p>
+<p>这个等式很容易验证，注意到当 $x$ 是 $r$ 的倍数的时候，$\sum_{\ell=0}^{r-1} \mathrm{e}^{2 \pi \mathrm{i} \ell x / r}=r$ ，其他情况时 $\sum_{\ell=0}^{r-1} \mathrm{e}^{2 \pi \mathrm{i} \ell x / r}=$ 0 。步骤 3 中的近似式是必需的，因为通常情况下 $2^{t}$ 可能不是 $r$ 的整数倍（不必为整数倍，且相位估计的误差界取决于它）。由式（5.22），在步骤 4 中对第一个寄存器作用逆傅里叶变换，给出相位 $\ell / r$ 的一个估计，其中 $\ell$ 是随机选取的。 $r$ 可以在最后一步使用连分式展开有效地计算得到。</p>
+<p>为什么这个算法是对的呢？一个理解它的方式是认识到式（5.63）是 $|f(x)\rangle$ 在 $\left\{0,1, \cdots, 2^{L}-1\right\}$上的傅里叶变换的一个近似（见习题 5.20 ），并且傅里叶变换具有专题 5.5 描述的有趣并且非常有用的位移不变性。另一种理解方式是，求阶算法做的事情是查找函数 $f(k)=x^{k} \bmod N$ 的周期，所以查找一般周期函数的周期的能力是不足为奇的。另外就是意识到黑盒 $U$ 可以自然地用某个特征向量恰好是 $|\hat{f}(\ell)\rangle$ 的西算子来实现，如习题 5.21 所示，这样就可以应用 5.2 节的相位估计过程来解决这个问题。</p>
+<h2>专题5.5 傅里叶变换的位移不变性</h2>
+<p>式（5.1）中的傅里叶变换有一个有趣且非常有用的性质，被称为位移不变性。我们使用一种有助于描述这个性质的更广为应用的记号，把傅里叶变换表达为</p>
+<p>$$
+\begin{equation*}
+\sum_{h \in H} \alpha_{h}|h\rangle \rightarrow \sum_{g \in G} \tilde{\alpha}_{g}|g\rangle \tag{5.65}
+\end{equation*}
+$$</p>
+<p>其中 $\tilde{\alpha}_{g}=\sum_{h \in H} \alpha_{h} \exp (2 \pi \mathrm{i} g h /|G|), H$ 是 $G$ 的某个子集，$G$ 是希尔伯特空间一组标准正交基的指标集。例如，对于一个 $n$ 量子比特系统来说，$G$ 是从 0 到 $2^{n}-1$ 的数的集合。 $|G|$ 表示 $G$ 中元素的个数。假设我们对初始态作用算子 $U_{k}$ ，它的效果如下：</p>
+<p>$$
+\begin{equation*}
+U_{k}|g\rangle=|g+k\rangle \tag{5.66}
+\end{equation*}
+$$</p>
+<p>然后作用傅里叶变换，结果为</p>
+<p>$$
+\begin{equation*}
+U_{k} \sum_{h \in H} \alpha_{h}|h\rangle=\sum_{h \in H} \alpha_{h}|h+k\rangle \rightarrow \sum_{g \in G} \mathrm{e}^{2 \pi \mathrm{i} g k /|G|} \tilde{\alpha}_{g}|g\rangle \tag{5.67}
+\end{equation*}
+$$</p>
+<p>这个状态具有这样的属性：无论 $k$ 是什么，$|g\rangle$ 的振幅大小都不改变，即 $\left|\exp (2 \pi \mathrm{i} g k /|G|) \tilde{\alpha}_{g}\right|=$ $\left|\tilde{\alpha}_{g}\right|$ 。</p>
+<p>用群论的语言来说，$G$ 是一个群，$H$ 是 $G$ 的一个子群，如果一个 $G$ 上的函数 $f$ 在 $H$ 的陪集上是常数，那么 $f$ 的傅里叶变换在 $H$ 的陪集上是不变的。</p>
+<p>习题5.20 设 $f(x+r)=f(x)$ ，且 $0 \leqslant x &lt; N, N$ 是 $r$ 的整数倍，计算</p>
+<p>$$
+\begin{equation*}
+\hat{f}(\ell) \equiv \frac{1}{\sqrt{N}} \sum_{x=0}^{N-1} \mathrm{e}^{-2 \pi \mathrm{i} \ell x / N} f(x) \tag{5.68}
+\end{equation*}
+$$</p>
+<p>并且将这个结果和式（5.63）联系起来。其中要用到如下事实：</p>
+<p>$$
+\sum_{k \in{0, r, 2 r, \cdots, N-r}} \mathrm{e}^{2 \pi \mathrm{i} k \ell / N}= \begin{cases}N / r &amp; \ell \text { 是 } N / r \text { 的整数倍 }  \tag{5.69}\\ 0 &amp; \text { 其他 }\end{cases}
+$$</p>
+<p>习题 5.21 （周期查找和相位估计）假设给定一个执行变换 $U_{y}|f(x)\rangle=|f(x+y)\rangle$ 的西算子 $U_{y}$ ，对于上述的周期函数：</p>
+<p>1.证明 $U_{y}$ 的特征向量是 $|\hat{f}(\ell)\rangle$ ，并且计算对应的特征值。</p>
+<p>2.证明：给定 $\left|f\left(x_{0}\right)\right\rangle, U_{y}$ 可以被用于实现和周期查找问题中的 $U$ 一样有用的黑盒。</p>
+<h2>5.4.2 离散对数问题</h2>
+<p>我们考虑的周期寻找问题是一个简单的问题，因为这里的周期函数的定义域和值域都是整数。如果函数更复杂会发生什么呢？考虑函数 $f\left(x_{1}, x_{2}\right)=a^{s x_{1}+x_{2}} \bmod N$ ，其中所有的变量是整数， $r$ 是使得 $a^{r} \bmod N=1$ 成立的最小正整数。这个函数是周期的，因为 $f\left(x_{1}+\ell, x_{2}-\ell s\right)=f\left(x_{1}, x_{2}\right)$ ，但是现在周期是一个 2 元组，$(\ell,-\ell s)$ ，其中 $\ell$ 是一个整数。这个函数看上去可能很奇怪，但是它在密码学中非常有用，因为确定 $s$ 就能够解决被称为离散对数的问题：给定 $a$ 和 $b=a^{s}$ ，求出 $s$ 。下面是一个求解这个问题的量子算法，它使用对量子黑盒 $U$ 的一次查询和 $O\left(\lceil\log r\rceil^{2}\right)$ 次其他操作，其中黑盒 $U$ 执行西变换 $U\left|x_{1}\right\rangle\left|x_{2}\right\rangle|y\rangle \rightarrow\left|x_{1}\right\rangle\left|x_{2}\right\rangle|y \oplus f(x)\rangle(\oplus$ 表示按位模 2 加 ）。我们假设通过之前描述的求阶算法，已经求得满足 $a^{r} \bmod N=1$ 的最小值 $r &gt; 0$ 。</p>
+<h2>算法（离散对数）</h2>
+<p>输入：（1）一个执行操作 $U\left|x_{1}\right\rangle\left|x_{2}\right\rangle|y\rangle=\left|x_{1}\right\rangle\left|x_{2}\right\rangle\left|y \oplus f\left(x_{1}, x_{2}\right)\right\rangle$ 的黑盒，其中 $f\left(x_{1}, x_{2}\right)=$ $b^{x_{1}} a^{x_{2}}$ ；（2）一个初始化为 $|0\rangle$ 的存储函数值的状态；（3）两个初始化为 $|0\rangle$ 的 $t$ 位量子比特寄存器，其中 $t=O(\lceil\log r\rceil+\log (1 / \epsilon))$ 。</p>
+<p>输出：使得 $a^{s}=b$ 成立的最小正整数 $s$ 。</p>
+<p>运行时间：一次对 $U$ 的使用和 $O\left(\lceil\log r\rceil^{2}\right)$ 次操作，成功概率为 $O(1)$ 。</p>
+<h2>步骤：</h2>
+<p>1.$|0\rangle|0\rangle|0\rangle$</p>
+<p>初始态</p>
+<p>2.$\rightarrow \frac{1}{2^{t}} \sum_{x_{1}=0}^{2^{t}-1} \sum_{x_{2}=0}^{2^{t}-1}\left|x_{1}\right\rangle\left|x_{2}\right\rangle|0\rangle \quad$ 产生叠加</p>
+<p>3.$\rightarrow \frac{1}{2^{t}} \sum_{x_{1}=0}^{2^{t}-1} \sum_{x_{2}=0}^{2^{t}-1}\left|x_{1}\right\rangle\left|x_{2}\right\rangle\left|f\left(x_{1}, x_{2}\right)\right\rangle \quad$ 执行 $U$</p>
+<p>$\approx \frac{1}{2^{t} \sqrt{r}} \sum_{\ell_{2}=0}^{r-1} \sum_{x_{1}=0}^{2^{t}-1} \sum_{x_{2}=0}^{2^{t}-1} \mathrm{e}^{2 \pi \mathrm{i}\left(s \ell_{2} x_{1}+\ell_{2} x_{2}\right) / r}\left|x_{1}\right\rangle\left|x_{2}\right\rangle\left|\hat{f}\left(s \ell_{2}, \ell_{2}\right)\right\rangle$</p>
+<p>$=\frac{1}{2^{t} \sqrt{r}} \sum_{\ell_{2}=0}^{r-1}\left[\sum_{x_{1}=0}^{2^{t}-1} \mathrm{e}^{2 \pi \mathrm{i}\left(s \ell_{2} x_{1}\right) / r}\left|x_{1}\right\rangle\right]\left[\sum_{x_{2}=0}^{2^{t}-1} \mathrm{e}^{2 \pi \mathrm{i}\left(\ell_{2} x_{2}\right) / r}\left|x_{2}\right\rangle\right]\left|\hat{f}\left(s \ell_{2}, \ell_{2}\right)\right\rangle$</p>
+<p>4.$\rightarrow \frac{1}{\sqrt{r}} \sum_{\ell_{2}=0}^{r-1}\left|\widetilde{s \ell_{2} / r}\right\rangle\left|\widetilde{\ell_{2} / r}\right\rangle\left|\hat{f}\left(s \ell_{2}, \ell_{2}\right)\right\rangle \quad$ 对前两个寄存器作用逆傅里叶变换</p>
+<p>5.$\left.\rightarrow \widetilde{\left(s \ell_{2} / r\right.}, \widetilde{\ell_{2} / r}\right) \quad$ 测量前两个寄存器</p>
+<p>6.$\rightarrow s$ 应用广义连分式算法</p>
+<p>同样，理解这个算法的关键是步骤 3，其中我们引人状态</p>
+<p>$$
+\begin{equation*}
+\left|\hat{f}\left(\ell_{1}, \ell_{2}\right)\right\rangle=\frac{1}{\sqrt{r}} \sum_{j=0}^{r-1} \mathrm{e}^{-2 \pi i \ell_{2} j / r}|f(0, j)\rangle \tag{5.70}
+\end{equation*}
+$$</p>
+<p>它是 $\left|f\left(x_{1}, x_{2}\right)\right\rangle$ 的傅里叶变换（习题 5.22 ）。在这个式子中，$\ell_{1}$ 和 $\ell_{2}$ 的值必须满足</p>
+<p>$$
+\begin{equation*}
+\sum_{k=0}^{r-1} \mathrm{e}^{2 \pi \mathrm{i} k\left(\ell_{1} / s-\ell_{2}\right) / r}=r \tag{5.71}
+\end{equation*}
+$$</p>
+<p>否则，$\left|\hat{f}\left(\ell_{1}, \ell_{2}\right)\right\rangle$ 的振幅将接近于 0 。在最后一步中，用于确定 $s$ 的广义连分式展开类似于 5.3.1 节中的过程，这留作一个简单的习题。</p>
+<p>习题 5.22 证明</p>
+<p>$$
+\begin{equation*}
+\left|\hat{f}\left(\ell_{1}, \ell_{2}\right)\right\rangle=\sum_{x_{1}=0}^{r-1} \sum_{x_{2}=0}^{r-1} \mathrm{e}^{-2 \pi \mathrm{i}\left(\ell_{1} x_{1}+\ell_{2} x_{2}\right) / r}\left|f\left(x_{1}, x_{2}\right)\right\rangle=\frac{1}{\sqrt{r}} \sum_{j=0}^{r-1} \mathrm{e}^{-2 \pi \mathrm{i} \ell_{2} j / r}|f(0, j)\rangle \tag{5.72}
+\end{equation*}
+$$</p>
+<p>且这个表达式不为零的限制条件是 $\ell_{1} / s-\ell_{2}$ 是 $r$ 的整数倍。</p>
+<p>习题 5.23 用式（5.70）计算</p>
+<p>$$
+\begin{equation*}
+\frac{1}{r} \sum_{\ell_{1}=0}^{r-1} \sum_{\ell_{2}=0}^{r-1} \mathrm{e}^{-2 \pi \mathrm{i}\left(\ell_{1} x_{1}+\ell_{2} x_{2}\right) / r}\left|\hat{f}\left(\ell_{1}, \ell_{2}\right)\right\rangle \tag{5.73}
+\end{equation*}
+$$</p>
+<p>并证明结果是 $f\left(x_{1}, x_{2}\right)$ 。</p>
+<p>习题5.24 构造离散对数算法中步骤6需要的广义连分式算法，它从 $s \ell_{2} / r$ 和 $\ell_{2} / r$ 的估计值中确定 $s$ 。</p>
+<p>习题5.25 为量子离散对数算法中使用的黑盒 $U$ 构造一个量子电路，该黑盒以 $a$ 和 $b$ 为参数，执行西变换 $\left|x_{1}\right\rangle\left|x_{2}\right\rangle|y\rangle \rightarrow\left|x_{1}\right\rangle\left|x_{2}\right\rangle\left|y \oplus b^{x_{1}} a^{x_{2}}\right\rangle$ 。这个电路需要多少个基本操作？</p>
+<h2>5.4.3 隐含子群问题</h2>
+<p>到目前为止，一个模式清晰地显现出来了：若给定一个周期函数，即使周期结构相当复杂，我们总能使用一个量子算法有效地确定周期。然而，重要的是，不是所有周期函数的周期都能被确定。这种问题的一般性框架可以简洁地用群论的语言描述如下（见附录 B）：</p>
+<p>令 $f$ 是从有限生成群 $G$ 到有限集合 $X$ 的映射，满足 $f$ 在子群 $K$ 的同一陪集上的函数值是常数，且在不同陪集上的函数值不同。给定一个量子黑盒执行西变换 $U|g\rangle|h\rangle=$ $|g\rangle|h \oplus f(g)\rangle$ ，其中 $g \in G, h \in X, \oplus$ 是一个在 $X$ 上被适当选取的二元操作，求 $K$的一个生成集。</p>
+<p>求阶问题，周期查找，离散对数和许多其他问题都是隐含子群问题的实例。图 5－5 给出了一些有趣的例子。</p>
+<p>对于一个有限阿贝尔群 $G$ 来说，量子计算机可以使用 $\log |G|$ 的多项式数目的操作及一次黑盒函数求值，以非常类似于本节中其他问题的方法求解隐含子群问题（实际上，使用相似的方法对一个有限生成阿贝尔群进行求解也是可能的，但是我们这里只讨论有限的情形）。我们把算法细节的描述留作习题，在说明了基本思路后，这应该是容易的。算法的许多方面本质上是一样的，因为有限阿贝尔群同构于在整数模运算上的加法群的积。这意味着 $f$ 在 $G$ 上的量子傅里叶变换是定义良好的（见 B. 3 节），且仍可以有效计算。算法的第一个重要步骤是使用傅里叶变换（推广了阿达玛变换）产生群元素的叠加态，在接下来的步骤中，该叠加态在 $f$ 的黑盒作用下变换为</p>
+<p>$$
+\begin{equation*}
+\frac{1}{\sqrt{|G|}} \sum_{g \in G}|g\rangle|f(g)\rangle \tag{5.74}
+\end{equation*}
+$$</p>
+<p>像之前一样，我们在傅里叶基下重写 $|f(g)\rangle$ 。我们从</p>
+<p>$$
+\begin{equation*}
+|f(g)\rangle=\frac{1}{\sqrt{|G|}} \sum_{\ell=0}^{|G|-1} \mathrm{e}^{2 \pi i \ell g /|G|}|\hat{f}(\ell)\rangle \tag{5.75}
+\end{equation*}
+$$</p>
+<p>开始，这里我们选择 $\exp [-2 \pi \mathrm{i} \ell g /|G|]$ 作为 $g \in G$ 的一个以 $\ell$ 为指标（傅里叶变换在群元素和表示之间做了一个映射：见习题 A2.23）的表示（见习题 A2.13）。关键在于认识到这个表达式可以简化，因为 $f$ 在子群 $K$ 的同一陪集上是常数，并且在不同陪集上互异，于是</p>
+<p>$$
+\begin{equation*}
+|\hat{f}(\ell)\rangle=\frac{1}{\sqrt{|G|}} \sum_{g \in G} \mathrm{e}^{-2 \pi i \ell g /|G|}|f(g)\rangle \tag{5.76}
+\end{equation*}
+$$</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">名称</th>
+<th style="text-align: center;">G</th>
+<th style="text-align: center;">X</th>
+<th style="text-align: center;">K</th>
+<th style="text-align: center;">函数</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">Deutsch</td>
+<td style="text-align: center;">${0,1}, \oplus$</td>
+<td style="text-align: center;">${0,1}$</td>
+<td style="text-align: center;">${0}$ 或 ${0,1}$</td>
+<td style="text-align: center;">$\begin{aligned} &amp; K={0,1}:\left\{\begin{array}{l} f(x)=0 \\ f(x)=1 \end{array}\right. \\ &amp; K={0}:\left\{\begin{array}{l} f(x)=x \\ f(x)=1-x \end{array}\right. \end{aligned}$</td>
+</tr>
+<tr>
+<td style="text-align: center;">Simon</td>
+<td style="text-align: center;">${0,1}^{n}, \oplus$</td>
+<td style="text-align: center;">任意有限集</td>
+<td style="text-align: center;">$\begin{gathered} {0, s} \\ s \in{0,1}^{n} \end{gathered}$</td>
+<td style="text-align: center;">$f(x \oplus s)=f(x)$</td>
+</tr>
+<tr>
+<td style="text-align: center;">周期寻找</td>
+<td style="text-align: center;">$\mathbf{Z},+$</td>
+<td style="text-align: center;">任意有限集</td>
+<td style="text-align: center;">$\begin{gathered} {0, r, 2 r, \cdots} \\ r \in G \end{gathered}$</td>
+<td style="text-align: center;">$f(x+r)=f(x)$</td>
+</tr>
+<tr>
+<td style="text-align: center;">求阶</td>
+<td style="text-align: center;">$\mathbf{Z},+$</td>
+<td style="text-align: center;">$\begin{gathered} \left\{a^{j}\right\} \\ j \in \mathbf{Z}_{r} \\ a^{r}=1 \end{gathered}$</td>
+<td style="text-align: center;">$\begin{gathered} {0, r, 2 r, \cdots} \\ r \in G \end{gathered}$</td>
+<td style="text-align: center;">$\begin{aligned} &amp; f(x)=a^{x} \\ &amp; f(x+r)=f(x) \end{aligned}$</td>
+</tr>
+<tr>
+<td style="text-align: center;">离散对数</td>
+<td style="text-align: center;">$\begin{gathered} \mathbf{Z}_{r} \times \mathbf{Z}_{r} \\ +(\bmod r) \end{gathered}$</td>
+<td style="text-align: center;">$\begin{gathered} \left\{a^{j}\right\} \\ j \in \mathbf{Z}_{r} \\ a^{r}=1 \end{gathered}$</td>
+<td style="text-align: center;">$\begin{aligned} &amp; (\ell,-\ell s) \\ &amp; \ell, s \in \mathbf{Z}_{r} \end{aligned}$</td>
+<td style="text-align: center;">$\begin{aligned} &amp; f\left(x_{1}, x_{2}\right)=a^{k x_{1}+x_{2}} \\ &amp; f\left(x_{1}+\ell, x_{2}-\ell s\right)=f\left(x_{1}, x_{2}\right) \end{aligned}$</td>
+</tr>
+<tr>
+<td style="text-align: center;">置换的阶</td>
+<td style="text-align: center;">$\begin{aligned} &amp; \mathbf{Z}_{2^{m}} \times \mathbf{Z}_{2^{n}} \\ &amp; +\left(\bmod 2^{m}\right) \end{aligned}$</td>
+<td style="text-align: center;">$\mathbf{Z}_{2}{ }^{n}$</td>
+<td style="text-align: center;">$\begin{gathered} {0, r, 2 r, \cdots} \\ r \in X \end{gathered}$</td>
+<td style="text-align: center;">$\begin{aligned} &amp; f(x, y)=\pi^{x}(y) \\ &amp; f(x+r, y)=f(x, y) \\ &amp; \pi=X \text { 上的置换 } \end{aligned}$</td>
+</tr>
+<tr>
+<td style="text-align: center;">隐含线性函数</td>
+<td style="text-align: center;">$\mathbf{Z} \times \mathbf{Z},+$</td>
+<td style="text-align: center;">$\mathbf{Z}_{N}$</td>
+<td style="text-align: center;">$\begin{aligned} &amp; (\ell,-\ell s) \\ &amp; \ell, s \in X \end{aligned}$</td>
+<td style="text-align: center;">$\begin{aligned} &amp; f\left(x_{1}, x_{2}\right)=\pi\left(s x_{1}+x_{2} \bmod N\right) \\ &amp; \pi=X \text { 上的置换 } \end{aligned}$</td>
+</tr>
+<tr>
+<td style="text-align: center;">阿贝尔稳定子</td>
+<td style="text-align: center;">$\begin{aligned} &amp; (H, X), \\ = &amp; \text { 任意阿贝尔群 } \end{aligned}$</td>
+<td style="text-align: center;">任意有限集</td>
+<td style="text-align: center;">$\begin{gathered} {s \in H \mid \\ f(s, x)=x, \\ \forall x \in X} \end{gathered}$</td>
+<td style="text-align: center;">$\begin{aligned} &amp; f(g h, x)=f(g, f(h, x)) \\ &amp; f(g s, x)=f(g, x) \end{aligned}$</td>
+</tr>
+</tbody>
+</table>
+<p>图 5－5 隐含子群问题。函数 $f$ 从群 $G$ 映射到有限集 $X$ ，且在隐含子群 $K \subseteq G$ 的同一陪集上为常数。在这张表中 $\mathbf{Z}_{N}$ 代表集合 ${0,1, \cdots, N-1}$ ，而 $\mathbf{Z}$ 是整数集。问题是在给定 $f$ 的一个黑盒的情况下，找到 $K$（或它的一个生成集）</p>
+<p>对于所有 $\ell$ 来说，振幅几乎都为 0 ，除了那些满足</p>
+<p>$$
+\begin{equation*}
+\sum_{h \in K} \mathrm{e}^{-2 \pi i \ell h /|G|}=|K| \tag{5.77}
+\end{equation*}
+$$</p>
+<p>的 $\ell$ 。如果我们可以确定 $\ell$ ，那么使用这个表达式给出的线性约束使得我们能够确定 $K$ 的元素，且由于 $K$ 是阿贝尔的，这允许我们为整个隐含子群最终确定一个生成集，从而解决问题。</p>
+<p>然而，问题并不是如此简单。周期查找和离散对数算法之所以可行是因为连分式展开可成功地从 $\ell /|G|$ 得到 $\ell$ 。在这些问题里，$\ell$ 和 $|G|$ 没有公因子的概率很高。然而，在通常的情况下，可</p>
+<p>能并不一定是这样，因为 $|G|$ 可能是一个有很多因子的合数，并且我们没有关于 $\ell$ 的有用的先验信息。</p>
+<p>幸运的是，这个问题是可以解决的：像之前被提到的，任意有限阿贝尔群 $G$ 同构于一个素幂阶循环群的积，即 $G=\mathbf{Z}_{p_{1}} \times \mathbf{Z}_{p_{2}} \times \cdots \times \mathbf{Z}_{p_{M}}$ ，其中 $p_{i}$ 是素数，并且 $\mathbf{Z}_{p_{i}}$ 是在整数 $\left\{0,1, \cdots, p_{i}-1\right\}$上的以模 $p_{i}$ 加为运算的群。因此，我们可以把式（5.75）中的相位重新表达为</p>
+<p>$$
+\begin{equation*}
+\mathrm{e}^{2 \pi \mathrm{i} l g /|G|}=\prod_{i=1}^{M} \mathrm{e}^{2 \pi \mathrm{i} \ell_{i}^{\prime} g_{i} / p_{i}} \tag{5.78}
+\end{equation*}
+$$</p>
+<p>其中 $g_{i} \in \mathbf{Z}_{p_{i}}$ 。现在相位估计过程给出 $\ell_{i}^{\prime}$ ，据此我们可确定 $\ell$ ，并且像上面描述的那样对 $K$ 采样，从而解决隐含子群问题。</p>
+<p>习题 5.26 因为 $K$ 是 $G$ 的一个子群，当我们把 $G$ 分解为素幕阶循环群的乘积时，也分解了 $K$ 。重新表述式（5.77），证明：确定 $\ell_{i}^{\prime}$ 使得我们可以在相应的循环子群 $K_{p_{i}}$ 中采样。</p>
+<p>习题5.27 当然，一般的有限阿贝尔群 $G$ 到素幂阶循环群的乘积的分解，通常是一个困难的问题（例如，至少和整数因子分解一样困难）。这里，可以用量子算法再次补救：说明用本章的算法，如何有效地按期望的方式分解 $G$ 。</p>
+<p>习题 5.28 详细写出对有限阿贝尔群解决隐含子群问题的量子算法，完善运行时间和成功概率。</p>
+<p>习题5.29 使用隐含子群问题的框架，给出解决在图 5－5 列出的 Deutsch 问题和 Simon 问题的量子算法。</p>
+<h2>5.4.4 其他的量子算法？</h2>
+<p>用隐含子群问题来描述量子算法，这一框架最迷人的一点在于通过考虑不同的群 $G$ 和函数 $f$ 来解决更困难的问题。我们只描述了这个问题对于阿贝尔群的解，那么非阿贝尔群呢？这是相当有趣的（参见附录 B 对非阿贝尔群上一般傅里叶变换的讨论）：例如，图同构问题是判定两个给定的图在 $n$ 个顶点标号的某个置换下是否相同（ 3.2 .3 节）。这些置换可以被描述为在对称群 $S_{n}$ 下的变换，并且在这些群上执行快速傅里叶变换的算法是存在的。然而，尚不知道求解图同构问题的有效量子算法。</p>
+<p>即使隐含子群问题的更一般情形在量子计算机下仍然不可解，有这样一个统一的框架仍然是有用的，因为这允许我们去提问：如何跨出这个限制。很难相信所有可能发现的快速量子算法仅仅能解决隐含子群问题。如果我们认为这些问题是基于傅里叶变换的陪集不变性，为了发现新算法，或许接下来去做的事情就是考察具有其他不变量的变换。在另一个方向上，我们可以问：给定一个任意量子态作为辅助信息（但要独立于问题），可以有效地解决哪些困难的隐含子群问题？毕竟如第 4 章所述，大多数量子态的构建是指数级困难的。如果有量子算法利用它们来解决困难的问题，那么这样一个状态将成为一个有用的资源（一个真实的＂量子 oracle＂）。</p>
+<p>对于比对应的（已知的）经典算法指数级快的量子算法来说，隐含子群问题捕捉到了这类量子算法的一个重要约束条件：它们都是承诺问题，即具有形式＂$F(x)$ 被承诺具有某种性质，把</p>
+<p>该性质刻画出来＂。令人相当失望的是，我们将在下章末展示，在求解不具有某种承诺的问题时，量子计算机不能实现对于经典计算机的指数级加速；最好的加速是多项式的。在另一方面，这给了我们关于量子计算机可能擅长于什么样的问题的重要线索：回顾一下，隐含子群问题可能被看作量子计算的一个自然候选对象。还有什么其他的自然问题呢？让我们一起来思考吧！</p>
+<p>问题5.1 构造量子傅里叶变换</p>
+<p>$$
+\begin{equation*}
+|j\rangle \longrightarrow \frac{1}{\sqrt{p}} \sum_{k=0}^{p-1} \mathrm{e}^{2 \pi \mathrm{i} j k / p}|k\rangle \tag{5.79}
+\end{equation*}
+$$</p>
+<p>的一个量子电路，其中 $p$ 是素数。</p>
+<p>问题5.2（被测量的量子傅里叶变换）设量子傅里叶变换是量子计算的最后一步，接着是在计算基上的测量。证明量子傅里叶变换和测量的结合，等价于一个完全由单量子比特门，测量及经典控制组成的量子电路。读者可能会发现 4.4 节的讨论是有用的。</p>
+<p>问题5.3（Kitaev 算法）考虑如下量子电路，其中 $|u\rangle$ 是 $U$ 的特征值 $\mathrm{e}^{2 \pi \mathrm{i} \varphi}$ 所对应的特征态。证明顶上的量子比特以 $p_{n} \equiv \cos {}^{2}(\pi \varphi)$ 的概率测得 0 。因为状态 $|u\rangle$ 不受电路影响，它可以重复使用。若用 $U^{k}$ 代替 $U$ ，其中 $k$ 是可控的任意整数，证明通过重复这个电路和适当增加 $k$ ，可以有效地获得所期望的 $p$ 的任意多比特，继而得到 $\varphi$ 的任意多比特，这是另外一种相位估计算法。</p>
+<p><img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-066.jpg?height=280&amp;width=920&amp;top_left_y=2786&amp;top_left_x=1343" /></p>
+<p>问题5.4 我们给出的因子分解算法的运行时间界 $O\left(L^{3}\right)$ 不是紧的，证明它有一个更好的上界 $O\left(L^{2} \log L \log \log L\right)$ 。</p>
+<p>问题5.5（非阿贝尔隐含子群——研究课题）令 $f$ 是有限群 $G$ 到任意有限值域 $X$ 的一个函数，且承诺 $f$ 在子群 $K$ 的同一左陪集上是常数，且在不同的左陪集上互异。从状态</p>
+<p>$$
+\begin{equation*}
+\frac{1}{\sqrt{|G|^{m}}} \sum_{g_{1}, \cdots, g_{m}}\left|g_{1}, \cdots, g_{m}\right\rangle\left|f\left(g_{1}\right), \cdots, f\left(g_{m}\right)\right\rangle \tag{5.80}
+\end{equation*}
+$$</p>
+<p>出发，证明选择 $m=4 \log |G|+2$ 可以使我们以至少 $1-1 /|G|$ 的概率识别出 $K$ ，注意 $G$ 不必是阿贝尔的，也不要求能够在 $G$ 上做傅里叶变换。这个结果表明，我们可以（只使用 $O(\log |G|)$次 oracle 调用）产生一个对应于所有可能的不同隐含子群的纯态，它们几乎是正交的。然而，尚不知道是否存在能从这个最终状态有效地（即使用 $\operatorname{poly}(\log |G|)$ 次操作）把隐含子群识别出来的 POVM。</p>
+<p>问题5.6（采用傅里叶变换的加法）考虑构造量子电路计算 $|x\rangle \rightarrow\left|x+y \bmod 2^{n}\right\rangle$ ，其中 $y$ 是一个固定的常数，且 $0 \leqslant x &lt; 2^{n}$ 。证明完成这个任务的一个有效方式，是首先进行量子傅里叶变换，然后利用单量子比特的相位移动，再进行逆傅里叶变换。对于什么样的 $y$ 值，这种加法是容易的，需要多少次运算？</p>
+<h1>本章小结</h1>
+<p>－当 $N=2^{n}$ 时，量子傅里叶变换</p>
+<p>$$
+\begin{equation*}
+|j\rangle=\left|j_{1}, \cdots, j_{n}\right\rangle \longrightarrow \frac{1}{\sqrt{N}} \sum_{k=0}^{N-1} \mathrm{e}^{2 \pi \mathrm{i} \frac{j k}{N}}|k\rangle \tag{5.81}
+\end{equation*}
+$$</p>
+<p>可以写成如下形式：</p>
+<p>$$
+\begin{equation*}
+|j\rangle \rightarrow \frac{1}{2^{n / 2}}\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 \cdot j_{n}}|1\rangle\right)\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 \cdot j_{n-1} j_{n}}|1\rangle\right) \cdots\left(|0\rangle+\mathrm{e}^{2 \pi \mathrm{i} 0 \cdot j_{1} j_{2} \cdots j_{n}}|1\rangle\right) \tag{5.82}
+\end{equation*}
+$$</p>
+<p>且可以使用 $\Theta\left(n^{2}\right)$ 个门实现。</p>
+<p>－相位估计：令 $|u\rangle$ 是西操作 $U$ 的一个特征态，它对应的特征值为 $\mathrm{e}^{2 \pi i \varphi}$ 。从初始态 $|0\rangle^{\otimes t}|u\rangle$开始，并且假定对于整数 $k$ 能够有效地执行 $U^{2^{k}}$ ，这个算法（图 5－3 所示）可用来有效地获得态 $|\tilde{\varphi}\rangle|u\rangle$ ，其中 $\tilde{\varphi}$ 以至少 $1-\epsilon$ 的概率精确到 $t-\left\lceil\left[\log \left(2+\frac{1}{2 \epsilon}\right)\right\rceil\right.$ 位精度来近似 $\varphi$ 。</p>
+<p>－求阶问题：$x$ 模 $N$ 的阶是满足 $x^{r} \bmod N=1$ 的最小正整数 $r$ 。对于 $L$ 位的整数 $x$ 和 $N$ 来说，$r$ 可以使用量子相位估计算法在 $O\left(L^{3}\right)$ 次操作内计算得到。</p>
+<p>－因子分解：一个 $L$ 位的整数 $N$ 的素因子可以在 $O\left(L^{3}\right)$ 次操作内确定，通过把因子分解归约到一个与 $N$ 互素的随机数 $x$ 的求阶问题。</p>
+<p>－隐含子群问题：所有已知的快速量子算法都可以被描述为解决下面的问题：令 $f$ 是从一个有限生成群 $G$ 到一个有限集合 $X$ 的映射，使得 $f$ 在子群 $K$ 的同一陪集上是常数，并且在不同陪集上互异。给定一个执行西变换 $U|g\rangle|h\rangle=|g\rangle|h \oplus f(g)\rangle$ 的量子黑盒，其中 $g \in G$ ， $h \in X$ ，求 $K$ 的一个生成集。</p>
+<h1>背景资料与延伸阅读</h1>
+<p>傅里叶变换的定义可以推广到本章考虑的范围之外。在一般场合下，傅里叶变换被定义在一个复数集合 $\alpha_{g}$ 上，其中指标 $g$ 从某个群 $G$ 中选取。本章我们选择 $G$ 为整数的模 $2^{n}$ 加法群，通常记为 $\mathbf{Z}_{2^{n}}$ 。Deutsch ${ }^{[D e u 85]}$ 证明群 $\mathbf{Z}_{2}^{n}$ 上的傅里叶变换可以在量子计算机上有效实现，这就是前面章节的阿达玛变换。Shor ${ }^{[S h o 94]}$ 意识到量子计算机对某些特定的 $m$ 值有可观的作用，即能有效实现群 $\mathbf{Z}_{m}$ 上的量子傅里叶变换。受这个结果启发，Coppersimth ${ }^{[C o p 94]}$ ，Deutsch（未发表）和 Cleve（未发表）给出了我们本章用的 $\mathbf{Z}_{2^{n}}$ 上量子傅里叶变换的简单量子电路。Cleve，Ekert， Machiavello 和 Mosca ${ }^{\text {［CEMM98］}}$ ，以及 Griffiths 和 Niu ${ }^{[G N 96]}$ 独立地发现了张量积公式（式（5.4））；事实上，这个结果很早就被 Danielson 和 Lanczos 认识到了。式（5.5）开始的简化证明是 Zhou 建议的。Griffiths 和 Niu ${ }^{[G N 96]}$ 给出了问题 5.2 中的带测量的量子傅里叶变换。</p>
+<p>Kitaev ${ }^{[K i t 95]}$ 将 $\mathbf{Z}_{2^{n}}$ 上的傅里叶变换推广到任意有限阿贝尔群，并给出了问题 5.3 的相位估计过程。Cleve，Ekert，Macchiavello 和 Mosca ${ }^{[\text {CEMM98］}}$ 将 Shor 和 Kitaev 的几个技术集成在一起，成为 5.2 节的基础。Mosca 的博士论文很好地描述了相位估计算法 ${ }^{[M o s 99]}$ 。</p>
+<p>Shor 在 1994 年的开创性论文［Sho94］中宣布了量子求阶算法，并注意到离散对数和因子分解问题可以归约为求阶问题。最终的论文包括广泛的讨论和丰富的文献，发表于 1997 年 ${ }^{[S h o 97]}$ 。这篇文章也包含对乘法进行巧妙计算的讨论，可以对我们所描述的相对朴素的乘法技术进行加速。利用这些快速乘法，分解一个合数 $n$ 需要的资源的规模，正如本章引言里所断言的，为 $O\left(n^{2} \log n \log \log n\right)$ 。1995 年，Kitaev ${ }^{[\text {Kit95］}}$ 宣布了一个求一般阿贝尔群稳定子的算法，他证明该算法可以把离散对数和因子分解问题当作特殊情况来求解。而且，这个算法包括一些 Shor 算法中没有的内容。有关因子分解算法一个很好的综述由 Ekert 和 Jozsa ${ }^{[\mathrm{EJP96}}$ 给出，也可以参考 Divincenzo的［DiV95a］。连分式的讨论基于 Hardy 和 Wright 所著［HW60］的第 10 章。在写作本书时，在经典计算机上对于因子分解最有效的经典算法是数域篮法，这在 A.K.Lenstra 和 H.W.Lenstra，Jr.${ }^{\text {［LL93］}}$编辑的文集中有描述。</p>
+<p>许多学者考虑过把量子算法推广到解隐含子群问题。从历史上看，Simon 首先注意到，量子算法可以求满足 $f(x \oplus s)=f(x)$ 的函数的隐含周期 ${ }^{[S i m 94, ~ S i m 97]}$ 。事实上，Shor 通过推广 Simon的结果，并用 $\mathbf{Z}_{N}$ 上的傅里叶变换来代替 Simon 的阿达玛变换（ $\mathbf{Z}_{2}^{k}$ 上的傅里叶变换），而得到自己的结果。接着 Boneh 和 Lipton 注意到量子算法和隐含子群问题的联系，并给出一个解隐含线性函数问题的量子算法 ${ }^{[B L 95]}$ 。Jozsa ${ }^{[J o z 97]}$ 首先显式给出 Deutsch－Jozsa，Simon 和 Shor 算法在隐含子群问题下的统一描述。Ekert 和 Jozsa 关于阿贝尔群和非阿贝尔群快速傅里叶变换算法对量子算法的加速方面的研究工作 ${ }^{[E] 98]}$ 也很富有启发性。我们在5.4节中对隐含子群问题的描述是来自于 Mosca 和 Ekert ${ }^{[M E 99, ~ M o s 99]}$ 的框架。Cleve 证明了置换求阶问题在一台有界误差概率经典计算机上需要指数次查询 ${ }^{[C l e 99]}$ 。Ettinger 和 Høyer ${ }^{[E H 99]}$ ，Roetteler 和 Beth ${ }^{[R B 98]}$ ，Pueschel，Roetteler 和 Beth ${ }^{[\mathrm{PRB} 98]}$ ， $\mathrm{Beals}^{\left[\mathrm{BBC}^{+} 98\right]}$（也描述了量子傅里叶变换在对称群上的构造），以及 Ettinger，Høyer和 Knill ${ }^{[E H K 99]}$ 都试图将这一方法推广到阿贝尔群之外。这些结果表明，到目前为止，存在仅利用 $O(\log |G|)$ 次 oracle 调用的量子算法来求解隐含子群问题，但这是否可以在多项式时间内实现尚不清楚（问题 5.5 ）。</p>
+</body>
+</html>

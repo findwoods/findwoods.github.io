@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QCQI.7QC4量子计算机：物理实现7.7-7.8</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js"></script>
+  <script>
+    // 在 DOMContentLoaded 后调用 renderMathInElement
+    document.addEventListener("DOMContentLoaded", function() {
+      renderMathInElement(document.body, {
+  "delimiters": [
+    {
+      "left": "$$",
+      "right": "$$",
+      "display": true
+    },
+    {
+      "left": "$",
+      "right": "$",
+      "display": false
+    }
+  ],
+  "ignoredTags": [
+    "script",
+    "noscript",
+    "style",
+    "textarea",
+    "pre",
+    "option"
+  ],
+  "throwOnError": false
+});
+    });
+</script>
+  <style>
+    html {
+      font-size: 100%;
+    }
+    body {
+      margin: 0 auto;
+      padding: 1rem;
+      max-width: 70ch;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      line-height: 1.7;
+      background-color: #fdfdfd;
+      color: #333;
+    }
+    img, video, svg {
+        max-width: 100%;
+        height: auto;
+        display: block;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        line-height: 1.3;
+    }
+    code {
+      background: #f0f0f0;
+      padding: 0.2em 0.4em;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    pre {
+      background: #f0f0f0;
+      padding: 1em;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 0.9em;
+    }
+    pre code {
+        padding: 0;
+        background: none;
+        font-size: 1em;
+    }
+    a {
+        color: #007bff;
+        text-decoration: none;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+    .katex-display {
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 0.2em;
+    }
+    .katex {
+        font-size: 1.05em;
+    }
+  </style>
+</head>
+<body>
+<h1>7.7 核磁共振</h1>
+<p>如果自旋一自旋相互作用很大且可控，核自旋系统对量子计算而言将是近乎理想的；这是我们从上一节离子阴研究得到的一个重要观察。离子阱量子计算机的主要缺陷是传导自旋一自旋塊合技术的声子的脆弱，以及它对退相干的敏感性。一种避免此局限的方法是囚禁分子而不是离子 ——磁偶极与电子传递的相邻原子核之间的费米接触耦合将提供很强的天然耦合。尽管如此，由于它们有很多振动模式，单个分子很难被囚禁与冷却，因此除非在特殊环境下光操控与测量囚禁分子中的核自旋，否则并不可行。</p>
+<p>另一方面，通过射频电磁波直接操控和测量核自旋是一个发展完备的领域，被称为核磁共振 （NMR）。此技术被广泛应用于化学，比方说，用来测量液体，固体和气体的特性，确定分子的结构，以及对材料乃至生物系统成像。这样多的应用引领着 NMR 技术变得非常精细，允许对实验中的几十到几百，乃至几千个原子核进行控制和观察。</p>
+<p>尽管如此，使用 NMR 做量子计算时出现了两个问题。首先，由于核磁矩很小，必须使用大量（大于 $10^{8}$ ）的分子，以产生可观测的感应信号。从概念上而言，单个分子可以是一个很好的量子计算机，但对分子系综来说如何实现呢？特别地，一次 NMR 测量的输出是对所有分子信号的平均；量子计算机系综的平均输出能有意义吗？其次，NMR 通常被用于室温下处于平衡态的物理系统，其自旋能量 $\hbar \omega$ 远低于 $k_{B} T_{\text {。 }}$ 。这意味着初始时自旋是近乎完全随机的。传统的量子计算要求系统被制备到一个纯态；量子计算如何才能在一个具有巨大嫡的混态中完成呢？</p>
+<p>对这两个问题的解答，使得 NMR 成为一个对实现量子计算极有吸引力与启发效应的方法，尽管通常系统的热特性带来了极为严格的限制。从 NMR 能学到很多：比方说，用于控制实际哈密顿量完成任意酉变换的技术，标度和补偿退相干（以及系统误差）的方法，以及把组件合起来以实现整个系统的完整量子算法所要考虑的问题等。我们先描述物理装置和主要涉及的哈密顿量，然后讨论尽管有热输人态和系综的问题，利用 NMR 如何才能实现量子信息处理，最后以一些展示量子算法的实验，以及此方法的缺陷作为结尾。</p>
+<h2>7.7.1 物理装置</h2>
+<p>让我们先从装置的一般描述开始，它的运转方式随后将进行详细地数学建模。处理液态样品的脉冲式 NMR 系统的两个主要部分是样品与 NMR 谱仪，我们将会聚焦于此。能使用的一个典</p>
+<p>型分子将包含数目 $n$ 的中子，其自旋为 $1 / 2$（其他可能的原子核包括 ${ }^{13} \mathrm{C},{ }^{19} \mathrm{~F},{ }^{15} \mathrm{~N}$ ，及 ${ }^{31} \mathrm{P}$ ），当放置于大约 11.7 T 的磁场中时会产生 500 MHz 的 NMR 信号。由于化学环境屏蔽效应导致局域磁场的不同，分子中不同原子核的频率可以有几 kHz 到几百 kHz 的差异。分子通常溶解于溶剂中，降低浓度直到分子间的相互作用变得可以忽略，让系统可被很好地描述为一个 $n$ 量子比特量子 ＂计算机＂的系综。</p>
+<p>谱仪自身由射频（RF）电子与一块大超导磁体构成，其中有一个洞，用于放置由玻璃管装载的样品，如图 7－16 所示。其中 $\hat{z}$ 方向静磁场 $B_{0}$ 被很仔细地调整到在 $1 \mathrm{~cm}^{3}$ 范围内的差异小于 $10^{9}$ 分之一。正交的鞍形或亥姆霍兹线圈放在纵平面，使得弱振荡磁场能施加到 $\hat{x}$ 和 $\hat{y}$ 方向。这些场能快速地脉冲式打开和关闭，用于操控核自旋态。同样的线圈也是调控电路的一部分，可用于提取由原子核进动产生的 RF 信号（很类似于一个旋转磁铁在附近的线圈中感应产生另一个电流）。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-137.jpg?height=1385&amp;width=2426&amp;top_left_y=2198&amp;top_left_x=631" /></p>
+<p>图 7－16 NMR 设备的示意图</p>
+<p>一个典型的实验从长周期的等待开始，这样原子核才会热化到平衡态；这对一个配好的液体样品来说有可能需要好几分钟。在一个（经典）计算机的控制下，然后会加上 RF 脉冲来影响原子核的状态产生所需要的变换。高功率放大器接下来会很快地关闭，然后一个敏感的预放大器打开，用于测量自旋的末态。这个输出，被称为自由感应衰减，是傅里叶变换后得到的一个频域谱，其中峰的区域是自旋态的函数（图7－17）。</p>
+<p>有很多重要的实际问题导致观测不完美。比如，静磁场的空间不均匀性导致不同部分的原子核有不同的进动频率。这导致了谱线的展宽。一个更具挑战性的问题是 RF 场的均一性。RF 场由线圈产生，且必须与 $B_{0}$ 磁铁垂直；这个几何上的限制及同时要求满足 $B_{0}$ 高度的均一性，通常会迫使 RF 场不均匀且由一个小线圈产生，这导致对原子核系统的不完美控制。此外，脉冲时间和功率，相位与频率的稳定性都是重要的问题。尽管如此，与离子阱不同，由于频率更低，对这些参数的良好控制更容易达到。在理解了系统的基本数学描述和使用 NMR 完成量子信息处理的整套方法后，在 7.7.4节，我们会返回来讨论缺点。</p>
+<h2>7.7.2 哈密顿量</h2>
+<p>NMR 的基本理论可以通过有一个和两个自旋的理想模型来理解，我们将会在这里描述它。第一步是描述电磁辐射如何与一个核自旋作用。我们然后考虑分子中自旋之间耦合的物理本质。这些工具让我们能够对磁化输出进行建模，这是对处于热平衡态的初态进行变换之后的结果。最后我们描述一个唯象的退相干模型，以及如何通过实验确定其 $T_{1}$ 和 $T_{2}$ 。</p>
+<h2>单自旋动力学</h2>
+<p>一个经典电磁场与一个二能级自旋的磁相互作用由哈密顿量 $H=-\vec{\mu} \cdot \vec{B}$ 描述，其中 $\vec{\mu}$ 是自旋，而 $\vec{B}=B_{0} \hat{z}+B_{1}(\hat{x} \cos \omega t+\hat{y} \sin \omega t)$ 是所施加的一个典型的磁场。 $B_{0}$ 是不变的且非常大，而 $B_{1}$ 通常随时间变化且比 $B_{0}$ 的强度小几个量级，因此通常会用微扰理论来研究这个系统。尽管如此，利用第 2 章的泡利矩阵技巧，此系统的薛定谔方程可以直接求解，无需微扰理论。用此技巧哈密顿量可以写为</p>
+<p>$$
+\begin{equation*}
+H=\frac{\omega_{0}}{2} Z+g(X \cos \omega t+Y \sin \omega t) \tag{7.127}
+\end{equation*}
+$$</p>
+<p>其中 $g$ 与 $B_{1}$ 场的强度有关，而 $\omega_{0}$ 与 $B_{0}$ 有关，$X, Y, Z$ 是通常的泡利矩阵。定义 $|\varphi(t)\rangle=$ $\mathrm{e}^{\mathrm{i} \omega t Z / 2}|\chi(t)\rangle$ ，于是薛定谔方程</p>
+<p>$$
+\begin{equation*}
+\mathrm{i} \partial_{t}|\chi(t)\rangle=H|\chi(t)\rangle \tag{7.128}
+\end{equation*}
+$$</p>
+<p>可以被重新表述为</p>
+<p>$$
+\begin{equation*}
+\mathrm{i} \partial_{t}|\varphi(t)\rangle=\left[\mathrm{e}^{\mathrm{i} \omega Z t / 2} H \mathrm{e}^{-\mathrm{i} \omega Z t / 2}-\frac{\omega}{2} Z\right]|\varphi(t)\rangle \tag{7.129}
+\end{equation*}
+$$</p>
+<p>由于</p>
+<p>$$
+\begin{equation*}
+\mathrm{e}^{\mathrm{i} \omega Z t / 2} X \mathrm{e}^{-\mathrm{i} \omega Z t / 2}=(X \cos \omega t-Y \sin \omega t) \tag{7.130}
+\end{equation*}
+$$</p>
+<p>式（7.129）简化后变为</p>
+<p>$$
+\begin{equation*}
+\mathrm{i} \partial_{t}|\varphi(t)\rangle=\left[\frac{\omega_{0}-\omega}{2} Z+g X\right]|\varphi(t)\rangle \tag{7.131}
+\end{equation*}
+$$</p>
+<p>其中右边与态相乘的那些项可以被看作是有效的＂旋转坐标系＂哈密顿量。此方程的解为</p>
+<p>$$
+\begin{equation*}
+|\varphi(t)\rangle=\mathrm{e}^{\mathrm{i}\left[\frac{\omega_{0}-w}{2} Z+g X\right] t}|\varphi(0)\rangle \tag{7.132}
+\end{equation*}
+$$</p>
+<p>这个解的行为中出现了共振的概念，可参照式（4.8）来理解，即单个自旋绕着轴</p>
+<p>$$
+\begin{equation*}
+\hat{n}=\frac{\hat{z}+\frac{2 g}{\omega_{0}-\omega} \hat{x}}{\sqrt{1+\left(\frac{2 g}{\omega_{0}-\omega}\right)^{2}}} \tag{7.133}
+\end{equation*}
+$$</p>
+<p>旋转，角度为</p>
+<p>$$
+\begin{equation*}
+|\vec{n}|=t \sqrt{\left(\frac{\omega_{0}-\omega}{2}\right)^{2}+g^{2}} \tag{7.134}
+\end{equation*}
+$$</p>
+<p>当 $\omega$ 远离 $\omega_{0}$ 时，自旋受 $B_{1}$ 场的影响可以忽略；它的旋转轴近乎与 $\hat{z}$ 平行，且时间演化近乎严格等于 $B_{0}$ 磁场下的自由演化。另一方面，当 $\omega \approx \omega_{0}$ 时，$B_{0}$ 的贡献变得可以忽略，而小的 $B_{1}$ 场能对态产生巨大的改变，对应于绕着 $\hat{x}$ 轴的旋转。当调整到合适的频率时，微小扰动能对自旋系统产生巨大的效应，这就对应着核磁共振中的＂共振＂。当然，同样的效应，也是在 7.5.1 节中使用的（但是未曾解释的），经过特殊调制的激光场对二能级原子选择性的核心。</p>
+<p>一般来说，当 $\omega=\omega_{0}$ ，单自旋旋转坐标哈密顿量可以被写为</p>
+<p>$$
+\begin{equation*}
+H=g_{1}(t) X+g_{2}(t) Y \tag{7.135}
+\end{equation*}
+$$</p>
+<p>其中 $g_{1}$ 和 $g_{2}$ 是所施加横向 RF 场的函数。
+习题 7.33 （磁共振）证明式（7.128）化简之后变为式（7.129）。什么样的实验室坐标哈密顿量能够产生旋波坐标哈密顿量式（7.135）呢？
+习题 7.34 （NRM 频率）从原子玻尔磁子开始，计算在 11.8 T 磁场下一个中子的进动频率。为了在 10 毫秒内实现 $90^{\circ}$ 的旋转，需要加多大的磁场 $B_{1}$ ？</p>
+<h2>自旋一自旋耦合</h2>
+<p>通常感兴趣的系统中会有不止一个自旋出现；${ }^{1} H,{ }^{13} C,{ }^{19} F$ ，和 ${ }^{15} N$ 都有 $1 / 2$ 核自旋。这些自旋间相互作用主要通过两种机制：直接的偶极耦合，以及通过成键电子中介的间接相互作用。通过空间的偶极耦合由如下形式的相互作用哈密顿描述：</p>
+<p>$$
+\begin{equation*}
+H_{1,2}^{\mathrm{D}}=\frac{\gamma_{1} \gamma_{2} \hbar}{4 r^{3}}\left[\vec{\sigma}_{1} \cdot \vec{\sigma}_{2}-3\left(\vec{\sigma}_{1} \cdot \hat{n}\right)\left(\vec{\sigma}_{2} \cdot \hat{n}\right)\right] \tag{7.136}
+\end{equation*}
+$$</p>
+<p>其中 $\hat{n}$ 是沿两个核方向的的单位向量，而 $\vec{\sigma}$ 是磁矩向量（乘以 2 ）。在低黏性液体中，偶极相互作用会迅速被平均掉；数学上而言，通过证明 $H_{1,2}^{\mathrm{D}}$ 对 $\hat{n}$ 的球面平均值为零可算出这一点，因为求平均相比偶极相互作用的能标而言更快。</p>
+<p>成键相互作用——也被称为＂$J$ 耦合＂——是通过化学键共享的电子中介的间接相互作用；一个原子核看到的磁场被其电子云的状态所扰动，通过电子波函数与原子核的重叠（费米接触相互作用）又与另一个原子核相互作用。这个耦合具有的形式为</p>
+<p>$$
+\begin{equation*}
+H_{1,2}^{J}=\frac{\hbar J}{4} \vec{\sigma}_{1} \cdot \vec{\sigma}_{2}=\frac{\hbar J}{4} Z_{1} Z_{2}+\frac{\hbar J}{8}\left[\sigma_{+} \sigma_{-}+\sigma_{-} \sigma_{+}\right] \tag{7.137}
+\end{equation*}
+$$</p>
+<p>我们将对 $J$ 是标量的情况有兴趣（通常它是张量）：在液体中且当耦合很弱，或者相互作用的原子核有极为不同的进动频率时，这是一个极好的近似。这种情况可以被描述为</p>
+<p>$$
+\begin{equation*}
+H_{12}^{J} \approx \frac{\hbar}{4} J Z_{1} Z_{2} \tag{7.138}
+\end{equation*}
+$$</p>
+<p>习题 7.35 （动生变窄）证明 $H_{1,3}^{\mathrm{D}}$ 对于 $\hat{n}$ 的球面平均为零。</p>
+<h2>热平衡</h2>
+<p>NMR 与我们之前在本章研究过的其他物理系统最重要的不同在于它使用一个系综系统，且主要的测量是一个系综平均。不仅如此，不需要复杂的程序把初态制备到特殊的初态，比如说基态上；实际上，用现有技术做到这一点是很有挑战性的。</p>
+<p>与之相反，初态是一个热平衡态，</p>
+<p>$$
+\begin{equation*}
+\rho=\frac{\mathrm{e}^{-\beta H}}{\mathcal{Z}} \tag{7.139}
+\end{equation*}
+$$</p>
+<p>其中 $\beta=1 / k_{\mathrm{B}} T$ ，而 $\mathcal{Z}=\operatorname{tr} \mathrm{e}^{-\beta H}$ 是通常的配分归一化函数，用以确保 $\operatorname{tr}(\rho)=1$ 。由于在室温与适当的磁场下，对典型的原子核 $\beta \approx 10^{-4}$ ，因此高温近似</p>
+<p>$$
+\begin{equation*}
+\rho \approx 2^{-n}[1-\beta H] \tag{7.140}
+\end{equation*}
+$$</p>
+<p>对于一个 $n$ 自旋的系统而言是恰当的。
+既然自旋－自旋耦合相比进动频率来说很小，密度矩阵的热态就非常靠近 $Z$ 基矢下的单位矩阵，且因此它可以被理解为处于一组纯态 $|00 \cdots 0\rangle,|00 \cdots 01\rangle, \cdots,|11 \cdots 1\rangle$ 的混合。什么才是每个系综成员的真正物理态，这是个有争议的问题，因为对一个给定的密度矩阵，存在无数种展开方式。原理上而言，如果系综成员（单独的分子）能被触及，用 NMR 可测量真正的物理态，但这在实验上极难实现。
+习题 7.36 （NMR 态的热平衡）当 $n=1$ 时，证明热平衡态为</p>
+<p>$$
+\rho \approx 1-\frac{\hbar \omega}{2 k_{\mathrm{B}} T}\left[\begin{array}{cc}
+1 &amp; 0  \tag{7.141}\\
+0 &amp; -1
+\end{array}\right]
+$$</p>
+<p>而当 $n=2$（且 $\omega_{A} \approx 4 \omega_{B}$ ）时，</p>
+<p>$$
+\rho \approx 1-\frac{\hbar \omega_{B}}{4 k_{\mathrm{B}} T}\left[\begin{array}{cccc}
+5 &amp; 0 &amp; 0 &amp; 0  \tag{7.142}\\
+0 &amp; 3 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; -3 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; -5
+\end{array}\right]
+$$</p>
+<h2>磁化读出</h2>
+<p>实验的主要输出是自由感生衰减信号，数学上写为</p>
+<p>$$
+\begin{equation*}
+V(t)=V_{0} \operatorname{tr}\left[\mathrm{e}^{-\mathrm{i} H t} \rho \mathrm{e}^{\mathrm{i} H t}\left(\mathrm{i} X_{k}+Y_{k}\right)\right] \tag{7.143}
+\end{equation*}
+$$</p>
+<p>其中 $X_{k}$ 和 $Y_{k}$ 只作用于第 $k$ 个自旋，$V_{0}$ 是一个常数因子，依赖于线圈几何，品质因数和从样品空间通过的最大磁通。此信号来自于在 $\hat{x}-\hat{y}$ 平面上探测样品磁化的提取线圈。在实验室坐标系，此信号将以与原子核进动频率 $\omega_{0}$ 相等的频率振荡；但是，$V(t)$ 通常会与一个被锁定在 $\omega_{0}$ 处的</p>
+<p>振子混合，然后再做傅里叶变换，如此一来的最终信号如图 7－17 所示。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-141.jpg?height=1921&amp;width=2368&amp;top_left_y=738&amp;top_left_x=695" /></p>
+<p>图 7－17 用 ${ }^{13} \mathrm{C}$ 标记的三氯乙烯的碳谱。左边的 4 条线来自于碳原子核直接束缚的质子；右边出现 4 条线是因为与质子和第二个碳原子核的耦合，它自己的信号导致了右边 4 条紧密排列的谱线。第二个碳原子核距离第一个的质子更远，因此与它的耦合小得多</p>
+<p>习题 7.37 （耦合自旋的 NMR 谱）当 $H=J Z_{1} Z_{2}$ ，且 $\rho=\mathrm{e}^{\mathrm{i} \pi Y_{1} / 4} \frac{1}{4}\left[1-\beta \hbar \omega_{0}\left(Z_{1}+Z_{2}\right)\right] \mathrm{e}^{-\mathrm{i} \pi Y_{1} / 4}$时，计算 $V(t)$ 。如果哈密顿量为 $H=J Z_{1}\left(Z_{2}+Z_{3}+Z_{4}\right)$ ，第一个自旋的谱中将有多少条线（从类似的初态密度矩阵开始），以及它们的相对振幅是多少？</p>
+<h2>退相干</h2>
+<p>自由感应衰减的一个突出特性是磁化率信号的指数衰减，对它的描述已经超出这里介绍的 NMR 的简单模型。其中的一个原因是静磁场的非均匀性，这导致了样品中一部分自旋进动的相位与另一部分的相位不同步。非均匀性导致的效应原则上是可逆的，但是还有其他相位随机的源头原则上不可逆，比方说那些来自自旋－自旋耦合的。另一个不可逆的机制是自旋热化到其环境温度的平衡态，这是一个涉及能量交换的过程。对一个量子比特态而言，这些效应可以唯象地用一个密度矩阵变换模型来描述：</p>
+<p>$$
+\left[\begin{array}{cc}
+a &amp; b  \tag{7.144}\\
+b^{*} &amp; 1-a
+\end{array}\right] \rightarrow\left[\begin{array}{cc}
+\left(a-a_{0}\right) \mathrm{e}^{-t / T_{1}}+a_{0} &amp; b \mathrm{e}^{-t / T_{2}} \\
+b^{*} \mathrm{e}^{-t / T_{2}} &amp; \left(a_{0}-a\right) \mathrm{e}^{-t / T_{1}}+1-a_{0}
+\end{array}\right]
+$$</p>
+<p>其中 $T_{1}$ 和 $T_{2}$ 分别被称为自旋－晶格（或＂横向＂）和自旋－自旋（或＂纵向＂）弛豫率，而 $a_{0}$ 代表热平衡态。它们给非平衡经典与量子叠加态的寿命定义了重要的时间尺度。计算 NMR 系统中 $T_{1}$ 和 $T_{2}$ 的理论工具已经发展得很好，且实际上，对这些弛豫率的测量在 NMR 中扮演了很重要的角色，用以区别不同的化学组分。</p>
+<p>测量 $T_{1}$ 和 $T_{2}$ 的实验方法在 NMR 中是众所周知的。令 $R_{x}=\mathrm{e}^{-\mathrm{i} \pi X / 4}$ 为一个绕 $\hat{x}$ 轴转 $90^{\circ}$的脉冲。为了测量 $T_{1}$ ，施加 $R_{x}^{2}$ ，等待时间 $\tau$ ，然后再加 $R_{x}$ 。第一个脉冲旋转了自旋 $180^{\circ}$ ，然后自旋向平衡态弛豫时间 $\tau$（这可以可视化为布洛赫矢量向布洛赫球的顶上，即基态收缩），然后最终的 $90^{\circ}$ 脉冲把磁化放入 $\hat{x}-\hat{y}$ 平面，在那里它被探测。通过这个翻转－恢复实验测出的磁化率 $M$ 被发现随 $\tau$ 指数衰减 $M=M_{0}\left[1-2 \exp \left(-\tau / T_{1}\right)\right]$ 。为了测量 $T_{2}$ ，在一阶近似下人们可以简单地测量峰的线宽。更好的办法—Carr－Purcell－Meiboom－Gill 技术——是施加一个 $R_{x}$ 操作，伴随着 $k$ 次反复＂等待 $\tau / 2$ ，施加 $R_{x}^{2}$ ，等待 $\tau / 2$ ，施加 $R_{x}^{2}$＂。这一系列 $180^{\circ}$ 脉冲使得耦合＂重聚焦＂（7.7.3 节），并部分地抵消了 $B_{0}$ 场的非均匀性，因此人们能更好地估算系统真实的 $T_{2}$ 。观察到的磁化率衰减为 $M=M_{0} \mathrm{e}^{-k \tau / T_{2}}$ 。</p>
+<h2>多自旋哈密顿量</h2>
+<p>综合我们对 NMR 哈密顿量的讨论，可以写出 $n$ 个相互耦合的自旋系统的 $H$ 为</p>
+<p>$$
+\begin{equation*}
+H=\sum_{k} \omega_{k} Z_{k}+\sum_{j, k} H_{j, k}^{J}+H^{\mathrm{RF}}+\sum_{j, k} H_{j, k}^{\mathrm{D}}+H^{\mathrm{env}} \tag{7.145}
+\end{equation*}
+$$</p>
+<p>其中第一项是自旋在环境磁场下的自由进动，$H^{\mathrm{D}}$ 是式（7.136）中的磁矩塊合，$H^{J}$ 是式（7.137）中
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-142.jpg?height=135&amp;width=3514&amp;top_left_y=2736&amp;top_left_x=58" />会导致退相干，像式（7.144）那样。</p>
+<p>为了能理解这个哈密顿量如何才能被操控的基本原理，我们发现在下面的大部分讨论中考虑简化的哈密顿量就够了：</p>
+<p>$$
+\begin{equation*}
+H=\sum_{k} \omega_{k} Z_{k}+\sum_{j, k} Z_{j} \otimes Z_{k}+\sum_{k} g_{k}^{x}(t) X_{k}+g_{k}^{y}(t) Y_{k} \tag{7.146}
+\end{equation*}
+$$</p>
+<p>对更一般的式（7.145）的处理也遵循类似的想法。</p>
+<h2>7.7.3 量子计算</h2>
+<p>量子信息处理需要对一个制备到适当初态的系统实现西演化。目前系统中出现了三个问题：首先，如何在由式（7.146）哈密顿量所描述的 $n$ 个塊合自旋系统中实现任意的西变换？其次，NMR系统的热态式（7.140）如何才能用作计算的合适初态？第三，前 3 章我们研究的量子算法需要用投影测量来获得输出结果，但是用 NMR 我们只能很容易地完成系综平均测量。我们如何才能处理这个系综读出问题？我们在本节回答此问题。</p>
+<h2>重聚焦</h2>
+<p>在完成任意西变换时用形如式（7.146）的哈密顿量所能实现的也许最有趣的一个技术是重聚焦，这在 NMR 的技术中是众所周知的。考虑一个简单的两自旋哈密顿量 $H=H^{\mathrm{sys}}+H^{\mathrm{RF}}$ ，其中</p>
+<p>$$
+\begin{equation*}
+H^{\text {sys }}=a Z_{1}+b Z_{2}+c Z_{1} Z_{2} \tag{7.147}
+\end{equation*}
+$$</p>
+<p>如 7.7.2 节所示，当一个大的 RF 场被施以恰当的频率时，在很好的近似下，我们可以近似写出</p>
+<p>$$
+\begin{equation*}
+\mathrm{e}^{-\mathrm{i} H t / \hbar} \approx \mathrm{e}^{-\mathrm{i} H^{\mathrm{RF}} t / \hbar} \tag{7.148}
+\end{equation*}
+$$</p>
+<p>这允许以完美的保真度实现任意的单量子比特操作。让我们定义</p>
+<p>$$
+\begin{equation*}
+R_{x 1}=\mathrm{e}^{-\mathrm{i} \pi X_{1} / 4} \tag{7.149}
+\end{equation*}
+$$</p>
+<p>为一个对自旋 1 沿着 $\hat{x}$ 轴的 $90^{\circ}$ 旋转，对自旋 2 也有类似的定义。 $180^{\circ}$ 旋转 $R_{x 1}^{2}$ 有特殊的性质</p>
+<p>$$
+\begin{equation*}
+R_{x 1}^{2} \mathrm{e}^{-\mathrm{i} a Z_{1} t} R_{x 1}^{2}=\mathrm{e}^{\mathrm{i} a Z_{1} t} \tag{7.150}
+\end{equation*}
+$$</p>
+<p>这很容易就可以验证。这被称为重聚焦，因为它逆转了时间演化的方式，使得开始时朝着布洛赫球上某个点的不同频率的自旋，返回到布洛赫球上的同一个点。以此方式施加的 $180^{\circ}$ 脉冲被称为重聚焦脉冲。注意在上面的表达式中，$a$ 可以是一个算子，也可以是一个常数（只要它不包含能作用在自旋 1 的算子），因此有</p>
+<p>$$
+\begin{equation*}
+\mathrm{e}^{-\mathrm{i} H^{\mathrm{s} \mathrm{~s}} t / \hbar} R_{x 1}^{2} \mathrm{e}^{-\mathrm{i} H^{\mathrm{ss}} t / \hbar} R_{x 1}^{2}=\mathrm{e}^{-2 \mathrm{i} b Z_{2} t / \hbar} \tag{7.151}
+\end{equation*}
+$$</p>
+<p>利用作用在自旋 2 上面的另外一组重聚焦脉冲，甚至将消除掉这个剩余的项。重聚焦因此是一个能消除自旋间耦合演化的有用技术，从而整体消掉所有的演化。
+习题 7.38 （重聚焦）显式地证明式（7.150）是对的（利用泡利矩阵的反对易性）。
+习题 7.39 （三维重聚焦）一组什么样的脉冲可以被用于重聚焦任意哈密顿量 $H^{\text {sys }}=\sum_{k} c_{k} \sigma_{k}$ ？习题 7.40 （重聚焦偶极相互作用）给出一个脉冲序列，它可以把两个自旋偶极相互作用哈密顿量 $H_{1,2}^{\mathrm{D}}$ 变为更加简单的形式，式（7.138）。</p>
+<h2>受控非门</h2>
+<p>用重聚焦脉冲和单量子比特脉冲可简单地实现一个受控非门。让我们用具有哈密顿量式（7.147）的两自旋系统展示一下如何实现。通过式（7.46）的构建，我们知道能实现西演化</p>
+<p>$$
+U_{C Z}=\left[\begin{array}{cccc}
+1 &amp; 0 &amp; 0 &amp; 0  \tag{7.152}\\
+0 &amp; 1 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 1 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; -1
+\end{array}\right]
+$$</p>
+<p>就够了。因为 $\sqrt{\mathrm{i}} \mathrm{i}^{\mathrm{i} Z_{1} Z_{2} \pi / 4} \mathrm{e}^{-\mathrm{i} Z_{1} \pi / 4} \mathrm{e}^{-\mathrm{i} Z_{2} \pi / 4}=U_{C Z}$ ，通过一个 $\hbar \pi / 2 c$ 的演化时间，再加上几个单量子比特脉冲获得一个受控非门是很直接的。</p>
+<p>习题 7.41 （NMR 受控非门）给出明确的单量子比特旋转序列，在两个遵循式（7.147）哈密顿量演化的自旋之间实现一个受控非门。你也许可以从式（7.46）开始，不过结果可被简化，以便减少单量子比特旋转数目。</p>
+<h2>时间，空间和逻辑标记</h2>
+<p>能够用 RF 脉冲以很好的保真度在自旋系统中实现任意的西变换，这是 NMR 用作量子计算时最吸引人的的地方之一。尽管如此，最主要的缺陷在于实际上初态通常是热态，式（7.140）。尽管这个态有高熵，量子计算在一定的代价下仍旧可以实现。两个用于实现它的技术被称为时间和逻辑标记。</p>
+<p>时间标记，有时候也被称为时间平均，是基于两个重要的事实：量子操作是线性的，而 NMR中测量的可观测量是无迹的（见 2.2.5 节中有关量子测量的背景知识）。假设两个自旋系统开始时的密度矩阵为</p>
+<p>$$
+\rho_{1}=\left[\begin{array}{llll}
+a &amp; 0 &amp; 0 &amp; 0  \tag{7.153}\\
+0 &amp; b &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; c &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; d
+\end{array}\right]
+$$</p>
+<p>其中 $a, b, c$ 和 $d$ 是任意的正数，满足 $a+b+c+d=1$ 。我们可以用一个由受控非门构建的电路 $P$ 获得布居置换的态</p>
+<p>$$
+\rho_{2}=P \rho_{1} P^{\dagger}=\left[\begin{array}{cccc}
+a &amp; 0 &amp; 0 &amp; 0  \tag{7.154}\\
+0 &amp; c &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; d &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; b
+\end{array}\right]
+$$</p>
+<p>且类似地</p>
+<p>$$
+\rho_{3}=P^{\dagger} \rho_{1} P=\left[\begin{array}{llll}
+a &amp; 0 &amp; 0 &amp; 0  \tag{7.155}\\
+0 &amp; d &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; b &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; c
+\end{array}\right]
+$$</p>
+<p>一个量子计算 $U$ 被作用于每一个这样的态，从而得到（在 3 个不同的实验中，可以在不同的时间完成）$C_{k}=U \rho_{k} U^{\dagger}$ 。基于线性有</p>
+<p>$$
+\begin{align*}
+\sum_{k=1,2,3} C_{k} &amp; =\sum_{k} U \rho_{k} U^{\dagger}  \tag{7.156}\\
+&amp; =U\left[\sum_{k} \rho_{k}\right] U^{\dagger} \tag{7.157}
+\end{align*}
+$$</p>
+<p>$$
+=(4 a-1) U\left[\begin{array}{llll}
+1 &amp; 0 &amp; 0 &amp; 0  \tag{7.158}\\
+0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0
+\end{array}\right] U^{\dagger}+(1-a)\left[\begin{array}{cccc}
+1 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 1 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 1 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 1
+\end{array}\right]
+$$</p>
+<p>在 NMR 中，可观测量 $M$（比方说泡利算子 $X$ 与 $Y$ ）是唯一可被测量的，且有 $\operatorname{tr}(M)=0$ ；于是</p>
+<p>$$
+\begin{align*}
+\operatorname{tr}\left(\sum_{k} C_{k} M\right) &amp; =\sum_{k} \operatorname{tr}\left(C_{k} M\right)  \tag{7.159}\\
+&amp; =(4 a-1) \operatorname{tr}\left(U\left[\begin{array}{llll}
+1 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0
+\end{array}\right] U^{\dagger} M\right)  \tag{7.160}\\
+&amp; =(4 a-1) \operatorname{tr}\left(U|00\rangle\langle 00| U^{\dagger}\right) \tag{7.161}
+\end{align*}
+$$</p>
+<p>我们发现，通过 3 次实验测出的信号给我们的结果，与我们把原始系统制备到纯态 $|00\rangle\langle 00|$ 而不是任意态（式（7.153））的结果成正比。对任意尺度的系统中被制备到的任意态，这总是可以实现的，只要有足够多的实验可以求和，以及足够长的相干时间用来实现西操作，直到退相干为止。注意，不同的 $C_{k}$ 实验对于 3 个不同系统，或者对一个系统的不同部分来说，实际上可以同时做；这个实验上的便利可通过施加梯度磁场来实现，梯度磁场在单个样品中系统地变化，这个变化技术被称为空间标记。</p>
+<p>习题 7.42 （时间标记置换）给出一个量子电路，用于实现置换 $P$ 和 $P^{\dagger}$ ，这是把式（7.153）的 $\rho_{1}$ 变换为式（7.154）的 $\rho_{2}$ 所必需的。</p>
+<p>逻辑标记基于类似的观察，但是不需要完成多个实验。假设我们有一个系统，具有 3 个近乎相同的自旋，处于态</p>
+<p>$$
+\begin{align*}
+\rho &amp; =\delta I+\alpha\left[\begin{array}{cccccccc}
+6 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 2 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 2 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; -2 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 2 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; -2 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; -2 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; -6
+\end{array}\right]  \tag{7.162}\\
+&amp; \approx\left(\delta^{\prime} I+\alpha^{\prime}\left[\begin{array}{cc}
+2 &amp; 0 \\
+0 &amp; -2
+\end{array}\right]\right)^{\otimes 3} \tag{7.163}
+\end{align*}
+$$</p>
+<p>其中 $\delta I$ 代表背景布居，不能被观测到（因为测量可观测量的迹为零），且 $\alpha \ll \delta$ 是一个小的常</p>
+<p>数。我们接下来可以施加一个西变换用来实现置换 $P$ ，给出</p>
+<p>$$
+\rho^{\prime}=P \rho P^{\dagger}=\delta I+\alpha\left[\begin{array}{cccccccc}
+6 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0  \tag{7.164}\\
+0 &amp; -2 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; -2 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; -2 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; -6 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 2 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 2 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 2
+\end{array}\right]
+$$</p>
+<p>注意，此矩阵上部的 $4 \times 4$ 方块具有形式</p>
+<p>$$
+\left[\begin{array}{cccc}
+6 &amp; 0 &amp; 0 &amp; 0  \tag{7.165}\\
+0 &amp; -2 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; -2 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; -2
+\end{array}\right]=8|00\rangle\langle 00|-2 I
+$$</p>
+<p>其中 $I$ 这里代表 $4 \times 4$ 单位矩阵。只对时间标记来说，我们发现如果计算是在此态中完成的，在此情况下为 $|000\rangle,|001\rangle,|010\rangle,|011\rangle$ 流形，然后它产生的结果与我们把原始系统制备到纯态 $|00\rangle\langle 00|$时所得的结果成正比！实验上来说，可以完成 $P$ 操作，并同时把信号局限在此流形的态内。</p>
+<p>具有形如 $\rho=2^{-n}(1-\epsilon) I+\epsilon U|00 \cdots 0\rangle\langle 00 \cdots 0| U^{\dagger}$（其中 $U$ 是任意西算子）的态，被称为 ＂有效纯态＂，或＂赝纯＂态。 $n$ 是量子比特的数目，但是希尔伯特空间的维度一般而言不需要是 2 的指数。制备此态有很多种方法，通常来说它们都需要付出一些代价。我们在 7.7.4节会返回来讨论它。有效纯态使人们能在处于高温热平衡态的系统中观察到零温的动力学，只要系统与它的高温环境的耦合足够弱就可以。这就是 NMR 量子计算中用到的方法。
+习题 7.43 （用作逻辑标记的置换）给出一个实现置换 $P$ 的量子电路，适用于将式（7.163）的 $\rho$变为式（7.165）的 $\rho^{\prime}$ 。</p>
+<p>习题 7.44 （对 $n$ 自旋的逻辑标记）假定我们有一个系统有 $n$ 个近乎全同的自旋，其塞曼频率为 $\hbar \omega$ ，处于温度为 $T$ 的平衡态 $\rho$ 。使用逻辑标记通过 $\rho$ 你所能构建的最大的有效纯态是什么？（提示：利用那些逻辑标记的汉明权重为 $n / 2$ 的态。）</p>
+<h2>量子算法结果的系综读出</h2>
+<p>我们已经看到在 $n$ 自旋系统中利用哈密顿量式（7.146）如何实现任意的西操作，我们也已经学会了如何从一个热态准备出一个定义良好的输人态，它的表现类似低熵的基态。尽管如此，为了实现量子计算的要求，我们必须要有种方法能对系统的计算结果进行读出测量。困难在于典型量子算法的输出是一个随机数，它的分布给出的信息让问题得以解决。不幸的是，随机变量的平均值不一定能给出相关的信息。如果量子算法在 NMR 上不加修改就运行，那么这就是输出结果，</p>
+<p>因为算法是在大量分子的系综中运行的，而不是在单个 $n$ 自旋的分子中运行的。
+这一困难通过如下的例子阐述。量子分解质因数算法运转时输出一个随机有理数 $c / r$ ，其中 $c$ 是一个未知的整数，而 $r$ 是一个所期望的结果（也是整数）。通常而言，投影测量被用于得到 $c / r$ ，然后运行一个经典连分式算法，用来以很高的概率得到 $c$（ 5.3 .1 节）。然后答案被代人原始的问题中加以验证，如果错误，整个算法会再重复。不幸的是，尽管如此，如果只能实现系综平均，由于 $c$ 是近乎均匀分布的，平均值 $\langle c / r\rangle$ 给不出任何有意义的信息。</p>
+<p>对此问题的一个简单解答，同时也适用于所有基于隐含子群问题（第 5 章）的量子算法，不过是在量子计算后附加必要的经典后处理步骤。这总是可以成立的，因为量子计算涵盖经典计算。在上面给出的例子中，我们简单地要每一个独立的量子计算机（每个分子）完成连分式算法。然后在每一个量子计算机上检查结果，只有那些成功通过验证的计算机有输出。从而最终系综平均测量给出 $\langle r\rangle$ 。</p>
+<h2>7.7.4 实验</h2>
+<p>NMR 途径最让人激动之处在于，它是量子计算与量子信息处理任务小实例的一个现成的实验实现。在这个关于 NMR 的结论章节，我们简要描述 3 个已实现的实验：展示态层析，基本逻辑门和量子搜索算法。我们还将总结这种方法的缺点。</p>
+<h2>态层析</h2>
+<p>人们如何对一个量子计算机进行调试？通过在不同时间点测量一台经典计算机内部态，可以分析它。类似地，对一个量子计算机，一个必要的技术是能测量其密度矩阵——这被称为态层析。</p>
+<p>回顾一下单量子比特的密度矩阵表示为</p>
+<p>$$
+\begin{equation*}
+\rho=\frac{1}{2}\left[1+\sum_{k} r_{k} \sigma_{k}\right] \tag{7.166}
+\end{equation*}
+$$</p>
+<p>其中 $\sigma_{k}$ 是泡利矩阵，而 $r_{k}$ 是一个 3 组分实向量。因为泡利矩阵迹的正交性，</p>
+<p>$$
+\begin{equation*}
+\operatorname{tr}\left(\sigma_{k} \sigma_{j}\right)=2 \delta_{k j} \tag{7.167}
+\end{equation*}
+$$</p>
+<p>由此可从 3 个测量结果中重建 $\rho$ ：</p>
+<p>$$
+\begin{equation*}
+r_{k}=\left\langle\sigma_{k}\right\rangle=\operatorname{tr}\left(\rho \sigma_{k}\right) \tag{7.168}
+\end{equation*}
+$$</p>
+<p>在 NMR 中的通常可观测测量（式（7.143）），之后是适当的单量子比特脉冲，允许我们确定 $\left\langle\sigma_{k}\right\rangle$ ，从而得到 $\rho$ 。对大量自旋来说类似的结果也成立。实际上，仅测量无迹矩阵 $\rho$ 与单位矩阵的偏差是很方便的；这被称为偏差密度矩阵。对两个和三个自旋系统的例子如图 7－18 所示。
+习题7.45（NMR 的态层析）令电压测量 $V_{k}(t)=V_{0} \operatorname{tr}\left[\mathrm{e}^{-\mathrm{i} H t} M_{k} \rho M_{k}^{\dagger} \mathrm{e}^{\mathrm{i} H t}\left(\mathrm{i} X_{k}+Y_{k}\right)\right]$ 为实验 $k$ 的结果。证明对两个自旋， 9 次实验，$M_{0}=I, M_{1}=R_{x 1}, M_{2}=R_{y 1}, M_{3}=R_{x 2}, M_{4}=$
+$R_{x 2} R_{x 1}, M_{5}=R_{x 2} R_{y 1}$ 等等，提供了充足的数据，从中可重建 $\rho_{\circ}$
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-148.jpg?height=1432&amp;width=2287&amp;top_left_y=889&amp;top_left_x=616" /></p>
+<p>图 7－18 实验测量的偏差密度矩阵。垂直尺度是任意的，且只有实部显示出来；所有的虚部都相对很小。（左上）在 11.78 T 磁场下，氯仿分子 $\left({ }^{13} \mathrm{CHCl}_{3}\right)$ 的质子与碳原子核代表的两个量子比特的热平衡态。将 0.5 毫升， 200 毫摩尔的样品在丙酮－$d_{6}$ 中稀释，脱气，并用火焰密封在 5 毫米溥壁玻璃管中。（右上）在氯仿中用时间标记创建的两量子比特有效纯态，如式（7.161）。（左下）三氟乙烯中 3 个氟原子核的三量子比特热平衡态。（右下）使用逻辑标记从 3 个自旋系统创建的有效纯态，如式（7.164）所示</p>
+<p>习题 7.46 对三自旋必要的实验是多少次？</p>
+<h2>量子逻辑门</h2>
+<p>由于很多原因，氯仿中的两量子比特质子－碳系统是展示单量子比特和两量子比特逻辑门的一个很好的系统。在约 11.8 T 磁场下，两个自旋约 500 MHz 与约 125 MHz 的频率很好地被分开了，且容易寻址。两个原子核的 215 Hz 的 $J$ 耦合频率也是很方便的；它比单量子比特 RF 脉冲所需的时间尺度要慢得多，但比驰豫时间尺度又要快得多。在典型的实验中，质子与碳的 $T_{1}$ 各自约为 18 s 和 25 s ，而 $T_{2}$ 各自为 7 s 和 0.3 s 。因为与 3 个四级氯原子核的相互作用，碳的 $T_{2}$ 要短一些。但是最短的 $T_{2}$ 寿命与 $J$ 耦合的乘积暗示说，在量子相干性丢失之前仍旧可以完成大约 60个逻辑门。</p>
+<p>两自旋系统的哈密顿量被式（7.147）很好地近似刻画，但还可以用实验决窍大大地简化它。通过调整两个振子完全匹配质子与碳的旋转频率，我们在振子所定义的旋波坐标系可得到简化了的哈密顿量</p>
+<p>$$
+\begin{equation*}
+H=2 \pi \hbar J Z_{1} Z_{2} \tag{7.169}
+\end{equation*}
+$$</p>
+<p>其中 $J=215 \mathrm{~Hz}$ 。这个哈密顿量使得受控非门的实现变得相当简单。一个完成受控非变换的电路等价于图 7－19 所示单量子比特相位门，加上一个用于产生贝尔态的电路，以及实验上地测量输出结果。</p>
+<p>习题 7.47 （NMR 受控非门）验证图7－19中左上部展示的电路再加上单比特相位门，实现了一个受控非门；也就是它在经典输人态下正常运行，且还能进一步应用额外的单量子比特 $R_{z}$ 旋转变为一个通常的受控非门。给出另一个电路，用类似的建造单元实现通常的受控非门。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-149.jpg?height=996&amp;width=1639&amp;top_left_y=1026&amp;top_left_x=1020" /></p>
+<p>图 7－19 用 NMR 实施的量子电路，和实验上测量输出的偏差密度矩阵的实部。在这些电路中，$R_{x}$ 和 $R_{y}$代表单量子比特门，在 $\hat{x}$ 和 $\hat{y}$ 方向上产生 $90^{\circ}$ 旋转，通过大约 10 毫秒的 RF 脉冲实现，而含有两量子比特的方框 $\mathrm{e}^{-\mathrm{i} H / 2 \hbar J}$ 是时间长为 $1 / 2 J \approx 2.3$ 毫秒的自由演化。（上图）受控非电路，以及对一个热态输人的输出测量，展示了 $|10\rangle$ 和 $|01\rangle$ 对角元的交换，正如经典受控非门真值表所预计的那样。（下图）当 $|00\rangle$ 有效初态被制备出来作为输人时，产生贝尔态 $(|00\rangle-|11\rangle) / \sqrt{2}$ 的电路，以及它的输出结果</p>
+<p>习题 7.48 验证图 7－19 中左下角展示的电路产生如前所述的贝尔态 $(|00\rangle-|11\rangle) / \sqrt{2}$ 。
+习题7.49（NMR 交换门）NMR 在化学上的一个重要应用是测量自旋的连通性，比如在一个分子中哪些质子，碳与磷原子是最近邻的。用来做这个的脉冲序列被称为 INADEQUATE（难以置信的天然丰度两量子传输实验——NMR 技术充满了奇妙的创造性缩略语）。在量子计算的语言中，这可被理解为简单地在两个共振之间应用受控非门；如果受控非门工作，两个原子核必然是邻居。另一个建造单元是交换操作，被用于类似TOCSY（全关联谱）的脉冲序列，但并不完全是我们用量子门简单描述的完美形式。只用 $\mathrm{e}^{-\mathrm{i} H / 2 \hbar J}, ~ R_{x}$ ，和 $R_{y}$ 操作构建一个量子电路用以实现交换门（你可以从图1－7 中的电路开始）。</p>
+<h2>量子算法</h2>
+<p>Grover 量子搜索算法给出了 NMR 量子计算另外一个简单的例子。对一个有 4 个元素的例子来说（量子比特数 $n=2$ ），我们得到一个集合 $x={0,1,2,3}$ ，其中 $f(x)=0$ ，除一个值 $x_{0}$ ，其中 $f\left(x_{0}\right)=1$ 。目标是找到 $x_{0}$ ，可通过评估 $f(x)$ 平均 2.25 次而经典地完成。相比之下，量子算法只需要评估 $f\left(x_{0}\right)$ 一次就能找到 $x_{0}$（第 6 章；特别注意框6.1）。</p>
+<p>需要 3 个算子：预报（oracle）算子 $O$（它完成一个基于函数 $f(x)$ 的相位反转），对两个量子比特的阿达玛算子 $H^{\otimes 2}$ ，以及条件相移算子 $P$ 。预报 $O$ 翻转对应 $x_{0}$ 的基本单元的符号；对 $x_{0}=3$ ，这就是</p>
+<p>$$
+O=\left[\begin{array}{cccc}
+1 &amp; 0 &amp; 0 &amp; 0  \tag{7.170}\\
+0 &amp; 1 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 1 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; -1
+\end{array}\right]
+$$</p>
+<p>把 $t=1 / 2 J$（对氯仿分子是 2.3 毫秒）的时间演化 $\mathrm{e}^{-\mathrm{i} H / 2 \hbar J}$ 标记为 $\tau$ ，我们发现对 $x_{0}=3$ 情形， $O=R_{y 1} \bar{R}_{x 1} \bar{R}_{y 1} R_{y 2} \bar{R}_{x 2} \bar{R}_{y 2} \tau$（加上一个不相关的整体相位因子）。 $H^{\otimes 2}$ 不过就是两个单量子比特阿达玛操作 $H_{1} \otimes H_{2}$ ，其中 $H_{k}=R_{x k}^{2} \bar{R}_{y k}$ 。而算子 $P$</p>
+<p>$$
+P=\left[\begin{array}{cccc}
+1 &amp; 0 &amp; 0 &amp; 0  \tag{7.171}\\
+0 &amp; -1 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; -1 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; -1
+\end{array}\right]
+$$</p>
+<p>可简单地实现为 $P=R_{y 1} R_{x 1} \bar{R}_{y 1} R_{y 2} R_{x 2} \bar{R}_{y 2} \tau$ 。有了这些，我们构建 Grover 迭代 $G=H^{\otimes 2} P H^{\otimes 2} O$ 。这个算子能通过去掉不必要且明显取消的操作来直接化简（习题 7.51 ）。令 $|\psi\rangle=G^{k}|00\rangle$ 是初态经过 $k$ 次 Grover 迭代操作的产物。我们发现振幅 $\left\langle x_{0} \mid \psi_{k}\right\rangle \approx \sin ((2 k+1) \theta)$ ，其中 $\theta=\arcsin (1 / \sqrt{2})$ ；此周期性是量子搜索算法的基本特性，而且是实验中要检测的一个自然的性质。对两量子比特且 $x_{0}=3$ 的情况，我们预计 $|11\rangle=\left|\psi_{1}\right\rangle=-\left|\psi_{4}\right\rangle=\left|\psi_{7}\right\rangle=-\left|\psi_{10}\right\rangle$ ，如果整体符号被忽略的话，这是一个长为 3 的周期。
+习题 7.50 找到仅用单量子比特旋转和 $\mathrm{e}^{-\mathrm{i} H / 2 \hbar J}$ 的量子电路，用来实现针对 $x_{0}=0,1,2$ 的预报 $O$ 。</p>
+<p>习题 7.51 证明通过适当地抵消近邻的单比特旋转，Grover 迭代可以被简化。对 $x_{0}$ 的 4 个可能的情况有</p>
+<p>$$
+G= \begin{cases}\bar{R}_{x 1} \bar{R}_{y 1} \bar{R}_{x 2} \bar{R}_{y 2} \tau R_{x 1} \bar{R}_{y 1} R_{x 2} \bar{R}_{y 2} \tau &amp; \left(x_{0}=3\right)  \tag{7.172}\\ \bar{R}_{x 1} \bar{R}_{y 1} \bar{R}_{x 2} \bar{R}_{y 2} \tau R_{x 1} \bar{R}_{y 1} \bar{R}_{x 2} \bar{R}_{y 2} \tau &amp; \left(x_{0}=2\right) \\ \bar{R}_{x 1} \bar{R}_{y 1} \bar{R}_{x 2} \bar{R}_{y 2} \tau \bar{R}_{x 1} \bar{R}_{y 1} R_{x 2} \bar{R}_{y 2} \tau &amp; \left(x_{0}=1\right) \\ \bar{R}_{x 1} \bar{R}_{y 1} \bar{R}_{x 2} \bar{R}_{y 2} \tau \bar{R}_{x 1} \bar{R}_{y 1} \bar{R}_{x 2} \bar{R}_{y 2} \tau &amp; \left(x_{0}=0\right)\end{cases}
+$$</p>
+<p>图 7－20 展示了对 $U$ 的最初 7 次迭代后，理论上的和测量出的偏差密度矩阵 $\rho_{\Delta n}=\left|\psi_{n}\right\rangle\left\langle\psi_{n}\right|-$ $\operatorname{tr}\left(\left|\psi_{n}\right\rangle\left\langle\psi_{n}\right|\right) / 4$ 。如预计的那样，$\rho_{\Delta 1}$ 清晰地揭示了对应于 $x_{0}=3$ 的 $|11\rangle$ 态。得到的模拟结果用于 $x_{0}$ 其他可能值的重复实验。测量每个密度矩阵需要 $9 \times 3=27$ 次重复实验， 9 代表层析重构，而 3 对应于纯态制备。</p>
+<p>最长的计算对应 $n=7$ ，需要少于 35 毫秒，仍旧很好地处于相干时间之内。Grover 算法的周期性可以很清晰地从图 7－20 中看到，实验与理论有很好的一致性。大信噪比（通常优于 $10^{4}$ 比 1）可仅通过单次实验就获得。数值模拟预计 $7 \% \sim 44 \%$ 的错误率主要是由于磁场的非均匀性，测量过程中的磁化衰减，以及对旋转的不完美标度（按重要性排序）。</p>
+<h2>缺陷</h2>
+<p>大块系综 NMR 完成量子计算已经在最多 7 个量子比特的系统中成功展示了量子算法和量子信息任务，这是很惊人的。尽管如此，此方法核心的时间，空间和逻辑标记技术引发了许多重要的限制。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-151.jpg?height=2124&amp;width=2484&amp;top_left_y=474&amp;top_left_x=631" /></p>
+<p>图 7－20 在氯仿中的氢与碳原子自旋中完成的 7 次 Grover 迭代，理论上与实验上相应的偏差密度矩阵（任意单位）。可以清晰地看到 3 个周期，一个周期为 4 次迭代。只有实部被画出来（理论上虚部为零，对实验结果而言被发现贡献小于 $12 \%$ ）。相对误差 $\left|\rho_{\text {理论 }}-\rho_{\text {实验 }}\right| / | \rho_{\text {理论 }}$ 也展示出来</p>
+<p>这些标记技术基本目标是将正好处于 $|00 \cdots 0\rangle$（或任何其他的标准高概率态）的自旋子集的信号从热平衡态中隔离出来。通过添加信号抵消除所要的态外所有的态，时间与空间标记做到了这一点；逻辑标记用希尔伯特空间来换取纯度。与所用的方法无关，尽管如此，没有什么能增加热态</p>
+<p>$$
+\begin{equation*}
+p_{00 \cdots 0}=\frac{1}{\mathcal{Z}}\langle 00 \cdots 0| \mathrm{e}^{-\beta H}|00 \cdots 0\rangle \tag{7.173}
+\end{equation*}
+$$</p>
+<p>中 $|00 \cdots 0\rangle$ 的概率。令 $H=\sum_{k} \omega Z_{k}$ ，我们发现对一个 $n$ 自旋分子来说，$\rho_{00 \cdots 0}$ 与 $n 2^{-n}$ 成正比。这意味着总信号在恒定的初态温度下，随着用标记技术被＂蒸馏＂到有效纯态的量子比特数目而指数递减。</p>
+<p>另一限制来自用分子作为计算机，分子的结构在计算机的体系结构中起了作用，决定了哪些对（或者组）量子比特与其他的相互作用（类似地，RF 脉冲起到了软件的作用）。不是所有的量子比特都需要连接良好。由于除非用重聚焦，相互作用不能被关闭，这就愈发重要了。进一步，量子比特通过频率区分自身来寻址，但是这很快就随着原子核数目的增加而变得很困难。存在一个解决方案，使用元胞自动机样式的架构，比如一维链 $X-A-B-C-A-B-C-\cdots-A-B-C-Y$ ，其中端点是有区别的，但是中间由一些重复的规则序列组成。在此架构中，只有不同的字母是可以被寻址的，而这似乎是一个高度受限的计算模型。尽管如此，已经被证明实际上它是通用的，只有多项式的减速。当完成如同量子搜索算法这样的任务时，减速的精确值当然是很重要的，要求它只有平方根的加速。</p>
+<p>用于规避标记技术限制的方法也是存在的。一种可能是通过某些物理机制极化原子核；这</p>
+<p>已经可以用光泵浦实现（类似于如图 7－8 所示那样离子是如何冷却下来的）极化铷原子的电子态，然后再利用短寿命的范德瓦尔斯分子的形成，把极化转移到氙原子核。这也在氦中实现了。对分子做类似的事情是可以想象的，尽管技术上极具挑战性。另一个可能性是使用不同的标记方案；逻辑标记本征上是一个压缩算法，它通过丢弃系综成员来增加系综中一个态的相对概率。对此方法的改进版本已经使得它能达到熵的极限。用初始时处于温度 $T$ 的 $n$ 自旋分子，有 $p=$ $\left(1-\mathrm{e}^{-\Delta E / k_{\mathrm{B}} T}\right) / 2$ ，其中 $\Delta E$ 是自旋翻转能量，能得到 $n H(p)$ 个纯量子比特。这个方案没有任何指数的代价；压缩可以利用仅仅多项式数目的基本操作而实现。尽管如此，这还不够，除非 $p$相对很小，如今在很好的螺线管磁铁系统中 $p \approx 0.4999$ 。</p>
+<p>尽管有这些缺点，但 NMR 提供了量子算法的测试平台，并演示了其他物理实现也必须完成以执行量子计算的基本技术。一些用于展示量子计算和量子信息任务的分子如图 7－21 所示。 NMR 的想法也是一个非常丰富的创新领域，结合了化学，物理，工程和数学，毫无疑问，各领域之间的持续创新将进一步推动这项技术的发展。
+<code>&amp;lt; img class="imgSvg" id = "m72qinxjvi7lc8wzjgi" src="data:image/svg+xml;base64,PHN2ZyBpZD0ic21pbGVzLW03MnFpbnhqdmk3bGM4d3pqZ2kiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDEzOSA4OS4yNTAwMDYxMjE2MzIzOCIgc3R5bGU9IndpZHRoOiAxMzguNTU5NjAwNDM4NDE4MjdweDsgaGVpZ2h0OiA4OS4yNTAwMDYxMjE2MzIzOHB4OyBvdmVyZmxvdzogdmlzaWJsZTsiPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZS1tNzJxaW54anZpN2xjOHd6amdpLTEiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iNjkuMjc5Nzk2Njg0ODgyMzQiIHkxPSIzNi43NTAwMDYxMjE2MzMxOCIgeDI9Ijk2LjU1OTYwMDQzODQxODI3IiB5Mj0iMjEuMDAwMDEyMjQzMjY3MTU3Ij48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMjAlIj48L3N0b3A+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjEwMCUiPjwvc3RvcD48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZS1tNzJxaW54anZpN2xjOHd6amdpLTMiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iNjkuMjc5Nzg5NjE2MjI4NzQiIHkxPSI2OC4yNTAwMDYxMjE2MzIzOCIgeDI9IjY5LjI3OTc5NjY4NDg4MjM0IiB5Mj0iMzYuNzUwMDA2MTIxNjMzMTgiPjxzdG9wIHN0b3AtY29sb3I9ImN1cnJlbnRDb2xvciIgb2Zmc2V0PSIyMCUiPjwvc3RvcD48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMTAwJSI+PC9zdG9wPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IGlkPSJsaW5lLW03MnFpbnhqdmk3bGM4d3pqZ2ktNSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIHgxPSI0MiIgeTE9IjIxIiB4Mj0iNjkuMjc5Nzk2Njg0ODgyMzQiIHkyPSIzNi43NTAwMDYxMjE2MzMxOCI+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjIwJSI+PC9zdG9wPjxzdG9wIHN0b3AtY29sb3I9ImN1cnJlbnRDb2xvciIgb2Zmc2V0PSIxMDAlIj48L3N0b3A+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PG1hc2sgaWQ9InRleHQtbWFzay1tNzJxaW54anZpN2xjOHd6amdpIj48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ3aGl0ZSI+PC9yZWN0PjxjaXJjbGUgY3g9Ijk2LjU1OTYwMDQzODQxODI3IiBjeT0iMjEuMDAwMDEyMjQzMjY3MTU3IiByPSI3Ljg3NSIgZmlsbD0iYmxhY2siPjwvY2lyY2xlPjxjaXJjbGUgY3g9IjY5LjI3OTc4OTYxNjIyODc0IiBjeT0iNjguMjUwMDA2MTIxNjMyMzgiIHI9IjcuODc1IiBmaWxsPSJibGFjayI+PC9jaXJjbGU+PGNpcmNsZSBjeD0iNDIiIGN5PSIyMSIgcj0iNy44NzUiIGZpbGw9ImJsYWNrIj48L2NpcmNsZT48L21hc2s+PHN0eWxlPgogICAgICAgICAgICAgICAgLmVsZW1lbnQtbTcycWlueGp2aTdsYzh3empnaSB7CiAgICAgICAgICAgICAgICAgICAgZm9udDogMTRweCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOwogICAgICAgICAgICAgICAgICAgIGFsaWdubWVudC1iYXNlbGluZTogJ21pZGRsZSc7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAuc3ViLW03MnFpbnhqdmk3bGM4d3pqZ2kgewogICAgICAgICAgICAgICAgICAgIGZvbnQ6IDguNHB4IEhlbHZldGljYSwgQXJpYWwsIHNhbnMtc2VyaWY7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIDwvc3R5bGU+PGcgbWFzaz0idXJsKCN0ZXh0LW1hc2stbTcycWlueGp2aTdsYzh3empnaSkiPjxsaW5lIHgxPSI2OS4yNzk3OTY2ODQ4ODIzNCIgeTE9IjM2Ljc1MDAwNjEyMTYzMzE4IiB4Mj0iOTYuNTU5NjAwNDM4NDE4MjciIHkyPSIyMS4wMDAwMTIyNDMyNjcxNTciIHN0eWxlPSJzdHJva2UtbGluZWNhcDpyb3VuZDtzdHJva2UtZGFzaGFycmF5Om5vbmU7c3Ryb2tlLXdpZHRoOjEuMjYiIHN0cm9rZT0idXJsKCcjbGluZS1tNzJxaW54anZpN2xjOHd6amdpLTEnKSI+PC9saW5lPjxsaW5lIHgxPSI2OS4yNzk3ODk2MTYyMjg3NCIgeTE9IjY4LjI1MDAwNjEyMTYzMjM4IiB4Mj0iNjkuMjc5Nzk2Njg0ODgyMzQiIHkyPSIzNi43NTAwMDYxMjE2MzMxOCIgc3R5bGU9InN0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utd2lkdGg6MS4yNiIgc3Ryb2tlPSJ1cmwoJyNsaW5lLW03MnFpbnhqdmk3bGM4d3pqZ2ktMycpIj48L2xpbmU+PGxpbmUgeDE9IjQyIiB5MT0iMjEiIHgyPSI2OS4yNzk3OTY2ODQ4ODIzNCIgeTI9IjM2Ljc1MDAwNjEyMTYzMzE4IiBzdHlsZT0ic3Ryb2tlLWxpbmVjYXA6cm91bmQ7c3Ryb2tlLWRhc2hhcnJheTpub25lO3N0cm9rZS13aWR0aDoxLjI2IiBzdHJva2U9InVybCgnI2xpbmUtbTcycWlueGp2aTdsYzh3empnaS01JykiPjwvbGluZT48L2c+PGc+PHRleHQgeD0iOTIuNjIyMTAwNDM4NDE4MjciIHk9IjI2LjI1MDAxMjI0MzI2NzE1NyIgY2xhc3M9ImVsZW1lbnQtbTcycWlueGp2aTdsYzh3empnaSIgZmlsbD0iY3VycmVudENvbG9yIiBzdHlsZT0iCiAgICAgICAgICAgICAgICB0ZXh0LWFuY2hvcjogc3RhcnQ7CiAgICAgICAgICAgICAgICB3cml0aW5nLW1vZGU6IGhvcml6b250YWwtdGI7CiAgICAgICAgICAgICAgICB0ZXh0LW9yaWVudGF0aW9uOiBtaXhlZDsKICAgICAgICAgICAgICAgIGxldHRlci1zcGFjaW5nOiBub3JtYWw7CiAgICAgICAgICAgICAgICBkaXJlY3Rpb246IGx0cjsKICAgICAgICAgICAgIj48dHNwYW4gc3R5bGU9IgogICAgICAgICAgICAgICAgdW5pY29kZS1iaWRpOiBwbGFpbnRleHQ7CiAgICAgICAgICAgICAgICB3cml0aW5nLW1vZGU6IGxyLXRiOwogICAgICAgICAgICAgICAgbGV0dGVyLXNwYWNpbmc6IG5vcm1hbDsKICAgICAgICAgICAgICAgIHRleHQtYW5jaG9yOiBzdGFydDsKICAgICAgICAgICAgIj5DbDwvdHNwYW4+PC90ZXh0Pjx0ZXh0IHg9Ijk2LjU1OTYwMDQzODQxODI3IiB5PSIyMS4wMDAwMTIyNDMyNjcxNTciIGNsYXNzPSJkZWJ1ZyIgZmlsbD0iI2ZmMDAwMCIgc3R5bGU9IgogICAgICAgICAgICAgICAgZm9udDogNXB4IERyb2lkIFNhbnMsIHNhbnMtc2VyaWY7CiAgICAgICAgICAgICI+PC90ZXh0Pjx0ZXh0IHg9IjY5LjI3OTc5NjY4NDg4MjM0IiB5PSIzNi43NTAwMDYxMjE2MzMxOCIgY2xhc3M9ImRlYnVnIiBmaWxsPSIjZmYwMDAwIiBzdHlsZT0iCiAgICAgICAgICAgICAgICBmb250OiA1cHggRHJvaWQgU2Fucywgc2Fucy1zZXJpZjsKICAgICAgICAgICAgIj48L3RleHQ+PHRleHQgeD0iNjkuMjc5Nzg5NjE2MjI4NzQiIHk9IjczLjUwMDAwNjEyMTYzMjM4IiBjbGFzcz0iZWxlbWVudC1tNzJxaW54anZpN2xjOHd6amdpIiBmaWxsPSJjdXJyZW50Q29sb3IiIHN0eWxlPSIKICAgICAgICAgICAgICAgIHRleHQtYW5jaG9yOiBzdGFydDsKICAgICAgICAgICAgICAgIHdyaXRpbmctbW9kZTogaG9yaXpvbnRhbC10YjsKICAgICAgICAgICAgICAgIHRleHQtb3JpZW50YXRpb246IG1peGVkOwogICAgICAgICAgICAgICAgbGV0dGVyLXNwYWNpbmc6IG5vcm1hbDsKICAgICAgICAgICAgICAgIGRpcmVjdGlvbjogbHRyOwogICAgICAgICAgICAiPjx0c3BhbiBzdHlsZT0iCiAgICAgICAgICAgICAgICB1bmljb2RlLWJpZGk6IHBsYWludGV4dDsKICAgICAgICAgICAgICAgIHdyaXRpbmctbW9kZTogbHItdGI7CiAgICAgICAgICAgICAgICBsZXR0ZXItc3BhY2luZzogbm9ybWFsOwogICAgICAgICAgICAgICAgdGV4dC1hbmNob3I6IG1pZGRsZTsKICAgICAgICAgICAgIj5DbDwvdHNwYW4+PC90ZXh0Pjx0ZXh0IHg9IjY5LjI3OTc4OTYxNjIyODc0IiB5PSI2OC4yNTAwMDYxMjE2MzIzOCIgY2xhc3M9ImRlYnVnIiBmaWxsPSIjZmYwMDAwIiBzdHlsZT0iCiAgICAgICAgICAgICAgICBmb250OiA1cHggRHJvaWQgU2Fucywgc2Fucy1zZXJpZjsKICAgICAgICAgICAgIj48L3RleHQ+PHRleHQgeD0iNDcuMjUiIHk9IjI2LjI1IiBjbGFzcz0iZWxlbWVudC1tNzJxaW54anZpN2xjOHd6amdpIiBmaWxsPSJjdXJyZW50Q29sb3IiIHN0eWxlPSIKICAgICAgICAgICAgICAgIHRleHQtYW5jaG9yOiBzdGFydDsKICAgICAgICAgICAgICAgIHdyaXRpbmctbW9kZTogaG9yaXpvbnRhbC10YjsKICAgICAgICAgICAgICAgIHRleHQtb3JpZW50YXRpb246IG1peGVkOwogICAgICAgICAgICAgICAgbGV0dGVyLXNwYWNpbmc6IG5vcm1hbDsKICAgICAgICAgICAgICAgIGRpcmVjdGlvbjogcnRsOyB1bmljb2RlLWJpZGk6IGJpZGktb3ZlcnJpZGU7CiAgICAgICAgICAgICI+PHRzcGFuIHN0eWxlPSIKICAgICAgICAgICAgICAgIHVuaWNvZGUtYmlkaTogcGxhaW50ZXh0OwogICAgICAgICAgICAgICAgd3JpdGluZy1tb2RlOiBsci10YjsKICAgICAgICAgICAgICAgIGxldHRlci1zcGFjaW5nOiBub3JtYWw7CiAgICAgICAgICAgICAgICB0ZXh0LWFuY2hvcjogc3RhcnQ7CiAgICAgICAgICAgICI+Q2w8L3RzcGFuPjwvdGV4dD48dGV4dCB4PSI0MiIgeT0iMjEiIGNsYXNzPSJkZWJ1ZyIgZmlsbD0iI2ZmMDAwMCIgc3R5bGU9IgogICAgICAgICAgICAgICAgZm9udDogNXB4IERyb2lkIFNhbnMsIHNhbnMtc2VyaWY7CiAgICAgICAgICAgICI+PC90ZXh0PjwvZz48L3N2Zz4="/ &amp;gt;</code>
+（a）
+<code>&amp;lt; img class="imgSvg" id = "m72qiny0553acnghl53" src="data:image/svg+xml;base64,PHN2ZyBpZD0ic21pbGVzLW03MnFpbnkwNTUzYWNuZ2hsNTMiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDE2NiAxMjAuNzQ5OTgxNjM1MDgxNDEiIHN0eWxlPSJ3aWR0aDogMTY1LjgzOTM5MDA1NDYzMDU0cHg7IGhlaWdodDogMTIwLjc0OTk4MTYzNTA4MTQxcHg7IG92ZXJmbG93OiB2aXNpYmxlOyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJsaW5lLW03MnFpbnkwNTUzYWNuZ2hsNTMtMSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIHgxPSI5Ni41NTk2MDA0Mzg0MDcyNyIgeTE9IjUyLjQ5OTk5OTk5OTk5Mjg2NiIgeDI9IjEyMy44MzkzOTAwNTQ2MzA1NCIgeTI9IjY4LjI1MDAxODM2NDg5MDA0Ij48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMjAlIj48L3N0b3A+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjEwMCUiPjwvc3RvcD48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZS1tNzJxaW55MDU1M2FjbmdobDUzLTMiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iOTYuNTU5NjAwNDM4NDA3MjciIHkxPSI1Mi40OTk5OTk5OTk5OTI4NjYiIHgyPSI5Ni41NTk2MjE2NDQzNjgwNCIgeTI9IjIxIj48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMjAlIj48L3N0b3A+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjEwMCUiPjwvc3RvcD48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZS1tNzJxaW55MDU1M2FjbmdobDUzLTUiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iNzQuODQyNzY3MzkyNzU4ODciIHkxPSI3MS41ODUzNDk0MTk1NzIxMyIgeDI9Ijk2LjY2NjYxNjA1MDUwNjEiIHkyPSI1OC45ODUzNjQxMTE0OTU1NiI+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjIwJSI+PC9zdG9wPjxzdG9wIHN0b3AtY29sb3I9ImN1cnJlbnRDb2xvciIgb2Zmc2V0PSIxMDAlIj48L3N0b3A+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmUtbTcycWlueTA1NTNhY25naGw1My03IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjY5LjI3OTc4OTYxNjIyMzI1IiB5MT0iNjguMjQ5OTgxNjM1MDg4NTYiIHgyPSI5Ni41NTk2MDA0Mzg0MDcyNyIgeTI9IjUyLjQ5OTk5OTk5OTk5Mjg2NiI+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjIwJSI+PC9zdG9wPjxzdG9wIHN0b3AtY29sb3I9ImN1cnJlbnRDb2xvciIgb2Zmc2V0PSIxMDAlIj48L3N0b3A+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmUtbTcycWlueTA1NTNhY25naGw1My05IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjQyIiB5MT0iNTIuNDk5OTYzMjcwMTkxMzkiIHgyPSI2OS4yNzk3ODk2MTYyMjMyNSIgeTI9IjY4LjI0OTk4MTYzNTA4ODU2Ij48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMjAlIj48L3N0b3A+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjEwMCUiPjwvc3RvcD48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZS1tNzJxaW55MDU1M2FjbmdobDUzLTExIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjY5LjI3OTc2ODQxMDI2MjQ4IiB5MT0iOTkuNzQ5OTgxNjM1MDgxNDEiIHgyPSI2OS4yNzk3ODk2MTYyMjMyNSIgeTI9IjY4LjI0OTk4MTYzNTA4ODU2Ij48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMjAlIj48L3N0b3A+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjEwMCUiPjwvc3RvcD48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48bWFzayBpZD0idGV4dC1tYXNrLW03MnFpbnkwNTUzYWNuZ2hsNTMiPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IndoaXRlIj48L3JlY3Q+PGNpcmNsZSBjeD0iMTIzLjgzOTM5MDA1NDYzMDU0IiBjeT0iNjguMjUwMDE4MzY0ODkwMDQiIHI9IjcuODc1IiBmaWxsPSJibGFjayI+PC9jaXJjbGU+PGNpcmNsZSBjeD0iOTYuNTU5NjIxNjQ0MzY4MDQiIGN5PSIyMSIgcj0iNy44NzUiIGZpbGw9ImJsYWNrIj48L2NpcmNsZT48Y2lyY2xlIGN4PSI0MiIgY3k9IjUyLjQ5OTk2MzI3MDE5MTM5IiByPSI3Ljg3NSIgZmlsbD0iYmxhY2siPjwvY2lyY2xlPjxjaXJjbGUgY3g9IjY5LjI3OTc2ODQxMDI2MjQ4IiBjeT0iOTkuNzQ5OTgxNjM1MDgxNDEiIHI9IjguNTMxMjUiIGZpbGw9ImJsYWNrIj48L2NpcmNsZT48L21hc2s+PHN0eWxlPgogICAgICAgICAgICAgICAgLmVsZW1lbnQtbTcycWlueTA1NTNhY25naGw1MyB7CiAgICAgICAgICAgICAgICAgICAgZm9udDogMTRweCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOwogICAgICAgICAgICAgICAgICAgIGFsaWdubWVudC1iYXNlbGluZTogJ21pZGRsZSc7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAuc3ViLW03MnFpbnkwNTUzYWNuZ2hsNTMgewogICAgICAgICAgICAgICAgICAgIGZvbnQ6IDguNHB4IEhlbHZldGljYSwgQXJpYWwsIHNhbnMtc2VyaWY7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIDwvc3R5bGU+PGcgbWFzaz0idXJsKCN0ZXh0LW1hc2stbTcycWlueTA1NTNhY25naGw1MykiPjxsaW5lIHgxPSI5Ni41NTk2MDA0Mzg0MDcyNyIgeTE9IjUyLjQ5OTk5OTk5OTk5Mjg2NiIgeDI9IjEyMy44MzkzOTAwNTQ2MzA1NCIgeTI9IjY4LjI1MDAxODM2NDg5MDA0IiBzdHlsZT0ic3Ryb2tlLWxpbmVjYXA6cm91bmQ7c3Ryb2tlLWRhc2hhcnJheTpub25lO3N0cm9rZS13aWR0aDoxLjI2IiBzdHJva2U9InVybCgnI2xpbmUtbTcycWlueTA1NTNhY25naGw1My0xJykiPjwvbGluZT48bGluZSB4MT0iOTYuNTU5NjAwNDM4NDA3MjciIHkxPSI1Mi40OTk5OTk5OTk5OTI4NjYiIHgyPSI5Ni41NTk2MjE2NDQzNjgwNCIgeTI9IjIxIiBzdHlsZT0ic3Ryb2tlLWxpbmVjYXA6cm91bmQ7c3Ryb2tlLWRhc2hhcnJheTpub25lO3N0cm9rZS13aWR0aDoxLjI2IiBzdHJva2U9InVybCgnI2xpbmUtbTcycWlueTA1NTNhY25naGw1My0zJykiPjwvbGluZT48bGluZSB4MT0iNzQuODQyNzY3MzkyNzU4ODciIHkxPSI3MS41ODUzNDk0MTk1NzIxMyIgeDI9Ijk2LjY2NjYxNjA1MDUwNjEiIHkyPSI1OC45ODUzNjQxMTE0OTU1NiIgc3R5bGU9InN0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utd2lkdGg6MS4yNiIgc3Ryb2tlPSJ1cmwoJyNsaW5lLW03MnFpbnkwNTUzYWNuZ2hsNTMtNScpIj48L2xpbmU+PGxpbmUgeDE9IjY5LjI3OTc4OTYxNjIyMzI1IiB5MT0iNjguMjQ5OTgxNjM1MDg4NTYiIHgyPSI5Ni41NTk2MDA0Mzg0MDcyNyIgeTI9IjUyLjQ5OTk5OTk5OTk5Mjg2NiIgc3R5bGU9InN0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utd2lkdGg6MS4yNiIgc3Ryb2tlPSJ1cmwoJyNsaW5lLW03MnFpbnkwNTUzYWNuZ2hsNTMtNycpIj48L2xpbmU+PGxpbmUgeDE9IjQyIiB5MT0iNTIuNDk5OTYzMjcwMTkxMzkiIHgyPSI2OS4yNzk3ODk2MTYyMjMyNSIgeTI9IjY4LjI0OTk4MTYzNTA4ODU2IiBzdHlsZT0ic3Ryb2tlLWxpbmVjYXA6cm91bmQ7c3Ryb2tlLWRhc2hhcnJheTpub25lO3N0cm9rZS13aWR0aDoxLjI2IiBzdHJva2U9InVybCgnI2xpbmUtbTcycWlueTA1NTNhY25naGw1My05JykiPjwvbGluZT48bGluZSB4MT0iNjkuMjc5NzY4NDEwMjYyNDgiIHkxPSI5OS43NDk5ODE2MzUwODE0MSIgeDI9IjY5LjI3OTc4OTYxNjIyMzI1IiB5Mj0iNjguMjQ5OTgxNjM1MDg4NTYiIHN0eWxlPSJzdHJva2UtbGluZWNhcDpyb3VuZDtzdHJva2UtZGFzaGFycmF5Om5vbmU7c3Ryb2tlLXdpZHRoOjEuMjYiIHN0cm9rZT0idXJsKCcjbGluZS1tNzJxaW55MDU1M2FjbmdobDUzLTExJykiPjwvbGluZT48L2c+PGc+PHRleHQgeD0iMTE5LjkwMTg5MDA1NDYzMDU0IiB5PSI3My41MDAwMTgzNjQ4OTAwNCIgY2xhc3M9ImVsZW1lbnQtbTcycWlueTA1NTNhY25naGw1MyIgZmlsbD0iY3VycmVudENvbG9yIiBzdHlsZT0iCiAgICAgICAgICAgICAgICB0ZXh0LWFuY2hvcjogc3RhcnQ7CiAgICAgICAgICAgICAgICB3cml0aW5nLW1vZGU6IGhvcml6b250YWwtdGI7CiAgICAgICAgICAgICAgICB0ZXh0LW9yaWVudGF0aW9uOiBtaXhlZDsKICAgICAgICAgICAgICAgIGxldHRlci1zcGFjaW5nOiBub3JtYWw7CiAgICAgICAgICAgICAgICBkaXJlY3Rpb246IGx0cjsKICAgICAgICAgICAgIj48dHNwYW4+RjwvdHNwYW4+PC90ZXh0Pjx0ZXh0IHg9IjEyMy44MzkzOTAwNTQ2MzA1NCIgeT0iNjguMjUwMDE4MzY0ODkwMDQiIGNsYXNzPSJkZWJ1ZyIgZmlsbD0iI2ZmMDAwMCIgc3R5bGU9IgogICAgICAgICAgICAgICAgZm9udDogNXB4IERyb2lkIFNhbnMsIHNhbnMtc2VyaWY7CiAgICAgICAgICAgICI+PC90ZXh0Pjx0ZXh0IHg9Ijk2LjU1OTYwMDQzODQwNzI3IiB5PSI1Mi40OTk5OTk5OTk5OTI4NjYiIGNsYXNzPSJkZWJ1ZyIgZmlsbD0iI2ZmMDAwMCIgc3R5bGU9IgogICAgICAgICAgICAgICAgZm9udDogNXB4IERyb2lkIFNhbnMsIHNhbnMtc2VyaWY7CiAgICAgICAgICAgICI+PC90ZXh0Pjx0ZXh0IHg9IjkxLjMwOTYyMTY0NDM2ODA0IiB5PSIyNi4yNSIgY2xhc3M9ImVsZW1lbnQtbTcycWlueTA1NTNhY25naGw1MyIgZmlsbD0iY3VycmVudENvbG9yIiBzdHlsZT0iCiAgICAgICAgICAgICAgICB0ZXh0LWFuY2hvcjogc3RhcnQ7CiAgICAgICAgICAgICAgICB3cml0aW5nLW1vZGU6IGhvcml6b250YWwtdGI7CiAgICAgICAgICAgICAgICB0ZXh0LW9yaWVudGF0aW9uOiBtaXhlZDsKICAgICAgICAgICAgICAgIGxldHRlci1zcGFjaW5nOiBub3JtYWw7CiAgICAgICAgICAgICAgICBkaXJlY3Rpb246IGx0cjsKICAgICAgICAgICAgIj48dHNwYW4+RjwvdHNwYW4+PC90ZXh0Pjx0ZXh0IHg9Ijk2LjU1OTYyMTY0NDM2ODA0IiB5PSIyMSIgY2xhc3M9ImRlYnVnIiBmaWxsPSIjZmYwMDAwIiBzdHlsZT0iCiAgICAgICAgICAgICAgICBmb250OiA1cHggRHJvaWQgU2Fucywgc2Fucy1zZXJpZjsKICAgICAgICAgICAgIj48L3RleHQ+PHRleHQgeD0iNjkuMjc5Nzg5NjE2MjIzMjUiIHk9IjY4LjI0OTk4MTYzNTA4ODU2IiBjbGFzcz0iZGVidWciIGZpbGw9IiNmZjAwMDAiIHN0eWxlPSIKICAgICAgICAgICAgICAgIGZvbnQ6IDVweCBEcm9pZCBTYW5zLCBzYW5zLXNlcmlmOwogICAgICAgICAgICAiPjwvdGV4dD48dGV4dCB4PSI0Ny4yNSIgeT0iNTcuNzQ5OTYzMjcwMTkxMzkiIGNsYXNzPSJlbGVtZW50LW03MnFpbnkwNTUzYWNuZ2hsNTMiIGZpbGw9ImN1cnJlbnRDb2xvciIgc3R5bGU9IgogICAgICAgICAgICAgICAgdGV4dC1hbmNob3I6IHN0YXJ0OwogICAgICAgICAgICAgICAgd3JpdGluZy1tb2RlOiBob3Jpem9udGFsLXRiOwogICAgICAgICAgICAgICAgdGV4dC1vcmllbnRhdGlvbjogbWl4ZWQ7CiAgICAgICAgICAgICAgICBsZXR0ZXItc3BhY2luZzogbm9ybWFsOwogICAgICAgICAgICAgICAgZGlyZWN0aW9uOiBydGw7IHVuaWNvZGUtYmlkaTogYmlkaS1vdmVycmlkZTsKICAgICAgICAgICAgIj48dHNwYW4+RjwvdHNwYW4+PC90ZXh0Pjx0ZXh0IHg9IjQyIiB5PSI1Mi40OTk5NjMyNzAxOTEzOSIgY2xhc3M9ImRlYnVnIiBmaWxsPSIjZmYwMDAwIiBzdHlsZT0iCiAgICAgICAgICAgICAgICBmb250OiA1cHggRHJvaWQgU2Fucywgc2Fucy1zZXJpZjsKICAgICAgICAgICAgIj48L3RleHQ+PHRleHQgeD0iNjkuMjc5NzY4NDEwMjYyNDgiIHk9IjEwNC45OTk5ODE2MzUwODE0MSIgY2xhc3M9ImVsZW1lbnQtbTcycWlueTA1NTNhY25naGw1MyIgZmlsbD0iY3VycmVudENvbG9yIiBzdHlsZT0iCiAgICAgICAgICAgICAgICB0ZXh0LWFuY2hvcjogc3RhcnQ7CiAgICAgICAgICAgICAgICB3cml0aW5nLW1vZGU6IGhvcml6b250YWwtdGI7CiAgICAgICAgICAgICAgICB0ZXh0LW9yaWVudGF0aW9uOiBtaXhlZDsKICAgICAgICAgICAgICAgIGxldHRlci1zcGFjaW5nOiBub3JtYWw7CiAgICAgICAgICAgICAgICBkaXJlY3Rpb246IGx0cjsKICAgICAgICAgICAgIj48dHNwYW4gc3R5bGU9IgogICAgICAgICAgICAgICAgdW5pY29kZS1iaWRpOiBwbGFpbnRleHQ7CiAgICAgICAgICAgICAgICB3cml0aW5nLW1vZGU6IGxyLXRiOwogICAgICAgICAgICAgICAgbGV0dGVyLXNwYWNpbmc6IG5vcm1hbDsKICAgICAgICAgICAgICAgIHRleHQtYW5jaG9yOiBtaWRkbGU7CiAgICAgICAgICAgICI+QnI8L3RzcGFuPjwvdGV4dD48dGV4dCB4PSI2OS4yNzk3Njg0MTAyNjI0OCIgeT0iOTkuNzQ5OTgxNjM1MDgxNDEiIGNsYXNzPSJkZWJ1ZyIgZmlsbD0iI2ZmMDAwMCIgc3R5bGU9IgogICAgICAgICAgICAgICAgZm9udDogNXB4IERyb2lkIFNhbnMsIHNhbnMtc2VyaWY7CiAgICAgICAgICAgICI+PC90ZXh0PjwvZz48L3N2Zz4="/ &amp;gt;</code>
+（d）
+<code>&amp;lt; img class="imgSvg" id = "m72qiny6vhygyjcze1" src="data:image/svg+xml;base64,PHN2ZyBpZD0ic21pbGVzLW03MnFpbnk2dmh5Z3lqY3plMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2aWV3Qm94PSIwIDAgMTY2IDEyMC43NDk5ODE2MzUwODE0MSIgc3R5bGU9IndpZHRoOiAxNjUuODM5MzkwMDU0NjMwNTRweDsgaGVpZ2h0OiAxMjAuNzQ5OTgxNjM1MDgxNDFweDsgb3ZlcmZsb3c6IHZpc2libGU7Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmUtbTcycWlueTZ2aHlneWpjemUxLTEiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iOTYuNTU5NjAwNDM4NDA3MjciIHkxPSI1Mi40OTk5OTk5OTk5OTI4NjYiIHgyPSIxMjMuODM5MzkwMDU0NjMwNTQiIHkyPSI2OC4yNTAwMTgzNjQ4OTAwNCI+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjIwJSI+PC9zdG9wPjxzdG9wIHN0b3AtY29sb3I9ImN1cnJlbnRDb2xvciIgb2Zmc2V0PSIxMDAlIj48L3N0b3A+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmUtbTcycWlueTZ2aHlneWpjemUxLTMiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iOTYuNTU5NjAwNDM4NDA3MjciIHkxPSI1Mi40OTk5OTk5OTk5OTI4NjYiIHgyPSI5Ni41NTk2MjE2NDQzNjgwNCIgeTI9IjIxIj48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMjAlIj48L3N0b3A+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjEwMCUiPjwvc3RvcD48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZS1tNzJxaW55NnZoeWd5amN6ZTEtNSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIHgxPSI2OS4yNzk3ODk2MTYyMjMyNSIgeTE9IjY4LjI0OTk4MTYzNTA4ODU2IiB4Mj0iOTYuNTU5NjAwNDM4NDA3MjciIHkyPSI1Mi40OTk5OTk5OTk5OTI4NjYiPjxzdG9wIHN0b3AtY29sb3I9ImN1cnJlbnRDb2xvciIgb2Zmc2V0PSIyMCUiPjwvc3RvcD48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMTAwJSI+PC9zdG9wPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IGlkPSJsaW5lLW03MnFpbnk2dmh5Z3lqY3plMS03IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjQzLjQxNzUwMTY1Mjg0MDc0IiB5MT0iNTAuMDQ0NzgyMjA0NzMxMjkiIHgyPSI3MC42OTcyOTEyNjkwNjQwMSIgeTI9IjY1Ljc5NDgwMDU2OTYyODQ2Ij48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMjAlIj48L3N0b3A+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjEwMCUiPjwvc3RvcD48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZS1tNzJxaW55NnZoeWd5amN6ZTEtOSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIHgxPSI0MC41ODI0OTgzNDcxNTkyNiIgeTE9IjU0Ljk1NTE0NDMzNTY1MTQ4IiB4Mj0iNjcuODYyMjg3OTYzMzgyNSIgeTI9IjcwLjcwNTE2MjcwMDU0ODY2Ij48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMjAlIj48L3N0b3A+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjEwMCUiPjwvc3RvcD48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZS1tNzJxaW55NnZoeWd5amN6ZTEtMTEiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iNjkuMjc5NzY4NDEwMjYyNDgiIHkxPSI5OS43NDk5ODE2MzUwODE0MSIgeDI9IjY5LjI3OTc4OTYxNjIyMzI1IiB5Mj0iNjguMjQ5OTgxNjM1MDg4NTYiPjxzdG9wIHN0b3AtY29sb3I9ImN1cnJlbnRDb2xvciIgb2Zmc2V0PSIyMCUiPjwvc3RvcD48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMTAwJSI+PC9zdG9wPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxtYXNrIGlkPSJ0ZXh0LW1hc2stbTcycWlueTZ2aHlneWpjemUxIj48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ3aGl0ZSI+PC9yZWN0PjxjaXJjbGUgY3g9Ijk2LjU1OTYyMTY0NDM2ODA0IiBjeT0iMjEiIHI9IjcuODc1IiBmaWxsPSJibGFjayI+PC9jaXJjbGU+PGNpcmNsZSBjeD0iNDIiIGN5PSI1Mi40OTk5NjMyNzAxOTEzOSIgcj0iNy44NzUiIGZpbGw9ImJsYWNrIj48L2NpcmNsZT48Y2lyY2xlIGN4PSI2OS4yNzk3Njg0MTAyNjI0OCIgY3k9Ijk5Ljc0OTk4MTYzNTA4MTQxIiByPSI3Ljg3NSIgZmlsbD0iYmxhY2siPjwvY2lyY2xlPjwvbWFzaz48c3R5bGU+CiAgICAgICAgICAgICAgICAuZWxlbWVudC1tNzJxaW55NnZoeWd5amN6ZTEgewogICAgICAgICAgICAgICAgICAgIGZvbnQ6IDE0cHggSGVsdmV0aWNhLCBBcmlhbCwgc2Fucy1zZXJpZjsKICAgICAgICAgICAgICAgICAgICBhbGlnbm1lbnQtYmFzZWxpbmU6ICdtaWRkbGUnOwogICAgICAgICAgICAgICAgfQogICAgICAgICAgICAgICAgLnN1Yi1tNzJxaW55NnZoeWd5amN6ZTEgewogICAgICAgICAgICAgICAgICAgIGZvbnQ6IDguNHB4IEhlbHZldGljYSwgQXJpYWwsIHNhbnMtc2VyaWY7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIDwvc3R5bGU+PGcgbWFzaz0idXJsKCN0ZXh0LW1hc2stbTcycWlueTZ2aHlneWpjemUxKSI+PGxpbmUgeDE9Ijk2LjU1OTYwMDQzODQwNzI3IiB5MT0iNTIuNDk5OTk5OTk5OTkyODY2IiB4Mj0iMTIzLjgzOTM5MDA1NDYzMDU0IiB5Mj0iNjguMjUwMDE4MzY0ODkwMDQiIHN0eWxlPSJzdHJva2UtbGluZWNhcDpyb3VuZDtzdHJva2UtZGFzaGFycmF5Om5vbmU7c3Ryb2tlLXdpZHRoOjEuMjYiIHN0cm9rZT0idXJsKCcjbGluZS1tNzJxaW55NnZoeWd5amN6ZTEtMScpIj48L2xpbmU+PGxpbmUgeDE9Ijk2LjU1OTYwMDQzODQwNzI3IiB5MT0iNTIuNDk5OTk5OTk5OTkyODY2IiB4Mj0iOTYuNTU5NjIxNjQ0MzY4MDQiIHkyPSIyMSIgc3R5bGU9InN0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utd2lkdGg6MS4yNiIgc3Ryb2tlPSJ1cmwoJyNsaW5lLW03MnFpbnk2dmh5Z3lqY3plMS0zJykiPjwvbGluZT48bGluZSB4MT0iNjkuMjc5Nzg5NjE2MjIzMjUiIHkxPSI2OC4yNDk5ODE2MzUwODg1NiIgeDI9Ijk2LjU1OTYwMDQzODQwNzI3IiB5Mj0iNTIuNDk5OTk5OTk5OTkyODY2IiBzdHlsZT0ic3Ryb2tlLWxpbmVjYXA6cm91bmQ7c3Ryb2tlLWRhc2hhcnJheTpub25lO3N0cm9rZS13aWR0aDoxLjI2IiBzdHJva2U9InVybCgnI2xpbmUtbTcycWlueTZ2aHlneWpjemUxLTUnKSI+PC9saW5lPjxsaW5lIHgxPSI0My40MTc1MDE2NTI4NDA3NCIgeTE9IjUwLjA0NDc4MjIwNDczMTI5IiB4Mj0iNzAuNjk3MjkxMjY5MDY0MDEiIHkyPSI2NS43OTQ4MDA1Njk2Mjg0NiIgc3R5bGU9InN0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utd2lkdGg6MS4yNiIgc3Ryb2tlPSJ1cmwoJyNsaW5lLW03MnFpbnk2dmh5Z3lqY3plMS03JykiPjwvbGluZT48bGluZSB4MT0iNDAuNTgyNDk4MzQ3MTU5MjYiIHkxPSI1NC45NTUxNDQzMzU2NTE0OCIgeDI9IjY3Ljg2MjI4Nzk2MzM4MjUiIHkyPSI3MC43MDUxNjI3MDA1NDg2NiIgc3R5bGU9InN0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utd2lkdGg6MS4yNiIgc3Ryb2tlPSJ1cmwoJyNsaW5lLW03MnFpbnk2dmh5Z3lqY3plMS05JykiPjwvbGluZT48bGluZSB4MT0iNjkuMjc5NzY4NDEwMjYyNDgiIHkxPSI5OS43NDk5ODE2MzUwODE0MSIgeDI9IjY5LjI3OTc4OTYxNjIyMzI1IiB5Mj0iNjguMjQ5OTgxNjM1MDg4NTYiIHN0eWxlPSJzdHJva2UtbGluZWNhcDpyb3VuZDtzdHJva2UtZGFzaGFycmF5Om5vbmU7c3Ryb2tlLXdpZHRoOjEuMjYiIHN0cm9rZT0idXJsKCcjbGluZS1tNzJxaW55NnZoeWd5amN6ZTEtMTEnKSI+PC9saW5lPjwvZz48Zz48dGV4dCB4PSIxMjMuODM5MzkwMDU0NjMwNTQiIHk9IjY4LjI1MDAxODM2NDg5MDA0IiBjbGFzcz0iZGVidWciIGZpbGw9IiNmZjAwMDAiIHN0eWxlPSIKICAgICAgICAgICAgICAgIGZvbnQ6IDVweCBEcm9pZCBTYW5zLCBzYW5zLXNlcmlmOwogICAgICAgICAgICAiPjwvdGV4dD48dGV4dCB4PSI5Ni41NTk2MDA0Mzg0MDcyNyIgeT0iNTIuNDk5OTk5OTk5OTkyODY2IiBjbGFzcz0iZGVidWciIGZpbGw9IiNmZjAwMDAiIHN0eWxlPSIKICAgICAgICAgICAgICAgIGZvbnQ6IDVweCBEcm9pZCBTYW5zLCBzYW5zLXNlcmlmOwogICAgICAgICAgICAiPjwvdGV4dD48dGV4dCB4PSI5MS4zMDk2MjE2NDQzNjgwNCIgeT0iMjYuMjUiIGNsYXNzPSJlbGVtZW50LW03MnFpbnk2dmh5Z3lqY3plMSIgZmlsbD0iY3VycmVudENvbG9yIiBzdHlsZT0iCiAgICAgICAgICAgICAgICB0ZXh0LWFuY2hvcjogc3RhcnQ7CiAgICAgICAgICAgICAgICB3cml0aW5nLW1vZGU6IGhvcml6b250YWwtdGI7CiAgICAgICAgICAgICAgICB0ZXh0LW9yaWVudGF0aW9uOiBtaXhlZDsKICAgICAgICAgICAgICAgIGxldHRlci1zcGFjaW5nOiBub3JtYWw7CiAgICAgICAgICAgICAgICBkaXJlY3Rpb246IGx0cjsKICAgICAgICAgICAgIj48dHNwYW4+TjwvdHNwYW4+PHRzcGFuIHN0eWxlPSJ1bmljb2RlLWJpZGk6IHBsYWludGV4dDsiPkg8dHNwYW4gYmFzZWxpbmUtc2hpZnQ9InN1YiIgY2xhc3M9InN1Yi1tNzJxaW55NnZoeWd5amN6ZTEiPjI8L3RzcGFuPjwvdHNwYW4+PC90ZXh0Pjx0ZXh0IHg9Ijk2LjU1OTYyMTY0NDM2ODA0IiB5PSIyMSIgY2xhc3M9ImRlYnVnIiBmaWxsPSIjZmYwMDAwIiBzdHlsZT0iCiAgICAgICAgICAgICAgICBmb250OiA1cHggRHJvaWQgU2Fucywgc2Fucy1zZXJpZjsKICAgICAgICAgICAgIj48L3RleHQ+PHRleHQgeD0iNjkuMjc5Nzg5NjE2MjIzMjUiIHk9IjY4LjI0OTk4MTYzNTA4ODU2IiBjbGFzcz0iZGVidWciIGZpbGw9IiNmZjAwMDAiIHN0eWxlPSIKICAgICAgICAgICAgICAgIGZvbnQ6IDVweCBEcm9pZCBTYW5zLCBzYW5zLXNlcmlmOwogICAgICAgICAgICAiPjwvdGV4dD48dGV4dCB4PSI0Ny4yNSIgeT0iNTcuNzQ5OTYzMjcwMTkxMzkiIGNsYXNzPSJlbGVtZW50LW03MnFpbnk2dmh5Z3lqY3plMSIgZmlsbD0iY3VycmVudENvbG9yIiBzdHlsZT0iCiAgICAgICAgICAgICAgICB0ZXh0LWFuY2hvcjogc3RhcnQ7CiAgICAgICAgICAgICAgICB3cml0aW5nLW1vZGU6IGhvcml6b250YWwtdGI7CiAgICAgICAgICAgICAgICB0ZXh0LW9yaWVudGF0aW9uOiBtaXhlZDsKICAgICAgICAgICAgICAgIGxldHRlci1zcGFjaW5nOiBub3JtYWw7CiAgICAgICAgICAgICAgICBkaXJlY3Rpb246IHJ0bDsgdW5pY29kZS1iaWRpOiBiaWRpLW92ZXJyaWRlOwogICAgICAgICAgICAiPjx0c3Bhbj5PPC90c3Bhbj48L3RleHQ+PHRleHQgeD0iNDIiIHk9IjUyLjQ5OTk2MzI3MDE5MTM5IiBjbGFzcz0iZGVidWciIGZpbGw9IiNmZjAwMDAiIHN0eWxlPSIKICAgICAgICAgICAgICAgIGZvbnQ6IDVweCBEcm9pZCBTYW5zLCBzYW5zLXNlcmlmOwogICAgICAgICAgICAiPjwvdGV4dD48dGV4dCB4PSI2NC4wMjk3Njg0MTAyNjI0OCIgeT0iMTA0Ljk5OTk4MTYzNTA4MTQxIiBjbGFzcz0iZWxlbWVudC1tNzJxaW55NnZoeWd5amN6ZTEiIGZpbGw9ImN1cnJlbnRDb2xvciIgc3R5bGU9IgogICAgICAgICAgICAgICAgdGV4dC1hbmNob3I6IHN0YXJ0OwogICAgICAgICAgICAgICAgd3JpdGluZy1tb2RlOiBob3Jpem9udGFsLXRiOwogICAgICAgICAgICAgICAgdGV4dC1vcmllbnRhdGlvbjogbWl4ZWQ7CiAgICAgICAgICAgICAgICBsZXR0ZXItc3BhY2luZzogbm9ybWFsOwogICAgICAgICAgICAgICAgZGlyZWN0aW9uOiBsdHI7CiAgICAgICAgICAgICI+PHRzcGFuPk88L3RzcGFuPjx0c3BhbiBzdHlsZT0idW5pY29kZS1iaWRpOiBwbGFpbnRleHQ7Ij5IPC90c3Bhbj48L3RleHQ+PHRleHQgeD0iNjkuMjc5NzY4NDEwMjYyNDgiIHk9Ijk5Ljc0OTk4MTYzNTA4MTQxIiBjbGFzcz0iZGVidWciIGZpbGw9IiNmZjAwMDAiIHN0eWxlPSIKICAgICAgICAgICAgICAgIGZvbnQ6IDVweCBEcm9pZCBTYW5zLCBzYW5zLXNlcmlmOwogICAgICAgICAgICAiPjwvdGV4dD48L2c+PC9zdmc+"/ &amp;gt;</code>
+（b）
+<code>&amp;lt; img class="imgSvg" id = "m72qinybpm4od3lihoe" src="data:image/svg+xml;base64,PHN2ZyBpZD0ic21pbGVzLW03MnFpbnlicG00b2QzbGlob2UiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDE2NiA4OS4yNTAwMTgzNjQ4OTAwMiIgc3R5bGU9IndpZHRoOiAxNjUuODM5MzkwMDU0NjMwNTRweDsgaGVpZ2h0OiA4OS4yNTAwMTgzNjQ4OTAwMnB4OyBvdmVyZmxvdzogdmlzaWJsZTsiPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZS1tNzJxaW55YnBtNG9kM2xpaG9lLTEiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iOTYuNTU5NjAwNDM4NDA3MjciIHkxPSIyMS4wMDAwMzY3Mjk4MDE0OCIgeDI9IjEyMy44MzkzOTAwNTQ2MzA1NCIgeTI9IjM2Ljc1MDA1NTA5NDY5ODY1Ij48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMjAlIj48L3N0b3A+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjEwMCUiPjwvc3RvcD48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZS1tNzJxaW55YnBtNG9kM2xpaG9lLTMiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iNjkuMTcyNzc0MDA0MTI0NDIiIHkxPSIzMC4yNjQ2NTQyNTMzOTQ0ODIiIHgyPSI5MC45OTY2MjI2NjE4NzE2NCIgeTI9IjE3LjY2NDY2ODk0NTMxNzkxNCI+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjIwJSI+PC9zdG9wPjxzdG9wIHN0b3AtY29sb3I9ImN1cnJlbnRDb2xvciIgb2Zmc2V0PSIxMDAlIj48L3N0b3A+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmUtbTcycWlueWJwbTRvZDNsaWhvZS01IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjY5LjI3OTc4OTYxNjIyMzI1IiB5MT0iMzYuNzUwMDE4MzY0ODk3MTciIHgyPSI5Ni41NTk2MDA0Mzg0MDcyNyIgeTI9IjIxLjAwMDAzNjcyOTgwMTQ4Ij48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMjAlIj48L3N0b3A+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjEwMCUiPjwvc3RvcD48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZS1tNzJxaW55YnBtNG9kM2xpaG9lLTciIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iNDIiIHkxPSIyMSIgeDI9IjY5LjI3OTc4OTYxNjIyMzI1IiB5Mj0iMzYuNzUwMDE4MzY0ODk3MTciPjxzdG9wIHN0b3AtY29sb3I9ImN1cnJlbnRDb2xvciIgb2Zmc2V0PSIyMCUiPjwvc3RvcD48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMTAwJSI+PC9zdG9wPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IGlkPSJsaW5lLW03MnFpbnlicG00b2QzbGlob2UtOSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIHgxPSI2OS4yNzk3Njg0MTAyNjI0OCIgeTE9IjY4LjI1MDAxODM2NDg5MDAyIiB4Mj0iNjkuMjc5Nzg5NjE2MjIzMjUiIHkyPSIzNi43NTAwMTgzNjQ4OTcxNyI+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjIwJSI+PC9zdG9wPjxzdG9wIHN0b3AtY29sb3I9ImN1cnJlbnRDb2xvciIgb2Zmc2V0PSIxMDAlIj48L3N0b3A+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PG1hc2sgaWQ9InRleHQtbWFzay1tNzJxaW55YnBtNG9kM2xpaG9lIj48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ3aGl0ZSI+PC9yZWN0PjxjaXJjbGUgY3g9IjEyMy44MzkzOTAwNTQ2MzA1NCIgY3k9IjM2Ljc1MDA1NTA5NDY5ODY1IiByPSI3Ljg3NSIgZmlsbD0iYmxhY2siPjwvY2lyY2xlPjxjaXJjbGUgY3g9IjQyIiBjeT0iMjEiIHI9IjcuODc1IiBmaWxsPSJibGFjayI+PC9jaXJjbGU+PGNpcmNsZSBjeD0iNjkuMjc5NzY4NDEwMjYyNDgiIGN5PSI2OC4yNTAwMTgzNjQ4OTAwMiIgcj0iNy44NzUiIGZpbGw9ImJsYWNrIj48L2NpcmNsZT48L21hc2s+PHN0eWxlPgogICAgICAgICAgICAgICAgLmVsZW1lbnQtbTcycWlueWJwbTRvZDNsaWhvZSB7CiAgICAgICAgICAgICAgICAgICAgZm9udDogMTRweCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOwogICAgICAgICAgICAgICAgICAgIGFsaWdubWVudC1iYXNlbGluZTogJ21pZGRsZSc7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAuc3ViLW03MnFpbnlicG00b2QzbGlob2UgewogICAgICAgICAgICAgICAgICAgIGZvbnQ6IDguNHB4IEhlbHZldGljYSwgQXJpYWwsIHNhbnMtc2VyaWY7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIDwvc3R5bGU+PGcgbWFzaz0idXJsKCN0ZXh0LW1hc2stbTcycWlueWJwbTRvZDNsaWhvZSkiPjxsaW5lIHgxPSI5Ni41NTk2MDA0Mzg0MDcyNyIgeTE9IjIxLjAwMDAzNjcyOTgwMTQ4IiB4Mj0iMTIzLjgzOTM5MDA1NDYzMDU0IiB5Mj0iMzYuNzUwMDU1MDk0Njk4NjUiIHN0eWxlPSJzdHJva2UtbGluZWNhcDpyb3VuZDtzdHJva2UtZGFzaGFycmF5Om5vbmU7c3Ryb2tlLXdpZHRoOjEuMjYiIHN0cm9rZT0idXJsKCcjbGluZS1tNzJxaW55YnBtNG9kM2xpaG9lLTEnKSI+PC9saW5lPjxsaW5lIHgxPSI2OS4xNzI3NzQwMDQxMjQ0MiIgeTE9IjMwLjI2NDY1NDI1MzM5NDQ4MiIgeDI9IjkwLjk5NjYyMjY2MTg3MTY0IiB5Mj0iMTcuNjY0NjY4OTQ1MzE3OTE0IiBzdHlsZT0ic3Ryb2tlLWxpbmVjYXA6cm91bmQ7c3Ryb2tlLWRhc2hhcnJheTpub25lO3N0cm9rZS13aWR0aDoxLjI2IiBzdHJva2U9InVybCgnI2xpbmUtbTcycWlueWJwbTRvZDNsaWhvZS0zJykiPjwvbGluZT48bGluZSB4MT0iNjkuMjc5Nzg5NjE2MjIzMjUiIHkxPSIzNi43NTAwMTgzNjQ4OTcxNyIgeDI9Ijk2LjU1OTYwMDQzODQwNzI3IiB5Mj0iMjEuMDAwMDM2NzI5ODAxNDgiIHN0eWxlPSJzdHJva2UtbGluZWNhcDpyb3VuZDtzdHJva2UtZGFzaGFycmF5Om5vbmU7c3Ryb2tlLXdpZHRoOjEuMjYiIHN0cm9rZT0idXJsKCcjbGluZS1tNzJxaW55YnBtNG9kM2xpaG9lLTUnKSI+PC9saW5lPjxsaW5lIHgxPSI0MiIgeTE9IjIxIiB4Mj0iNjkuMjc5Nzg5NjE2MjIzMjUiIHkyPSIzNi43NTAwMTgzNjQ4OTcxNyIgc3R5bGU9InN0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utd2lkdGg6MS4yNiIgc3Ryb2tlPSJ1cmwoJyNsaW5lLW03MnFpbnlicG00b2QzbGlob2UtNycpIj48L2xpbmU+PGxpbmUgeDE9IjY5LjI3OTc2ODQxMDI2MjQ4IiB5MT0iNjguMjUwMDE4MzY0ODkwMDIiIHgyPSI2OS4yNzk3ODk2MTYyMjMyNSIgeTI9IjM2Ljc1MDAxODM2NDg5NzE3IiBzdHlsZT0ic3Ryb2tlLWxpbmVjYXA6cm91bmQ7c3Ryb2tlLWRhc2hhcnJheTpub25lO3N0cm9rZS13aWR0aDoxLjI2IiBzdHJva2U9InVybCgnI2xpbmUtbTcycWlueWJwbTRvZDNsaWhvZS05JykiPjwvbGluZT48L2c+PGc+PHRleHQgeD0iMTE5LjkwMTg5MDA1NDYzMDU0IiB5PSI0Mi4wMDAwNTUwOTQ2OTg2NSIgY2xhc3M9ImVsZW1lbnQtbTcycWlueWJwbTRvZDNsaWhvZSIgZmlsbD0iY3VycmVudENvbG9yIiBzdHlsZT0iCiAgICAgICAgICAgICAgICB0ZXh0LWFuY2hvcjogc3RhcnQ7CiAgICAgICAgICAgICAgICB3cml0aW5nLW1vZGU6IGhvcml6b250YWwtdGI7CiAgICAgICAgICAgICAgICB0ZXh0LW9yaWVudGF0aW9uOiBtaXhlZDsKICAgICAgICAgICAgICAgIGxldHRlci1zcGFjaW5nOiBub3JtYWw7CiAgICAgICAgICAgICAgICBkaXJlY3Rpb246IGx0cjsKICAgICAgICAgICAgIj48dHNwYW4gc3R5bGU9IgogICAgICAgICAgICAgICAgdW5pY29kZS1iaWRpOiBwbGFpbnRleHQ7CiAgICAgICAgICAgICAgICB3cml0aW5nLW1vZGU6IGxyLXRiOwogICAgICAgICAgICAgICAgbGV0dGVyLXNwYWNpbmc6IG5vcm1hbDsKICAgICAgICAgICAgICAgIHRleHQtYW5jaG9yOiBzdGFydDsKICAgICAgICAgICAgIj5DbDwvdHNwYW4+PC90ZXh0Pjx0ZXh0IHg9IjEyMy44MzkzOTAwNTQ2MzA1NCIgeT0iMzYuNzUwMDU1MDk0Njk4NjUiIGNsYXNzPSJkZWJ1ZyIgZmlsbD0iI2ZmMDAwMCIgc3R5bGU9IgogICAgICAgICAgICAgICAgZm9udDogNXB4IERyb2lkIFNhbnMsIHNhbnMtc2VyaWY7CiAgICAgICAgICAgICI+PC90ZXh0Pjx0ZXh0IHg9Ijk2LjU1OTYwMDQzODQwNzI3IiB5PSIyMS4wMDAwMzY3Mjk4MDE0OCIgY2xhc3M9ImRlYnVnIiBmaWxsPSIjZmYwMDAwIiBzdHlsZT0iCiAgICAgICAgICAgICAgICBmb250OiA1cHggRHJvaWQgU2Fucywgc2Fucy1zZXJpZjsKICAgICAgICAgICAgIj48L3RleHQ+PHRleHQgeD0iNjkuMjc5Nzg5NjE2MjIzMjUiIHk9IjM2Ljc1MDAxODM2NDg5NzE3IiBjbGFzcz0iZGVidWciIGZpbGw9IiNmZjAwMDAiIHN0eWxlPSIKICAgICAgICAgICAgICAgIGZvbnQ6IDVweCBEcm9pZCBTYW5zLCBzYW5zLXNlcmlmOwogICAgICAgICAgICAiPjwvdGV4dD48dGV4dCB4PSI0Ny4yNSIgeT0iMjYuMjUiIGNsYXNzPSJlbGVtZW50LW03MnFpbnlicG00b2QzbGlob2UiIGZpbGw9ImN1cnJlbnRDb2xvciIgc3R5bGU9IgogICAgICAgICAgICAgICAgdGV4dC1hbmNob3I6IHN0YXJ0OwogICAgICAgICAgICAgICAgd3JpdGluZy1tb2RlOiBob3Jpem9udGFsLXRiOwogICAgICAgICAgICAgICAgdGV4dC1vcmllbnRhdGlvbjogbWl4ZWQ7CiAgICAgICAgICAgICAgICBsZXR0ZXItc3BhY2luZzogbm9ybWFsOwogICAgICAgICAgICAgICAgZGlyZWN0aW9uOiBydGw7IHVuaWNvZGUtYmlkaTogYmlkaS1vdmVycmlkZTsKICAgICAgICAgICAgIj48dHNwYW4gc3R5bGU9IgogICAgICAgICAgICAgICAgdW5pY29kZS1iaWRpOiBwbGFpbnRleHQ7CiAgICAgICAgICAgICAgICB3cml0aW5nLW1vZGU6IGxyLXRiOwogICAgICAgICAgICAgICAgbGV0dGVyLXNwYWNpbmc6IG5vcm1hbDsKICAgICAgICAgICAgICAgIHRleHQtYW5jaG9yOiBzdGFydDsKICAgICAgICAgICAgIj5DbDwvdHNwYW4+PC90ZXh0Pjx0ZXh0IHg9IjQyIiB5PSIyMSIgY2xhc3M9ImRlYnVnIiBmaWxsPSIjZmYwMDAwIiBzdHlsZT0iCiAgICAgICAgICAgICAgICBmb250OiA1cHggRHJvaWQgU2Fucywgc2Fucy1zZXJpZjsKICAgICAgICAgICAgIj48L3RleHQ+PHRleHQgeD0iNjkuMjc5NzY4NDEwMjYyNDgiIHk9IjczLjUwMDAxODM2NDg5MDAyIiBjbGFzcz0iZWxlbWVudC1tNzJxaW55YnBtNG9kM2xpaG9lIiBmaWxsPSJjdXJyZW50Q29sb3IiIHN0eWxlPSIKICAgICAgICAgICAgICAgIHRleHQtYW5jaG9yOiBzdGFydDsKICAgICAgICAgICAgICAgIHdyaXRpbmctbW9kZTogaG9yaXpvbnRhbC10YjsKICAgICAgICAgICAgICAgIHRleHQtb3JpZW50YXRpb246IG1peGVkOwogICAgICAgICAgICAgICAgbGV0dGVyLXNwYWNpbmc6IG5vcm1hbDsKICAgICAgICAgICAgICAgIGRpcmVjdGlvbjogbHRyOwogICAgICAgICAgICAiPjx0c3BhbiBzdHlsZT0iCiAgICAgICAgICAgICAgICB1bmljb2RlLWJpZGk6IHBsYWludGV4dDsKICAgICAgICAgICAgICAgIHdyaXRpbmctbW9kZTogbHItdGI7CiAgICAgICAgICAgICAgICBsZXR0ZXItc3BhY2luZzogbm9ybWFsOwogICAgICAgICAgICAgICAgdGV4dC1hbmNob3I6IG1pZGRsZTsKICAgICAgICAgICAgIj5DbDwvdHNwYW4+PC90ZXh0Pjx0ZXh0IHg9IjY5LjI3OTc2ODQxMDI2MjQ4IiB5PSI2OC4yNTAwMTgzNjQ4OTAwMiIgY2xhc3M9ImRlYnVnIiBmaWxsPSIjZmYwMDAwIiBzdHlsZT0iCiAgICAgICAgICAgICAgICBmb250OiA1cHggRHJvaWQgU2Fucywgc2Fucy1zZXJpZjsKICAgICAgICAgICAgIj48L3RleHQ+PC9nPjwvc3ZnPg=="/ &amp;gt;</code>
+（e）
+<code>&amp;lt; img class="imgSvg" id = "m72qinyfladw1ou9fne" src="data:image/svg+xml;base64,PHN2ZyBpZD0ic21pbGVzLW03MnFpbnlmbGFkdzFvdTlmbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDE2NCAxMjIuOTI2MzQyMTcxNTUwMDkiIHN0eWxlPSJ3aWR0aDogMTYzLjk3MzUyOTg0Nzc4NTJweDsgaGVpZ2h0OiAxMjIuOTI2MzQyMTcxNTUwMDlweDsgb3ZlcmZsb3c6IHZpc2libGU7Ij48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmUtbTcycWlueWZsYWR3MW91OWZuZS0xIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjkwLjQ3MzUyOTg0Nzc5Nzg5IiB5MT0iNzYuNDQyMzIzNDY4MTUwODUiIHgyPSIxMjEuOTczNTI5ODQ3Nzg1MTkiIHkyPSI3Ni40NDIzNTE3NDI3NjUyMyI+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjIwJSI+PC9zdG9wPjxzdG9wIHN0b3AtY29sb3I9ImN1cnJlbnRDb2xvciIgb2Zmc2V0PSIxMDAlIj48L3N0b3A+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmUtbTcycWlueWZsYWR3MW91OWZuZS0zIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjcxLjk1ODI3MTUyNTk0ODkzIiB5MT0iMTAxLjkyNjM0MjE3MTU1MDA5IiB4Mj0iOTAuNDczNTI5ODQ3Nzk3ODkiIHkyPSI3Ni40NDIzMjM0NjgxNTA4NSI+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjIwJSI+PC9zdG9wPjxzdG9wIHN0b3AtY29sb3I9ImN1cnJlbnRDb2xvciIgb2Zmc2V0PSIxMDAlIj48L3N0b3A+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9ImxpbmUtbTcycWlueWZsYWR3MW91OWZuZS01IiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjcxLjk1ODMxNzI3NTIzNTk0IiB5MT0iNTAuOTU4MjcxNTI1OTQ4OTQiIHgyPSI5MC40NzM1Mjk4NDc3OTc4OSIgeTI9Ijc2LjQ0MjMyMzQ2ODE1MDg1Ij48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMjAlIj48L3N0b3A+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjEwMCUiPjwvc3RvcD48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZS1tNzJxaW55ZmxhZHcxb3U5Zm5lLTciIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iNDIiIHkxPSI5Mi4xOTIyNzk5NTc5ODY5NSIgeDI9IjcxLjk1ODI3MTUyNTk0ODkzIiB5Mj0iMTAxLjkyNjM0MjE3MTU1MDA5Ij48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMjAlIj48L3N0b3A+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjEwMCUiPjwvc3RvcD48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZS1tNzJxaW55ZmxhZHcxb3U5Zm5lLTkiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iNDIuMDAwMDI4Mjc0NjE0MzQiIHkxPSI2MC42OTIyNzk5NTc5OTk2NSIgeDI9IjcxLjk1ODMxNzI3NTIzNTk0IiB5Mj0iNTAuOTU4MjcxNTI1OTQ4OTQiPjxzdG9wIHN0b3AtY29sb3I9ImN1cnJlbnRDb2xvciIgb2Zmc2V0PSIyMCUiPjwvc3RvcD48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMTAwJSI+PC9zdG9wPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IGlkPSJsaW5lLW03MnFpbnlmbGFkdzFvdTlmbmUtMTEiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iNzEuOTU4MzE3Mjc1MjM1OTQiIHkxPSI1MC45NTgyNzE1MjU5NDg5NCIgeDI9IjgxLjY5MjM3OTQ4ODc5OTA4IiB5Mj0iMjEiPjxzdG9wIHN0b3AtY29sb3I9ImN1cnJlbnRDb2xvciIgb2Zmc2V0PSIyMCUiPjwvc3RvcD48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMTAwJSI+PC9zdG9wPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IGlkPSJsaW5lLW03MnFpbnlmbGFkdzFvdTlmbmUtMTMiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iNDIiIHkxPSI5Mi4xOTIyNzk5NTc5ODY5NSIgeDI9IjQyLjAwMDAyODI3NDYxNDM0IiB5Mj0iNjAuNjkyMjc5OTU3OTk5NjUiPjxzdG9wIHN0b3AtY29sb3I9ImN1cnJlbnRDb2xvciIgb2Zmc2V0PSIyMCUiPjwvc3RvcD48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMTAwJSI+PC9zdG9wPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxtYXNrIGlkPSJ0ZXh0LW1hc2stbTcycWlueWZsYWR3MW91OWZuZSI+PHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0id2hpdGUiPjwvcmVjdD48Y2lyY2xlIGN4PSIxMjEuOTczNTI5ODQ3Nzg1MTkiIGN5PSI3Ni40NDIzNTE3NDI3NjUyMyIgcj0iNy44NzUiIGZpbGw9ImJsYWNrIj48L2NpcmNsZT48Y2lyY2xlIGN4PSI0MiIgY3k9IjkyLjE5MjI3OTk1Nzk4Njk1IiByPSI3Ljg3NSIgZmlsbD0iYmxhY2siPjwvY2lyY2xlPjxjaXJjbGUgY3g9IjgxLjY5MjM3OTQ4ODc5OTA4IiBjeT0iMjEiIHI9IjkuMTg3NSIgZmlsbD0iYmxhY2siPjwvY2lyY2xlPjwvbWFzaz48c3R5bGU+CiAgICAgICAgICAgICAgICAuZWxlbWVudC1tNzJxaW55ZmxhZHcxb3U5Zm5lIHsKICAgICAgICAgICAgICAgICAgICBmb250OiAxNHB4IEhlbHZldGljYSwgQXJpYWwsIHNhbnMtc2VyaWY7CiAgICAgICAgICAgICAgICAgICAgYWxpZ25tZW50LWJhc2VsaW5lOiAnbWlkZGxlJzsKICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgIC5zdWItbTcycWlueWZsYWR3MW91OWZuZSB7CiAgICAgICAgICAgICAgICAgICAgZm9udDogOC40cHggSGVsdmV0aWNhLCBBcmlhbCwgc2Fucy1zZXJpZjsKICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgPC9zdHlsZT48ZyBtYXNrPSJ1cmwoI3RleHQtbWFzay1tNzJxaW55ZmxhZHcxb3U5Zm5lKSI+PGxpbmUgeDE9IjkwLjQ3MzUyOTg0Nzc5Nzg5IiB5MT0iNzYuNDQyMzIzNDY4MTUwODUiIHgyPSIxMjEuOTczNTI5ODQ3Nzg1MTkiIHkyPSI3Ni40NDIzNTE3NDI3NjUyMyIgc3R5bGU9InN0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utd2lkdGg6MS4yNiIgc3Ryb2tlPSJ1cmwoJyNsaW5lLW03MnFpbnlmbGFkdzFvdTlmbmUtMScpIj48L2xpbmU+PGxpbmUgeDE9IjcxLjk1ODI3MTUyNTk0ODkzIiB5MT0iMTAxLjkyNjM0MjE3MTU1MDA5IiB4Mj0iOTAuNDczNTI5ODQ3Nzk3ODkiIHkyPSI3Ni40NDIzMjM0NjgxNTA4NSIgc3R5bGU9InN0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utd2lkdGg6MS4yNiIgc3Ryb2tlPSJ1cmwoJyNsaW5lLW03MnFpbnlmbGFkdzFvdTlmbmUtMycpIj48L2xpbmU+PGxpbmUgeDE9IjcxLjk1ODMxNzI3NTIzNTk0IiB5MT0iNTAuOTU4MjcxNTI1OTQ4OTQiIHgyPSI5MC40NzM1Mjk4NDc3OTc4OSIgeTI9Ijc2LjQ0MjMyMzQ2ODE1MDg1IiBzdHlsZT0ic3Ryb2tlLWxpbmVjYXA6cm91bmQ7c3Ryb2tlLWRhc2hhcnJheTpub25lO3N0cm9rZS13aWR0aDoxLjI2IiBzdHJva2U9InVybCgnI2xpbmUtbTcycWlueWZsYWR3MW91OWZuZS01JykiPjwvbGluZT48bGluZSB4MT0iNDIiIHkxPSI5Mi4xOTIyNzk5NTc5ODY5NSIgeDI9IjcxLjk1ODI3MTUyNTk0ODkzIiB5Mj0iMTAxLjkyNjM0MjE3MTU1MDA5IiBzdHlsZT0ic3Ryb2tlLWxpbmVjYXA6cm91bmQ7c3Ryb2tlLWRhc2hhcnJheTpub25lO3N0cm9rZS13aWR0aDoxLjI2IiBzdHJva2U9InVybCgnI2xpbmUtbTcycWlueWZsYWR3MW91OWZuZS03JykiPjwvbGluZT48bGluZSB4MT0iNDIuMDAwMDI4Mjc0NjE0MzQiIHkxPSI2MC42OTIyNzk5NTc5OTk2NSIgeDI9IjcxLjk1ODMxNzI3NTIzNTk0IiB5Mj0iNTAuOTU4MjcxNTI1OTQ4OTQiIHN0eWxlPSJzdHJva2UtbGluZWNhcDpyb3VuZDtzdHJva2UtZGFzaGFycmF5Om5vbmU7c3Ryb2tlLXdpZHRoOjEuMjYiIHN0cm9rZT0idXJsKCcjbGluZS1tNzJxaW55ZmxhZHcxb3U5Zm5lLTknKSI+PC9saW5lPjxsaW5lIHgxPSI3MS45NTgzMTcyNzUyMzU5NCIgeTE9IjUwLjk1ODI3MTUyNTk0ODk0IiB4Mj0iODEuNjkyMzc5NDg4Nzk5MDgiIHkyPSIyMSIgc3R5bGU9InN0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utd2lkdGg6MS4yNiIgc3Ryb2tlPSJ1cmwoJyNsaW5lLW03MnFpbnlmbGFkdzFvdTlmbmUtMTEnKSI+PC9saW5lPjxsaW5lIHgxPSI0MiIgeTE9IjkyLjE5MjI3OTk1Nzk4Njk1IiB4Mj0iNDIuMDAwMDI4Mjc0NjE0MzQiIHkyPSI2MC42OTIyNzk5NTc5OTk2NSIgc3R5bGU9InN0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utd2lkdGg6MS4yNiIgc3Ryb2tlPSJ1cmwoJyNsaW5lLW03MnFpbnlmbGFkdzFvdTlmbmUtMTMnKSI+PC9saW5lPjwvZz48Zz48dGV4dCB4PSIxMTguMDM2MDI5ODQ3Nzg1MTkiIHk9IjgxLjY5MjM1MTc0Mjc2NTIzIiBjbGFzcz0iZWxlbWVudC1tNzJxaW55ZmxhZHcxb3U5Zm5lIiBmaWxsPSJjdXJyZW50Q29sb3IiIHN0eWxlPSIKICAgICAgICAgICAgICAgIHRleHQtYW5jaG9yOiBzdGFydDsKICAgICAgICAgICAgICAgIHdyaXRpbmctbW9kZTogaG9yaXpvbnRhbC10YjsKICAgICAgICAgICAgICAgIHRleHQtb3JpZW50YXRpb246IG1peGVkOwogICAgICAgICAgICAgICAgbGV0dGVyLXNwYWNpbmc6IG5vcm1hbDsKICAgICAgICAgICAgICAgIGRpcmVjdGlvbjogbHRyOwogICAgICAgICAgICAiPjx0c3BhbiBzdHlsZT0iCiAgICAgICAgICAgICAgICB1bmljb2RlLWJpZGk6IHBsYWludGV4dDsKICAgICAgICAgICAgICAgIHdyaXRpbmctbW9kZTogbHItdGI7CiAgICAgICAgICAgICAgICBsZXR0ZXItc3BhY2luZzogbm9ybWFsOwogICAgICAgICAgICAgICAgdGV4dC1hbmNob3I6IHN0YXJ0OwogICAgICAgICAgICAiPkJyPC90c3Bhbj48L3RleHQ+PHRleHQgeD0iMTIxLjk3MzUyOTg0Nzc4NTE5IiB5PSI3Ni40NDIzNTE3NDI3NjUyMyIgY2xhc3M9ImRlYnVnIiBmaWxsPSIjZmYwMDAwIiBzdHlsZT0iCiAgICAgICAgICAgICAgICBmb250OiA1cHggRHJvaWQgU2Fucywgc2Fucy1zZXJpZjsKICAgICAgICAgICAgIj48L3RleHQ+PHRleHQgeD0iOTAuNDczNTI5ODQ3Nzk3ODkiIHk9Ijc2LjQ0MjMyMzQ2ODE1MDg1IiBjbGFzcz0iZGVidWciIGZpbGw9IiNmZjAwMDAiIHN0eWxlPSIKICAgICAgICAgICAgICAgIGZvbnQ6IDVweCBEcm9pZCBTYW5zLCBzYW5zLXNlcmlmOwogICAgICAgICAgICAiPjwvdGV4dD48dGV4dCB4PSI3MS45NTgyNzE1MjU5NDg5MyIgeT0iMTAxLjkyNjM0MjE3MTU1MDA5IiBjbGFzcz0iZGVidWciIGZpbGw9IiNmZjAwMDAiIHN0eWxlPSIKICAgICAgICAgICAgICAgIGZvbnQ6IDVweCBEcm9pZCBTYW5zLCBzYW5zLXNlcmlmOwogICAgICAgICAgICAiPjwvdGV4dD48dGV4dCB4PSI0Ny4yNSIgeT0iOTcuNDQyMjc5OTU3OTg2OTUiIGNsYXNzPSJlbGVtZW50LW03MnFpbnlmbGFkdzFvdTlmbmUiIGZpbGw9ImN1cnJlbnRDb2xvciIgc3R5bGU9IgogICAgICAgICAgICAgICAgdGV4dC1hbmNob3I6IHN0YXJ0OwogICAgICAgICAgICAgICAgd3JpdGluZy1tb2RlOiBob3Jpem9udGFsLXRiOwogICAgICAgICAgICAgICAgdGV4dC1vcmllbnRhdGlvbjogbWl4ZWQ7CiAgICAgICAgICAgICAgICBsZXR0ZXItc3BhY2luZzogbm9ybWFsOwogICAgICAgICAgICAgICAgZGlyZWN0aW9uOiBydGw7IHVuaWNvZGUtYmlkaTogYmlkaS1vdmVycmlkZTsKICAgICAgICAgICAgIj48dHNwYW4+UzwvdHNwYW4+PC90ZXh0Pjx0ZXh0IHg9IjQyIiB5PSI5Mi4xOTIyNzk5NTc5ODY5NSIgY2xhc3M9ImRlYnVnIiBmaWxsPSIjZmYwMDAwIiBzdHlsZT0iCiAgICAgICAgICAgICAgICBmb250OiA1cHggRHJvaWQgU2Fucywgc2Fucy1zZXJpZjsKICAgICAgICAgICAgIj48L3RleHQ+PHRleHQgeD0iNDIuMDAwMDI4Mjc0NjE0MzQiIHk9IjYwLjY5MjI3OTk1Nzk5OTY1IiBjbGFzcz0iZGVidWciIGZpbGw9IiNmZjAwMDAiIHN0eWxlPSIKICAgICAgICAgICAgICAgIGZvbnQ6IDVweCBEcm9pZCBTYW5zLCBzYW5zLXNlcmlmOwogICAgICAgICAgICAiPjwvdGV4dD48dGV4dCB4PSI3MS45NTgzMTcyNzUyMzU5NCIgeT0iNTAuOTU4MjcxNTI1OTQ4OTQiIGNsYXNzPSJkZWJ1ZyIgZmlsbD0iI2ZmMDAwMCIgc3R5bGU9IgogICAgICAgICAgICAgICAgZm9udDogNXB4IERyb2lkIFNhbnMsIHNhbnMtc2VyaWY7CiAgICAgICAgICAgICI+PC90ZXh0Pjx0ZXh0IHg9Ijc2LjQ0MjM3OTQ4ODc5OTA4IiB5PSIyNi4yNSIgY2xhc3M9ImVsZW1lbnQtbTcycWlueWZsYWR3MW91OWZuZSIgZmlsbD0iY3VycmVudENvbG9yIiBzdHlsZT0iCiAgICAgICAgICAgICAgICB0ZXh0LWFuY2hvcjogc3RhcnQ7CiAgICAgICAgICAgICAgICB3cml0aW5nLW1vZGU6IGhvcml6b250YWwtdGI7CiAgICAgICAgICAgICAgICB0ZXh0LW9yaWVudGF0aW9uOiBtaXhlZDsKICAgICAgICAgICAgICAgIGxldHRlci1zcGFjaW5nOiBub3JtYWw7CiAgICAgICAgICAgICAgICBkaXJlY3Rpb246IGx0cjsKICAgICAgICAgICAgIj48dHNwYW4gc3R5bGU9IgogICAgICAgICAgICAgICAgdW5pY29kZS1iaWRpOiBwbGFpbnRleHQ7CiAgICAgICAgICAgICAgICB3cml0aW5nLW1vZGU6IGxyLXRiOwogICAgICAgICAgICAgICAgbGV0dGVyLXNwYWNpbmc6IG5vcm1hbDsKICAgICAgICAgICAgICAgIHRleHQtYW5jaG9yOiBtaWRkbGU7CiAgICAgICAgICAgICI+QnI8L3RzcGFuPjwvdGV4dD48dGV4dCB4PSI4MS42OTIzNzk0ODg3OTkwOCIgeT0iMjEiIGNsYXNzPSJkZWJ1ZyIgZmlsbD0iI2ZmMDAwMCIgc3R5bGU9IgogICAgICAgICAgICAgICAgZm9udDogNXB4IERyb2lkIFNhbnMsIHNhbnMtc2VyaWY7CiAgICAgICAgICAgICI+PC90ZXh0PjwvZz48L3N2Zz4="/ &amp;gt;</code>
+（c）
+<code>&amp;lt; img class="imgSvg" id = "m72qinyv4nznygf0d4l" src="data:image/svg+xml;base64,PHN2ZyBpZD0ic21pbGVzLW03MnFpbnl2NG56bnlnZjBkNGwiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDE2NiA1Ny43NTAwNTUwOTQ2OTg2NSIgc3R5bGU9IndpZHRoOiAxNjUuODM5MzkwMDU0NjMwNTRweDsgaGVpZ2h0OiA1Ny43NTAwNTUwOTQ2OTg2NXB4OyBvdmVyZmxvdzogdmlzaWJsZTsiPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZS1tNzJxaW55djRuem55Z2YwZDRsLTEiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iOTYuNTU5NjAwNDM4NDA3MjciIHkxPSIyMS4wMDAwMzY3Mjk4MDE0OCIgeDI9IjEyMy44MzkzOTAwNTQ2MzA1NCIgeTI9IjM2Ljc1MDA1NTA5NDY5ODY1Ij48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMjAlIj48L3N0b3A+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjEwMCUiPjwvc3RvcD48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0ibGluZS1tNzJxaW55djRuem55Z2YwZDRsLTMiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIiB4MT0iNjkuMjc5Nzg5NjE2MjIzMjUiIHkxPSIzNi43NTAwMTgzNjQ4OTcxNyIgeDI9Ijk2LjU1OTYwMDQzODQwNzI3IiB5Mj0iMjEuMDAwMDM2NzI5ODAxNDgiPjxzdG9wIHN0b3AtY29sb3I9ImN1cnJlbnRDb2xvciIgb2Zmc2V0PSIyMCUiPjwvc3RvcD48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMTAwJSI+PC9zdG9wPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IGlkPSJsaW5lLW03MnFpbnl2NG56bnlnZjBkNGwtNSIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIHgxPSI0MS44OTI5NzU2NTU5NDA4MyIgeTE9IjI3LjQ4NTM2Mzk2NzQwOTkxIiB4Mj0iNjMuNzE2ODA3MzQ4OTE5NDQiIHkyPSI0MC4wODUzNzg2NTkzMjc2NDUiPjxzdG9wIHN0b3AtY29sb3I9ImN1cnJlbnRDb2xvciIgb2Zmc2V0PSIyMCUiPjwvc3RvcD48c3RvcCBzdG9wLWNvbG9yPSJjdXJyZW50Q29sb3IiIG9mZnNldD0iMTAwJSI+PC9zdG9wPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IGlkPSJsaW5lLW03MnFpbnl2NG56bnlnZjBkNGwtNyIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiIHgxPSI0MiIgeTE9IjIxIiB4Mj0iNjkuMjc5Nzg5NjE2MjIzMjUiIHkyPSIzNi43NTAwMTgzNjQ4OTcxNyI+PHN0b3Agc3RvcC1jb2xvcj0iY3VycmVudENvbG9yIiBvZmZzZXQ9IjIwJSI+PC9zdG9wPjxzdG9wIHN0b3AtY29sb3I9ImN1cnJlbnRDb2xvciIgb2Zmc2V0PSIxMDAlIj48L3N0b3A+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PG1hc2sgaWQ9InRleHQtbWFzay1tNzJxaW55djRuem55Z2YwZDRsIj48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ3aGl0ZSI+PC9yZWN0PjxjaXJjbGUgY3g9IjEyMy44MzkzOTAwNTQ2MzA1NCIgY3k9IjM2Ljc1MDA1NTA5NDY5ODY1IiByPSI3Ljg3NSIgZmlsbD0iYmxhY2siPjwvY2lyY2xlPjxjaXJjbGUgY3g9Ijk2LjU1OTYwMDQzODQwNzI3IiBjeT0iMjEuMDAwMDM2NzI5ODAxNDgiIHI9IjcuODc1IiBmaWxsPSJibGFjayI+PC9jaXJjbGU+PGNpcmNsZSBjeD0iNDIiIGN5PSIyMSIgcj0iNy44NzUiIGZpbGw9ImJsYWNrIj48L2NpcmNsZT48L21hc2s+PHN0eWxlPgogICAgICAgICAgICAgICAgLmVsZW1lbnQtbTcycWlueXY0bnpueWdmMGQ0bCB7CiAgICAgICAgICAgICAgICAgICAgZm9udDogMTRweCBIZWx2ZXRpY2EsIEFyaWFsLCBzYW5zLXNlcmlmOwogICAgICAgICAgICAgICAgICAgIGFsaWdubWVudC1iYXNlbGluZTogJ21pZGRsZSc7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAuc3ViLW03MnFpbnl2NG56bnlnZjBkNGwgewogICAgICAgICAgICAgICAgICAgIGZvbnQ6IDguNHB4IEhlbHZldGljYSwgQXJpYWwsIHNhbnMtc2VyaWY7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIDwvc3R5bGU+PGcgbWFzaz0idXJsKCN0ZXh0LW1hc2stbTcycWlueXY0bnpueWdmMGQ0bCkiPjxsaW5lIHgxPSI5Ni41NTk2MDA0Mzg0MDcyNyIgeTE9IjIxLjAwMDAzNjcyOTgwMTQ4IiB4Mj0iMTIzLjgzOTM5MDA1NDYzMDU0IiB5Mj0iMzYuNzUwMDU1MDk0Njk4NjUiIHN0eWxlPSJzdHJva2UtbGluZWNhcDpyb3VuZDtzdHJva2UtZGFzaGFycmF5Om5vbmU7c3Ryb2tlLXdpZHRoOjEuMjYiIHN0cm9rZT0idXJsKCcjbGluZS1tNzJxaW55djRuem55Z2YwZDRsLTEnKSI+PC9saW5lPjxsaW5lIHgxPSI2OS4yNzk3ODk2MTYyMjMyNSIgeTE9IjM2Ljc1MDAxODM2NDg5NzE3IiB4Mj0iOTYuNTU5NjAwNDM4NDA3MjciIHkyPSIyMS4wMDAwMzY3Mjk4MDE0OCIgc3R5bGU9InN0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utd2lkdGg6MS4yNiIgc3Ryb2tlPSJ1cmwoJyNsaW5lLW03MnFpbnl2NG56bnlnZjBkNGwtMycpIj48L2xpbmU+PGxpbmUgeDE9IjQxLjg5Mjk3NTY1NTk0MDgzIiB5MT0iMjcuNDg1MzYzOTY3NDA5OTEiIHgyPSI2My43MTY4MDczNDg5MTk0NCIgeTI9IjQwLjA4NTM3ODY1OTMyNzY0NSIgc3R5bGU9InN0cm9rZS1saW5lY2FwOnJvdW5kO3N0cm9rZS1kYXNoYXJyYXk6bm9uZTtzdHJva2Utd2lkdGg6MS4yNiIgc3Ryb2tlPSJ1cmwoJyNsaW5lLW03MnFpbnl2NG56bnlnZjBkNGwtNScpIj48L2xpbmU+PGxpbmUgeDE9IjQyIiB5MT0iMjEiIHgyPSI2OS4yNzk3ODk2MTYyMjMyNSIgeTI9IjM2Ljc1MDAxODM2NDg5NzE3IiBzdHlsZT0ic3Ryb2tlLWxpbmVjYXA6cm91bmQ7c3Ryb2tlLWRhc2hhcnJheTpub25lO3N0cm9rZS13aWR0aDoxLjI2IiBzdHJva2U9InVybCgnI2xpbmUtbTcycWlueXY0bnpueWdmMGQ0bC03JykiPjwvbGluZT48L2c+PGc+PHRleHQgeD0iMTE5LjkwMTg5MDA1NDYzMDU0IiB5PSI0Mi4wMDAwNTUwOTQ2OTg2NSIgY2xhc3M9ImVsZW1lbnQtbTcycWlueXY0bnpueWdmMGQ0bCIgZmlsbD0iY3VycmVudENvbG9yIiBzdHlsZT0iCiAgICAgICAgICAgICAgICB0ZXh0LWFuY2hvcjogc3RhcnQ7CiAgICAgICAgICAgICAgICB3cml0aW5nLW1vZGU6IGhvcml6b250YWwtdGI7CiAgICAgICAgICAgICAgICB0ZXh0LW9yaWVudGF0aW9uOiBtaXhlZDsKICAgICAgICAgICAgICAgIGxldHRlci1zcGFjaW5nOiBub3JtYWw7CiAgICAgICAgICAgICAgICBkaXJlY3Rpb246IGx0cjsKICAgICAgICAgICAgIj48dHNwYW4+Tjx0c3BhbiBiYXNlbGluZS1zaGlmdD0ic3VwZXIiIGNsYXNzPSJzdWItbTcycWlueXY0bnpueWdmMGQ0bCI+KzwvdHNwYW4+PC90c3Bhbj48dHNwYW4gc3R5bGU9InVuaWNvZGUtYmlkaTogcGxhaW50ZXh0OyI+SDx0c3BhbiBiYXNlbGluZS1zaGlmdD0ic3ViIiBjbGFzcz0ic3ViLW03MnFpbnl2NG56bnlnZjBkNGwiPjM8L3RzcGFuPjwvdHNwYW4+PC90ZXh0Pjx0ZXh0IHg9IjEyMy44MzkzOTAwNTQ2MzA1NCIgeT0iMzYuNzUwMDU1MDk0Njk4NjUiIGNsYXNzPSJkZWJ1ZyIgZmlsbD0iI2ZmMDAwMCIgc3R5bGU9IgogICAgICAgICAgICAgICAgZm9udDogNXB4IERyb2lkIFNhbnMsIHNhbnMtc2VyaWY7CiAgICAgICAgICAgICI+PC90ZXh0Pjx0ZXh0IHg9Ijk2LjU1OTYwMDQzODQwNzI3IiB5PSIyOC44NzUwMzY3Mjk4MDE0OCIgY2xhc3M9ImVsZW1lbnQtbTcycWlueXY0bnpueWdmMGQ0bCIgZmlsbD0iY3VycmVudENvbG9yIiBzdHlsZT0iCiAgICAgICAgICAgICAgICB0ZXh0LWFuY2hvcjogc3RhcnQ7CiAgICAgICAgICAgICAgICB3cml0aW5nLW1vZGU6IHZlcnRpY2FsLXJsOwogICAgICAgICAgICAgICAgdGV4dC1vcmllbnRhdGlvbjogdXByaWdodDsKICAgICAgICAgICAgICAgIGxldHRlci1zcGFjaW5nOiAtMXB4OwogICAgICAgICAgICAgICAgZGlyZWN0aW9uOiBydGw7IHVuaWNvZGUtYmlkaTogYmlkaS1vdmVycmlkZTsKICAgICAgICAgICAgIj48dHNwYW4+TzwvdHNwYW4+PC90ZXh0Pjx0ZXh0IHg9Ijk2LjU1OTYwMDQzODQwNzI3IiB5PSIyMS4wMDAwMzY3Mjk4MDE0OCIgY2xhc3M9ImRlYnVnIiBmaWxsPSIjZmYwMDAwIiBzdHlsZT0iCiAgICAgICAgICAgICAgICBmb250OiA1cHggRHJvaWQgU2Fucywgc2Fucy1zZXJpZjsKICAgICAgICAgICAgIj48L3RleHQ+PHRleHQgeD0iNjkuMjc5Nzg5NjE2MjIzMjUiIHk9IjM2Ljc1MDAxODM2NDg5NzE3IiBjbGFzcz0iZGVidWciIGZpbGw9IiNmZjAwMDAiIHN0eWxlPSIKICAgICAgICAgICAgICAgIGZvbnQ6IDVweCBEcm9pZCBTYW5zLCBzYW5zLXNlcmlmOwogICAgICAgICAgICAiPjwvdGV4dD48dGV4dCB4PSI0Ny4yNSIgeT0iMjYuMjUiIGNsYXNzPSJlbGVtZW50LW03MnFpbnl2NG56bnlnZjBkNGwiIGZpbGw9ImN1cnJlbnRDb2xvciIgc3R5bGU9IgogICAgICAgICAgICAgICAgdGV4dC1hbmNob3I6IHN0YXJ0OwogICAgICAgICAgICAgICAgd3JpdGluZy1tb2RlOiBob3Jpem9udGFsLXRiOwogICAgICAgICAgICAgICAgdGV4dC1vcmllbnRhdGlvbjogbWl4ZWQ7CiAgICAgICAgICAgICAgICBsZXR0ZXItc3BhY2luZzogbm9ybWFsOwogICAgICAgICAgICAgICAgZGlyZWN0aW9uOiBydGw7IHVuaWNvZGUtYmlkaTogYmlkaS1vdmVycmlkZTsKICAgICAgICAgICAgIj48dHNwYW4+TzwvdHNwYW4+PC90ZXh0Pjx0ZXh0IHg9IjQyIiB5PSIyMSIgY2xhc3M9ImRlYnVnIiBmaWxsPSIjZmYwMDAwIiBzdHlsZT0iCiAgICAgICAgICAgICAgICBmb250OiA1cHggRHJvaWQgU2Fucywgc2Fucy1zZXJpZjsKICAgICAgICAgICAgIj48L3RleHQ+PC9nPjwvc3ZnPg=="/ &amp;gt;</code>
+（f）</p>
+<p>图 7－21 一系列简单的分子，用于通过 NMR 展示各种量子计算和量子信息任务。（a）氯仿：两个量子比特，质子和碳，已用于实现 Deutsch－Jozsa 算法，以及两个量子比特的量子搜索。（b）丙氨酸： 3 个量子比特，由碳骨干组成，已用于展示纠错。注意 3 个碳原子核之所以具有可区分的频率，是因为它们周围的化学环境不同（例如，氧的电负性导致它将大部分附近的电子吸引离邻近的碳）。（c） 2，3－二溴塞吩：由两个质子组成的两个量子比特，已用于模拟截断了的简谐振子的 4 个能级。这里，两个质子与硫原子的距离不同，因此具有可区分的频率。（d）三氟激乙烯： 3 个量子比特， 3氟，已用于展示逻辑标记和叠加态 $(|000\rangle+|111\rangle) / \sqrt{2}$ 的创建。（e）三氯乙烯： 3 个量子比特，一个质子和两个碳，用于展示隐形传态，质子的状态被传送到最右边的碳原子。（f）甲酸钠：两个量子比特，质子和碳，用于演示两个量子比特的量子误差检测码。在该分子中，通过改变环境温度以改变其与溶剂的交换速率，钠基团用于将两个量子比特的 $T_{2}$ 时间调整为几乎相等</p>
+<h2>NMR 量子计算机</h2>
+<ul>
+<li>量子比特表示：原子核自旋。</li>
+<li>酉演化：任意操作是通过对处于强磁场的自旋施加磁脉冲来构建的。自旋间的耦合是由最近邻原子之间的化学键提供的。</li>
+<li>初态制备：通过把自旋放置在强磁场中极化它们，然后使用＂有效纯态＂制备技术。</li>
+<li>读出：测量由进动磁矩引发的电压信号。
+  －缺陷：有效纯态制备方案随着量子比特数的增加指数降低了信号，除非初态极化率足够高。</li>
+</ul>
+<h1>7.8 其他实现方案</h1>
+<p>在本章中，我们描述了人们为实现量子计算机所考虑的想法中的一小部分。我们的选择说明了所有实现共同的基本要求和挑战：健壮的量子信息表示，西变换的应用，基准初态的制备，以及对输出的测量。</p>
+<p>简谐振子示例强调了数字表示是多么至关重要：量子信息的每个单位（量子比特，qutrit，qudit或其他）需要位于物理上独立的自由度；否则，一些资源（比方说能量）就没被充分利用。该例子也为本章其余部分研究量子比特的表示提供了数学基础。单光子是近乎完美的量子比特，但是使其相互作用的非线性光学材料难以在实现的同时又不导致相干性丢失。腔 QED 技术通过使用单个与光子相互作用的原子来解决此问题，但更重要的是，它们引入了二能级原子的概念，以及使用由偶极子选择等物理对称性强加的选择规则来保护量子比特表示的想法。</p>
+<p>这个想法的自然延伸是使用自旋 $1 / 2$ 粒子来表示量子比特，其本身仅具有两个状态。这是离子阱所采取的方法，它将量子比特存储在电子和核自旋中；然而，此方法的困难在于，用于介导自旋之间相互作用的质心振荡——声子——具有较短的相干时间。分子可以解决这个困难，其中的核自旋可以通过化学键强耦合。但是来自单个分子的自旋共振信号太小而不能用现有技术测量。NMR 量子计算通过用 $O\left(10^{18}\right)$ 个分子的大量系综创建＂有效纯态＂来解决这个问题，从而在实验室中展示了简单的量子算法。但是，在没有提供初始极化的情况下，这种能力是以信号强度为代价的，信号强度随着量子比特的数目呈指数减小。</p>
+<p>正如这些例子所示，为量子计算机提供良好的物理实现是件棘手的事情，需要权衡利弊。所有上述方案都不令人满意，因为没有一种方案可以在不久的将来随时实现大规模量子计算机。然而，这并不排除这种可能性，实际上已经提出了许多其他方案，其中一些我们在这最后一节中简要介绍。</p>
+<p>对物理实现进行分类的一种好方法是用表示量子比特的物理自由度。回想一下图 7－1：量子单元中的任何东西都能作为量子比特，但正如我们所见，光子和自旋等基本物理量子是特别好的选择。</p>
+<p>另一种可用作量子比特表示的基本量子单位是电荷。现代电子学提供了出色的技术来创建，控制和测量电荷，哪怕在单电子水平上也没问题。例如，由半导体材料，金属乃至小分子制成的量子点可作为具有静电势并限制电荷量子的三维盒子。这可通过观察库仑阻塞效应来验证，其中发现通过有电容 $C$ 的量子点的电导，作为透过量子点的偏置电压的函数以离散台阶增加，反映出另外添加每个电子所需的能量 $e^{2} / 2 C$ 。与光子不同，（净）电荷不能被破坏；只能移动电荷，因此电荷状态量子比特必须使用类似 7.4.2 节的双轨表示，其中 $|0\rangle$ 和 $|1\rangle$ 状态对应于电荷位于两个点中的任何一个，或者单点内的两种状态。</p>
+<p>就像单光子一样，电荷态量子比特上的单量子比特操作可以使用静电门（类似光学移相器）和移动电子的单模波导耦合器（类似分束器）或量子点的隧道结来完成。电子电荷感受到了与其</p>
+<p>他电荷长程的库仑相互作用（距离单个电荷 $r$ 处的电势为 $V(r)=e / 4 \pi \epsilon r$ ），因此远处的电荷能调控局域电荷的相位，很类似于光子之间的克尔相互作用。受控的库仑相互作用于是可用来实施两量子比特操作。最后，单电子电荷可以直接被测量；现代场效应晶体管可以轻松检测其通道中单电荷的运动，而单电子晶体管工作在约 100 mK 的温度下，能够以大于 200 MHz 的频率实现电荷测量精度 $10^{-4} e / \sqrt{\mathrm{Hz}}$ 。不幸的是，不受控制的远距离电荷运动导致退相位；这与其他散射机制（例如由于声子相互作用引起的那些）导致相当短的电荷态相干时间，大约为几百飞秒到几百皮秒。</p>
+<p>超导体中的电荷载流子也被建议作为量子比特的表示。低温下在某些金属中，两个电子可以
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-154.jpg?height=129&amp;width=3480&amp;top_left_y=1628&amp;top_left_x=69" />库珀对也可以被限制在静电盒内，使得盒子中的库珀对数目成为一个好的量子数，并且可以用来表示量子信息。通过使用静电门调节盒电位和耦合盒子之间的约瑟夫森结，可以实现单量子比特操作。这些结也可以用于耦合量子比特，且此强度可以通过适当地耦合超导干涉环路，再用外部磁场来调控。最后，可以通过测量电荷简单地测量量子比特。由于库珀对的相对稳健性，这种超导量子比特表示很有意义；据估计，主要的退相干机制是电磁光子的自发辐射，与数百皮秒的典型动力学时间尺度相比，它可以使相干时间超过 1 微秒。不幸的是，正如电子电荷表示那样，外来电荷（＂准粒子＂）的涨落背景对量子比特的相干性极为有害。围绕这个问题，使用超导技术的一个方法是选择磁通量子比特表示，其中量子比特态对应于通过超导环路器件的左手和右手方向的局域通量。这里，退相干是由背景磁涨落引起的，它预计比静电的情况更安静。</p>
+<p>磁相互作用的局域性是量子比特表示的一个很好的特征，因此我们回到自旋，为此提出了利用固态技术的方案。相当大的量子点，即使是包含许多电子的那种，也可以表现为一个自旋 $1 / 2$的物体，其中自旋由单个额外电子携带。</p>
+<p>该自旋态可以通过低温强磁场下的平衡态制备，使得自旋翻转能量 $\Delta E$ 远大于 $k_{B} T$ 。如 7.7 节所述，可以通过施加局域脉冲磁场来实现操纵单自旋，且可以通过受控的海森伯耦合实现耦合量子比特操作，</p>
+<p>$$
+\begin{equation*}
+H(t)=J(t) \vec{S}_{1} \cdot \vec{S}_{2}=\frac{1}{4}\left[X_{1} X_{2}+Y_{1} Y_{2}+Z_{1} Z_{2}\right] \tag{7.174}
+\end{equation*}
+$$</p>
+<p>其中 $\vec{S}$ 是自旋算子（泡利算子除以 2 ），而 $J(t)=4 \tau_{0}^{2}(t) / u$ ，这里 $u$ 是量子点的充电能，而 $\tau(t)$是跃迁矩阵元，由放置于两个量子点之间的局域静电门控制。这个相互作用是通用的，因为它相当于受控非门（见下面的习题）。理论上，可以通过允许自旋电子隧穿到读出顺磁量子点，或通过＂自旋阀＂依赖于自旋的隧穿到读出静电计来测量自旋态。挑战是在实践中实现此测量；半导体中的高保真单次自旋测量尚未通过现有技术实现。</p>
+<p>习题 7.52 （海森伯哈密顿量的通用性）证明交换操作 $U$ 可以通过打开海森伯耦合哈密顿量式（7.174）中 $J(t)$ 适当的时间来完成，于是得到 $U=\exp \left(-\mathrm{i} \pi \vec{S}_{1} \cdot \vec{S}_{2}\right) 。 " \sqrt{\mathrm{SWAP}}$＂门是通用的，可通过打开一半的相互作用时间而获得；计算此变换，并证明如何通过与单量子比特操作组合来获得受控非门。</p>
+<p>最终，利用足够先进的技术，可以在半导体中放置，控制和测量单个核自旋，从而实现以下的愿景。想象一下，能够将单个磷原子（核自旋 $1 / 2$ ）精确地放置在 ${ }^{28} \mathrm{Si}$（核自旋 0 ）的晶体晶片</p>
+<p>内，位于光刻条纹的静电栅极下方。这些栅极允许操纵围绕 ${ }^{31} \mathrm{P}$ 掺杂的电子云，以通过调制 ${ }^{31} \mathrm{P}$核看到的磁场来执行单量子比特操作。位于 ${ }^{31} \mathrm{P}$ 掺杂区域上方并区隔开它的附加栅极可用于人为地产生连接相邻 ${ }^{31} \mathrm{P}$ 的电子分布，非常类似于化学键，因而允许执行两量子比特的操作。尽管此方案的制造限制极具挑战性——例如，栅极应相隔 $100 \AA$ 或更小，且 ${ }^{31} \mathrm{P}$ 掺杂必须精确配准并有序排列——至少此愿景表达了有望将量子计算与更传统的计算技术结合起来的场所。</p>
+<p>在我们已经描述过的用于实现量子计算机的方案中，那些最吸引技术人员注意的都是基于固态的技术。当然，原子，分子和光学量子计算方案继续被提出，使用诸如光晶格（由交叉光束囚禁原子制成的人造晶体）和位于这些领域最前沿的玻色凝聚体之类的系统；总有一天，我们甚至会看到使用介子，夸克和胶子，乃至黑洞的量子计算方案。但设想某种固态量子计算机的动机是巨大的。据估计，自 20 世纪 40 年代末晶体管发明以来，全球已投入超过 1 万亿美元到硅技术中。凝聚态物质系统也具有丰富的新物理特性，例如超导性，量子霍尔效应和库仑阻塞（一个经典效应，在它发现之后很久，人们普遍认为经典物理学的所有内容都是众所周知的！）。</p>
+<p>本章主要集中在量子计算机的实现上，但所提出的基本组件在许多其他量子应用中也很有用。量子密码学及其实验实现见 12.6 节。关于量子隐形传态和超密集码编码的指南在章末的＂背景资料与延伸阅读＂中给出。量子通信和量子计算之间的一般接口包括分布式量子计算等挑战；新算法的开发和此类系统的实验实施肯定会继续成为未来的一个丰富研究领域。</p>
+<p>量子计算和通信机器的大部分吸引力当然是它们作为新颖信息技术的潜在经济后果。但正如本章所述，量子计算和量子信息也激发了物理系统的新问题，并提供了不同的办法来理解它们的属性。这些新想法体现了从物理系统传统的多体，统计和热力学研究，所有从原子到凝聚态物质系统的路线中摆脱出来的需要。它们代表了一个新的机会，专注于单量子级别物理系统的动态特性。希望通过描述此方法的丰富性，本章会激励您继续＂在算法上思考＂物理学。</p>
+<p>问题7.1（有效时间标记）你能构建出高效的电路（只需要 $O(\operatorname{poly}(n))$ 个逻辑门），能循环置换所有 $2^{n} \times 2^{n}$ 矩阵的对角元，除 $\left|0^{n}\right\rangle\left\langle 0^{n}\right|$ 项以外？
+问题7.2（用线性光学计算）在用单光子进行量子计算时，假设我们不用7.4.1节中的双轨表示，而使用态的一元表示，其中 $|00 \cdots 01\rangle$ 是 $0,|00 \cdots 010\rangle$ 是 $1,|00 \cdots 0100\rangle$ 是 2 ，等等，直到 $|10 \cdots 0\rangle$ 记为 $2^{n}-1$ 。</p>
+<p>1.证明这些态的任意西变换可以完全由分束器与相移器构建（无需非线性介质）。
+2.构建一个由分束器和相移器组成的电路实施单量子比特的 Deutsch－Jozsa 算法。
+3.构建一个由分束器与相移器组成的电路实施两量子比特的搜索算法。
+4.证明一个任意的酉变换通常来说需要（随着 $n$ ）指数增大的组件来实现。
+问题 7.3 （通过 Jaynes－Cummings 相互作用来控制）对小量子系统稳健与准确的控制——通过外部的经典自由度——是对实施量子计算很重要的一种能力。非常值得注意的是，原子态可以通过光脉冲来控制，而不会导致原子态的叠加过度退相干！在这个问题中，我们看到要实现这一点什么样的近似是必要的。让我们从 Jaynes－Cummings 哈密顿量开始，将单原子耦合到单个电磁场模式，</p>
+<p>$$
+\begin{equation*}
+H=a^{\dagger} \sigma_{-}+a \sigma_{+} \tag{7.175}
+\end{equation*}
+$$</p>
+<p>其中 $\sigma_{ \pm}$作用于原子上，而 $a, a^{\dagger}$ 作用于场。
+1.对于 $U=\mathrm{e}^{\mathrm{i} \theta H}$ ，计算</p>
+<p>$$
+\begin{equation*}
+A_{n}=\langle n| U|\alpha\rangle \tag{7.176}
+\end{equation*}
+$$</p>
+<p>其中 $|\alpha\rangle$ 与 $|n\rangle$ 分别是场的相干态与粒子数本征态；$A_{n}$ 是原子态的算子，且你应该可以得到</p>
+<p>$$
+A_{n}=\mathrm{e}^{-\left|\alpha^{2}\right|} \frac{|\alpha|^{2}}{n!}\left[\begin{array}{cc}
+\cos (\theta \sqrt{n}) &amp; \frac{\mathrm{i} \sqrt{n}}{\alpha} \sin (\theta \sqrt{n})  \tag{7.177}\\
+\frac{\mathrm{i} \alpha}{\sqrt{n+1}} \sin (\theta \sqrt{n+1}) &amp; \cos (\theta \sqrt{n+1})
+\end{array}\right]
+$$</p>
+<p>习题 7.17 中的结果也许有用。
+2.做出 $\alpha$ 很大的近似是很有用的（不失一般性，我们可以选取 $\alpha$ 为实数）。考虑概率分布</p>
+<p>$$
+\begin{equation*}
+p_{n}=\mathrm{e}^{-x} \frac{x^{n}}{n!} \tag{7.178}
+\end{equation*}
+$$</p>
+<p>它具有平均值 $\langle n\rangle=x$ ，以及标准差 $\sqrt{\left\langle n^{2}\right\rangle-\langle n\rangle^{2}}=\sqrt{x}$ 。现在把变量变为 $n=x-L \sqrt{x}$ ，利用斯特林近似</p>
+<p>$$
+\begin{equation*}
+n!\approx \sqrt{2 \pi n} n^{n} \mathrm{e}^{-n} \tag{7.179}
+\end{equation*}
+$$</p>
+<p>从而得到</p>
+<p>$$
+\begin{equation*}
+p_{L} \approx \frac{\mathrm{e}^{-L^{2} / 2}}{\sqrt{2 \pi}} \tag{7.180}
+\end{equation*}
+$$</p>
+<p>3.对 $n=|\alpha|^{2}$ 来说，最重要的项是 $A_{n}$ 。定义 $n=\alpha^{2}+L \alpha$ ，对</p>
+<p>$$
+\begin{equation*}
+a=y \sqrt{\frac{1}{y^{2}}+\frac{L}{y}} \quad \text { 和 } \quad b=y \sqrt{\frac{1}{y^{2}}+\frac{L}{y}+1} \tag{7.181}
+\end{equation*}
+$$</p>
+<p>其中 $y=1 / \alpha$ ，利用 $\theta=\varphi / \alpha$ 证明</p>
+<p>$$
+A_{L} \approx \frac{\mathrm{e}^{-L^{2} / 4}}{(2 \pi)^{1 / 4}}\left[\begin{array}{cc}
+\cos a \varphi &amp; \mathrm{i} a \sin a \varphi  \tag{7.182}\\
+(\mathrm{i} / b) \sin b \varphi &amp; \cos b \varphi
+\end{array}\right]
+$$</p>
+<p>并验证</p>
+<p>$$
+\begin{equation*}
+\int_{-\infty}^{\infty} A_{L}^{\dagger} A_{L} \mathrm{~d} L=I \tag{7.183}
+\end{equation*}
+$$</p>
+<p>同所预计的一样。
+4.发生在原子的理想西变换是</p>
+<p>$$
+U=\left[\begin{array}{cc}
+\cos \alpha \theta &amp; \mathrm{i} \sin \alpha \theta  \tag{7.184}\\
+\mathrm{i} \sin \alpha \theta &amp; \cos \alpha \theta
+\end{array}\right]
+$$</p>
+<p>$A_{L}$ 与 $U$ 之间靠得多近呢？能否以 $y$ 的泰勒展开估算出保真度</p>
+<p>$$
+\begin{equation*}
+\left.\mathcal{F}=\min _{|\psi\rangle} \int_{-\infty}^{\infty}\left|\langle\psi| U^{\dagger} A_{L}\right| \psi\right\rangle\left.\right|^{2} \mathrm{~d} L \tag{7.185}
+\end{equation*}
+$$</p>
+<p>问题 7.4 （利用二能级原子的离子阱逻辑门）7.6.3 节中描述的受控非门为了简单起见使用了三能级原子。如此问题所示，付出一点额外的复杂性，不用第 3 个能级是可以做到的。</p>
+<p>令 $\Upsilon_{\hat{n}}^{\text {blue，} j}(\theta)$ 代表对第 $j$ 个粒子蓝边带 $\omega=\Omega+\omega_{z}$ 施加时间 $\theta \sqrt{N} / \eta \Omega$ 的激光脉冲实现的操作，且类似地也可以标记红边带操作。 $\hat{n}$ 代表在 $\hat{x}-\hat{y}$ 平面中的旋转轴，受人射激光相位的控制。当哪个离子被寻址到是很清楚的时，下标 $j$ 可以忽略。特别地，</p>
+<p>$$
+\begin{align*}
+\Upsilon_{\hat{n}}^{\text {blue }}(\theta)=\exp &amp; {\left[\left(\mathrm{e}^{\mathrm{i} \varphi}|00\rangle\langle 11|+\mathrm{e}^{-\mathrm{i} \varphi}|11\rangle\langle 00|\right.\right.} \\
+&amp; \left.\left.+\mathrm{e}^{\mathrm{i} \varphi} \sqrt{2}|01\rangle\langle 12|+\mathrm{e}^{-\mathrm{i} \varphi} \sqrt{2}|12\rangle\langle 01|+\cdots\right) \frac{\mathrm{i} \theta}{2}\right] \tag{7.186}
+\end{align*}
+$$</p>
+<p>其中 $\hat{n}=\hat{x} \cos \varphi+\hat{y} \sin \varphi$ ，右矢中的两个标签从左到右分别代表内部态与运动态。 $\sqrt{2}$ 因子来自于对玻色态有 $a^{\dagger}|n\rangle=\sqrt{n+1}|n+1\rangle$ 。</p>
+<p>1.证明当运动态初始为 $|0\rangle$ 时，$S^{j}=\Upsilon_{\tilde{y}}^{\text {red，} j}(\pi)$ 在离子 $j$ 的内态与运动态之间实现了一个交换。
+2.找到 $\theta$ 的值，使得作用于由 $|00\rangle,|01\rangle,|10\rangle$ ，和 $|11\rangle$ 张开的可计算子空间上的 $\Upsilon_{\hat{n}}^{\text {blue }}(\theta)$ ，使它留在子空间内。</p>
+<p>3.证明，如果 $\Upsilon_{\hat{n}}^{\text {blue }}(\varphi)$ 留在可计算子空间内，那么对任择的旋转角 $\beta$ 和 $\alpha$ 来说，$U=\Upsilon_{\alpha}^{\text {blue }}(-\beta)$ $\Upsilon_{\hat{n}}^{\text {blue }}(\theta) \Upsilon_{\alpha}^{\text {blue }}(\beta)$ 也待在可计算子空间内。
+4.找到使得 $U$ 是对角的 $\alpha$ 和 $\beta$ 。特别地，获得一个形如</p>
+<p>$$
+\left[\begin{array}{cccc}
+\mathrm{e}^{-\mathrm{i} \pi / \sqrt{2}} &amp; 0 &amp; 0 &amp; 0  \tag{7.187}\\
+0 &amp; -1 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 1 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; \mathrm{e}^{\mathrm{i} \pi / \sqrt{2}}
+\end{array}\right]
+$$</p>
+<p>的算子是很有用的。
+5.证明式（7.187）描述了一个非平庸的门，因而一个两离子内态之间的受控非门可以由它和单量子比特操作来构建。你能想出一个复合脉冲序列来执行受控非门而不需要最初的运动状态为 $|0\rangle$ 吗？</p>
+<h1>本章小结</h1>
+<p>－实现量子计算有 4 项基本要求：（1）量子比特表示，（2）可控西演化，（3）初始量子比特态的制备，以及（4）最终量子比特态的测量。
+－单光子可以作为好的量子比特，使用 $|01\rangle$ 和 $|10\rangle$ 作为逻辑 0 和 1 ，但是足够强的，允许单光子相互作用的传统非线性光学材料不可避免地会吸收或散射光子。
+－腔 QED 是一种可以使单原子与单光子强烈相互作用的技术。它提供了一种利用原子介导单光子之间相互作用的机制。
+－囚禁离子可以冷却到能通过加激光脉冲来控制其电子和核自旋态的程度。通过质心声子耦合自旋态，可以执行不同离子之间的逻辑门。
+－核自旋是近乎理想的量子比特，当单分子的自旋态能被控制和测量时，它们几乎就是理想的量子计算机。核磁共振使得在室温下使用大的分子系综成为可能，但由于制备程序的低效会导致信号损失。</p>
+<h1>背景资料与延伸阅读</h1>
+<p>有关为何难以构建量子计算机的优秀讨论，请参阅图 7－1 所基于的 DiVincenzo ${ }^{[D i v 95 a]}$ 的文章。 DiVincenzo 还提出了实现量子计算机的 5 个判据，这与 7.2 节中讨论的标准类似。
+7.3 节的量子简谐振子是量子力学的主要内容，且在任何标准教科书中都涉及了，如［Sak95］。 Lloyd ${ }^{[\text {［Llo94］}}$ 讨论了 7.3.3 节中给出的量子计算通常的必要和充分条件。
+7.4 节的光量子计算机使用量子光学的形式作为其主要的理论工具，许多教科书对此进行了描述；其中两个优秀的是［Lou73，Gar91］。关于基础光学和光学技术的更多信息，例如偏振器，分束器，光子探测器等，参见教科书［ST91］。单光子区域中的分束器被 Campos，Saleh 和 Tiech ${ }^{[C S T 89]}$研究过，并且与此相关，$S U(2)$ 和两个耦合谐振子之间的优雅联系首先由 Schwinger ${ }^{[S a k 95]}$ 论述。 Yurke 提出了量子比特＂双轨＂表示的概念，并由 Chuang 和 Yamamoto ${ }^{[C Y 95]}$ 用来描述完整的量子计算机（使用非线性克尔介质），从而执行 Deutsch－Jozsa 算法（如习题 7.13 ）。量子光学 Fredkin门首先由 Yamamoto，Kitagawa 和 Igeta ${ }^{[\mathrm{YKI} 188]}$ 及 Milburn ${ }^{[\mathrm{Mil89a]}]}$ 描述。Imamoglu 和 Yamamoto ${ }^{[\text {［Y94］}}$及 Kwiat，Steinberg，Chiao，Eberhard 和 Petroff ${ }^{\left[\mathrm{KSC}^{+} 94\right]}$ 讨论了光学量子计算机所需的单光子生成和测量技术。Kitagawa 和 Ueda ${ }^{[K U 91]}$ 讨论了使用电子光学和库仑相互作用代替克尔相互作用的类似机制。Watanabe 和 Yamamoto ${ }^{[W Y 90]}$ 研究了单量子水平下传统的非共振非线性光学材料的基本限制。Cerf，Adami 和 Kwiat 研究了使用（指数多个）线性光学元件 ${ }^{[\text {CAK98］模拟量子逻辑。Reck，}}$ Zeilinger，Bernstein 和 Bertani ${ }^{[R Z B B 94]}$ 早期的一篇有影响力的论文描述了类似的架构，但未与量子计算明确联系。Kwiat，Mitchell，Schwindt 和 White 构建了 Grover 量子搜索算法的光学模拟，该算法使用线性光学，但尺度增加时似乎需要指数的资源 ${ }^{[K M S W 99]}$ 。有关不同距离光通信能量的讨论，请参见 Miller ${ }^{[\text {Mil89b］}}$ 。</p>
+<p>Allen 和 Eberly ${ }^{[A E 75]}$ 撰写了一篇关于两能级原子和光学共振的精美论文。7.5.4节中描述的实验由 Turchette，Hood，Lange，Mabuchi 和 Kimble 于 1995 年在加州理工学院完成 $\left.{ }^{[T H L}{ }^{+} 95\right]$ 。Turchette的博士学位论文也给出了详细的解释 ${ }^{[T u r 97]}$ 。在这个实验中使用的单光子被称为＂飞行量子比特＂。 Domokos，Raimond，Brune 和 Haroche ${ }^{[\text {DRBH95］}}$ 提出了一种不同的方法，其中原子态用作量子比特，原子穿过光学腔。它基于用单原子将相干态切换到腔中的想法，如 Davidovich，Maali，Brune， Raimond 和 Haroche $\left.{ }^{[\mathrm{DRBH} 87,} \mathrm{DMB}^{+} 93\right]$ 所述。</p>
+<p>Cirac 和 Zoller ${ }^{[C Z 95]}$ 提出了离子阱量子计算的思想。我们在 7.6.1节中对这个想法的讨论得益</p>
+<p>于Steane ${ }^{[\text {Ste97］}}$ ，以及 Wineland，Monroe，Itano，Leibfried，King 和 Meekof ${ }^{[\text {WMI }}{ }^{+98]}$ 的文章。Earnshaw定理来自拉普拉斯方程，如他的原始论文 ${ }^{[E a r 42]}$ 中描述的那样，或见现代电磁学教科书，如Ramo， Whinnery 和 van Duzer ${ }^{[R W v D 84]}$ 。图 7－8 是比照着［Ste97］中图6绘制的。图7－7是比照［WMI ${ }^{+} 98$ ］绘制的。 7.6.4 节中描述的实验由位于科罗拉多州博尔德的国家标准与技术研究所的 Monroe， Meekhof，King，Itano 和 Wineland ${ }^{\left[\mathrm{MMK}^{+} 95\right]}$ 完成。图7－15从 Wineland ${ }^{\left.[\mathrm{WMI})^{+} 98\right]}$ 中重印。Brewer， DeVoe 和 Kallenbach 设想使用平面微型离子阱 ${ }^{[B D K 92]}$ 大阵列作为可扩展的量子计算机；这是图7－ 12 所示的那种阱。James 已经广泛研究了离子阱中的加热和其他退相干机制的理论 ${ }^{[J a m 98]}$ 。Plenio和 Knight 也在一定程度上研究了退相干对离子阻量子计算的影响，他们也考虑了诸如二能级近似失效的影响 ${ }^{[P K 96]}$ 。</p>
+<p>DiVincenzo 首先提出在量子计算中使用核自旋 ${ }^{[D i V 95 b]}$ ，并指出众所周知的，非常老的 ENDOR （电子核子双共振）脉冲序列本质上是受控门的一个实例。然而，在 Cory，Fahmy 和 Havel ${ }^{[\text {CFH97］}}$ 及 Gershenfeld 和 Chuang ${ }^{[G C 97]}$ 认识到可以制备有效纯态之前，如何在室温下使用原子核系综进行量子计算的问题并没有被解决。还必须认识到可以修改量子算法以允许系综读出；［GC97］中提供了该问题的解决方案，见 7.7.3节。关于 NMR 的优秀教科书由 Ernst，Bodenhausen 和 Wokaun ${ }^{[E B W 87]}$及 Slichter ${ }^{[S l i 96]}$ 撰写。Warren 写了一篇关于 NMR 量子计算的批评 ${ }^{[W a r 97]}$ ；有趣的是，在同一篇论文中，他提倡使用电子自旋共振（ESR）进行量子计算。时间标记由 Knill，Chuang 和 Laflamme ${ }^{\text {［KCL98］}}$提出。Chuang，Gershenfeld，Kubinec 和 Leung ${ }^{[C G K L 98]}$ 讨论了核磁共振逻辑门和 7.7.4 节的贝尔态制备电路。 7.7.4 节中 Grover 算法的实现是由 Chuang，Gershenfeld 和 Kubinec ${ }^{[C G K 98]}$ 实现的；图 7－20 取自他们的论文。Linden，Kupce 和 Freeman 注意到交换门可能是量子计算对 NMR 的有用贡献，并为它提供了脉冲序列［LKF99］。图7－18 中显示逻辑标记的 3 个自旋数据来自 Vandersypen， Yannoni，Sherwood 和 Chuang ${ }^{[V Y S C 99]}$ 的文章。Yamaguchi 和 Yamamoto 创造性地将 NMR 理念扩展到使用晶格 ${ }^{[Y Y 99]}$ 。图 7－21 所示分子归因于（a）Chuang，Vandersypen，Zhou，Leung 和 Lloyd \${ }^{[\mathrm{CVZ}}{ }^{+}\$98］ （b）Cory，Mass，Price，Knill，Laflamme，Zurek 和 Havel ${ }^{\left[\text {CMP }^{+} 98\right]}$（c）Somaroo，Tseng，Havel， Laflamme 和 Cory ${ }^{[\mathrm{STH}}{ }^{+99]}$（d）Vandersypen，Yannoni，Sherwood 和 Chu ${ }^{[\mathrm{VYSC} 99]}$（e）Nielsen，Knill和 Laflamme ${ }^{[\mathrm{NKL} 98]}$（f）Leung，Vandersypen，Zhou，Sherwood，Yannoni，Kubinec 和 Chuang $\left.{ }^{[\mathrm{LVZ}}{ }^{+} 99\right]$ 。 Jones，Mosca 和 Hansen 也在小分子上实现了各种量子算法 ${ }^{[J M 98, ~ J M H 98]}$ 。实现摘限制的最佳标记方案由 Schulman 和 Vazirani ${ }^{[\mathrm{SV} 99]}$ 设计。</p>
+<p>人们对量子信息处理的 NMR 方法提出了各种批评。也许最全面的讨论是来自 Schack 和 Caves ${ }^{[\mathrm{SC} 99]}$ ，建立在 Braunstein，Caves，Jozsa，Linden，Popescu 和 Schack $\left.{ }^{[\mathrm{BCJ}}{ }^{+} 99\right]$ 的早期工作基础之上，其主要技术结论（尽管不一定与 NMR 联系）由 Vidal 和 Tarrach ${ }^{[V \mathrm{Vid99]}}$ 及 Zyczkowski， Horodecki，Sanpera 和 Lewenstein ${ }^{[Z H S L 99]}$ 获得。另见 Linden 和 Popescu ${ }^{[\text {［P99］}}$ 的讨论。</p>
+<p>这里存在太多关于量子计算机实现的建议，所以只给出了一部分；给定引文中的引用可以为其他文章提供良好的引导。Lloyd 设想了许多量子计算机的实现，包括聚合物系统 ${ }^{[L l o 93]}$ 。Naka－ mura，Pashkin 和 Tsai 已证明可以控制单个库珀对量子比特，并观察其拉比振 ${ }^{[N P T 99]}$ 。Mooij，Or－ lando，Levitov，Tian，van der Waal 和 Lloyd 使用超导磁通 ${ }^{\left[\mathrm{MOL}^{+} 99\right]}$ 研究了量子比特的表示。Platz－ man 和 Dykman 创造性地提出使用绑定在液氦表面的电子作为量子比特 ${ }^{[P D 99]}$ 。 7.8 节中基于自旋量子点量子比特实现的描述由 Loss 和 DiVincenzo ${ }^{[L D 98]}$ 提出；习题 7.52 是源自他们。Huibers，</p>
+<p>Switkes，Marcus，Campman 和 Gossard ${ }^{\left[\mathrm{HSM}^{+} 98\right]}$ 的文章是关于量子点相干时间的文献这个有趣的主题。Imamoglu，Awschalom，Burkard，DiVincenzo，Loss，Sherwin 和 Small已经提出了一种量子计算机实现，使用腔 QED 技术操作的量子点中的电子自旋 ${ }^{[1 A B}{ }^{+99]}$ 。Kane ${ }^{[K a n 98]}$ 提出了具有 ${ }^{31} \mathrm{P}$ 掺杂的硅基核自旋量子计算机，并且 Vrijen，Yablonovitch，Wang，Jiang，Balandin，Roychowdhury，Mor和 DiVincenzo ${ }^{\left[\mathrm{VYW}^{+} 99\right]}$ 已将其扩展为使用埋人电子自旋的硅锗异质结构。最后，Brennen，Caves， Jessen 和 Deutsch ${ }^{[B C J D 99]}$ 提出用囚禁在远离共振的光晶格的中性原子作为量子计算的实现。</p>
+<p>使用单光子和核自旋作为量子比特在实验上实现了量子隐形传态，如第 1 章末尾的＂背景资料与延伸阅读＂中所述。其中一个实现，来自于 Furusawa，Sørensen，Braunstein，Fuchs，Kimble和 Polzik ${ }^{\left[\mathrm{FSB}^{+} 98\right]}$ ，在本章中特别值得注意，因为它避免使用量子信息（如量子比特）的有限希尔伯特空间表示！相反，它利用无限维希尔伯特空间，其中连续变量（如位置和动量，7.3.2节）参数化量子态。这种传送方法最初由 Vaidman ${ }^{[V a i 94]}$ 提出，然后由 Braunstein 和 Kimble ${ }^{[B K 98 a]}$ 进一步发展。连续变量表示也已扩展到 Braunstein 和 Kimble ${ }^{[B K 99]}$ 提出的超密编码；到量子纠错，由 Braunstein ${ }^{[B r a 98]}$ 与 Lloyd 和 Slotine ${ }^{[L S 98]}$ 各自独立完成；再到计算，由 Lloyd 和 Braunstein ${ }^{[\text {LB99］}}$ 完成。</p>
+</body>
+</html>

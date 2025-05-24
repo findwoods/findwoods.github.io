@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QCQI.4QC1量子电路</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js"></script>
+  <script>
+    // 在 DOMContentLoaded 后调用 renderMathInElement
+    document.addEventListener("DOMContentLoaded", function() {
+      renderMathInElement(document.body, {
+  "delimiters": [
+    {
+      "left": "$$",
+      "right": "$$",
+      "display": true
+    },
+    {
+      "left": "$",
+      "right": "$",
+      "display": false
+    }
+  ],
+  "ignoredTags": [
+    "script",
+    "noscript",
+    "style",
+    "textarea",
+    "pre",
+    "option"
+  ],
+  "throwOnError": false
+});
+    });
+</script>
+  <style>
+    html {
+      font-size: 100%;
+    }
+    body {
+      margin: 0 auto;
+      padding: 1rem;
+      max-width: 70ch;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      line-height: 1.7;
+      background-color: #fdfdfd;
+      color: #333;
+    }
+    img, video, svg {
+        max-width: 100%;
+        height: auto;
+        display: block;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        line-height: 1.3;
+    }
+    code {
+      background: #f0f0f0;
+      padding: 0.2em 0.4em;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    pre {
+      background: #f0f0f0;
+      padding: 1em;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 0.9em;
+    }
+    pre code {
+        padding: 0;
+        background: none;
+        font-size: 1em;
+    }
+    a {
+        color: #007bff;
+        text-decoration: none;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+    .katex-display {
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 0.2em;
+    }
+    .katex {
+        font-size: 1.05em;
+    }
+  </style>
+</head>
+<body>
+<h1>第2部分 量子计算</h1>
+<h1>第 4 章 量子电路</h1>
+<p>传统上，计算理论的研究几乎是完全抽象的，作为纯数学的一个领域，并不能抓住要领。计算机是物理对象，计算是物理过程，计算机能算什么或不能算什么取决于物理定律本身，而不是纯数学。
+——David Deutsch
+像数学一样，计算机科学与其他科学有所不同，鉴于它处理的是可被证实的人工法则，而不是永难确定的自然法则。
+——高德纳
+深刻真理的对立面很可能是另一个深刻的真理。
+——尼尔斯•玻尔</p>
+<p>本章将详细探讨量子计算，是本书第二部分的开始。本章将阐述量子计算的基本原理，建立量子电路的基本构造框架。量子电路是一种描述复杂量子计算的通用语言。目前已知的两个基础量子算法是由这些电路在接下来两章中构造的。第 5 章介绍量子傅里叶变换及其在相位估计，求阶和素因子分解中的应用。第 6 章介绍量子搜索算法及其在数据库搜索，计数和加速解决 NP 完全问题中的应用。第 7 章讨论有朝一日量子计算如何被实验实现，至此第二部分结束。另外两个与量子计算相关的有趣话题是量子噪声和量子纠错，鉴于它们具有不仅仅局限于量子计算的广泛意义，将在本书的第三部分中提及。</p>
+<p>本章主要介绍两个观点。首先，详细介绍量子计算的基础模型——量子电路模型；其次证明存在着一部分门，使得任意量子计算可以用这些门表示，这些门被称作通用的。此外还描述量子计算的其他结果。 4.1 节首先概述量子算法，重点介绍已知的量子算法及构成它们结构的通用基础。4.2节详述单量子比特运算，尽管单量子比特并不复杂，但其运算为构造例子和算法提供了丰富的背景，应深人了解。 4.3 节叙述了多量子比特受控么正操作， 4.4 节是对量子电路模型中测量的描述，在 4.5 节中将上述元素集合在一起来叙述并证明通用性定理。 4.6 节总结了量子计</p>
+<p>算的基本要素并讨论了该模型的可能变体，以及经典计算机与量子计算机计算能力关系这一重要问题。4.7节以量子计算在真实量子系统模拟中的一个重要而有指导意义的应用结束了本章。</p>
+<p>这一章也许是本书所有章节中读者参与最密集的一章，需要完成的习题密度很高，因为用量子电路模型的基本元素来进行计算是很容易的，但当面对更困难的量子算法设计问题时，就需要能够熟练运用大量的简单结果和技巧。因此，我们在本章中采用面向实例的方法，要求读者在许多细节部分予以补充，来达到对技巧的熟练掌握。跳至 4.6 节可略去大部分习题并获得对量子计算基本元素初步但略微肤浅的认识。</p>
+<h1>4.1 量子算法</h1>
+<p>量子计算机的好处在哪里呢？我们常因需要更多计算机资源来解决计算问题感到挫败。现实中许多有趣的问题在经典计算机上无法解决，不是因为没有相应的解决原理，而是因为解决实际问题所需资源是一个天文数字。</p>
+<p>量子计算机的宏伟愿景在于其可以运行新的算法，使得解决对于在经典计算机上需要大量资源去解决的问题成为可能。在撰写本书时，已知有两大类量子算法实现了这一承诺。第一类算法基于 Shor 提出的量子傅里叶变换，包括求解因子分解和离散对数问题的著名算法，相比于最优秀的经典算法呈显著指数加速。第二类算法是基于 Grover 提出的量子搜索算法。这些算法的加速比虽没有那么引人注目，但相对于最优秀的经典算法平方量级的加速仍然显著。量子搜索算法的重要性在于经典算法中基于搜索的技术的广泛使用，这在许多情况下使得直接修改经典算法就能给出更快的量子算法。</p>
+<p>图 4－1 概述了编写本书时已知的相关量子算法，包括这些算法的一些示例应用程序。图的核心是量子傅里叶变换和量子搜索算法。图中的量子计数算法十分有趣。该算法是量子搜索算法和傅里叶变换算法的巧妙结合，能够比经典计算机算法更快地估计搜索问题解的个数。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-003.jpg?height=1223&amp;width=2880&amp;top_left_y=3815&amp;top_left_x=456" /></p>
+<p>图 4－1 主要量子算法，关系及应用
+量子搜索算法有许多潜在的应用，这里只展示了少数几种。它可以比经典计算机更快地从无序数据集中提取统计数据，例如最小元素；对于 NP 类中直接搜索解是已知最佳算法的问题，它</p>
+<p>可以进行加速；它也可以用来加速搜索密码系统的密钥，例如广泛使用的数据加密标准（DES）。这些和其他应用将在第 6 章中说明。</p>
+<p>量子傅里叶变换有许多有趣的应用，可用于求解离散对数和素因子分解问题。而这些结果可用来破解许多目前使用的最流行的密码系统，包括 RSA 密码体制。傅里叶变换也与一个数学中的重要问题——寻找隐含子群（求周期函数周期的推广）密切相关。第 5 章介绍了量子傅里叶变换及其应用，包括质因数分解和离散对数的快速量子算法。</p>
+<p>为什么比经典算法好的已知量子算法这么少呢？答案是提出好的量子算法似乎是一个困难的问题，这至少有两个原因。首先，无论是经典的还是量子的算法设计，都不是一件容易的事情。算法历史告诉我们，提出近乎最优的算法往往需要极大的智慧，即使如两个数相乘这样十分简单的问题也是如此。而我们希望量子算法比已知最优的经典算法更好，这使得寻找好的量子算法更加困难。其次，与量子世界相比，我们的直觉更适应经典世界。如果我们用固有直觉来思考问题，那么我们提出的算法将是经典的算法。好的量子算法需要特殊的洞察力和技巧。</p>
+<p>对量子算法的进一步研究将在下一章介绍。本章中我们提供了一种描述量子算法强大且有效的语言——量子电路语言，它由描述计算过程的离散部件集合组成。该结构使得我们能够用所需门的总数或电路深度来度量算法成本。电路语言还附带了开发工具箱，可以简化算法设计并使其概念上易于理解。</p>
+<h1>4.2 单量子比特操作</h1>
+<p>量子计算工具箱的发展始于对最简单的量子系统的操作——单量子比特操作。1.3.1节引人了单量子比特门。让我们快速总结一下那节所学的知识，在这个过程中，读者可参考前言中的本书结构部分。</p>
+<p>一个单量子比特是由两个复参数构成的向量 $|\psi\rangle=a|0\rangle+b|1\rangle$ ，满足 $|a|^{2}+|b|^{2}=1$ 。量子比特上的操作必须保范数，因此用 $2 \times 2$ 酉矩阵描述。泡利矩阵属于其中最重要的矩阵，在这里再次列出它们不无益处：</p>
+<p>$$
+X \equiv\left[\begin{array}{cc}
+0 &amp; 1  \tag{4.1}\\
+1 &amp; 0
+\end{array}\right] ; \quad Y \equiv\left[\begin{array}{cc}
+0 &amp; -\mathrm{i} \\
+\mathrm{i} &amp; 0
+\end{array}\right] ; \quad Z \equiv\left[\begin{array}{cc}
+1 &amp; 0 \\
+0 &amp; -1
+\end{array}\right]
+$$</p>
+<p>另外三个量子门在下文中很重要，阿达玛门（记为 $H$ ），相位门（记为 $S$ ）和 $\pi / 8$ 门（记为 $T$ ）：</p>
+<p>$$
+H=\frac{1}{\sqrt{2}}\left[\begin{array}{cc}
+1 &amp; 1  \tag{4.2}\\
+1 &amp; -1
+\end{array}\right] ; \quad S=\left[\begin{array}{cc}
+1 &amp; 0 \\
+0 &amp; \mathrm{i}
+\end{array}\right] ; \quad T=\left[\begin{array}{cc}
+1 &amp; 0 \\
+0 &amp; \exp (\mathrm{i} \pi / 4)
+\end{array}\right]
+$$</p>
+<p>需要记住的几个有用的代数事实是 $H=(X+Z) / \sqrt{2}$ 和 $S=T^{2}$ 。鉴于定义中出现的是 $\pi / 4$ ，读者可能会对 $T$ 门被称为 $\pi / 8$ 门感到疑惑。该门在历史上常被称为 $\pi / 8$ 门，因为除了一个不重</p>
+<p>要的全局相位，$T$ 等同于在其对角线上是 $\exp ( \pm \mathrm{i} \pi / 8)$ 的门。</p>
+<p>$$
+T=\exp (\mathrm{i} \pi / 8)\left[\begin{array}{cc}
+\exp (-\mathrm{i} \pi / 8) &amp; 0  \tag{4.3}\\
+0 &amp; \exp (\mathrm{i} \pi / 8)
+\end{array}\right]
+$$</p>
+<p>尽管如此，这个命名在某些方面还是不恰当的，我们这里常将其称为 $T$ 门。
+回忆状态为 $a|0\rangle+b|1\rangle$ 的单量子比特可视为单位球面上的一个点 $(\theta, \varphi)$ ，其中 $a=\cos (\theta / 2)$ ， $b=\mathrm{e}^{\mathrm{i} \varphi} \sin (\theta / 2)$ ，鉴于全局相位不可观测 $a$ 可取作实数，这便是布洛赫球面表示，向量 $(\cos \varphi \sin \theta$ ， $\sin \varphi \sin \theta, \cos \theta)$ 称为布洛赫向量。为了更加直观，我们将常使用这个表示。
+习题4.1 习题2.11中计算了泡利矩阵的特征向量，如果还没有完成请现在去完成它。找到布洛赫球面上对应于不同泡利矩阵的归一化特征向量的点。</p>
+<p>泡利矩阵出现在指数中时产生了三类有用的西矩阵，即关于 $\hat{x}, ~ \hat{y}$ 和 $\hat{z}$ 的旋转算子，由以下方程定义：</p>
+<p>$$
+\begin{align*}
+&amp; R_{x}(\theta) \equiv \mathrm{e}^{-\mathrm{i} \theta X / 2}=\cos \frac{\theta}{2} I-\mathrm{i} \sin \frac{\theta}{2} X=\left[\begin{array}{cc}
+\cos \frac{\theta}{2} &amp; -\mathrm{i} \sin \frac{\theta}{2} \\
+-\mathrm{i} \sin \frac{\theta}{2} &amp; \cos \frac{\theta}{2}
+\end{array}\right]  \tag{4.4}\\
+&amp; R_{y}(\theta) \equiv \mathrm{e}^{-\mathrm{i} \theta Y / 2}=\cos \frac{\theta}{2} I-\mathrm{i} \sin \frac{\theta}{2} Y=\left[\begin{array}{cc}
+\cos \frac{\theta}{2} &amp; -\sin \frac{\theta}{2} \\
+\sin \frac{\theta}{2} &amp; \cos \frac{\theta}{2}
+\end{array}\right]  \tag{4.5}\\
+&amp; R_{z}(\theta) \equiv \mathrm{e}^{-\mathrm{i} \theta Z / 2}=\cos \frac{\theta}{2} I-\mathrm{i} \sin \frac{\theta}{2} Z=\left[\begin{array}{cc}
+\mathrm{e}^{-\mathrm{i} \theta / 2} &amp; 0 \\
+0 &amp; \mathrm{e}^{\mathrm{i} \theta / 2}
+\end{array}\right] \tag{4.6}
+\end{align*}
+$$</p>
+<p>习题 4.2 令 $x$ 为一实数，$A$ 为满足 $A^{2}=I$ 的矩阵，证明</p>
+<p>$$
+\begin{equation*}
+\exp (\mathrm{i} A x)=\cos (x) I+\mathrm{i} \sin (x) A \tag{4.7}
+\end{equation*}
+$$</p>
+<p>使用这一结果验证式（4.4）至式（4.6）。
+习题 4.3 证明：除了一个全局相位，$\pi / 8$ 门满足 $T=R_{z}(\pi / 4)$ 。
+习题 4.4 给定一个 $\varphi$ ，将阿达玛门 $H$ 表示为旋转算子 $R_{x}, ~ R_{z}$ 和 $\mathrm{e}^{\mathrm{i} \varphi}$ 的积。
+若 $\hat{n}=\left(n_{x}, n_{y}, n_{z}\right)$ 是三维空间中一实单位向量，那么我们通过定义一关于 $\hat{n}$ 轴转角为 $\theta$ 的旋转来推广上述定义，形式如下</p>
+<p>$$
+\begin{equation*}
+R_{\hat{n}}(\theta) \equiv \mathrm{e}^{-\mathrm{i} \theta \hat{n} \cdot \vec{\sigma} / 2}=\cos \left(\frac{\theta}{2}\right) I-\mathrm{i} \sin \left(\frac{\theta}{2}\right)\left(n_{x} X+n_{y} Y+n_{z} Z\right) \tag{4.8}
+\end{equation*}
+$$</p>
+<p>$\vec{\sigma}$ 代表由泡利矩阵组成的三元向量 $(X, Y, Z)$ 。
+习题 4.5 证明 $(\hat{n} \cdot \vec{\sigma})^{2}=I$ ，并由此证明式（4.8）。
+习题 4.6 （旋转的布洛赫球解释）$\quad R_{\hat{n}}(\theta)$ 算子被称为旋转算子的一个原因是以下事实，请读者证明。假设一单量子比特状态可由布洛赫向量 $\vec{\lambda}$ 表示。则旋转 $R_{\hat{n}}(\theta)$ 对该状态的作用是在布洛赫</p>
+<p>球上关于 $\hat{n}$ 轴旋转角度 $\theta$ 。这个事实解释了旋转矩阵中貌似神秘的两个因子。
+习题 4.7 证明 $X Y X=-Y$ 并以此证明 $X R_{y}(\theta) X=R_{y}(-\theta)$ 。
+习题4.8 对实数 $\alpha$ 和 $\theta$ ，三维实单位向量 $\hat{n}$ ，任意一单量子比特酉算子可表示为</p>
+<p>$$
+\begin{equation*}
+U=\exp (\mathrm{i} \alpha) R_{\hat{n}}(\theta) \tag{4.9}
+\end{equation*}
+$$</p>
+<p>1.证明上述事实。
+2.求出阿达玛门 $H$ 对应的 $\alpha, \theta$ 和 $\hat{n}^{\circ}$
+3.求出 $S$ 门对应的 $\alpha, \theta$ 和 $\hat{n}$ 。</p>
+<p>$$
+S=\left[\begin{array}{ll}
+1 &amp; 0  \tag{4.10}\\
+0 &amp; \mathrm{i}
+\end{array}\right]
+$$</p>
+<p>单量子比特上的任意西算子可以用旋转组合加量子比特上的全局相位以多种方式表示。以下定理提供了一种表示任意单量子比特旋转的方法，在之后的受控操作应用中很有用处。</p>
+<p>定理4.1（单量子比特的 $Z-Y$ 分解）假设 $U$ 是单量子比特上的西操作，存在实数 $\alpha, \beta, \gamma$ 和 $\delta$ 使得</p>
+<p>$$
+\begin{equation*}
+U=\mathrm{e}^{\mathrm{i} \alpha} R_{z}(\beta) R_{y}(\gamma) R_{z}(\delta) \tag{4.11}
+\end{equation*}
+$$</p>
+<p>证明
+由于 $U$ 是西算子，则其行，列正交，故存在实数 $\alpha, \beta, \gamma$ 和 $\delta$ 使满足</p>
+<p>$$
+U=\left[\begin{array}{cc}
+\mathrm{e}^{\mathrm{i}(\alpha-\beta / 2-\delta / 2)} \cos \frac{\gamma}{2} &amp; -\mathrm{e}^{\mathrm{i}(\alpha-\beta / 2+\delta / 2)} \sin \frac{\gamma}{2}  \tag{4.12}\\
+\mathrm{e}^{\mathrm{i}(\alpha+\beta / 2-\delta / 2)} \sin \frac{\gamma}{2} &amp; \mathrm{e}^{\mathrm{i}(\alpha+\beta / 2+\delta / 2)} \cos \frac{\gamma}{2}
+\end{array}\right]
+$$</p>
+<p>由旋转矩阵定义和矩阵乘法易得式（4.11）。</p>
+<p>习题 4.9 证明为何任意单量子比特酉算子可表示为式（4.12）的形式。
+习题 4.10 （旋转 $X-Y$ 分解）用 $R_{x}$ 代替 $R_{z}$ ，求一种类似定理 4.1 的分解。
+习题4.11 假设 $\hat{m}, ~ \hat{n}$ 是互不平行的三维实单位向量，证明存在合适的 $\alpha, \beta_{k}, \gamma_{k}$ 使得任意单量子比特西算子可被表示为</p>
+<p>$$
+\begin{equation*}
+U=\mathrm{e}^{\mathrm{i} \alpha} R_{\hat{n}}\left(\beta_{1}\right) R_{\hat{m}}\left(\gamma_{1}\right) R_{\hat{n}}\left(\beta_{2}\right) R_{\hat{m}}\left(\gamma_{2}\right) \cdots \tag{4.13}
+\end{equation*}
+$$</p>
+<p>定理 4.1 的用处在于下面这个奇妙的推论，这是构造受控多量子比特酉算子的关键，将在下一节中叙述。
+推论4.2 设 $U$ 是作用在单量子比特上的一个酉门，则单量子比特上存在西算子 $A, B, C$ 使得 $A B C=I$ 且 $U=\mathrm{e}^{\mathrm{i} \alpha} A X B X C$ ，其中 $\alpha$ 为某个全局相位因子。</p>
+<p>证明
+延用定理 4.1 中记号，设 $A \equiv R_{z}(\beta) R_{y}(\gamma / 2), B \equiv R_{y}(-\gamma / 2) R_{z}(-(\delta+\beta) / 2), C \equiv R_{z}((\delta-$ $\beta) / 2$ ），注意</p>
+<p>$$
+\begin{equation*}
+A B C=R_{z}(\beta) R_{y}\left(\frac{\gamma}{2}\right) R_{y}\left(-\frac{\gamma}{2}\right) R_{z}\left(-\frac{\delta+\beta}{2}\right) R_{z}\left(\frac{\delta-\beta}{2}\right)=I \tag{4.14}
+\end{equation*}
+$$</p>
+<p>鉴于 $X^{2}=I$ ，应用习题 4.7，我们可以看到</p>
+<p>$$
+\begin{equation*}
+X B X=X R_{y}\left(-\frac{\gamma}{2}\right) X X R_{z}\left(-\frac{\delta+\beta}{2}\right) X=R_{y}\left(\frac{\gamma}{2}\right) R_{z}\left(\frac{\delta+\beta}{2}\right) \tag{4.15}
+\end{equation*}
+$$</p>
+<p>则有</p>
+<p>$$
+\begin{align*}
+A X B X C &amp; =R_{z}(\beta) R_{y}\left(\frac{\gamma}{2}\right) R_{y}\left(\frac{\gamma}{2}\right) R_{z}\left(\frac{\delta+\beta}{2}\right) R_{z}\left(\frac{\delta-\beta}{2}\right)  \tag{4.16}\\
+&amp; =R_{z}(\beta) R_{y}(\gamma) R_{z}(\delta) \tag{4.17}
+\end{align*}
+$$</p>
+<p>即 $A B C=I$ 且 $U=\mathrm{e}^{\mathrm{i} \alpha} A X B X C$ ，证毕。</p>
+<p>习题4.12 求出阿达玛门 $H$ 对应的 $A, B, C$ 和 $\alpha$ 。
+习题4.13（电路恒等）运用著名的恒等关系通过检查来简化电路很有用处，证明以下三个恒等关系：</p>
+<p>$$
+\begin{equation*}
+H X H=Z ; \quad H Y H=-Y ; \quad H Z H=X \tag{4.18}
+\end{equation*}
+$$</p>
+<p>习题 4.14 运用之前的习题证明除去全局相位 $H T H=R_{X}(\pi / 4)$ 。
+习题 4.15 （单量子比特运算组合）布洛赫表示对旋转结合提供了一种可见效果的方法。
+1.证明如果先绕轴 $\hat{n}_{1}$ 旋转角度 $\beta_{1}$ ，再绕轴 $\hat{n}_{2}$ 旋转角度 $\beta_{2}$ ，则整个旋转过程可表示为绕轴 $\hat{n}_{12}$ 旋转角度 $\beta_{12}$ ，其中</p>
+<p>$$
+\begin{align*}
+c_{12} &amp; =c_{1} c_{2}-s_{1} s_{2} \hat{n}_{1} \cdot \hat{n}_{2}  \tag{4.19}\\
+s_{12} \hat{n}_{12} &amp; =s_{1} c_{2} \hat{n}_{1}+c_{1} s_{2} \hat{n}_{2}+s_{1} s_{2} \hat{n}_{2} \times \hat{n}_{1} \tag{4.20}
+\end{align*}
+$$</p>
+<p>这里 $c_{i}=\cos \left(\beta_{i} / 2\right), s_{i}=\sin \left(\beta_{i} / 2\right), c_{12}=\cos \left(\beta_{12} / 2\right), s_{12}=\sin \left(\beta_{12} / 2\right)$ 。
+2.证明若 $\beta_{1}=\beta_{2}$ 且 $\hat{n}_{1}=\hat{z}$ ，则等式可简化为</p>
+<p>$$
+\begin{align*}
+c_{12} &amp; =c^{2}-s^{2} \hat{z} \cdot \hat{n}_{2}  \tag{4.21}\\
+s_{12} \hat{n}_{12} &amp; =s c\left(\hat{z}+\hat{n}_{2}\right)+s^{2} \hat{n}_{2} \times \hat{z} \tag{4.22}
+\end{align*}
+$$</p>
+<p>这里 $c=c_{1}, s=s_{1}$ 。</p>
+<p>图 4－2 给出常见单量子比特门符号，回忆量子电路的基本特性：时间从左到右；线表示量子比特，＂＂可用来表示一束量子比特。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-008.jpg?height=1257&amp;width=1240&amp;top_left_y=878&amp;top_left_x=1195" /></p>
+<p>图 4－2 常用单量子比特门的名称，符号及西矩阵</p>
+<h1>4.3 受控操作</h1>
+<p>＂如果 A 是正确的，那么进行 B＂。这种受控操作在经典计算和量子计算中都是最有用的操作之一。本节我们将说明如何使用由基本操作构建的量子电路来实现复杂的受控操作。</p>
+<p>典型的受控操作是 1.2 节中提到的受控非门。回想一下，我们经常提到的受控非门是一个具有两个输人量子比特的量子门，分别称为控制量子比特和目标量子比特。如图 4－3 所示。就计算基而言，受控非门的作用可由 $|c\rangle|t\rangle \rightarrow|c\rangle|t \oplus c\rangle$ 给出；也就是说，如果控制量子比特为 $|1\rangle$ ，则目标比特翻转，否则目标比特不变。因此，在｜控制，目标 $\rangle$ 基中，受控非门的矩阵表示为</p>
+<p>$$
+\left[\begin{array}{llll}
+1 &amp; 0 &amp; 0 &amp; 0  \tag{4.23}\\
+0 &amp; 1 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 1 \\
+0 &amp; 0 &amp; 1 &amp; 0
+\end{array}\right]
+$$</p>
+<p><img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-008.jpg?height=245&amp;width=356&amp;top_left_y=4449&amp;top_left_x=1660" /></p>
+<p>图 4－3 受控非门的电路表示，上方连线表示控制比特，下方连线表示目标比特
+更一般地，设 $U$ 是任意单量子比特西操作，则受控 $U$ 操作是两量子比特操作，一个控制比特和一个目标比特，若控制量子比特被置为一定值则 $U$ 作用于目标比特上，否则目标比特不变，即 $|c\rangle|t\rangle \rightarrow|c\rangle U^{c}|t\rangle$ ，图 4－4 为受控 $U$ 门在电路中的表示。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-009.jpg?height=338&amp;width=567&amp;top_left_y=494&amp;top_left_x=1601" /></p>
+<p>图 4－4 受控 $U$ 操作，上方连线表示控制比特，下方连线表示目标比特，若控制量子比特被置为一定值则 $U$作用于目标比特上，否则目标比特不变</p>
+<p>习题 4.16 （多量子比特门的矩阵表示）在计算基下下面电路的 $4 \times 4$ 酉矩阵是什么？</p>
+<p>$$
+\begin{aligned}
+&amp; x_{2}-H- \\
+&amp; x_{1}-
+\end{aligned}
+$$</p>
+<p>下面电路在计算基下的西矩阵是什么？</p>
+<p>$$
+\begin{aligned}
+&amp; x_{2}- \\
+&amp; x_{1}-H-
+\end{aligned}
+$$</p>
+<p>习题4.17（由受控 $Z$ 门构建受控非门）由受控 $Z$ 门构建受控非门，即使用一个在计算基上如下方西矩阵表示的门和两个阿达玛门构建，并指定控制比特和目标比特。</p>
+<p>$$
+\left[\begin{array}{cccc}
+1 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 1 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 1 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; -1
+\end{array}\right]
+$$</p>
+<p>习题 4.18 证明
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-009.jpg?height=352&amp;width=1087&amp;top_left_y=3145&amp;top_left_x=1347" /></p>
+<p>习题4.19（受控非门在密度矩阵上的作用）受控非门是一个简单的置换，它对密度矩阵 $\rho$ 的作用是重新排列矩阵中的元素。请在计算基上明确地写出它的作用。</p>
+<p>习题 4.20 （受控非门基变换）与理想的经典门不同，理想量子门没有（正如电气工程师所说）＂高阻抗＂输入。事实上，＂控制＂和＂目标＂的角色是任意的——它们取决于你认为设备在什么基上运行。我们已经描述了受控非门相对于计算基的作用，在这个描述中控制量子比特的状态没有改变。但是，如果我们在不同的基上作用，那么控制量子比特确实会改变：我们将展示它的相位翻转由＂目标＂量子比特的状态决定！证明
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-009.jpg?height=350&amp;width=1135&amp;top_left_y=4507&amp;top_left_x=1329" /></p>
+<p>引人基 $| \pm\rangle \equiv(|0\rangle \pm|1\rangle) / \sqrt{2}$ ，运用这组电路恒等关系证明受控非门在第一量子比特为控制比特，第二量子比特为目标比特时的作用如下：</p>
+<p>因此，对于这组新基，目标量子比特状态不会改变，而控制量子比特将在目标比特为 $|-\rangle$ 时翻转，否则不变。在这组基里，目标比特和控制比特角色完全调换了。</p>
+<p>我们当前的目标是了解如何只使用单量子比特运算和受控非门实现对任意单量子比特 $U$ 的受控 $U$ 运算。基于推论 4.2 中给出的分解 $U=\mathrm{e}^{\mathrm{i} \alpha} A X B X C$ ，策略分为两部分。</p>
+<p>首先，将相位移动 $\mathrm{e}^{\mathrm{i} \alpha}$ 应用到由控制量子比特控制的目标量子比特上。即若控制量子比特是 $|0\rangle$ ，那么目标量子比特不变，若控制量子比特是 $|1\rangle$ ，则相移 $\mathrm{e}^{\mathrm{i} \alpha}$ 将应用于目标量子比特。如图4－5右图，只使用一个单量子比特酉门来实现这一运算的电路。当验证此电路是否正确工作时，请注意右半部分电路的效果是</p>
+<p>$$
+\begin{equation*}
+|00\rangle \rightarrow|00\rangle, \quad|01\rangle \rightarrow|01\rangle, \quad|10\rangle \rightarrow \mathrm{e}^{\mathrm{i} \alpha}|10\rangle, \quad|11\rangle \rightarrow \mathrm{e}^{\mathrm{i} \alpha}|11\rangle \tag{4.28}
+\end{equation*}
+$$</p>
+<p>恰为左侧受控运算所要求的。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-010.jpg?height=568&amp;width=1470&amp;top_left_y=2752&amp;top_left_x=1091" /></p>
+<p>图 4－5 受控相移门及其两量子比特等价电路</p>
+<p>我们现在可以完成受控 $U$ 操作的构造，如图 4－6 所示。为了理解这个电路如何工作，回想推论4.2，$U$ 可表示为 $U=\mathrm{e}^{\mathrm{i} \alpha} A X B X C$ 形式，其中 $A, ~ B$ 和 $C$ 是单量子比特运算且满足 $A B C=I$ 。若设定了控制量子比特，则将 $\mathrm{e}^{\mathrm{i} \alpha} A X B X C=U$ 运算应用于第二量子比特。另一方面，若末设定控制量子比特，则将 $A B C=I$ 操作应用于第二量子比特，即不进行任何更改。也就是说，该电路实现了受控 $U$ 运算。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-010.jpg?height=542&amp;width=1641&amp;top_left_y=4382&amp;top_left_x=1012" /></p>
+<p>图 4－6 单量子比特 $U$ 的受控 $U$ 运算电路，其中 $A, B, C$ 和 $\alpha$ 满足 $U=\mathrm{e}^{\mathrm{i} \alpha} A X B X C, A B C=I$</p>
+<p>我们已经知道如何通过单量子比特来设定条件，那么如何在多量子比特上设定条件呢？我们遇到过一个多量子比特条件化的例子——Toffoli门，当前两个量子比特（控制量子比特）为 1 时翻转第三量子比特（目标量子比特）。更一般地，假设我们有 $n+k$ 个量子比特，$U$ 是一个 $k$ 量</p>
+<p>子比特西算子。利用如下等式对受控操作 $C^{n}(U)$ 进行定义</p>
+<p>$$
+\begin{equation*}
+C^{n}(U)\left|x_{1} x_{2} \cdots x_{n}\right\rangle|\psi\rangle=\left|x_{1} x_{2} \cdots x_{n}\right\rangle U^{x_{1} x_{2} \cdots x_{n}}|\psi\rangle \tag{4.29}
+\end{equation*}
+$$</p>
+<p>在 $U$ 指数中 $x_{1} x_{2} \cdots x_{n}$ 表示比特 $x_{1}, x_{2}, \cdots, x_{n}$ 的乘积。也就是说，若前 $n$ 量子比特均等于 1 ，则对最后 $k$ 量子比特应用操作 $U$ ，否则不变。这样的条件运算非常有用，以至于我们为此引入一种特殊的电路表示，如图 4－7 所示。为简单起见我们假设 $k=1$ ，更大的 $k$ 可以使用本质上相同的方法来处理，但是对于 $k \geqslant 2$ ，一个额外的困难是我们（目前）不知道如何在 $k$ 量子比特上执行任意操作。</p>
+<p>$$
+\begin{aligned}
+&amp; n=4\left\{\begin{array}{l}
+\text { ? }
+\end{array}\right. \\
+&amp; k=3\left\{\begin{array}{l}
+\square-\infty
+\end{array}\right.
+\end{aligned}
+$$</p>
+<p>图 4－7 $C^{n}(U)$ 运算的简单电路表示，其中 $U$ 是 $k$ 量子比特上的西算子，这里 $n=4, k=3$
+设 $U$ 是单量子比特酉算子，$V$ 是酉算子满足 $V^{2}=U$ ，则操作 $C^{2}(U)$ 可以用图 4－8 电路实现。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-011.jpg?height=473&amp;width=1368&amp;top_left_y=2916&amp;top_left_x=1166" /></p>
+<p>图 4－8 $C^{2}(U)$ 门电路， V 是西算子满足 $V^{2}=U$ ，特殊情况 $V \equiv(1-\mathrm{i})(I+\mathrm{i} X) / 2$ 对应于 Toffoli 门
+习题 4.21 验证图 4－8 可实现操作 $C^{2}(U)$ 。
+习题4.22 证明对任意单量子比特西算子 $U$ ，一个 $C^{2}(U)$ 门可用至多 8 个单量子比特门， 6 个受控非门构建。</p>
+<p>习题4.23 对于 $U=R_{x}(\theta)$ 和 $U=R_{y}(\theta)$ ，只用受控非门和单量子比特门构建 $C^{1}(U)$ 。能否把所需的单量子比特门从 3 个减少至 2 个？</p>
+<p>熟知的 Toffoli 门是 $C^{2}(U)$ 操作的一个重要特例，即 $C^{2}(X)$ 。定义 $V \equiv(1-\mathrm{i})(I+\mathrm{i} X) / 2$ ，注意到 $V^{2}=X$ ，图 4－8 给出了 Toffoli 门的单量子比特和两量子比特运算的实现。从经典的观点来看，这是一个显著的结果；回想问题 3.5，仅用单比特和双比特经典可逆门对于实现 Toffoli 门，或者更一般的通用计算，都是不可行的。相反，在量子情况下，我们看到单量子比特和两量子比特可逆门足以实现 Toffoli 门，最终将证明它们满足通用计算的要求。</p>
+<p>最后，我们将证明，任何酉算子都可以由阿达玛门，相位门，受控非门及 $\pi / 8$ 门以任意精度近似。鉴于 Toffoli 门非常有用，如何用这组门构造它也十分令人感兴趣。图4－9展示了 Toffoli 门的一个由阿达玛门，相位门，受控非门及 $\pi / 8$ 门构成的简单电路。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-012.jpg?height=542&amp;width=2194&amp;top_left_y=497&amp;top_left_x=677" /></p>
+<p>图 4－9 由阿达玛门，相位门，受控非门及 $\pi / 8$ 门构成的 Toffoli 门
+习题 4.24 验证图 4－9 构成的 Toffoli 门。
+习题 4.25 （构造 Fredkin 门）回忆 Fredkin（受控交换）门执行的转换</p>
+<p>$$
+\left[\begin{array}{llllllll}
+1 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0  \tag{4.30}\\
+0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 1 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 1 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 1
+\end{array}\right]
+$$</p>
+<p>1.给出一个量子电路，它使用三个 Toffoli 门来构造 Fredkin 门（提示：思考交换门的构造－可以每次控制一个门）。</p>
+<p>2.证明第一个和最后一个 Toffoli 门可以被受控非门取代。
+3.现在用图 4－8 中的电路替换 Toffoli 门，只使用 6 个两量子比特门构造 Fredkin 门。
+4.可以想出一个更简单的只有 5 个两量子比特门的构造吗？
+习题4.26 证明该电路仅与 Toffoli门相差相对相位。即，该电路把 $\left|c_{1}, c_{2}, t\right\rangle$ 变至 $\mathrm{e}^{\mathrm{i} \theta\left(c_{1}, c_{2}, t\right)} \mid c_{1}, c_{2}, t \oplus$ $\left.c_{1} \cdot c_{2}\right\rangle$ ，其中 $\mathrm{e}^{\mathrm{i} \theta\left(c_{1}, c_{2}, t\right)}$ 是某个相对相位因子。这样的门有时在实验实现中很有用，在那里实现一个与 Toffoli 门仅差相对相位的门可能比直接实现 Toffoli 门要容易得多。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-012.jpg?height=536&amp;width=2118&amp;top_left_y=4054&amp;top_left_x=727" /></p>
+<p>习题 4.27 使用受控非门和 Toffoli 门构造一个量子电路来执行变换</p>
+<p>$$
+\left[\begin{array}{llllllll}
+1 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0  \tag{4.31}\\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 1 \\
+0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 1 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 1 &amp; 0
+\end{array}\right]
+$$</p>
+<p>这类部分循环置换运算将在后文用到，如第7章。
+对任意单量子比特西操作 $U$ ，如何使用现有的门来实现 $C^{n}(U)$ 门？图 4－10 给出了一个实现这一任务的简单电路。该电路分为三个阶段，使用为数不多的 $(n-1)$ 个工作量子比特，这些量子比特开始结束均为状态 $|0\rangle$ 。设控制量子比特处于计算基状态 $\left|c_{1}, c_{2}, \cdots, c_{n}\right\rangle_{\text {。首先，将所有控 }}$制位 $c_{1}, c_{2}, \cdots, c_{n}$ 可逆地进行＂与＂运算得到乘积 $c_{1} \cdot c_{2} \cdots c_{n}$ 。要做到这一点，首先运用 Toffoli门对 $c_{1}, c_{2}$ 进行＂与＂运算，将第一个工作量子比特状态更改为 $\left|c_{1} \cdot c_{2}\right\rangle_{\circ}$ 下一个 Toffoli 门把 $c_{3}$与 $c_{1} \cdot c_{2}$ 进行＂与＂运算，将第二个工作量子比特状态更改为 $\left|c_{1} \cdot c_{2} \cdot c_{3}\right\rangle_{\text {。继续应用 Toffoli 门，}}$ 门，直到最终的工作量子比特处于状态 $\left|c_{1} \cdot c_{2} \cdots c_{n}\right\rangle_{\text {。其次，若最终工作量子比特为 } 1 \text { 则对目标量子 }}$比特执行 $U$ 运算。即 $U$ 被应用当且仅当 $c_{1}$ 到 $c_{n}$ 都被设置为 1 。电路的最后一部分只是反转第一阶段的步骤，将所有的工作量子比特返回到它们的初始状态 $|0\rangle$ 。因此，合并结果是西算子 $U$ 应用到目标量子比特当且仅当 $c_{1}$ 到 $c_{n}$ 都被设置为 1 。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-013.jpg?height=1374&amp;width=2043&amp;top_left_y=3559&amp;top_left_x=892" /></p>
+<p>图 4－10 $C^{n}(U)$ 操作的电路实现，这里 $n=5$
+习题4.28 对 $U=V^{2}, V$ 为西算子，不使用工作量子比特，类似图 4－10，构建 $C^{5}(U)$ 门，可以使用受控 $V$ 门和受控 $V^{\dagger}$ 门。</p>
+<p>习题4.29 给出一个不使用工作量子比特，只包含 $O\left(n^{2}\right)$ 个 Toffoli 门，受控非门，单量子比特</p>
+<p>门的 $n &gt; 3$ 的量子电路实现 $C^{n}(X)$ 门。
+习题4.30 设 $U$ 是单量子比特西操作，给出一个不使用工作量子比特，只包含 $O\left(n^{2}\right)$ Toffoli 门，受控非门和单量子比特门的电路实现 $C^{n}(U)$ 门 $(n &gt; 3)$ 。</p>
+<p>已知的受控门中，如果控制比特设置为 1 ，则目标量子比特改变。当然， 1 没有什么特别之处，考虑控制比特设置为 0 作为改变的条件是有用的。例如，假设我们希望实现一个两量子比特门，其中第二（＂目标＂）量子比特翻转的条件是第一（＂控制＂）量子比特被设置为 0 。图 4－11介绍了这个门的电路表示法及相应的等效电路。一般使用空心圆环表示对量子比特设置为 0 ，而闭圆表示对量子比特设置为 1 。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-014.jpg?height=362&amp;width=1362&amp;top_left_y=1785&amp;top_left_x=1116" /></p>
+<p>图 4－11 第一量子比特为 0 时，第二量子比特上进行的非门转换受控运算
+图 4－12 显示了该约定的一个更复杂的示例，涉及三个控制量子比特。若第一个和第三个量子比特设置为 0 ，第二个量子比特设置为 1 ，则 $U$ 被应用于目标量子比特。通过检查，可以很容易地验证右侧电路实现所需操作。更一般地，如图 4－12，通过在合适的位置插入 $X$ 门可将条件比特在置于 1 和置于 0 之间轻松转换。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-014.jpg?height=891&amp;width=1269&amp;top_left_y=3056&amp;top_left_x=1163" /></p>
+<p>图 4－12 受控 $U$ 运算及其等价的已知如何实现的电路，如果第一第三量子比特设置为 0 ，第二量子比特设置为 1 ，则第四量子比特被 $U$ 应用</p>
+<p>另一个有时有用的约定是允许受控的非门有多个目标量子比特，如图 4－13 所示。这种自然表示法意味着，当控制量子比特为 1 时，所有以 $\oplus$ 标记的量子比特都会翻转，否则不变。例如，在构造经典函数（如置换）或用于量子纠错电路的编码器和解码器时很方便，我们将在第 10 章中看到。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-014.jpg?height=368&amp;width=1072&amp;top_left_y=4946&amp;top_left_x=1273" /></p>
+<p>图 4－13 多目标量子比特受控非门</p>
+<p>习题 4.31 （更多的电路恒等关系）＂下标＂表示算子作用的量子比特，C 是一个量子比特 1 为控制量子比特，量子比特 2 为目标量子比特的受控非门。证明下列恒等关系。</p>
+<p>$$
+\begin{align*}
+C X_{1} C &amp; =X_{1} X_{2}  \tag{4.32}\\
+C Y_{1} C &amp; =Y_{1} X_{2}  \tag{4.33}\\
+C Z_{1} C &amp; =Z_{1}  \tag{4.34}\\
+C X_{2} C &amp; =X_{2}  \tag{4.35}\\
+C Y_{2} C &amp; =Z_{1} Y_{2}  \tag{4.36}\\
+C Z_{2} C &amp; =Z_{1} Z_{2}  \tag{4.37}\\
+R_{z, 1}(\theta) C &amp; =C R_{z, 1}(\theta)  \tag{4.38}\\
+R_{x, 2}(\theta) C &amp; =C R_{x, 2}(\theta) \tag{4.39}
+\end{align*}
+$$</p>
+<h1>4.4 测量</h1>
+<p>测量是量子电路中使用的最后一个元素，有时几乎是隐式的。在电路中，我们将使用仪表符号表示在计算基（2.2.5 节）中的投影测量，如图 4－14 所示。量子电路理论通常不使用特殊符号来表示更一般的测量，因为正如第 2 章所叙述的，它们总是可以用西变换结合投影测量，加上辅助量子比特来表示。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-015.jpg?height=170&amp;width=507&amp;top_left_y=3312&amp;top_left_x=1619" /></p>
+<p>图 4－14 用于在单量子比特上进行投影测量的符号。在这个电路中，对测量结果不再做进一步的操作，但是在更一般的量子电路中，可以根据电路的前半部分的测量结果改变后半部分。这种经典信息的使用方式是用双线绘制的（这里没有显示）</p>
+<p>量子电路有两个重要的原理值得时刻记住。这两个原理都很显然，但它们非常有用，所以及早加以强调。第一个原理是经典条件运算可以被量子条件运算取代：</p>
+<p>&gt;  延迟测量原理: 测量总是可以从量子电路的中间阶段移到电路末端; 如果测量结果在电路某个阶段使用, 那么经典条件运算可以用量子条件运算来代替。</p>
+<p>通常，量子测量作为量子电路的中间步骤执行，测量结果被用于控制随后的量子门，如图 1－ 13 中的隐形传输电路。然而，这样的测量总是可以移至电路的末端。图4－15 展示了如何将所有经典的条件运算替换为相应的量子条件算子来实现这一点。（当然，对这个电路的一些＂隐形传态＂解释将不再合适，因为没有经典信息从 Alice 传送到 Bob，但这里的重点是，很明显两个量子电路的整体作用是相同的。）</p>
+<p>第二个原则更加显然，而且非常有用！
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-016.jpg?height=414&amp;width=1170&amp;top_left_y=514&amp;top_left_x=1218" /></p>
+<p>图 4－15 量子隐形传态电路，测量是在末端而不是在中间进行。如图 1－13 所示，前两个量子比特属于 Alice，最下方的属于 Bob</p>
+<p>隐含测量原理：不失一般性，可以假定在量子电路末端的任何未终止的量子线（未被测量的量子比特）都将被测量。</p>
+<p>为了理解其正确性，想象一个只包含两个量子比特的量子电路，电路末端只测量第一个量子比特，此时观察到的测量统计量完全由第一个量子比特的约化密度矩阵决定。然而，如果在第二个量子比特也进行了测量，而这种测量能够改变第一个量子比特上的测量统计量，那将十分令人惊讶。在习题 4.32 中，读者将通过证明第一个量子比特的约化密度矩阵不受对第二个量子比特测量的影响来证明这一点。</p>
+<p>当考虑测量在量子电路中的作用时，要记住测量作为量子世界和经典世界之间的界面，通常被认为是不可逆操作，它破坏了量子信息，并用经典信息取代。然而，在某些精心设计的情况下，这并不一定是真实的，正如隐形传态和量子纠错所生动地说明的那样（第 10 章）。隐形传态和量子纠错的共同之处在于，在任何情况下，测量结果都没有揭示关于被测量子状态的任何信息。事实上，我们将在第 10 章中看到这是测量的一个更一般的特征——为了使测量是可逆的，它必须不能揭露关于被测量的量子状态的任何信息！
+习题 4.32 设 $\rho$ 是描述两量子比特系统的密度矩阵。假设我们在第二个量子比特的计算基上进行投影测量。设 $P_{0}=|0\rangle\langle 0|, P_{1}=|1\rangle\langle 1|$ 分别是第二个量子比特到 $|0\rangle$ 和 $|1\rangle$ 状态的投影。令 $\rho^{\prime}$ 是由不知道测量结果的观察者在测量后赋给系统的密度矩阵。证明</p>
+<p>$$
+\begin{equation*}
+\rho^{\prime}=P_{0} \rho P_{0}+P_{1} \rho P_{1} \tag{4.40}
+\end{equation*}
+$$</p>
+<p>此外证明第一个量子比特的约化密度矩阵不受测量的影响，即 $\operatorname{tr}_{2}(\rho)=\operatorname{tr}_{2}\left(\rho^{\prime}\right)$ 。
+习题4.33（贝尔基上的测量）我们为量子电路模型指定的测量只在计算基上进行。然而，有时我们希望在其它由完备的正交状态集定义的基上进行测量。要执行这一测量，从我们希望执行的测量基先做一简单西变换到计算基，再进行测量。例如，证明电路
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-016.jpg?height=280&amp;width=472&amp;top_left_y=4560&amp;top_left_x=1590" /></p>
+<p>执行了在贝尔基上的测量。更准确地说，这一电路结果是相应的 POVM 测量到四个贝尔基的投影。对应的测量算子是什么？
+习题 4.34 （测量一个算子）假设我们有一个特征值为 $\pm 1$ 的单量子比特算子 $U$ ，使得 $U$ 既是厄米的，又是西的，因此它既可以看作一个可观测量，也可以看作一个量子门。若我们希望测量可观测量 $U$ ，即我们希望得到一个测量结果来表明两个特征值之一，测量后的状态是对应的特征</p>
+<p>向量。如何用量子电路实现这一点？证明以下电路实现了 $U$ 的测量：
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-017.jpg?height=315&amp;width=1002&amp;top_left_y=651&amp;top_left_x=1343" /></p>
+<p>习题4.35（测量与控制交换）延迟测量原理的结果是，当被测量的量子比特是一个控制量子比特时，测量与量子门交换，即：
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-017.jpg?height=321&amp;width=1571&amp;top_left_y=1305&amp;top_left_x=1093" />
+（回忆双线代表这个图中的经典比特）。证明第一个等式。最右侧电路只是一种方便的记法，用来描述使用测量结果来经典地控制量子门。</p>
+<h1>4.5 通用量子门</h1>
+<p>一小部分门的集合（例如＂与＂，＂或＂，＂非＂）可用于计算任意经典函数，如我们在 3.1.2节中所看到的。我们说这样一组门对于经典计算是通用的。鉴于 Toffoli 门对于经典计算是通用的，所以量子电路也包括经典电路。类似的普适结果也适用于量子计算，若存在一组门使得任何酉操作都可以被仅涉及这组门的量子电路以任意精度近似，则称这组门对量子计算是通用的。接下来将描述三类量子计算的通用性构造，这些构造相互依存，并最终证明任何西操作都可以使用阿达玛门，受控非门，相位门和 $\pi / 8$ 门来逼近至任意精度。鉴于相位门可以由两个 $\pi / 8$ 门构造，读者可能想知道为什么它会出现在这个集合中，原因是它在容错结构中的天然作用，这将在第 10 章中叙述。</p>
+<p>第一步构造表明，任意西算子可以精确地表示为仅在一个由两个计算基矢态张成的子空间上起非平凡作用的酉算子的乘积。第二步构造将第一步构造与前一节的结果相结合，证明了任意西算子可以用单量子比特和受控非门精确表示。第三步构造将第二步的构造与单量子比特可使用阿达玛门，相位门和 $\pi / 8$ 门以任意精度近似的证明相结合。这也就意味着任何西算子都可以用阿达玛门，受控非门，相位门和 $\pi / 8$ 门近似到任意精度。</p>
+<p>上述构造几乎没有涉及效率问题，即为了构建一个给定的西变换需要多少个（多项式或指数数量的）门。在 4.5.4 节中，我们证明了存在酉变换需要指数数量个门来近似。当然，量子计算的目标是找到令人感兴趣的可以有效执行的西变换族。</p>
+<p>习题 4.36 构造一个量子电路来进行两个双比特数 $x$ 和 $y$ 模 4 的加法，即执行转换 $|x, y\rangle \rightarrow$ $|x, x+y \bmod 4\rangle$ 的电路。</p>
+<h2>4.5.1 两级西门是通用的</h2>
+<p>考虑一个作用在 $d$ 维希尔伯特空间上的西矩阵 $U$ 。本节中，我们叙述了如何将 $U$ 分解成两级西矩阵的乘积，即只在两个或更少的向量分量上起非平凡作用的西矩阵。这种分解背后的基本</p>
+<p>思想可以通过考虑 $U$ 为 $3 \times 3$ 矩阵时的情况来理解，因此假设 $U$ 具有如下形式</p>
+<p>$$
+U=\left[\begin{array}{lll}
+a &amp; d &amp; g  \tag{4.41}\\
+b &amp; e &amp; h \\
+c &amp; f &amp; j
+\end{array}\right]
+$$</p>
+<p>我们可以找出两级西矩阵 $U_{1}, \cdots, U_{3}$ 使得</p>
+<p>$$
+\begin{equation*}
+U_{3} U_{2} U_{1} U=I \tag{4.42}
+\end{equation*}
+$$</p>
+<p>即</p>
+<p>$$
+\begin{equation*}
+U=U_{1}^{\dagger} U_{2}^{\dagger} U_{3}^{\dagger} \tag{4.43}
+\end{equation*}
+$$</p>
+<p>其中 $U_{1}, U_{2}, U_{3}$ 是两级西矩阵，易证它们的逆 $U_{1}^{\dagger}, U_{2}^{\dagger}, U_{3}^{\dagger}$ 也是。因此，若能证明（4.42），就证明了 $U$ 可分解成两级西矩阵的乘积。</p>
+<p>下面构造 $U_{1}$ ：若 $b=0$ ，则令</p>
+<p>$$
+U_{1} \equiv\left[\begin{array}{lll}
+1 &amp; 0 &amp; 0  \tag{4.44}\\
+0 &amp; 1 &amp; 0 \\
+0 &amp; 0 &amp; 1
+\end{array}\right]
+$$</p>
+<p>若 $b \neq 0$ ，则令</p>
+<p>$$
+U_{1} \equiv\left[\begin{array}{ccc}
+\frac{a^{*}}{\sqrt{|a|^{2}+|b|^{2}}} &amp; \frac{b^{*}}{\sqrt{|a|^{2}+|b|^{2}}} &amp; 0  \tag{4.45}\\
+\frac{b}{\sqrt{|a|^{2}+|b|^{2}}} &amp; \frac{-a}{\sqrt{|a|^{2}+|b|^{2}}} &amp; 0 \\
+0 &amp; 0 &amp; 1
+\end{array}\right]
+$$</p>
+<p>注意在这两种情况下，$U_{1}$ 都是两级西矩阵，把矩阵相乘得到</p>
+<p>$$
+U_{1} U=\left[\begin{array}{ccc}
+a^{\prime} &amp; d^{\prime} &amp; g^{\prime}  \tag{4.46}\\
+0 &amp; e^{\prime} &amp; h^{\prime} \\
+c^{\prime} &amp; f^{\prime} &amp; j^{\prime}
+\end{array}\right]
+$$</p>
+<p>要注意的是左边列的中间项是零。我们用加＇的符号表示矩阵中的其他项，它们的实际值并不重要。</p>
+<p>类似地应用找出两级西矩阵 $U_{2}$ ，使得 $U_{2} U_{1} U$ 在左下角项为 0 。如果 $c^{\prime}=0$ ，则</p>
+<p>$$
+U_{2} \equiv\left[\begin{array}{ccc}
+a^{\prime *} &amp; 0 &amp; 0  \tag{4.47}\\
+0 &amp; 1 &amp; 0 \\
+0 &amp; 0 &amp; 1
+\end{array}\right]
+$$</p>
+<p>若 $c^{\prime} \neq 0$ ，则令</p>
+<p>$$
+U_{2} \equiv\left[\begin{array}{ccc}
+\frac{a^{\prime}}{\sqrt{\left|a^{\prime}\right|^{2}+\left|c^{\prime}\right|^{\prime}}} &amp; 0 &amp; \frac{c^{\prime *}}{\sqrt{\left|a^{\prime}\right|^{2}+\left|c^{\prime}\right|^{2}}}  \tag{4.48}\\
+0 &amp; 1 &amp; 0 \\
+\frac{c^{\prime}}{\sqrt{\left|a^{\prime}\right|^{2}+\left|c^{\prime}\right|^{2}}} &amp; 0 &amp; \frac{-a^{\prime}}{\sqrt{\left|a^{\prime}\right|^{2}+\left|c^{\prime}\right|^{2}}}
+\end{array}\right]
+$$</p>
+<p>在这两种情况下，把矩阵相乘得</p>
+<p>$$
+U_{2} U_{1} U=\left[\begin{array}{lll}
+1 &amp; d^{\prime \prime} &amp; g^{\prime \prime}  \tag{4.49}\\
+0 &amp; e^{\prime \prime} &amp; h^{\prime \prime} \\
+0 &amp; f^{\prime \prime} &amp; j^{\prime \prime}
+\end{array}\right]
+$$</p>
+<p>由于 $U, U_{1}, U_{2}$ 是酉矩阵，则 $U_{2} U_{1} U$ 也是酉的，鉴于第一行模为 1 ，则 $d^{\prime \prime}=g^{\prime \prime}=0$ ，最后令</p>
+<p>$$
+U_{3}=\left[\begin{array}{ccc}
+1 &amp; 0 &amp; 0  \tag{4.50}\\
+0 &amp; e^{\prime \prime *} &amp; f^{\prime \prime *} \\
+0 &amp; h^{\prime \prime *} &amp; j^{\prime \prime *}
+\end{array}\right]
+$$</p>
+<p>易证 $U_{3} U_{2} U_{1} U=I$ ，则有 $U$ 的两级西分解 $U=U_{1}^{\dagger} U_{2}^{\dagger} U_{3}^{\dagger}$ 。
+更一般地，设 $U$ 作用于 $d$ 维空间，则以与 $3 \times 3$ 矩阵情形类似的方式，我们可以找到两级西矩阵 $U_{1}, \cdots, U_{d-1}$ 使得矩阵 $U_{d-1} U_{d-2} \cdots U_{1} U$ 左上角项为 1 ，第一行和第一列的其余项均为零。然后，我们对矩阵 $U_{d-1} U_{d-2} \cdots U_{1} U$ 右下角的 $(d-1) \times(d-1)$ 酉子矩阵重复这一过程，最终可以将任意 $d \times d$ 酉矩阵写成</p>
+<p>$$
+\begin{equation*}
+U=V_{1} \cdots V_{k} \tag{4.51}
+\end{equation*}
+$$</p>
+<p>其中矩阵 $V_{i}$ 是两级酉矩阵，$k \leqslant(d-1)+(d-2)+\cdots+1=d(d-1) / 2$ 。
+习题 4.37 将变换</p>
+<p>$$
+\frac{1}{2}\left[\begin{array}{cccc}
+1 &amp; 1 &amp; 1 &amp; 1  \tag{4.52}\\
+1 &amp; \mathrm{i} &amp; -1 &amp; -\mathrm{i} \\
+1 &amp; -1 &amp; 1 &amp; -1 \\
+1 &amp; -\mathrm{i} &amp; -1 &amp; \mathrm{i}
+\end{array}\right]
+$$</p>
+<p>分解成两级西矩阵的乘积。这是量子傅里叶变换的一个特例，将在下一章中更详细地研究。
+上述结果的一个推论是，$n$ 量子比特系统上的任意西矩阵最多可写为 $2^{n-1}\left(2^{n}-1\right)$ 个两级西矩阵的乘积。对于特定的西矩阵，可能会找到更有效的分解，但正如现在将要证明的，存在矩阵不能分解为小于 $d-1$ 个两级西矩阵的乘积！
+习题4.38 证明存在一个 $d \times d$ 酉矩阵 $U$ 不能分解为少于 $d-1$ 个两级西矩阵的乘积。</p>
+<h2>4.5.2 单量子比特门和受控非门是通用的</h2>
+<p>我们刚刚证明了 $d$ 维希尔伯特空间上的任意西矩阵可以写成二级酉矩阵的乘积。现在我们要证明在 $n$ 量子比特状态空间上，单量子比特门和受控非门可以表示任意两级酉操作。结合起来这些结果就有单量子比特门和受控非门可实现 $n$ 量子比特上的任意西操作，因此在量子计算中它们是通用的。</p>
+<p>假设 $U$ 是 $n$ 量子比特计算机上的两级西矩阵，特别地，假设 $U$ 在计算基矢态 $|s\rangle$ 和 $|t\rangle$ 所张成的空间上的作用是不平凡的，其中 $s=s_{1} \cdots s_{n}$ 和 $t=t_{1} \cdots t_{n}$ 是 $s$ 和 $t$ 的二进制展开式。令 $\tilde{U}$是 $U$ 的非平凡 $2 \times 2$ 酉子矩阵，$\tilde{U}$ 可视为单量子比特上的酉算子。</p>
+<p>当前目标是构建一个由单量子比特门和受控非门组成的实现 $U$ 的电路。为此我们需要使用 Gray 码。假设我们有不同的二进制数 $s$ 和 $t$ ，一个连接 $s$ 和 $t$ 的 Gray 码是一组以 $s$ 开始，以 $t$ 结尾的二进制数序列，使得列表中的相邻数恰好有一位不同。例如，$s=101001, t=110011$ ，我们有 Gray 码</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">1</th>
+<th style="text-align: left;">0</th>
+<th style="text-align: left;">1</th>
+<th style="text-align: left;">0</th>
+<th style="text-align: left;">0</th>
+<th style="text-align: left;">1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">1</td>
+</tr>
+<tr>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">0</td>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">1</td>
+</tr>
+</tbody>
+</table>
+<p>设 $g_{1}$ 到 $g_{m}$ 是连接 $s$ 和 $t$ 的 Gray 码元素，其中 $g_{1}=s$ 和 $g_{m}=t_{\circ}$ 。注意总是可以找到一个 Gray码使得 $m \leqslant n+1$ ，因为 $s$ 和 $t$ 最多有 $n$ 个位置不同。</p>
+<p>实现量子电路 $U$ 的基本思想是通过一系列门实现状态变化 $\left|g_{1}\right\rangle \rightarrow\left|g_{2}\right\rangle \rightarrow \cdots \rightarrow\left|g_{m-1}\right\rangle$ ，然后执行受控 $\tilde{U}$ 运算，其中目标量子比特位于 $g_{m-1}$ 和 $g_{m}$ 不同的那一比特处，然后还原第一阶段，进行转化 $\left|g_{m-1}\right\rangle \rightarrow\left|g_{m-2}\right\rangle \rightarrow \cdots \rightarrow\left|g_{1}\right\rangle$ ，以上每一步都可以使用本章前面的运算来很容易地实现，最后结果即是 $U$ 的一个实现。</p>
+<p>对其更精确的描述如下。首先交换 $\left|g_{1}\right\rangle$ 与 $\left|g_{2}\right\rangle$ 的状态，假设 $\left|g_{1}\right\rangle$ 与 $\left|g_{2}\right\rangle$ 第 $i$ 位数字不同，则通过对第 $i$ 个量子比特执行受控比特翻转来完成交换，前提条件是 $\left|g_{1}\right\rangle$ 与 $\left|g_{2}\right\rangle$ 在其他量子比特的值相同。接下来我们使用受控运算来交换 $\left|g_{2}\right\rangle$ 与 $\left|g_{3}\right\rangle$ 。继续使用这种模式直到我们将 $\left|g_{m-2}\right\rangle$ 与 $\left|g_{m-1}\right\rangle$ 交换。这 $m-2$ 个序列操作的效果是实现运算</p>
+<p>$$
+\begin{align*}
+\left|g_{1}\right\rangle &amp; \rightarrow\left|g_{m-1}\right\rangle  \tag{4.54}\\
+\left|g_{2}\right\rangle &amp; \rightarrow\left|g_{1}\right\rangle  \tag{4.55}\\
+\left|g_{3}\right\rangle &amp; \rightarrow\left|g_{2}\right\rangle  \tag{4.56}\\
+\ldots &amp; \cdots \cdots  \tag{4.57}\\
+\left|g_{m-1}\right\rangle &amp; \rightarrow\left|g_{m-2}\right\rangle
+\end{align*}
+$$</p>
+<p>所有其他计算基状态都不受此操作序列的影响。接下来假设 $\left|g_{m-1}\right\rangle$ 与 $\left|g_{m}\right\rangle$ 在第 $j$ 位上不同，我们以第 $j$ 个量子比特为目标比特应用受控 $\tilde{U}$ 运算，条件是 $\left|g_{m-1}\right\rangle$ 与 $\left|g_{m}\right\rangle$ 在其他量子比特值相同。最后通过还原交换运算来完成 $U$ 的运算：交换 $\left|g_{m-1}\right\rangle$ 与 $\left|g_{m-2}\right\rangle$ ，然后交换 $\left|g_{m-2}\right\rangle$ 与 $\left|g_{m-3}\right\rangle$</p>
+<p>等，直至交换 $\left|g_{2}\right\rangle$ 与 $\left|g_{1}\right\rangle$ 。
+一个简单的例子可以进一步地描述这个过程。假设我们希望实现两级西变换</p>
+<p>$$
+U=\left[\begin{array}{llllllll}
+a &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; c  \tag{4.58}\\
+0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 1 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 1 &amp; 0 \\
+b &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; d
+\end{array}\right]
+$$</p>
+<p>其中 $a, b, c, d$ 是使得 $\tilde{U} \equiv\left[\begin{array}{ll}a &amp; c \\ b &amp; d\end{array}\right]$ 为酉矩阵的任意复数。
+注意 $U$ 只作用在状态 $|000\rangle$ 与 $|111\rangle$ 上时不平凡，可以写出 Gray 码连接 000 和 111：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">$A$</th>
+<th style="text-align: center;">$B$</th>
+<th style="text-align: center;">$C$</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+</tr>
+<tr>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">1</td>
+</tr>
+</tbody>
+</table>
+<p>由此得出所需电路，如图 4－16 所示。前两个门使状态 $|000\rangle$ 变为 $|011\rangle$ ，接下来受控运算 $\tilde{U}$ 以第二第三量子比特状态为 $|11\rangle$ 作为条件应用于状态 $|011\rangle$ 和 $|111\rangle$ 的第一个量子比特。最后，还原各量子比特状态，以确保状态 $|011\rangle$ 和状态 $|000\rangle$ 交换。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-021.jpg?height=454&amp;width=1228&amp;top_left_y=3926&amp;top_left_x=1294" /></p>
+<p>图 4－16 实现由（4.58）定义的两级西操作电路
+回到一般情况，我们看到实现两级西操作 $U$ 最多需要 $2(n-1)$ 次受控运算来交换 $\left|g_{1}\right\rangle$ 与 $\left|g_{m-1}\right\rangle$ 并还原，每个受控运算都可以使用 $O(n)$ 个单量子比特门和受控非门来实现；受控 $\tilde{U}$ 运算也需要 $O(n)$ 个门。因此，实现 $U$ 操作需要 $O\left(n^{2}\right)$ 个单量子比特门和受控非门。由前文可知，在 $2^{n}$ 维状态空间上任意作用在 $n$ 量子比特上的酉矩阵可以写成 $O\left(2^{2 n}\right)=O\left(4^{n}\right)$ 个两级酉操作的乘积。综上，在 $n$ 量子比特上的任意西操作可以用包含 $O\left(n^{2} 4^{n}\right)$ 个单量子比特门和受控非门的电路来实现。显然，这种结构并没有提供非常有效的量子电路。然而，我们在 4.5.4 节中表明，在需要指数数量的门才能实现西操作的意义下，该构造接近最优。因此，为了寻找快速量子算法，我</p>
+<p>们显然需要一种不同于通用性构造的方法。
+习题 4.39 求一个使用单量子比特门和受控非门组成的电路来表示变换</p>
+<p>$$
+\left[\begin{array}{llllllll}
+1 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0  \tag{4.60}\\
+0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; a &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; c \\
+0 &amp; 0 &amp; 0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 1 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 1 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; 1 &amp; 0 \\
+0 &amp; 0 &amp; b &amp; 0 &amp; 0 &amp; 0 &amp; 0 &amp; d
+\end{array}\right]
+$$</p>
+<p>这里 $\tilde{U}=\left[\begin{array}{ll}a &amp; c \\ b &amp; d\end{array}\right]$ 为任意 $2 \times 2$ 西矩阵。</p>
+<h2>4.5.3 通用运算的一个离散集合</h2>
+<p>在前面几节中我们证明了受控非门和单量子比特西算子一起构成量子计算的一个通用集。遗憾的是，目前还没有一种直接的方法以抗噪声的形式实现这些门。幸运的是，在这一节，我们将要找到一个离散的门集合可以用来实现通用量子计算，而且在第 10 章，我们将要按照防错的形式，用量子纠错码来实现这些门。</p>
+<h2>逼近酉算子</h2>
+<p>明显地，由于西操作集合是连续的，一个离散的门集合不能用来确切实现任意的西操作。然而离散集合可以用来逼近任意西操作。为了理解这是怎么工作的，我们首先需要研究逼近酉操作是什么意思。假设 $U$ 和 $V$ 是作用在相同状态空间上的两个西操作，$U$ 是我们希望实现的目标酉算子，$V$ 是实际实现的西算子。我们定义当 $V$ 代替 $U$ 被实现时的误差</p>
+<p>$$
+\begin{equation*}
+E(U, V) \equiv \max _{|\psi\rangle} |(U-V)|\psi\rangle | \tag{4.61}
+\end{equation*}
+$$</p>
+<p>其中极大取遍状态空间上所有归一化的量子态 $|\psi\rangle$ 。在专题 4.1，我们证明测量误差可以解释为：如果 $E(U, V)$ 很小，则对任意的初始态 $|\psi\rangle$ ，在状态 $V|\psi\rangle$ 上的任意测量将给出和在态 $U|\psi\rangle$ 上近似的测量统计结果。具体地，如果 $M$ 是一个 POVM 测量中的 POVM 元，$|\psi\rangle$ 是初始态，$P_{U}$ 或 $P_{V}$ 是 $U$ 或 $V$ 被作用后的结果概率，则</p>
+<p>$$
+\begin{equation*}
+\left|P_{U}-P_{V}\right| \leqslant 2 E(U, V) \tag{4.62}
+\end{equation*}
+$$</p>
+<p>因此，如果 $E(U, V)$ 很小，不管 $U$ 还是 $V$ 被作用，测量结果出现的概率相似。而且专题 4.1 表明如果为了逼近某个门序列 $U_{1}, \cdots, U_{m}$ ，我们执行门序列 $V_{1}, \cdots, V_{m}$ ，则误差最多按线性增加，</p>
+<p>$$
+\begin{equation*}
+E\left(U_{m} U_{m-1} U_{1}, V_{m} V_{m-1} \cdots V_{1}\right) \leqslant \sum_{j=1}^{m} E\left(U_{j}, V_{j}\right) \tag{4.63}
+\end{equation*}
+$$</p>
+<p>逼近结果（4.62）和（4.63）极其有用，假设我们希望执行一个从 $U_{1}$ 到 $U_{m}$ 包含 $m$ 个量子门的量子电路。遗憾的是，我们仅能通过门 $V_{j}$ 逼近门 $U_{j}$ 。为了在逼近电路上不同测量结果的概率和正确概率相比偏差在 $\Delta &gt; 0$ 之内，根据式（4.62）和式（4.63）的结果，只需满足 $E\left(U_{j}, V_{j}\right) \leqslant \Delta / 2 m$ 。</p>
+<h2>Hadard 门＋相位门＋受控非门 $+\pi / 8$ 门的通用性</h2>
+<p>现在我们可以很好地研究利用离散门集合逼近任意的西操作。我们将要考虑两种不同的离散门集合，两者都是通用的。第一类集合，通用门的标准集，由阿达玛门，相位门，受控非门和 $\pi / 8$门组成。在第 10 章，对于这些门，我们提供容错的构造；这些构造也提供一个极其简洁的通用构造。我们考虑的第二个门集合由阿达玛门，相位门，受控非门和 Toffoli 门组成。这些门也可以容错地构造；然而，这些门的通用性证明和容错构造就有点不那么吸引人了。</p>
+<h2>专题 4.1 逼近量子电路</h2>
+<p>假设一个量子系统状态从 $|\psi\rangle$ 开始，我们要么做酉操作 $U$ ，要么做西操作 $V_{\circ}$ 接下来，我们进行一个测量。设 $M$ 为一个与测量相关的 POVM 元，令 $P_{U}$（或 $P_{V}$ ）为操作 $U$（或 $V$ ）得到相应测量结果的概率。则</p>
+<p>$$
+\begin{equation*}
+\left.\left|P_{U}-P_{V}\right|=\left|\langle\psi| U^{\dagger} M U\right| \psi\right\rangle-\langle\psi| V^{\dagger} M V|\psi\rangle \mid \tag{4.64}
+\end{equation*}
+$$</p>
+<p>令 $|\Delta\rangle \equiv(U-V)|\psi\rangle$ 。根据简单地代数运算和 Cauchy－Schwarz 不等式证明</p>
+<p>$$
+\begin{align*}
+\left|P_{U}-P_{V}\right| &amp; \left.=\left|\langle\psi| U^{\dagger} M\right| \Delta\right\rangle+\langle\Delta| M V|\psi\rangle \mid  \tag{4.65}\\
+&amp; \left.\leqslant\left|\langle\psi| U^{\dagger} M\right| \Delta\right\rangle|+|\langle\Delta| M V| \psi\rangle \mid  \tag{4.66}\\
+&amp; \leqslant ||\Delta\rangle|+||\Delta\rangle |  \tag{4.67}\\
+&amp; \leqslant 2 E(U, V) \tag{4.68}
+\end{align*}
+$$</p>
+<p>不等式 $\left|P_{U}-P_{V}\right| \leqslant 2 E(U, V)$ 给出了一种量化表达地思想，即误差 $E(U, V)$ 越小，测量的概率偏差越小。</p>
+<p>假设我们执行了一个门序列 $V_{1}, V_{2}, \cdots, V_{m}$ 来逼近门序列 $U_{1}, U_{2}, \cdots, U_{m}$ ，则由不完美</p>
+<p>的整个门序列导致地误差最多是单个门导致的误差之和：</p>
+<p>$$
+\begin{equation*}
+E\left(U_{m} U_{m-1} \cdots U_{1}, V_{m} V_{m-1} \cdots V_{1}\right) \leqslant \sum_{j=1}^{m} E\left(U_{j}, V_{j}\right) \tag{4.69}
+\end{equation*}
+$$</p>
+<p>为了证明这个式子，我们从 $m=2$ 开始。注意到对某个态 $|\psi\rangle$ ，我们有</p>
+<p>$$
+\begin{align*}
+E\left(U_{2} U_{1}, V_{2} V_{1}\right) &amp; =\left|\left(U_{2} U_{1}-V_{2} V_{1}|\psi\rangle |\right.\right.  \tag{4.70}\\
+&amp; =\left|\left(U_{2} U_{1}-V_{2} U_{1}|\psi\rangle+\left(V_{2} U_{1}-V_{2} V_{1}|\psi\rangle |\right.\right.\right. \tag{4.71}
+\end{align*}
+$$</p>
+<p>根据三角不等式 $||a\rangle+|b\rangle|\leqslant||a\rangle|+||b\rangle |$ ，我们得到</p>
+<p>$$
+\begin{align*}
+E\left(U_{2} U_{1}, V_{2} V_{1}\right) &amp; \leqslant |\left(U_{2}-V_{2}\right) U_{1}|\psi\rangle+| V_{2}\left(U_{1}-V_{1}\right)|\psi\rangle  \tag{4.72}\\
+&amp; \leqslant E\left(U_{2}, V_{2}\right)+E\left(U_{1}, V_{1}\right) \tag{4.73}
+\end{align*}
+$$</p>
+<p>对于一般的 $m$ ，可以根据归纳法证明。</p>
+<p>我们通过证明阿达玛门，$\pi / 8$ 门可以以任意精度逼近任意单量子比特酉操作来开始通用性的证明。考虑门 $T$ 和 $H T H$ ，除了一个不重要的全局相位因子，$T$ 表示布洛赫球上围绕 $\widehat{z}$ 轴旋转 $\pi / 4$ 角，$H T H$ 表示布洛赫球上围绕 $\hat{x}$ 轴旋转 $\pi / 4$ 角（习题 4.14 ）。除去一个全局相位因子，复合这两种运算得到</p>
+<p>$$
+\begin{align*}
+\exp \left(-\mathrm{i} \frac{\pi}{8} Z\right) \exp \left(-\mathrm{i} \frac{\pi}{8} X\right) &amp; =\left[\cos \frac{\pi}{8} I-\mathrm{i} \sin \frac{\pi}{8} Z\right]\left[\cos \frac{\pi}{8} I-\mathrm{i} \sin \frac{\pi}{8} X\right]  \tag{4.74}\\
+&amp; =\cos {}^{2} \frac{\pi}{8} I-\mathrm{i}\left[\cos \frac{\pi}{8}(X+Z)+\sin \frac{\pi}{8} Y\right] \sin \frac{\pi}{8} \tag{4.75}
+\end{align*}
+$$</p>
+<p>这是一个布洛赫球上绕轴 $\vec{n}=(\cos \pi / 8, \sin \pi / 8, \cos \pi / 8)$ 旋转 $\theta$ 角的一个变换，其中 $\cos \theta / 2 \equiv$ $\cos {}^{2} \pi / 8$ 。即仅用阿达玛门和 $\pi / 8$ 门我们可以构造 $R_{\vec{n}}(\theta)$ 。可以证明这个 $\theta$ 是 $2 \pi$ 的无理倍数。证明后面的事实超出我们的范围，可以参看章末的＂背景资料与延伸阅读＂。</p>
+<p>下面我们证明重复的迭代 $R_{\vec{n}}(\theta)$ 可以以任意的精度逼近 $R_{\vec{n}}(\alpha)$ 。为了看清这一点，令 $\delta &gt; 0$为想要的精度，令 $N$ 为大于 $2 \pi / \delta$ 的整数。定义 $\delta_{k}$ 使得 $\delta_{k} \in[0,2 \pi)$ 且 $\theta_{k}=(k \theta) \bmod 2 \pi$ 。则根据鸽笼原理，在 $1, \cdots, N$ 中存在不同的 $j, k$ 使得 $\left|\theta_{k}-\theta_{j}\right| \leqslant 2 \pi / N &lt; \delta$ 。不失一般性，假设 $k &gt; j$ ，则有 $\left|\theta_{k-j}\right| &lt; \delta$ ，由于 $j \neq k, \theta$ 是 $2 \pi$ 的无理倍数，故必有 $\theta_{k-j} \neq 0$ 。这等于说随着 $l$ 的变化 $\theta_{l(k-j)}$ 充满了 $[0,2 \pi)$ 整个区间，使得序列中相邻的数不会多于 $\delta$ 的分割。这等于说对于任意的 $\epsilon &gt; 0$ ，存在着 $n$ 使得</p>
+<p>$$
+\begin{equation*}
+E\left(R_{\vec{n}}(\alpha), R_{\vec{n}}(\theta)^{n}\right) &lt; \frac{\epsilon}{3} \tag{4.76}
+\end{equation*}
+$$</p>
+<p>习题 4.40 对任意的 $\alpha, \beta$ ，证明</p>
+<p>$$
+\begin{equation*}
+\left.E\left(R_{\vec{n}}(\alpha)\right), R_{\vec{n}}(\alpha+\beta)\right)=|1-\exp (\mathrm{i} \beta / 2)| \tag{4.77}
+\end{equation*}
+$$</p>
+<p>且用此式来证明（4.76）。
+现在我们可以证明任意的单量子比特操作可以由阿达玛门和 $\pi / 8$ 门以任意精度逼近。简单的代数运算意味着对任意的 $\alpha$ ，</p>
+<p>$$
+\begin{equation*}
+H R_{\vec{n}}(\alpha) H=R_{\vec{m}}(\alpha) \tag{4.78}
+\end{equation*}
+$$</p>
+<p>其中 $\vec{m}$ 是一个沿着方向 $(\cos \pi / 8,-\sin \pi / 8, \cos \pi / 8)$ 的单位向量，由它可以得到</p>
+<p>$$
+\begin{equation*}
+E\left(R_{\vec{m}}(\alpha), R_{\vec{m}}(\theta)^{n}\right) &lt; \frac{\epsilon}{3} \tag{4.79}
+\end{equation*}
+$$</p>
+<p>但是根据习题（4.11），除了一个不重要的全局相位变换，任意单量子比特上的 $U$ 运算可以表示为</p>
+<p>$$
+\begin{equation*}
+U=R_{\vec{n}}(\beta) R_{\vec{m}}(\gamma) R_{\vec{n}}(\delta) \tag{4.80}
+\end{equation*}
+$$</p>
+<p>结果（4.76）和（4.79）一起，再加上（4.63）的链不等式意味着，对于合适的正整数 $n_{1}, n_{2}, n_{3}$ ，</p>
+<p>$$
+\begin{equation*}
+E\left(U, R_{\vec{n}}(\theta)^{n_{1}} H R_{\vec{n}}(\theta)^{n_{2}} H R_{\vec{n}}(\theta)^{n_{3}}\right) &lt; \epsilon \tag{4.81}
+\end{equation*}
+$$</p>
+<p>即，对于任意的单量子比特运算 $U$ 和任意的 $\epsilon &gt; 0$ ，可以用阿达玛门和 $\pi / 8$ 门组合成的电路以 $\epsilon$逼近 $U$ 。</p>
+<p>由于阿达玛门和 $\pi / 8$ 门允许我们逼近任意的单量子比特西算子，根据 4.5.2 节的讨论我们可以逼近任意的 $m$ 个门的量子电路，如下所示。给一个含有 $m$ 个门的量子电路，或者受控非门，或者单量子比特西门，我们可以用阿达玛门，受控非门和 $\pi / 8$ 门逼近它（后面我们将要发现相位门可以做容错的逼近，但是对于当前通用性的讨论，它们不是严格必需的）。如果对于整个电路我们想要 $\epsilon$ 的逼近，这可以通过上面的程序对每个单量子比特西操作以 $\epsilon / m$ 逼近，再用链不等式对整个电路以 $\epsilon$ 的逼近达到。</p>
+<p>用离散的门集合逼近量子电路的程序的效率如何？这是一个重要的问题。例如，假设在距离 $\epsilon$ 内逼近一个任意单量子比特西门，从离散集合中需要 $\Omega\left(2^{1 / \epsilon}\right)$ 个门。为了逼近上一段中的 $m$ 个门，则需要 $\Omega\left(m 2^{m / \epsilon}\right)$ 个门，即随着电路尺寸的增加指数增长。幸运的是，收玫速度比这好得多。直觉上，区间 $[0,2 \pi)$ 上的角度 $\theta_{k}$ 序列多少采取一致的形式，这使得为了逼近一个单量子比特门大约从离散集中取 $\Theta(1 / \epsilon)$ 个门。如果我们用这个对门数量的估计来逼近任意单量子比特门，则以 $\epsilon$ 逼近一个 $m$ 门电路需要的门数变成 $\Theta\left(m^{2} / \epsilon\right)$ ，这是一个随着电路尺寸 $m$ 的平方递增，对许多应用来说，这可能就足够了。</p>
+<p>而值得一提的是，一个更快的收玫率可以被证明。附录 C 中的 Solovay－Kitaev 定理意味着一个任意的单量子比特门可以用离散集中 $O\left(\log {}^{c}(1 / \epsilon)\right)$ 个门以 $\epsilon$ 逼近，其中 $c$ 是一个接近 2 的常数。Solovay－Kitaev 定理因此意味着以不超过 $\epsilon$ 错误率逼近一个包含 $m$ 个受控非门和单量子西门的电路需要离散集中 $O\left(m \log {}^{c}(1 / \epsilon)\right)$ 个门，它随着电路尺寸以多项式量级增长，这在实际应用中是可以接受的。</p>
+<p>总结起来，我们已经证明了阿达玛门，相位门，受控非门和 $\pi / 8$ 门对量子计算是通用的，也</p>
+<p>就是说，给一个包含受控非门和任意单量子西门的电路，仅用这个离散集合中的门就可以模拟这个电路到足够好的精确度。而且，这个模拟可以有效地进行，在某种意义上，执行模拟所需要的开销是 $\log (m / \epsilon)$ 的多项式倍，其中 $m$ 是原电路中的门数，$\epsilon$ 是想要模拟的精确度。
+习题 4.41 这个和下面的两个习题发展了一个结构证明阿达玛门，相位门，受控非门和 Toffoli门是通用的。证明图 4－17 中的电路运用操作 $R_{z}(\theta)$ 到目标量子比特如果测量结果是 0 ，其中 $\cos (\theta)=3 / 5$ ，否则将 $Z$ 用到目标量子比特。证明测量结果为 0 的概率是 $5 / 8$ ，并且解释如何重复地应用这个电路和 $Z=S^{2}$ 门，使得以接近 1 的概率应用 $R_{z}(\theta)$ 门。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-026.jpg?height=496&amp;width=1135&amp;top_left_y=1584&amp;top_left_x=1201" /></p>
+<p>图 4－17 如果两个测量结果都是 0 ，则这个电路作用 $R_{z}(\theta)$ 到目标比特，其中 $\cos \theta=3 / 5$ ；如果出现其他测量结果，则电路作用 $Z$ 到目标比特</p>
+<p>习题4.42（ $\theta$ 的无理性）假设 $\cos \theta=3 / 5$ ，我们用反证法证明 $\theta$ 是 $2 \pi$ 的无理数倍。
+1.运用这个事实 $\mathrm{e}^{\mathrm{i} \theta}=(3+4 \mathrm{i}) / 5$ ，证明如果 $\theta$ 是有理数，则一定存在一个正整数 $m$ ，使得 $(3+4 \mathrm{i})^{m}=5^{m}$ 。
+2.证明对任意的 $m &gt; 0,(3+4 \mathrm{i})^{m}=(3+4 \mathrm{i})(\bmod 5)$ ，从而推出不存在 $m$ 使得 $(3+4 \mathrm{i})^{m}=5^{m}$ 。
+习题 4.43 运用前面两个习题的结果证明阿达玛门，相位门，受控非门和 Toffoli 门构成量子计算的通用门。
+习题 4.44 证明由下面电路定义的三量子比特门 $G$ 是量子计算通用门，其中 $\alpha$ 是无理数。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-026.jpg?height=414&amp;width=513&amp;top_left_y=3446&amp;top_left_x=1529" /></p>
+<p>习题 4.45 假设酉变换 $U$ 可以通过一个由 $H, S$ ，受控非门和 Toffoli 门组成的 $n$ 量子比特电路来实现。证明 $U$ 是 $2^{-k / 2} M$ 这种形式，其中 $k$ 是整数，$M$ 是一个 $2^{n} \times 2^{n}$ 矩阵，其元素为复整数。用 $\pi / 8$ 门取代 Toffoli 门重复这个习题。</p>
+<h2>4.5.4 逼近任意西门一般是难的</h2>
+<p>我们已经看到任意 $n$ 量子比特上的西变换可以从一个小的基本门集合构造。这总能有效进行吗？也就是，给一个 $n$ 量子比特的西变换，是否总存在一个关于 $n$ 多项式尺寸的电路逼近 $U$ ？这个问题的答案是否定的：事实上，大部分的西变换只能非常低效地实现。看到这点的一种方法是考虑下面的问题：需要花费多少门来生成一个 $n$ 量子比特的任意态？一个简单的计算表明一般需要指数个；这等于说存在西操作需要指数多次操作来实现。为了看到这点，假设我们有 $g$ 个不同类型的门可以利用，每个门最多作用在 $f$ 个输人量子比特上。 $f, g$ 是由我们可以利用的硬件来固定的，可以看作常数。假设我们有一个含 $m$ 个门的量子电路从计算基矢态 $|0\rangle^{\otimes n}$ 开始，对电路中</p>
+<p>任意特殊的门，最多有 $\left[\begin{array}{l}n \\ f\end{array}\right]^{g}=O\left(n^{f g}\right)$ 种可能的选择。这等于说运用 $m$ 个门，最多有 $O\left(n^{f g m}\right)$个不同的态可以被计算。</p>
+<p>假设我们希望在距离 $\epsilon$ 内逼近一个特殊的态 $|\psi\rangle$ 。证明的思想是用平均半径为 $\epsilon$ 的补丁集合 （图 4－18）覆盖可能的态集合，然后证明需要的补丁数关于 $n$ 双指数增长；通过与 $m$ 个门可能计算的指数个不同的态数比较可以推出这个结果。我们需要注意的是 $n$ 量子比特的状态向量空间可视为 $2^{n+1}-1$ 维单位球。为了看到这些，假设 $n$ 量子比特态的振幅为 $\psi_{j}=X_{j}+\mathrm{i} Y_{j}$ ，其中 $X_{j}$ 和 $Y_{j}$ 分别是第 $j$ 个振幅的实部和虚部。量子态的归一化条件可以写为 $\sum_{j}\left(X_{j}^{2}+Y_{j}^{2}\right)=1$ ，这正是一个点在维数为 $2^{n+1}$ 单位球面上的条件，也就是 $2^{n+1}-1$ 维单位球。类似地，$|\psi\rangle$ 附近半径为 $\epsilon$ 的表面积和近似半径为 $\epsilon$ 的 $2^{n+1}-2$ 维球的体积。运用半径为 $r$ 的 $k$ 球表面积公式 $S_{k}(r)=2 \pi^{(k+1) / 2} r^{k} / \Gamma((k+1) / 2)$ ，体积公式 $V_{k}(r)=2 \pi^{(k+1) / 2} r^{k+1} /[(k+1) \Gamma((k+1) / 2)]$ ，我们看到覆盖状态空间需要的补丁数满足</p>
+<p>$$
+\begin{equation*}
+\frac{S_{2^{n+1}-1}(1)}{V_{2^{n+1}-2}(\epsilon)}=\frac{\sqrt{\pi} \Gamma\left(2^{n}-\frac{1}{2}\right)\left(2^{n+1}-1\right)}{\Gamma\left(2^{n}\right) \epsilon^{2 n+1}-1} \tag{4.82}
+\end{equation*}
+$$</p>
+<p>其中 $\Gamma$ 是通常阶乘函数的推广。但是 $\Gamma\left(2^{n}-1 / 2\right) \geqslant \Gamma\left(2^{n}\right) / 2^{n}$ ，因此覆盖状态空间需要的补丁数至少为</p>
+<p>$$
+\begin{equation*}
+\Omega\left(\frac{1}{\epsilon^{2^{n+1}-1}}\right) \tag{4.83}
+\end{equation*}
+$$</p>
+<p><img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-027.jpg?height=1199&amp;width=1217&amp;top_left_y=3135&amp;top_left_x=1253" /></p>
+<p>图 4－18 用常数半径的补丁覆盖可能态集合的视图
+回忆 $m$ 个门中可以达到的补丁数是 $O\left(n^{f g m}\right)$ ，因此为了达到所有的 $\epsilon$ 补丁，我们必须有</p>
+<p>$$
+\begin{equation*}
+O\left(n^{f g m}\right) \geqslant \Omega\left(\frac{1}{\epsilon^{2^{n+1}-1}}\right) \tag{4.84}
+\end{equation*}
+$$</p>
+<p>这给出</p>
+<p>$$
+\begin{equation*}
+m=\Omega\left(\frac{\left.2^{n} \log (1 / \epsilon)\right)}{\log (n)}\right) \tag{4.85}
+\end{equation*}
+$$</p>
+<p>也就是说，存在着一些 $n$ 量子比特状态，需要花费 $\Omega\left(2^{n} \log (1 / \epsilon) / \log (n)\right)$ 次操作才能逼近到距离
+$\epsilon$ 之内。这关于 $n$ 是指数的，按照第3章介绍的计算复杂性的观点，这是困难的。进一步，这也就意味着存在关于 $n$ 量子比特的西变换 $U$ ，可以由实现 $V$ 操作的量子电路经过 $\Omega\left(2^{n} \log (1 / \epsilon) / \log n\right)$次的操作来逼近，使得 $E(U, V) \leqslant \epsilon$ .通过对比，用我们的通用性构造和 Solovay－Kitaev 定理，这等于说任意一个 $n$ 量子比特上的西操作可以用 $O\left(n^{2} 4^{n} \log {}^{c}\left(n^{2} 4^{n} / \epsilon\right)\right)$ 个门以 $\epsilon$ 距离逼近。因此，在一个多项式的因子内，我们给出的通用性的构造是最优的；遗憾的是，哪一个西操作族可以用量子电路模型有效的计算这个问题并没有涉及到。</p>
+<h2>4.5.5 量子计算复杂度</h2>
+<p>在第 3 章中，我们描述了一种经典计算机的＂计算复杂性＂理论，该理论对解决经典计算机上计算问题的资源需求进行了分类。不足为奇，人们对发展量子计算复杂性理论，并将其与经典计算复杂性理论联系起来有着相当大的兴趣。尽管在这个方向上只迈出了第一步，但毫无疑问，这将是未来研究人员取得巨大成果的方向。这里我们自我满足于给出了一个关于量子复杂性类的结果，将量子复杂性类 BQP 与经典的复杂性类 PSPACE 联系起来。我们对这一结果的讨论并不严谨；更多细节，请参阅章末＂背景资料与延伸阅读＂提到的 Bernstein 和 Vazirani 的论文。</p>
+<p>回想一下，在第 3 章中，PSPACE 被定义为一类判定问题，可以在图灵机上使用关于问题规模是多项式的空间和任意时间来解决的问题。BQP 本质上是一个量子复杂性类，由那些可以用多项式大小的量子电路在有界错误概率内来解决的判定问题组成。更正式地说，如果存在一个多项式尺寸的量子电路可以判定语言 $L$ ，按至少 $3 / 4$ 的概率接受语言的串，按至少 $3 / 4$ 的概率拒绝不在语言中的串，我们说语言 $L$ 在 BQP 中。实际上，这意味着量子电路以二进制串作为输人，试图决定他们是否在语言中。在电路结束时，测量一个量子位， 0 表示串已被接受， 1 表示拒绝。通过测试字符串几次来确定它是否在 $L$ 中，我们可以以非常高的概率确定给定字符串是否在 $L$ 中。</p>
+<p>当然，一个量子电路是一个固定的实体，任何给定的量子电路只能决定某个有限长度的字符串是否在 $L$ 中。因此，我们在 BQP 的定义中使用了一个完整的电路族；对于每个可能的输人长度，这个家族中都有一个不同的电路。除了已经描述的接受／拒绝标准外，我们对电路设置了两个限制。首先，电路的尺寸应仅随着输人字符串 $x$ 的尺寸（我们试图确定 $x \in L$ ）呈多项式增长。其次，我们要求电路在与 3.1.2 节所述类似的意义上均匀生成。这种一致性要求的产生是因为，在实践中，给定一个长度为 $n$ 的字符串 $x$ ，就必须有人建立一个能够决定 $x$ 是否在 $L$ 中的量子电路。要做到这一点，他们需要有一套清晰的指令集一一种算法一来建立电路。基于这个原因，我们要求我们的量子电路被均匀地产生，也就是说，有一台图灵机能够有效地输出量子电路的描述。这一限制可能看起来相当技术性，实际上几乎总是很容易的，但它确实将我们从病态的例子中拯救出来，如 3.1.2 节所述。（您也可能想知道在一致性要求中使用的图灵机是量子图灵机还是经典图灵机是否重要；结果发现这并不重要—请参阅＂背景资料与延伸阅读＂。）</p>
+<p>量子计算复杂性中最显著的结果之一是 $\mathrm{BQP} \subseteq$ PSPACE。很明显， $\mathrm{BPP} \subseteq \mathrm{BQP}$ ，其中 BPP是判定问题的经典复杂性类，它可以在经典图灵机上用多项式时间以有界错误概率求解。因此我们得到了包含链 $\mathrm{BPP} \subseteq \mathrm{BQP} \subseteq \mathrm{PSPACE}$ 。证明 $\mathrm{BQP} \neq \mathrm{BPP}$ ——直观地说量子计算机比经典计算机更强大——将意味着 BPP $\neq$ PSPACE。然而，目前还不知道 BPP $\neq \mathrm{PSPACE}$ 是否成立，证明这一点将是经典计算机科学的重大突破！因此，证明量子计算机比经典计算机更强大，对于</p>
+<p>经典计算的复杂性会有一些非常有趣的启示！不幸的是，这也意味着给出这样的证明可能相当困难。</p>
+<p>为什么 $\mathrm{BQP} \subseteq$ PSPACE？这里有个证明概略（详细的证明参考＂背景资料与延伸阅读＂）。假设我们有一台 $n$ 量子比特计算机，做一个包含 $p(n)$ 个门的计算，其中 $p(n)$ 是关于 $n$ 的多项式.假设量子电路从态 $|0\rangle$ 开始，我们将要解释在经典计算机上在多项式空间如何估计这个电路以态 $|y\rangle$ 结束的概率。假设在量子计算机上执行的门的序列是 $U_{1}, U_{2}, \cdots, U_{p(n)}$ ，则以态 $|y\rangle$ 结束的概率是</p>
+<p>$$
+\begin{equation*}
+\langle y| U_{p(n)} \cdots U_{2} U_{1}|0\rangle \tag{4.86}
+\end{equation*}
+$$</p>
+<p>这个量可以在经典计算机上用多项式空间来估计。基本思想是在式（4.86）的每项之间插人完备性关系 $\sum_{x}|x\rangle\langle x|=I$ ，得到</p>
+<p>$$
+\begin{equation*}
+\langle y| U_{p(n)} \cdots U_{2} U_{1}|0\rangle=\sum_{x_{1}, \cdots, x_{p(n)-1}}\langle y| U_{p(n)}\left|x_{p(n)-1}\right\rangle\left\langle x_{p(n)-1}\right| U_{p(n)-1} \cdots U_{2}\left|x_{1}\right\rangle\left\langle x_{1}\right| U_{1}|0\rangle \tag{4.87}
+\end{equation*}
+$$</p>
+<p>考虑到和中出现的单个西门是阿达坞门，受控非门之类的运算，很明显，在经典计算机上只使用多项式空间就可以用很高的精度来计算，因此作为一个整体和可以使用多项式空间来计算，因为和中的单个项添加到运行总数后可以被擦除。当然，这个算法相当慢，因为求和中有指数多的项需要计算并添加到总数中，但是正如我们开始展示的一样，只消耗了多项式的空间，因此 $\mathrm{BQP} \subseteq$ PSPACE。</p>
+<p>在经典计算机上，无论量子计算的长度如何，都可以使用类似的程序来模拟任意的量子计算。因此，在具有无限时间和空间资源的量子计算机上可解的问题的类不大于在经典计算机上可解的问题的类。另一种说法是，这意味着量子计算机不会违反丘奇一图灵论题，任何算法过程都可以使用图灵机来有效模拟。当然，量子计算机可能比它们的经典对应部分更有效，从而挑战了强丘奇－图灵论题，即任何算法过程都可以使用概率图灵机有效地模拟。</p>
+<h1>4.6 量子电路模型计算总结</h1>
+<p>在本书中，＂量子计算机＂一词与计算的量子电路模型同义。本章详细介绍了量子电路及其基本元件，通用门族和一些应用。在我们开始更复杂的应用之前，让我们总结一下量子电路计算模型的关键要素：</p>
+<p>1.经典资源：量子计算机由经典部分和量子部分两部分组成。原则上，不需要计算机的经典部分，但在实践中，如果部分计算可以由经典方法完成，某些任务可能会变得更容易。例如，许多量子纠错方案（第 10 章）可能涉及经典计算，以最大限度地提高效率。原则上，虽然经典计算总是可以在量子计算机上进行，但在经典计算机上进行计算可能更方便。
+2.一个合适的状态空间：一个量子电路作用在 $n$ 量子比特上。因此，状态空间是一个 $2^{n}$ 维的复希尔伯特空间。 $\left|x_{1}, \cdots, x_{n}\right\rangle$ ，其中 $x_{i}=0,1$ ，被称为计算机的计算基矢态。 $|x\rangle$ 表示计算基矢态，其中 $x$ 是二进制表示 $x_{1} \cdots x_{n}$ 所对应的十进制数。</p>
+<p>3.准备计算基矢态的能力：假设任意计算基矢态可以在最多 $n$ 步内制备。
+4.执行量子门的能力：根据需要，门操作可以应用于量子比特的任何子集，并且可以实现一个通用门族。例如，在量子计算机中，将受控非门作用在任何一对量子比特上是可能的。阿达玛门，相位门，受控非门和 $\pi / 8$ 门构成了一个门族，可以逼近任何一个西操作，因此是一组通用门。其他的通用族也存在。</p>
+<p>5.在计算基矢态上进行测量的能力：在计算机中，测量可以在计算基矢的一个或多个量子比特上进行。
+在同样的问题需要相同资源的意义下，量子电路的计算模型等价于已经提出的许多其他计算模型。作为一个说明这个思想的简单例子，人们可能想知道，转向基于三能级量子系统而非两能级量子系统的设计是否会带来某些计算上的优势。当然，尽管使用三能级量子系统（qutrit）比使用两能级系统有一些微小的优势，但从理论角度来看，任何差异都可以忽略不计。在一个不那么简单的层面上，计算的＂量子图灵机＂模型，即经典图灵机模型的量子推广，已经被证明是等价于量子电路的模型。我们在这本书中不考虑这种计算模型，但是有兴趣了解更多关于量子图灵机的读者可以参考章末＂背景资料与延伸阅读＂给出的参考文献。</p>
+<p>量子电路模型尽管简单和有吸引力，记住可能的批评，修改和扩展是有用的。例如，量子电路模型的状态空间和初始条件的基本假设一点也不清楚。一切都是用有限维状态空间来表达的。假设计算机的初始状态是计算基矢态也是不必要的，或许用无限维的状态空间可以获取其他东西？我们知道，自然界中的许多系统＂更偏好＂处于高度纠缠态中，是否可能利用这种偏好获得额外的计算能力？或许有一些态比限制在计算基矢态上更容易做计算。同样的，在多量子比特基中有效地执行纠缠测量的能力可能与仅执行纠缠西操作一样有用。实际上，利用这些测量来执行量子电路模型中难以解决的任务是可能的。</p>
+<p>对量子电路模型基础物理的详细检查和试图证明超出了当前讨论的范围，实际上也超出了当前知识的范围！通过提出这些问题，我们希望引人量子电路模型的完整性问题，并重新强调信息是物理的这一基本点。在我们试图建立信息处理模型的过程中，我们始终应该尝试回到基本物理定律。为了本书的目的，我们将停留在量子电路计算模型之内。它提供了一个丰富而强大的计算模型，利用量子力学的特性来完成信息处理的惊人壮举并且没有经典的先例。物理上是否存在超越了量子电路模型的合理的计算模型是一个令人着迷的公开问题。</p>
+<h1>4.7 量子系统的模拟</h1>
+<p>也许 $[\cdots \cdots]$ 我们需要量子自动机的数学理论。 $[\cdots \cdots]$ 量子态空间的容量远远大于经典系统：对于具有 $N$ 个态的经典系统，其允许叠加的量子版本可容纳 $c^{N}$ 个态。当我们连接两个经典系统时，它们的状态数 $N_{1}$ 和 $N_{2}$ 相乘，在量子情况下，我们得到指数增长 $c^{N_{1} N_{2}} 。[\cdots \cdots]$ 这些粗略的估计表明，系统的量子行为可能比其经典模拟要复杂得多。
+－Yu Manin（1980）［Man80］，见译本［Man99］</p>
+<p>一个甲烷单分子的量子力学计算需要 $10^{42}$ 个网格点。假设在每一点上，我们只需要执行 10 个基本操作，并且计算是在极低温度 $T=3 \times 10^{-3} K$ 下进行的，我们将仍然拥有上个世纪地球上产生的全部能量。
+——R.P.Poplavskii（1975）［Pop75］，Manin 引用
+物理能用通用计算机模拟吗？物理世界是量子力学，因此量子物理的模拟是一个很好的问题 $[\cdots \cdots]$ 对于一个含有 $R$ 个粒子的大系统的量子力学的完整描述 $[\cdots \cdots]$ 有太多的变量，它不能用一台普通的计算机来模拟，因为它有许多与 $R[\cdots \cdots]$ 成比例的元素。但它可以用量子计算机元件来模拟。［ $\cdots \cdots]$ 一个量子系统能被一个经典的（假设是概率的）通用计算机模拟吗？［ $\cdots \cdots$ ］如果你把电脑当作我迄今为止所描述的经典类型，答案当然是，不！
+——理查德•菲利普斯•费曼（1982）［Fey82］
+让我们通过提供一个有趣和有用的量子电路模型应用来结束这一章。计算的一个最重要的实际应用是物理系统的模拟。例如，在新建筑的工程设计中，采用有限元分析和建模来确保安全，同时最大限度地降低成本。通过使用计算机辅助设计，汽车变得轻巧，结构合理，美观且价格低廉。现代航空工程在很大程度上依赖于飞机设计的计算流体动力学模拟。核武器不再爆炸（大部分），而是通过详尽的计算模型进行测试。由于预测模拟具有巨大的实际应用，因此例子很多。我们首先描述了模拟问题的一些实例，然后给出了一个量子模拟算法和一个示例，最后对该应用进行了展望。</p>
+<h2>4.7.1 行为模拟</h2>
+<p>模拟的核心是微分方程的解，它捕捉了控制系统动态行为的规律。一些例子包括牛顿定律，</p>
+<p>$$
+\begin{equation*}
+\frac{\mathrm{d}}{\mathrm{~d} t}\left(m \frac{\mathrm{~d} x}{\mathrm{~d} t}\right)=F \tag{4.88}
+\end{equation*}
+$$</p>
+<p>泊松方程，</p>
+<p>$$
+\begin{equation*}
+-\vec{\nabla} \cdot(k \vec{\nabla} \vec{u})=\vec{Q} \tag{4.89}
+\end{equation*}
+$$</p>
+<p>电磁矢量波方程，</p>
+<p>$$
+\begin{equation*}
+\vec{\nabla} \cdot \vec{\nabla} \vec{E}=\epsilon_{0} \mu_{0} \frac{\partial^{2} \vec{E}}{\partial^{2} t^{2}} \tag{4.90}
+\end{equation*}
+$$</p>
+<p>扩散方程，</p>
+<p>$$
+\begin{equation*}
+\vec{\nabla}^{2} \psi=\frac{1}{a^{2}} \frac{\partial \psi}{\partial t} \tag{4.91}
+\end{equation*}
+$$</p>
+<p>仅举几个例子。目标通常是：给定系统的初始状态，其他时间和／或位置的状态是什么？解通常是通过数字表示来逼近态，然后在时间和空间上离散化微分方程，使得程序的迭代应用从初始状态贯穿到最终状态。重要的是，此过程中的误差是有界的，并且已知不会比某个幂比较小的迭代增长得更快。此外，并非所有的动力系统都能有效地模拟：一般来说，只有那些能够有效描述的系统可以有效地进行模拟。</p>
+<p>用经典计算机模拟量子系统是可能的，但通常效率非常低。许多简单量子系统的动力学行为受到薛定谔方程控制。</p>
+<p>$$
+\begin{equation*}
+\mathrm{i} \hbar \frac{\mathrm{~d}}{\mathrm{~d} t}|\psi\rangle=H|\psi\rangle \tag{4.92}
+\end{equation*}
+$$</p>
+<p>我们发现 $\hbar$ 很容易吸收到 $H$ 中，在这节的剩余部分都用这个约定。对于处理空间中真实粒子（而不是我们一直在处理的抽象系统，如量子比特）的物理学家感兴趣的典型哈密顿量，根据已知的位置表象 $\langle x \mid \psi\rangle=\psi(x)$ ，这约简为</p>
+<p>$$
+\begin{equation*}
+\mathrm{i} \frac{\partial}{\partial t} \psi(x)=\left[-\frac{1}{2 m} \frac{\partial^{2}}{\partial x^{2}}+V(x)\right] \psi(x) \tag{4.93}
+\end{equation*}
+$$</p>
+<p>这是一个椭圆方程，非常像方程（4.91）。因此在量子系统的模拟中，仅模拟薛定谔方程并不特别困难。那困难是什么呢？</p>
+<p>量子系统模拟的关键挑战是必须求解指数个微分方程。按照薛定谔方程，对于一个量子比特的演化，需要求解两个微分方程组成的系统；对于两量子比特，需要求解四个方程；对于 $n$ 量子比特系统，需要求解 $2^{n}$ 个方程。有时候，可以通过逼近来简化有效方程的个数，这样使得量子系统的经典模拟成为可能。然而有许多有趣的量子系统目前不知道这样的逼近。
+习题4.46（量子系统的指数复杂度增长）令 $\rho$ 为一个描述 $n$ 量子比特系统状态的密度矩阵。证明描述 $\rho$ 需要 $4^{n}-1$ 个实数。</p>
+<p>有物理背景的读者或许理解有许多重要的量子系统用经典模拟是不可能的。这些包括 Hub－ bard 模型，它是一个相互作用的费米子粒子模型，其哈密顿量为</p>
+<p>$$
+\begin{equation*}
+H=\sum_{k=1}^{n} V_{0} n_{k \uparrow} n_{k \downarrow}+\sum_{k, j \text { neighbors }, \sigma} t_{0} c_{k \sigma}^{*} c_{j \sigma} \tag{4.94}
+\end{equation*}
+$$</p>
+<p>在研究超导和磁场中常用的伊辛（Ising）模型</p>
+<p>$$
+\begin{equation*}
+H=\sum_{k=1}^{n} \vec{\sigma}_{k} \cdot \vec{\sigma}_{k+1} \tag{4.95}
+\end{equation*}
+$$</p>
+<p>还有一些其他模型。这些模型的解给出了许多物理性质，如材料的介电常数，导电率和磁化率。更复杂的模型，如量子电动力学（QED）和量子色动力学（QCD）可用于计算质子质量等常数。</p>
+<p>量子计算机可以有效地模拟没有有效经典模拟的量子系统。从直觉上讲，这是可能的，原因与任何量子电路都可以用一组通用的量子门构造的原因大致相同。此外，正如存在无法有效近似的酉操作一样，原则上可以想象具有哈密顿量的量子系统无法在量子计算机上有效模拟。当然，我们相信这样的系统实际上在自然界中是不能实现的，否则我们就可以利用它们来完成量子电路模型之外的信息处理。</p>
+<h2>4.7.2 量子模拟算法</h2>
+<p>经典的模拟是从解决一个简单的微分方程开始的，比如方程 $d y / d t=f(y)$ ，其一阶解为 $y(t+\Delta t) \approx y(t)+f(y) \Delta t$ 。类似的，量子情况考虑方程</p>
+<p>$$
+\begin{equation*}
+|\psi(t)\rangle=\mathrm{e}^{-\mathrm{i} H t}|\psi(0)\rangle \tag{4.96}
+\end{equation*}
+$$</p>
+<p>其中 $H$ 是一个不依赖时间的哈密顿量。
+由于 $H$ 通常很难计算（它可能是稀疏的，但它也是指数大），一个好的开始是其一阶解为 $|\psi(t+\Delta t) \approx(I-\mathrm{i} H \Delta t)| \psi(t)\rangle$ 。这是很容易处理的，因为对于许多哈密顿量 $H$ ，可以通过组成量子门来有效逼近 $I-\mathrm{i} H \Delta t$ 。然而，这种一阶解一般不太令人满意。对于许多哈密顿量，方程 （4.96）的高阶解的有效近似是可能的。例如，在大多数物理系统中，哈密顿量可以被作为许多局部相互作用的总和。特别地，对于 $n$ 粒子系统，</p>
+<p>$$
+\begin{equation*}
+H=\sum_{k=1}^{L} H_{k} \tag{4.97}
+\end{equation*}
+$$</p>
+<p>其中，每个 $H_{k}$ 最多作用于常数 $c$ 个系统，$L$ 是 $n$ 的多项式。例如，$H_{k}$ 通常是两体相互作用比如 $X_{i} X_{j}$ ，或一体哈密顿量 $X_{i}$ 。Hubbard 模型和 Ising 模型都有这种形式。这种局域性在物理上是相当合理的，它起源于许多系统，因为大多数相互作用随着距离的增加或能量的差异而减弱。有时还有一些额外的全局对称约束，如粒子统计；我们将很快讨论这些约束。重要的一点是，尽管 $\mathrm{e}^{-\mathrm{i} H t}$ 很难计算，但 $\mathrm{e}^{-\mathrm{i} H_{k} t}$ 作用于一个小得多的子系统，并且可以直接使用量子电路进行近似计算。但是通常因为 $\left[H_{j}, H_{k}\right] \neq 0, \mathrm{e}^{-\mathrm{i} H t} \neq \prod_{k} \mathrm{e}^{-\mathrm{i} H_{k} t}$ 。那么在构造 $\mathrm{e}^{-\mathrm{i} H t}$ 中， $\mathrm{e}^{-\mathrm{i} H_{k} t}$ 是如何起作用的呢？
+习题4.47 对于 $H=\sum_{k}^{L} H_{k}$ ，如果对任意的 $j, k,\left[H_{j}, H_{k}\right]=0$ ，证明对于任意的 $t, \mathrm{e}^{-\mathrm{i} H t}=$ $\mathrm{e}^{-\mathrm{i} H_{1} t} \mathrm{e}^{-\mathrm{i} H_{2} t} \cdots \mathrm{e}^{-\mathrm{i} H_{L} t}$ 。</p>
+<p>习题 4.48 证明 $H_{k}$ 对最多包含 $c$ 个粒子的限制意味着在式（4.97）中，$L$ 的上界是 $n$ 的多项式。
+量子模拟算法的核心是以下渐近近似定理：
+定理 4.3 （Trotter 公式）令 $A, B$ 为厄米算子。则对于任意的实数 $t$ ，</p>
+<p>$$
+\begin{equation*}
+\lim _{n \rightarrow \infty}\left(\mathrm{e}^{\mathrm{i} A t / n} \mathrm{e}^{\mathrm{i} B t / n}\right)^{n}=\mathrm{e}^{\mathrm{i}(A+B) t} \tag{4.98}
+\end{equation*}
+$$</p>
+<p>注意即使 $A$ 和 $B$ 不对易，式（4.98）也是正确的。更有趣的是，也许，它可以推广到对于某些半群的生成元 $A, B$ 成立，它们对应于一般量子运算；我们将在 8.4.1 节中描述这种生成元的 （＂Lindblad 形式＂）。目前，我们只考虑 $A$ 和 $B$ 是厄米矩阵的情况。</p>
+<p>根据定义，</p>
+<p>$$
+\begin{equation*}
+\mathrm{e}^{\mathrm{i} A t / n}=I+\frac{1}{n} \mathrm{i} A t+O\left(\frac{1}{n^{2}}\right) \tag{4.99}
+\end{equation*}
+$$</p>
+<p>于是</p>
+<p>$$
+\begin{equation*}
+\mathrm{e}^{\mathrm{i} A t / n} \mathrm{e}^{\mathrm{i} B t / n}=I+\frac{1}{n} \mathrm{i}(A+B) t+O\left(\frac{1}{n^{2}}\right) \tag{4.100}
+\end{equation*}
+$$</p>
+<p>从式（4.100）可以看出，</p>
+<p>$$
+\begin{equation*}
+\left(\mathrm{e}^{\mathrm{i} A t / n} \mathrm{e}^{\mathrm{i} B t / n}\right)^{n}=I+\sum_{k=1}^{n}\binom{n}{k} \frac{1}{n^{k}}[\mathrm{i}(A+B) t]^{k}+O\left(\frac{1}{n}\right) \tag{4.101}
+\end{equation*}
+$$</p>
+<p>由于 $\binom{n}{k} \frac{1}{n^{k}}=\left(1+O\left(\frac{1}{n}\right)\right) / k!$ ，可以得出</p>
+<p>$$
+\begin{equation*}
+\lim _{n \rightarrow \infty}\left(\mathrm{e}^{\mathrm{i} A t / n} \mathrm{e}^{\mathrm{i} B t / n}\right)^{n}=\lim _{n \rightarrow \infty} \sum_{k=0}^{n} \frac{(\mathrm{i}(A+B) t)^{k}}{k!}\left(1+O\left(\frac{1}{n}\right)\right)+O\left(\frac{1}{n}\right)=\mathrm{e}^{\mathrm{i}(A+B) t} \tag{4.102}
+\end{equation*}
+$$</p>
+<p>Trotter 公式的修正提供了计算高阶近似的方法，用于进行量子模拟。例如，使用与上述证明类似的推理，可以证明</p>
+<p>$$
+\begin{equation*}
+\mathrm{e}^{\mathrm{i}(A+B) \Delta t}=\mathrm{e}^{\mathrm{i} A \Delta t} \mathrm{e}^{\mathrm{i} B \Delta t}+O\left(\Delta t^{2}\right) \tag{4.103}
+\end{equation*}
+$$</p>
+<p>类似地，</p>
+<p>$$
+\begin{equation*}
+\mathrm{e}^{\mathrm{i}(A+B) \Delta t}=\mathrm{e}^{\mathrm{i} A \Delta t / 2} \mathrm{e}^{\mathrm{i} B \Delta t} \mathrm{e}^{\mathrm{i} A \Delta t / 2}+O\left(\Delta t^{3}\right) \tag{4.104}
+\end{equation*}
+$$</p>
+<p>量子模拟算法概述如下，模拟一维非相对论薛定谔方程的显式示例如专题 4.2 所示。</p>
+<h2>算法（量子模拟）</h2>
+<p>输入：（1）$H=\sum_{k} H_{k}$ 是一个作用 $N$ 维系统上的哈密顿量算子，其中 $H_{k}$ 作用在一个不依赖 $N$ 的子系统上，（2）在 $t=0$ 时，系统的初始状态为 $|\psi(0)\rangle$ ，（3）一个正的非零的精确度 $\delta$ ，（4）状态演化需要的时间 $t_{f}$ 。</p>
+<p>输出：状态 $\left|\tilde{\psi}\left(t_{f}\right)\right\rangle$ 使得 $\left.\left|\left\langle\tilde{\psi}\left(t_{f}\right)\right| \mathrm{e}^{-\mathrm{i} H t_{f}}\right| \psi_{0}\right\rangle\left.\right|^{2} \geqslant 1-\delta_{\circ}$
+运行时间：$O(\operatorname{poly}(1 / \delta))$ 次运算。
+程序：选择一个表示使得 $n=\operatorname{poly}(\log N)$ 量子比特态 $|\tilde{\psi}\rangle$ 逼近系统，且 $\mathrm{e}^{-\mathrm{i} H_{k} \Delta t}$ 有有效的量子电路逼近。选择一种逼近方法（例如，参见方程（4.103）～（4.105））且 $\Delta t$ 使得期望的错误率是可以接受的（且 $j \Delta t=t_{f}$ 是一个整数），对于迭代步骤构造对应的量子电路 $U_{\Delta t}$ 且做：</p>
+<p>1.$\left|\tilde{\psi}_{0}\right\rangle \leftarrow\left|\psi_{0}\right\rangle ; j=0$
+2.$\rightarrow\left|\tilde{\psi}_{j+1}\right\rangle=U_{\Delta t}\left|\tilde{\psi}_{j}\right\rangle$
+3.$\rightarrow j=j+1$ ；goto 2 until $j \Delta t \geqslant t_{f}$
+4.$\rightarrow\left|\tilde{\psi}\left(t_{f}\right)\right\rangle=\left|\tilde{\psi}_{j}\right\rangle$</p>
+<p>初始化态
+迭代更新
+循环
+最后的结果</p>
+<p>习题 4.49 （ Baker－Campbell－Hausdorf 公式）证明</p>
+<p>$$
+\begin{equation*}
+\mathrm{e}^{(A+B) \Delta t}=\mathrm{e}^{A \Delta t} \mathrm{e}^{B \Delta t} \mathrm{e}^{-\frac{1}{2}[A, B] \Delta t^{2}}+O\left(\Delta t^{3}\right) \tag{4.105}
+\end{equation*}
+$$</p>
+<p>且证明方程（4.103）和（4.104）。
+习题 4.50 令 $H=\sum_{k}^{L} H_{k}$ ，定义</p>
+<p>$$
+\begin{equation*}
+U_{\Delta t}=\left[\mathrm{e}^{-\mathrm{i} H_{1} \Delta t} \mathrm{e}^{-\mathrm{i} H_{2} \Delta t} \cdots \mathrm{e}^{-\mathrm{i} H_{L} \Delta t}\right]\left[\mathrm{e}^{-\mathrm{i} H_{L} \Delta t} \mathrm{e}^{-\mathrm{i} H_{L-1} \Delta t} \cdots \mathrm{e}^{-\mathrm{i} H_{1} \Delta t}\right] \tag{4.106}
+\end{equation*}
+$$</p>
+<p>1.证明 $U_{\Delta t}=\mathrm{e}^{-2 i H \Delta t}+O\left(\Delta t^{3}\right)$ 。
+2.运用专题 4.1 的结果证明对于整数 $m$ ，</p>
+<p>$$
+\begin{equation*}
+E\left(U_{\Delta t}^{m}, \mathrm{e}^{-2 m \mathrm{i} H \Delta t}\right) \leqslant m \alpha \Delta t^{3} \tag{4.107}
+\end{equation*}
+$$</p>
+<p>其中 $\alpha$ 为任意的常数。</p>
+<h2>专题 4.2 薛定谔方程的量子模拟</h2>
+<p>量子模拟的方法和局限性可以用下面的例子来说明，这些例子来自于物理学家研究的传统模型，而不是抽象的量子比特模型。考虑直线上的单个粒子，一维势为 $V(x)$ ，哈密顿量为</p>
+<p>$$
+\begin{equation*}
+H=\frac{p^{2}}{2 m}+V(x) \tag{4.108}
+\end{equation*}
+$$</p>
+<p>其中 $P$ 为能量算子，$x$ 是位置算子。 $x$ 的特征值是连续的，系统状态 $|\psi\rangle$ 存在于无限维希尔伯特空间中；在基 $x$ 下，它可以写为</p>
+<p>$$
+\begin{equation*}
+|\psi\rangle=\int_{-\infty}^{+\infty}|x\rangle\langle x \mid \psi\rangle \mathrm{d} x \tag{4.109}
+\end{equation*}
+$$</p>
+<p>在实践中，只有一些有限区域值得关注，我们可以将其视为范围 $-d \leqslant x \leqslant d$ 。此外，与系统中的最短波长相比，可以选择一个相当小的差分步长 $\Delta x$ ，使得</p>
+<p>$$
+\begin{equation*}
+|\tilde{\psi}\rangle=\sum_{k=-d / \Delta x}^{d / \Delta x} a_{k}|k \Delta x\rangle \tag{4.110}
+\end{equation*}
+$$</p>
+<p>它提供了 $|\psi\rangle$ 的一个好的物理逼近。这种状态可以用 $n=\lceil\log (2 d / \Delta x+1)\rceil$ 个量子比特来表示；我们用 $n$ 个量子比特的计算基矢态 $|k\rangle$ 替换基 $|k \Delta x\rangle$（算子 $x$ 的一个特征状态）。注意，这种模拟仅需要 $n$ 量子比特，而经典需要跟踪 $2^{n}$ 个复数，因此在量子计算机上进行模拟时，可以节省指数资源。</p>
+<p>计算 $|\tilde{\psi}(t)\rangle=\mathrm{e}^{-\mathrm{i} H t}|\tilde{\psi}(0)\rangle$ 必须利用方程（4.103）$\sim(4.105)$ 的逼近之一，因为一般的，$H_{1}=$ $V(x)$ 与 $H_{0}=p^{2} / 2 m$ 不对易。因此，我们必须能计算 $\mathrm{e}^{-\mathrm{i} H_{1} \Delta t}$ 和 $\mathrm{e}^{-\mathrm{i} H_{0} \Delta t}$ 。因为 $|\tilde{\psi}\rangle$ 由 $H_{1}$ 的特征基表示， $\mathrm{e}^{-\mathrm{i} H_{1} \Delta t}$ 是这样的对角形式</p>
+<p>$$
+\begin{equation*}
+|k\rangle \rightarrow \mathrm{e}^{-\mathrm{i} V(k \Delta x) \Delta t}|k\rangle \tag{4.111}
+\end{equation*}
+$$</p>
+<p>这个可以直接计算，因为我们可以计算 $V(k \Delta x) \Delta t$ 。（也可以参考例子 4.1）第二项也很简单，因为 $x$ 和 $p$ 是通过量子傅里叶变换关联的共轭变量 $U_{\mathrm{FFT}} x U_{\mathrm{FFT}}^{\dagger}=p$ ，因此 $\mathrm{e}^{-\mathrm{i} H_{0} \Delta t}=$ $U_{\mathrm{FFT}} \mathrm{e}^{-\mathrm{i} x^{2} \Delta t / 2 m} U_{\mathrm{FFT}}^{\dagger}$ ，为了计算 $\mathrm{e}^{-\mathrm{i} H_{0} \Delta t}$ ，令</p>
+<p>$$
+\begin{equation*}
+|k\rangle \rightarrow U_{\mathrm{FFT}} \mathrm{e}^{-\mathrm{i} x^{2} / 2 m} U_{\mathrm{FFT}}^{\dagger}|k\rangle \tag{4.112}
+\end{equation*}
+$$</p>
+<p>$U_{\mathrm{FFT}}$ 的构造第5章讨论。</p>
+<h2>4.7.3 说明性示例</h2>
+<p>我们所描述的量子模拟过程集中于模拟哈密顿量，其中哈密顿量是局部相互作用的总和。然而，这并不是一个基本的需求。下面的例子说明，即使哈密顿量对一个大系统的所有或几乎所有部分都有作用，也可以进行有效的量子模拟。</p>
+<p>假设作用在 $n$ 量子比特上的哈密顿量</p>
+<p>$$
+\begin{equation*}
+H=Z_{1} \otimes Z_{2} \otimes \cdots \otimes Z_{n} \tag{4.113}
+\end{equation*}
+$$</p>
+<p>尽管这是一个涉及所有系统的相互作用，实际上，它可以有效地模拟。对于 $\Delta t$ 的任意值，理想的是实现 $\mathrm{e}^{-\mathrm{i} H \Delta t}$ 的简单量子电路。对于 $n=3$ ，图 4－19 显示了精确地实现这一点的电路。主要的见解是，虽然哈密顿量涉及系统中的所有量子比特，但它是以经典的方式进行的：如果计算基中 $n$ 个量子比特的奇偶性为偶数，则应用于系统的相移为 $\mathrm{e}^{-\mathrm{i} \Delta t}$ ；否则，相移应为 $\mathrm{e}^{\mathrm{i} \Delta t}$ 。因此，可以通过第一个经典的计算奇偶校验（将结果存储在辅助量子比特中），然后应用基于奇偶校验的适当相移，然后取消奇偶校验（擦除辅助）。这个策略显然不仅适用于 $n=3$ ，而且也适用于 $n$ 的任意值。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-036.jpg?height=693&amp;width=1333&amp;top_left_y=4644&amp;top_left_x=1102" /></p>
+<p>图 4－19 对时间 $\Delta t$ 模拟哈密顿量 $H=Z_{1} \otimes Z_{2} \otimes Z_{3}$ 的量子电路</p>
+<p>此外，扩展相同的过程允许我们模拟更复杂的扩展哈密顿量。特别地，我们可以有效地模拟任何这种形式的哈密顿量</p>
+<p>$$
+\begin{equation*}
+H=\bigotimes_{k=1}^{n} \sigma_{c(k)}^{k} \tag{4.114}
+\end{equation*}
+$$</p>
+<p>其中 $\sigma_{c(k)}^{k}$ 是作用在第 $k$ 个量子比特上的泡利阵（或恒等矩阵），其中 $c(k) \in{0,1,2,3}$ 为 ${I, X, Y, Z}$ 的指标。在其上执行恒等操作的量子比特可以被忽略，$X$ 或 $Y$ 项可以通过单个量子比特门转换为 $Z$ 操作。这给我们留下了哈密顿量的形式（式（4.113）），其模拟如上所述。
+习题 4.51 构造量子电路模拟哈密顿量</p>
+<p>$$
+\begin{equation*}
+H=X_{1} \otimes Y_{2} \otimes Z_{3} \tag{4.115}
+\end{equation*}
+$$</p>
+<p>对任意的 $\Delta t$ 作用西变换 $\mathrm{e}^{-\mathrm{i} \Delta t H}$ 。
+使用这个过程允许我们模拟一大类包含非局部项的哈密顿量。特别地，它可以模拟这种形式的哈密顿量 $H=\sum_{k=1}^{L} H_{k}$ ，其中唯一的限制是单个 $H_{k}$ 具有张量积结构，$L$ 是粒子总数 $n$的多项式。更一般地说，所需要的是有一个有效的电路来分别模拟每个 $H_{k}$ 。例如，哈密顿量 $H=\sum_{k=1}^{n} X_{k}+Z^{\otimes n}$ 可以很容易地用上述技术进行模拟。这种典型的哈密顿量通常不会出现在自然界中。然而，它们为量子算法的世界提供了一个新的和可能有价值的前景。</p>
+<h2>4.7.4 量子模拟展望</h2>
+<p>量子模拟算法与经典方法非常相似，但在根本上也有所不同。量子算法的每一次迭代都必须完全用新的状态替换旧的状态；如果不显著地改变算法，就无法从中间步骤获得（非平凡的）信息，因为状态是量子的。此外，必须巧妙地选择最终测量以提供所需的结果，因为它会扰乱量子态。当然，量子模拟可以重复以获得统计数据，但最好只重复算法最多多项式次。可能是，即使模拟可以有效地执行，也没有办法有效地执行所需的测量。</p>
+<p>还有一些哈密顿函数无法有效地模拟。在 4.5.4 节中，我们看到存在着量子计算机无法有效逼近的么正变换。因此，并不是所有的哈密顿演化都可以在量子计算机上有效地模拟，因为如果这是可能的，那么所有的西变换都可以有效地近似！</p>
+<p>另一个困难的问题——也是一个非常有趣的问题——是平衡过程的模拟。一个系统其哈密顿量为 $H$ ，当温度为 $T$ 时，在 Gibbs 态达到热力学平衡，$\rho_{\mathrm{therm}}=\mathrm{e}^{-H / k_{\mathrm{B}} T} / \mathcal{Z}$ ，其中 $k_{\mathrm{B}}$ 是玻尔兹曼常量， $\mathcal{Z}=\operatorname{tr} \mathrm{e}^{-H / k_{\mathrm{B}} T}$ 是通常的配分函数的归一化，这保证了 $\operatorname{tr}(\rho)=1$ 。这种平衡发生的过程并不是很清楚，尽管某些要求是已知的：环境必须是大的，它必须在能量与 $H$ 的本征态匹配的状态下有非零的种群，并且它与系统的耦合应该是弱的。对于任意的 $H$ 和 $T$ ，通过经典计算机得到 $\rho_{\mathrm{therm}}$ 一般是指数难的。量子计算机能有效解决吗？我们也不知道。</p>
+<p>另一方面，正如我们上面所讨论的，许多有趣的量子问题确实可以用量子计算机有效地模拟，即使它们有超出这里所介绍的简单算法之外的额外约束。其中一个特殊的类涉及来自粒子统计的全局对称性。在日常生活中，我们习惯于能够识别不同的粒子；网球可以绕着网球场打转，</p>
+<p>跟踪哪个是哪个。这种跟踪哪个物体是哪个物体的能力是经典物体的一个普遍特征——通过连续不断测量一个经典粒子的位置，它可以随时被跟踪，从而与其他粒子区别开来。然而，这在量子力学中是行不通的，它阻止我们精确地跟踪单个粒子的运动。如果这两个粒子本质上是不同的，比如质子和电子，那么我们可以通过测量电荷的符号来区分它们。但在相同粒子的情况下，比如两个电子，我们发现它们确实无法区分。</p>
+<p>粒子的不可分辨性限制了系统的状态向量，这种状态向量有两种表现形式。实验发现，自然界中有两种不同的粒子，即玻色子和费米子。玻色子系统的状态向量在任意两个成分的排列下保持不变，反映了它们的状态向量基本的不可分辨性。相反，费米子系统在任意两个成分交换的情况下，其状态向量会发生符号变化。这两种系统都可以在量子计算机上进行有效的模拟。如何做到这一点的详细描述超出了本书的范围；只要说这个过程相当简单就够了。给定初始状态为错误对称时，可以在模拟开始前对其进行适当的对称化。在考虑高阶误差项影响的情况下，模拟中使用的算子可以考虑期望的对称性来构造。有兴趣进一步探讨这个和其他话题的读者可以参考本章末尾的＂背景资料与延伸阅读＂。
+问题4.1（可计算相位变换）令 $m, n$ 为正整数。设 $f:\left\{0, \cdots, 2^{m}-1\right\} \rightarrow\left\{0, \cdots, 2^{n}-1\right\}$ 是从 $m$ 到 $n$ 的经典函数，可以像 3.2.5 节描述的一样用 $T$ 个 Toffoli 门来计算。也就是函数 $(x, y) \rightarrow$ $(x, y \oplus f(x))$ 可以用 $T$ 个 Toffoli 门来计算.给出一个量子电路用 $2 T+n$（或更少）个单量子比特，两量子比特，三量子比特门来实现下面的西操作</p>
+<p>$$
+\begin{equation*}
+|x\rangle \rightarrow \exp \left(\frac{-2 \mathrm{i} \pi f(x)}{2^{n}}\right)|x\rangle \tag{4.116}
+\end{equation*}
+$$</p>
+<p>问题 4.2 为 $C^{n}(X)$ 门找到一个深度 $O(\log n)$ 的结构。（注：电路的深度是门所应用的不同时间步长；这个问题的关键在于，可以通过在同一时间步长内应用多个门来并行 $C^{n}(X)$ 的构造。）
+问题4.3（交替通用性构造）设 $U$ 是 $n$ 量子比特上的西矩阵。定义 $H \equiv \mathrm{i} \ln (U)$ 。证明
+1.$H$ 是厄米的，其特征值在 0 和 $2 \pi$ 之间。
+2.$H$ 可以写为</p>
+<p>$$
+\begin{equation*}
+H=\sum_{g} h_{g} g \tag{4.117}
+\end{equation*}
+$$</p>
+<p>其中 $h_{g}$ 是实数，和取在 $g$ 的所有 $n$ 重张量积上，$g$ 为泡利矩阵 ${I, X, Y, Z}$ 。
+3.令 $\Delta=1 / k$ ，对某个整数 $k$ 。解释如何用 $O(n)$ 个单量子比特和两量子比特来实现酉操作 $\exp \left(-\mathrm{i} h_{g} g \Delta\right)$ 。
+4.证明</p>
+<p>$$
+\begin{equation*}
+\exp (-\mathrm{i} H \Delta)=\prod_{g} \exp \left(-\mathrm{i} h_{g} g \Delta\right)+O\left(4^{n} \Delta^{2}\right) \tag{4.118}
+\end{equation*}
+$$</p>
+<p>这里的乘积是按任意固定的顺序对泡利矩阵 $g$ 的 $n$ 重张量乘积来求的。
+5.证明</p>
+<p>$$
+\begin{equation*}
+U=\left[\prod_{g} \exp \left(-\mathrm{i} h_{g} g \Delta\right)\right]^{k}+O\left(4^{n} \Delta\right) \tag{4.119}
+\end{equation*}
+$$</p>
+<p>6.解释如何用 $O\left(n 16^{n} / \epsilon\right)$ 个单量子比特，两量子比特西操作逼近 $U$ 到 $\epsilon$ 距离内。
+问题 4.4 （极小 Toffoli 构造——研究型问题）
+1.最少多少个两量子比特门可以用来实现 Toffoli 门？
+2.最少多少个单量子比特门和受控非门可以用来实现 Toffoli 门？
+3.最少多少个单量子比特门和受控 Z 门可以用来实现 Toffoli 门？
+问题4.5（研究型问题）在 $n$ 量子比特上构造哈密顿量族 $\left\{H_{n}\right\}$ ，使得模拟 $H_{n}$ 需要关于 $n$ 的超多项式次运算。（注：这个问题看起来相当困难。）</p>
+<p>问题4.6（具有先验纠缠的通用性）受控非门和单量子比特门形成了量子逻辑门的通用集合。证明一个替换的通用门集合包含单量子比特门酉门，在量子比特对上用贝尔基测量的能力，和准备一个四量子比特纠缠态的能力。</p>
+<h1>本章小结</h1>
+<ul>
+<li>通用性：$n$ 量子比特上的任意西操作可以确切地由单量子比特西操作和受控非运算来实现。</li>
+<li>离散集的通用性：阿达玛门，受控非门，相位门和 $\pi / 8$ 门在如下意义下是量子计算的通用门，即任意 $n$ 量子比特的西操作可以由这些门组成的电路以任意精度 $\epsilon$ 逼近。用 Toffoli 门替代 $\pi / 8$ 门也可以得到一个通用门族。
+  －并不是所有的酉操作都可以被有效实现：对任意的有限门集合，存在 $n$ 量子比特上的西操作需要用 $\Omega\left(2^{n} \log (1 / \epsilon) / \log (n)\right)$ 个门以 $\epsilon$ 距离逼近。
+  －模拟：令哈密顿量 $H=\sum_{k} H_{k}$ ，其中项数和为多项式个，$H_{k}$ 的有效量子电路可以被构造，则给了初始态 $\left|\psi_{0}\right\rangle$ ，存在量子计算机可以有效模拟 $\mathrm{e}^{-\mathrm{i} H t}$ 的演化，逼近 $|\psi(t)\rangle=\mathrm{e}^{-\mathrm{i} H t}\left|\psi_{0}\right\rangle$ 。</li>
+</ul>
+<h1>背景资料与延伸阅读</h1>
+<p>这一章的门构造来自于各种各样的资源。Barenco，Bennett，Cleve，DiVincenzo，Margolus， Shor，Sleator，Smolin 和 Weinfurter ${ }^{\left[B B C^{+} 95\right]}$ 的论文是本章中许多电路构造的来源，也是单量子比特和受控非门的通用性证明的来源。关于量子电路的另一个有用的来源是 Beckman，Chari， Devabhaktuni 和 Preskill 的论文 ${ }^{[B C D P 96]}$ 。DiVincenzo ${ }^{[\text {Div98］}}$ 提供了一个温和而易懂的介绍。Griffiths和 $\mathrm{Niu}{ }^{[\text {GN96］}}$ 指出测量与控制量子比特终端交换的事实。</p>
+<p>二阶酉门通用性的证明归于 Reck，Zeilinger，Bernstein 和 Bertani ${ }^{[R Z B B 94]}$ 。受控非和单量子比特
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-039.jpg?height=118&amp;width=3485&amp;top_left_y=4786&amp;top_left_x=177" /> Barenco，Ekert ${ }^{[\text {［BEE95］}}$ 和 Lloyd ${ }^{[L 1095]}$ 独立地证明几乎任意两量子比特门是通用的。门序列导致的错误最多是各个门错误的和由 Bernstein 和 Vazirani ${ }^{[B V 97]}$ 证明。我们关注的特殊通用门集合——阿达玛门，受控非门，相位门和 $\pi / 8$ 门的通用性由 Boykin，Mor，Pulver，Roychowdhury 和 Vatan $\left.{ }^{[B M P}{ }^{+} 99\right]$证明，也包括证明 $\cos (\theta / 2) \cos {}^{2}(\pi / 8)$ 中 $\theta$ 是 $\pi$ 的无理数倍。4.5.4 节中的界是基于 $\mathrm{Knill}^{[K n i 95]}$ 的一篇论文，该论文详细地研究了使用量子电路近似任意么正操作的难度。特别是，与我们相比，</p>
+<p>Knill 得到了更紧密，更一般的界，他的分析也适用于我们曾经考虑的通用门集合是门集合的连续统（而不仅仅是一个有限集合）。</p>
+<p>量子电路计算模型是由 Deutsch ${ }^{[D e u 89]}$ 提出的，并由 Yao ${ }^{[Y a 093]}$ 进一步发展而来。后文证明了量子电路计算模型等价于量子图灵机模型。量子图灵机由 Benioff ${ }^{[B e n 80]}$ 于 1980 年引人，Deutsch ${ }^{[D e u 85]}$和 Yao ${ }^{[Y a 093]}$ 进一步发展，Bernstein 和 Vazirani ${ }^{[B V 97]}$ 给出了量子图灵机的现代定义。后两篇论文也迈出了建立量子计算复杂性理论的第一步，类似于经典计算复杂性理论。特别是，Bernstein和 Vazirani ${ }^{[B V 97]}$ 证明了包含关系 BQP $\subseteq$ PSPACE 和一些略强的结果。Knill 和 Laflamme ${ }^{[K L 99]}$发展了量子和经典计算复杂性之间一些有趣的联系。其他关于量子计算复杂性的有趣工作包括 Adleman，Demarrais 和 Huang ${ }^{[\text {［ADH97］}}$ 的论文，以及 Watrous ${ }^{[W a t 99]}$ 的论文。后一篇论文给出了有趣的证据，表明在＂交互证明系统＂的情形中，量子计算机比经典计算机更强大。</p>
+<p>Daniel Gottesman 和 Michael Nielson 提出了非计算基起始态可以用来获得超越量子电路模型的计算能力的建议。</p>
+<p>1980年 Manin ${ }^{[\text {Man80］}}$ 提出量子计算机可以比经典计算机更有效地模拟量子系统，1982年 Feyn－ man ${ }^{[\mathrm{Fey} 82]}$ 更详细地独立发展了量子计算机。随后，Abrams和 Lloyd ${ }^{[\mathrm{AL} 97]}$ ，Boghosian 和 Taylor ${ }^{[B T 97]}$ ，
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-040.jpg?height=129&amp;width=3473&amp;top_left_y=2460&amp;top_left_x=55" /> ter ${ }^{[T r o 59]}$ 提出的，Chernoff ${ }^{[C h e 68]}$ 也证明了 Trotter 公式的正确性，虽然西算子的简单形式要古老得多，可以追溯到 Sophus Lie 时代。Baker－Campbell－Hausdorff 公式的三阶版本（见式（4.104）），由 Sornborger 和 Stewart ${ }^{[S 599]}$ 给出。Abrams 和 Lloyd ${ }^{[A L 97]}$ 给出了一个程序在量子计算机上模拟多体费米子系统。Terhal 和 divzo 解决了模拟量子系统平衡到 Gibbs 态的问题 ${ }^{[T D 98]}$ 。用于模拟专题 4.2中薛定谔方程的方法是由 Zalka ${ }^{[Z \mathrm{Zal98]}}$ 和 Wiesner ${ }^{[\text {Wie96］}}$ 提出的。</p>
+<p>习题 4.25 由 Vandersypen 给出，与 Chau 和 Wilczek 的工作有关 ${ }^{[C W 95]}$ 。习题 4.45 由 Boykin Mor，Pulver，Roychowdhury 和 $\operatorname{Vatan}^{\left[{ }^{[B M P}{ }^{+} 99\right]}$ 提出，习题 4.2 题由 Gottesman 提出，习题 4.6 题由 Gottesman 和 Chuang ${ }^{[\text {GC99］}}$ 解答。</p>
+</body>
+</html>

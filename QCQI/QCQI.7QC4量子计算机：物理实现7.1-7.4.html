@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QCQI.7QC4量子计算机：物理实现7.1-7.4</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js"></script>
+  <script>
+    // 在 DOMContentLoaded 后调用 renderMathInElement
+    document.addEventListener("DOMContentLoaded", function() {
+      renderMathInElement(document.body, {
+  "delimiters": [
+    {
+      "left": "$$",
+      "right": "$$",
+      "display": true
+    },
+    {
+      "left": "$",
+      "right": "$",
+      "display": false
+    }
+  ],
+  "ignoredTags": [
+    "script",
+    "noscript",
+    "style",
+    "textarea",
+    "pre",
+    "option"
+  ],
+  "throwOnError": false
+});
+    });
+</script>
+  <style>
+    html {
+      font-size: 100%;
+    }
+    body {
+      margin: 0 auto;
+      padding: 1rem;
+      max-width: 70ch;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      line-height: 1.7;
+      background-color: #fdfdfd;
+      color: #333;
+    }
+    img, video, svg {
+        max-width: 100%;
+        height: auto;
+        display: block;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        line-height: 1.3;
+    }
+    code {
+      background: #f0f0f0;
+      padding: 0.2em 0.4em;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    pre {
+      background: #f0f0f0;
+      padding: 1em;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 0.9em;
+    }
+    pre code {
+        padding: 0;
+        background: none;
+        font-size: 1em;
+    }
+    a {
+        color: #007bff;
+        text-decoration: none;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+    .katex-display {
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 0.2em;
+    }
+    .katex {
+        font-size: 1.05em;
+    }
+  </style>
+</head>
+<body>
+<h1>第 7 章 量子计算机：物理实现</h1>
+<p>未来计算机的重量有望不超过 1.5 吨。
+——Popular Mechanics（大众力学），预言科学的无尽征程，1949年
+我相信世界市场只需五台计算机。
+——Thomas Watson，IBM 创始人，1943 年</p>
+<p>量子计算与量子信息是一个具有基础价值的领域，因为我们相信量子信息处理器确实可以实现。否则，这个领域就只不过是数学上的兴趣而已。无论如何，在实验中实现量子电路，量子算法和量子通信已被证明是极富挑战性的。在本章中，我们将探讨一些用于实现量子信息处理器件和系统的指导性原则和模型系统。</p>
+<p>我们将在 7.1 节概述在选择量子计算机的物理实现时的各种权衡。这部分讨论为 7.2 节树立了视角，以便详细论述实验实现量子计算的一组充分条件。从 7.3 节到 7.7 节，通过一系列的案例分析说明了这些条件。其中包含 5 种不同的物理模型系统：简谐振子，光子与非线性光学介质，腔量子电动力学器件，离子阱和分子核磁共振。对每种系统，我们都简要地描述其物理装置，动力学所遵循的哈密顿量，以及主要的缺点。我们不会深人描述这些系统的物理，因为每一种都是一个研究领域，这超出了本书的范围。相反，我们仅综述与量子计算和量子信息有关的概念，这样一来，实验上的挑战与理论上的潜力都能得以涉及。另一方面，用量子信息的立场来分析这些系统，也给出了新颖的视角，我们希望读者会觉得有启发性且有用，因为它可以用极为简单的推导得出一些重要的物理学。在 7.8 节，我们给出总结，讨论其他一些物理系统一一量子点，超导逻辑门及半导体中的自旋——它们对这个领域也有价值。出于为那些只想抓住每种实现方案亮点所在的读者考虑，在每一节的最后都会给出小结。</p>
+<h1>7.1 指导性原则</h1>
+<p>制造一台量子计算机在实验上的要求是什么？理论的基本单元是量子比特——二能级量子系统；在 1.5 节中，我们简要地了解了为什么人们相信自然界存在量子比特，以及它们可能呈现的物理形式。为实现量子计算机，我们不仅要给量子比特赋予一些健壮的物理呈现方式（以便保持它们的量子特性），还得选择一个系统，其中的量子比特能按需求进行演化。不仅如此，我们必须能把量子比特制备到某种特定的初态上，并且能测量系统的输出态。</p>
+<p>实验实现上的挑战在于，这些基本要求很多时候只能部分被满足。一个硬币有两面，这使得它可以作为一个很好的经典比特，但却是很差的量子比特，因为它不能长时间处于（＂正面＂与 ＂背面＂的）量子叠加态。一个核自旋可以作为很好的量子比特，因为它可以长时间，甚至几天都处于顺或逆外磁场方向的叠加态。但是从核自旋出发构建量子计算机是很困难的，因为它们与周围世界的耦合太弱了，人们难以测量单个原子核的指向。观察到相互抵触的约束是很普遍的：一台量子计算机必须很好地被孤立起来，以便维持其量子特性，但与此同时，它的量子比特必须容易触及，以便操控完成计算然后读出结果。一个实际的实现必须在这些限制之间维持脆弱的折衷，因此有意义的问题不在于如何制造量子计算机，而是量子计算机能造得有多好。</p>
+<p>什么物理系统有潜力成为处理量子信息的优秀备选者呢？理解某种特定量子计算机实现的优点的一个关键概念是量子噪声（有时候也被称为退相干〔decoherence〕），这也是第8章的主题：破坏系统预定演化的过程。这是由于最长能允许的量子计算长度大致由 $\tau_{Q}$ 和 $\tau_{o p}$ 的比值确定，其中 $\tau_{Q}$ 是系统维持量子力学相干性的时间，$\tau_{o p}$ 是完成一个基本酉变换（至少涉及两个量子比特）的时间。在很多系统中，这两个时间实际上相互关联，因为它们都由系统与外部世界的耦合强度来决定。尽管如此，如图 7－1 所示，$\lambda=\tau_{o p} / \tau_{Q}$ 能在惊人的范围内变化。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">系统</th>
+<th style="text-align: left;">$\tau_{\mathrm{Q}}$</th>
+<th style="text-align: left;">$\tau_{\text {op }}$</th>
+<th style="text-align: left;">$n_{\mathrm{op}}=\lambda^{-1}$</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">核自旋</td>
+<td style="text-align: left;">$10^{-2} \sim 10^{8}$</td>
+<td style="text-align: left;">$10^{-3} \sim 10^{-6}$</td>
+<td style="text-align: left;">$10^{5} \sim 10^{14}$</td>
+</tr>
+<tr>
+<td style="text-align: left;">电子自旋</td>
+<td style="text-align: left;">$10^{-3}$</td>
+<td style="text-align: left;">$10^{-7}$</td>
+<td style="text-align: left;">$10^{4}$</td>
+</tr>
+<tr>
+<td style="text-align: left;">离子阴$\left(\mathrm{In}^{+}\right)$</td>
+<td style="text-align: left;">$10^{-1}$</td>
+<td style="text-align: left;">$10^{-14}$</td>
+<td style="text-align: left;">$10^{13}$</td>
+</tr>
+<tr>
+<td style="text-align: left;">电子$(\mathrm{Au})$</td>
+<td style="text-align: left;">$10^{-8}$</td>
+<td style="text-align: left;">$10^{-14}$</td>
+<td style="text-align: left;">$10^{6}$</td>
+</tr>
+<tr>
+<td style="text-align: left;">电子$(\mathrm{GaAs})$</td>
+<td style="text-align: left;">$10^{-10}$</td>
+<td style="text-align: left;">$10^{-13}$</td>
+<td style="text-align: left;">$10^{3}$</td>
+</tr>
+<tr>
+<td style="text-align: left;">量子点</td>
+<td style="text-align: left;">$10^{-6}$</td>
+<td style="text-align: left;">$10^{-9}$</td>
+<td style="text-align: left;">$10^{3}$</td>
+</tr>
+<tr>
+<td style="text-align: left;">光学腔</td>
+<td style="text-align: left;">$10^{-5}$</td>
+<td style="text-align: left;">$10^{-14}$</td>
+<td style="text-align: left;">$10^{9}$</td>
+</tr>
+<tr>
+<td style="text-align: left;">微波腔</td>
+<td style="text-align: left;">$10^{0}$</td>
+<td style="text-align: left;">$10^{-4}$</td>
+<td style="text-align: left;">$10^{4}$</td>
+</tr>
+</tbody>
+</table>
+<p>图 7－1 对相互作用量子比特系统的各种候选的物理实现，粗略估计的退相干时间 $\tau_{Q}(\mathrm{~s})$ ，操作时间 $\tau_{o p}(\mathrm{~s})$ 和最大的操作次数 $n_{o p}=\lambda^{-1}=\tau_{Q} / \tau_{o p}$ 。尽管这个表格的条目不少，但只涉及 3 种从根本上不同的量子比特表示：自旋，电荷和光子。离子阱使用囚禁原子的精细或超精细能级跃迁（7.6节），对应于电子自旋或核自旋的翻转。对金和砷化镓，或者量子点中电子的估算，对应于电荷表象，即为电极或一些束缚区域内电子存在与否。在光学和微波腔中，光子（频率处于 GHz 到几百 THz ）占据不同的腔模代表着量子比特。对这些粗略的估计要持批判的态度：它们只用于为广泛的可能性提供视角</p>
+<p>这些估算粗略说明了量子信息处理器各种可能的物理实现的优点，但是在实际实现中还会出现很多其他噪声和缺陷。比如说，为操控原子内两个电子能级所代表的量子比特，要用光引发两</p>
+<p>个能级之间的跃迁，也会导致一定概率跃迁到其他电子能级。这些也可被看作是噪声过程，因为会将系统引人定义量子比特的两个态之外。一般而言，任何能够导致（量子）信息丢失的都是噪声过程一一接下来在第 8 章，我们会更深人地讨论量子噪声理论。</p>
+<h1>7.2 量子计算的条件</h1>
+<p>让我们回顾一下前一节一开始就提到过的量子计算所需的四项基本要求。这些要求是能够
+1.稳定地表示量子信息
+2.完成一组通用的酉变换
+3.制备基准初态
+4.测量输出结果</p>
+<h2>7.2.1 量子信息的表示</h2>
+<p>量子计算基于量子态的变换。量子比特是一些二能级系统，作为量子计算机最简单的建造单元，它们为成对的量子态提供了方便的标志和物理实现。因此，比如自旋 $3 / 2$ 粒子的 4 个态， $|m=+3 / 2\rangle,|m=+1 / 2\rangle,|m=-1 / 2\rangle,|m=-3 / 2\rangle$ ，可以用来代表两个量子比特。</p>
+<p>以计算作为目的，要实现的关键是可访问态的集合应该是有限的。沿一维直线运动粒子的位置 $x$ 通常不适合作为计算态的集合，尽管粒子可能处于量子态 $|x\rangle$ ，乃至叠加态 $\sum_{x} c_{x}|x\rangle$ 。这是由于 $x$ 处于概率上的连续区域，且具有无限大小的希尔伯特空间，因此无噪声时其信息容量也是无限的。比如说，在完美世界中，莎士比亚全集可以存储到无限位的二进制小数中 $x=$ $0.010111011001 \cdots$（ 并读出）。这显然是不现实的，现实是噪声的存在把可分态数目降为有限个。</p>
+<p>实际上，通常需要把某些对称性献给态空间的有限性，以便把退相干降到最小。比如说，一个自旋 $1 / 2$ 粒子的希尔伯特空间由 $|\uparrow\rangle$ 和 $|\downarrow\rangle$ 两个态张成；自旋态不能处于此二维空间之外，当被很好地孤立之后，就成为一个近乎完美的量子比特。</p>
+<p>如果表示选择得不好，就会导致退相干。譬如，如专题 7.1 所示，一个处于有限深方势阱中的粒子，势阱深度足以容纳两个束缚态来实现一个平庸的量子比特，因为从束缚态到连续非束缚态的跃迁有可能出现。这将导致退相干，因为会破坏量子比特的叠加态。对单量子比特来说，质量指标是任意量子叠加态的最短寿命。用于自旋和原子系统的一个好的度量是 $T_{2}$ ，形如 $(|0\rangle+|1\rangle) / \sqrt{2}$ 量子态的（＂横＂）弛豫时间。注意，$T_{1}$ ——高能量 $|1\rangle$ 态的（＂纵＂）弛豫时间—只是经典态的寿命，它通常比 $T_{2}$ 长一些。</p>
+<h2>专题 7.1 方势阱与量子比特</h2>
+<p>有一个典型的量子系统，称为＂方势阱＂，指的是一个处于一维盒子中的粒子，其行为遵循䔒定㗄方程式（2.86）。此系统的哈密顿量为 $H=p^{2} / 2 m+V(x)$ ，当 $0 &lt; x &lt; L$ 时 $V(x)=0$ ，</p>
+<p>其他区域中 $V(x)=\infty$ 。在位置空间基矢波函数展开下的能量本征态为</p>
+<p>$$
+\begin{equation*}
+\left|\psi_{n}\right\rangle=\sqrt{\frac{2}{L}} \sin \left(\frac{n \pi}{L} x\right) \tag{7.1}
+\end{equation*}
+$$</p>
+<p>其中 $n$ 为整数，$\left|\psi_{n}(t)\right\rangle=\mathrm{e}^{-\mathrm{i} E_{n} t}\left|\psi_{n}\right\rangle$ ，而 $E_{n}=n^{2} \pi^{2} / 2 m L^{2}$ 。这些态具有离散的能谱。特别地，假设我们通过设计使得在实验中只考虑最低的两个能级。我们定义感兴趣的任意波函数为 $|\psi\rangle=a\left|\psi_{1}\right\rangle+b\left|\psi_{2}\right\rangle_{\text {。 }}$ 由于</p>
+<p>$$
+\begin{equation*}
+|\psi(t)\rangle=\mathrm{e}^{-\mathrm{i}\left(E_{1}+E_{2}\right) / 2 t}\left[a \mathrm{e}^{-\mathrm{i} \omega t}\left|\psi_{1}\right\rangle+b \mathrm{e}^{\mathrm{i} \omega t}\left|\psi_{2}\right\rangle\right] \tag{7.2}
+\end{equation*}
+$$</p>
+<p>其中 $\omega=\left(E_{1}-E_{2}\right) / 2$ 。除 $a$ 和 $b$ 外我们可以忽略其他因素，并把我们的态抽象地写为一个二分量向量 $|\psi\rangle=\left[\begin{array}{l}a \\ b\end{array}\right]$ 。这个二能级系统代表一个量子比特！我们的二能级系统像量子比特一样变换么？这个量子比特会依照有效哈密顿量 $H=\hbar \omega Z$ 随时间演化，而移到旋转坐标系后有效哈密顿量可被忽略。为了在此量子比特上完成操作，我们扰动 $H$ 。对于 $V(x)$ ，考虑如下附加扰动项的效应：</p>
+<p>$$
+\begin{equation*}
+\delta V(x)=-V_{0}(t) \frac{9 \pi^{2}}{16 L}\left(\frac{x}{L}-\frac{1}{2}\right) \tag{7.3}
+\end{equation*}
+$$</p>
+<p>在我们的二能级基矢下，此扰动可以用矩阵元重新表述为 $V_{n m}=\left\langle\psi_{n}\right| \delta V(x)\left|\psi_{m}\right\rangle$ ，其中 $V_{11}=V_{22}=0, V_{12}=V_{21}=V_{0}$ 。就这样展开到 $V_{0}$ 的最低阶，对 $H$ 的微扰为 $H_{1}=V_{0}(t) X$ 。这可以产生沿 $\hat{x}$ 轴的转动。通过调控势函数，类似的技术可以被用于完成其他的单量子比特操作。</p>
+<p>这展示了如何用一个方势阱中的最低两个能级代表量子比特，以及如何用对势场的简单扰动实现对量子比特的计算操作。但是，扰动同时也会引入高阶效应，且在真实物理系统中，盒子势阱并非无限深，其他能级逐步加入进来，而我们的二能级近似逐步失效。不仅如此，实际上控制系统也是另一个量子系统，而它与我们要实现量子计算的系统相互㙖合。这些问题导致了退相干。</p>
+<h2>7.2.2 执行西变换</h2>
+<p>封闭系统由其哈密顿量决定如何西演化，但为了完成量子计算，人们必须能够控制哈密顿量，用一组通用的西变换（如 4.5 节所描述的那样）实现任意的选择。从习题 4.10 我们知道，通过合适地调控 $P_{x}$ 和 $P_{y}$ ，我们能实现任意的单自旋旋转。比如，一个单自旋可遵循哈密顿量 $H=P_{x}(t) X+P_{y}(t) Y$ 进行演化，其中 $P_{{x, y}}$ 是经典控制参量。由习题 4.10 可知，通过合适地操控 $P_{x}$ 和 $P_{y}$ ，人们能实现任意的单自旋旋转。</p>
+<p>根据定理 4.5，任意西变换可以被分解为单比特操作和受控非门。因此实现这两种量子逻辑门就是实现量子计算的天然目标。尽管如此，显而易见的要求还有单量子比特寻址，以及对选好的量子比特或成对的量子比特实现这些逻辑门。这对于很多物理系统来说都不容易实现。譬如，</p>
+<p>在离子阻中，只有当离子的空间间距大于等于光波长时，人们才能用一束激光照射很多个离子中的一个来选择性地激发它。</p>
+<p>未记录的西操作缺陷可以导致退相干。在第 8 章，我们将看到随机反冲（自旋绕 $\hat{z}$ 轴旋转小角度）的平均效果导致由量子态中相对相位所代表的量子信息的丢失。类似地，当可以逆转系统误差的信息丢失，其累积效应就是退相干。不仅如此，哈密顿量的控制参数只是近似是经典的：实际上，控制系统只是另外一个量子系统，真实的哈密顿量应该包含控制系统对量子计算机的反作用。比如，不同于上面例子中的 $P_{x}(t)$ ，人们实际上有一个 Jaynes－Cummings 型原子－光子相互.作用哈密顿量（7.5.2节），即 $P_{x}(t)=\sum_{k} \omega_{k}(t)\left(a_{k}+a_{k}^{\dagger}\right)$ ，或者其他类似的腔模场。在与量子比特作用之后，一个光子能携带量子比特状态的信息，而这正是退相干过程。</p>
+<p>西变换的两项质量指标是可实现的最低保真度（第 9 章），以及完成比如单自旋旋转或受控非门这些基本操作需要的最长时间。</p>
+<h2>7.2.3 制备基准初态</h2>
+<p>能完成有用计算的最重要的要求之一是可以制备想要的输人，即使经典计算也是如此。如果某人有一个可以完成完美计算的盒子，却无法输人的话，它又有什么用呢？对经典计算机来说，产生确定的输人态并不难——人们只需要在所需构型中设定一些开关，就定义了输人态。尽管如此，对量子系统而言这取决于量子比特的物理实现，通常会非常困难。</p>
+<p>注意，通常只需能（重复地）高保真度制备一种特定的量子态，因为西变换能把它变为其他任何所需的输人态。譬如，能把 $n$ 个量子比特制备为 $|00 \cdots 0\rangle$ 态就足够好了。由于加热它们可能不会待在那里很长时间，这一事实对量子比特表示的选取而言是个问题。</p>
+<p>输人态制备对大部分物理系统来说都是重大的问题。比如，通过冷却离子到基态（7.6节），它们可以被制备到好的输人态，但这具有挑战性。不仅如此，对涉及量子计算机系综的物理系统，有额外的考量出现。在核磁共振方案中（ 7.7 节），每个分子都可以被想象为单个量子计算机，需要大量的分子来获得可观测的信号强度。尽管量子比特能相对长时间处于任意的量子叠加态，把所有分子中的所有态都制备为同样的状态却是很难的，因为 $|0\rangle$ 和 $|1\rangle$ 态的能量差 $\hbar \omega$ 远小于 $k_{B} T_{\text {。 }}$ 另一方面，简单地令系统平衡即可让它处于一个众所周知的状态——热态——其密度矩阵为 $\rho \approx \mathrm{e}^{-\mathcal{H} / k_{B} T} / \mathcal{Z}$ ，此时 $\mathcal{Z}$ 是归一化因子，用于维持 $\operatorname{tr}(\rho)=1$ 。</p>
+<p>两项质量指标与输人态制备有关：初始态能被制备到给定态 $\rho_{\mathrm{in}}$ 的最低保真度，以及 $\rho_{\mathrm{in}}$ 的熵。熵是重要的，因为例如人们很容易就能高保真度地制备量子态 $\rho_{\mathrm{in}}=I / 2^{n}$ ，但这个态对量子计算毫无用处，由于它在西变换下不变。理想中，输人态是一个纯态，具有零熵。一般地，输人态有非零的嫡，降低了从输出态获得结果的可靠性。</p>
+<h2>7.2.4 测量输出结果</h2>
+<p>量子计算需要什么样的测量能力？带着这一讨论的目的，让我们把测量想象为一个或多个量子比特同经典系统相互作用的过程，经过一段时间后，量子比特的状态由经典系统的状态指明。</p>
+<p>比如，一个由二能级原子的基态与激发态代表的量子比特态 $a|0\rangle+b|1\rangle$ ，有望通过对激发态的泉浦然后观察荧光来测量。如果静电计表明荧光已通过光电倍增管探测到了，那么量子比特就塌缩到 $|1\rangle$ 态，这发生的概率为 $|b|^{2}$ 。否则，静电计探测不到电荷，量子比特将塌缩到 $|0\rangle$ 态。</p>
+<p>量子计算测量过程的一个重要的特性是波函数塌缩，它描述实施投影测量时发生了什么 （ 2.2.5 节）。一个优秀量子算法的输出是一个叠加态，对它进行测量时，会有很高的概率给出有用的答案。比如，Shor 量子因式分解算法中的一步是从测量结果中找到整数 $r$ 。测量结果是一个靠近 $q c / r$ 的整数，其中 $q$ 是希尔伯特空间的维度。输出态实际上处于 $c$ 所有可能值的等权叠加态，但是一次测量将此态塌缩到一个随机的整数，因而能确保以很高的概率确定 $r$（利用连分式展开，如第5章所述）。</p>
+<p>可以想象测量面临很多困难：比如光子探测器效率低，以及放大器热噪声都能损耗上述方案中从被测量子比特中获得的信息。不仅如此，投影测量（有时也被称为＂强＂测量）通常难以实施，需要量子与经典系统之间的耦合很大，而且可关闭。当要求不被满足时测量就不会发生，实际变成一个退相干过程。</p>
+<p>让人吃惊的是，尽管如此，强测量不是必需的；连续地实施且从不关闭耦合的弱测量也可用于量子计算。当计算时间比测量时间短，且使用大量量子计算机系综时，就可以实现这一点。这些系综一起给出的整体信号是一个宏观可观测量，并反映了量子态。使用系综又引发了额外的问题。比如，在因数分解问题中，如果测量的结果是 $q\langle c\rangle / r$ ，算法就失效了，因为 $c$ 的平均值 $\langle c\rangle$ 不必是整数（因此连分式分解不再适用）。幸运的是，可以调整量子算法以适应系综平均读出。这会在 7.7 节中讨论。</p>
+<p>测量能力的一个好的质量指标是信噪比（SNR）。它度量测量的无效性，以及测量仪器与量子系统耦合可提供的非相干信号强度。</p>
+<h1>7.3 谐振子量子计算机</h1>
+<p>在继续描述可实现量子计算机的一个完整物理模型之前，让我们暂停一下，考虑一个非常基本的系统——简谐振子——并讨论为什么它不能作为一个好的量子计算机。在这个例子中用到的形式可以被看成是研究其他物理系统的基础。</p>
+<h2>7.3.1 物理装置</h2>
+<p>一个简谐振子的例子是处于抛物线势阱 $V(x)=m \omega^{2} x^{2} / 2$ 中的一个粒子。在经典世界，这就是一个弹簧上的方块。它会往返振动，同时其能量在弹簧与方块动能之间转换。它也可以是一个共振电路，其能量在电感与电容之间来回晃动。在这些系统中，系统的总能量是一个连续参量。</p>
+<p>在量子区域，当与外部世界的耦合很小时，可以使得系统的总能量只能取一组离散的值。举个例子，束缚在高品质腔中的一个单模电磁辐射，总能量（加上一个固定偏移）只能取 $\hbar \omega$ 的整数倍。 $\hbar \omega$ 由基本常数 $\hbar$ 和束缚辐射频率 $\omega$ 共同确定。</p>
+<p>一个简谐振子能量本征态的集合可以标记为 $|n\rangle$ ，其中 $n=0,1, \cdots, \infty$ 。与量子计算的联系，可以通过选取这些态的有限的子集来代表量子比特得到。这些量子比特拥有的寿命将由物理参数比如腔的品质因子 $Q$ 来决定，而 $Q$ 可以通过增加腔壁的反射率而做得非常大。不仅如此，只要允许系统在时间上演化就可以实现西演化。尽管如此，这个方案存在问题，且接下来将愈加清晰。我们先研究系统的哈密顿量，然后讨论如何实现简单的量子逻辑门，比如说受控非门。</p>
+<h2>7.3.2 哈密顿量</h2>
+<p>在一维抛物线型势阱中的一个粒子的哈密顿量为</p>
+<p>$$
+\begin{equation*}
+H=\frac{p^{2}}{2 m}+\frac{1}{2} m \omega^{2} x^{2} \tag{7.4}
+\end{equation*}
+$$</p>
+<p>其中 $p$ 是粒子动量算子，$m$ 是质量，$x$ 是位置算子，$\omega$ 与势阱的深度有关。考虑到 $x$ 与 $p$ 在此式中是算子（见专题 7.2 ）的形式，它可以重新写为</p>
+<p>$$
+\begin{equation*}
+H=\hbar \omega\left(a^{\dagger} a+\frac{1}{2}\right) \tag{7.5}
+\end{equation*}
+$$</p>
+<p>其中的 $a^{\dagger}$ 与 $a$ 分别是产生与湮灭算子，它们的定义为</p>
+<p>$$
+\begin{align*}
+a &amp; =\frac{1}{\sqrt{2 m \hbar \omega}}(m \omega x+\mathrm{i} p)  \tag{7.6}\\
+a^{\dagger} &amp; =\frac{1}{\sqrt{2 m \hbar \omega}}(m \omega x-\mathrm{i} p) \tag{7.7}
+\end{align*}
+$$</p>
+<p>零点能 $\hbar \omega / 2$ 贡献了一个无法观测到的整体相位因子，对我们当前的目的来说，它可以被忽略。</p>
+<h2>专题 7.2 量子简谐振子</h2>
+<p>在物理世界的量子描述中，简谐振子是一个极为重要和有用的物理概念，而理解其特性的好办法是从确定哈密顿量（式（7.4））的本征能态开始。完成它的一种办法是直接求解薛定㗄方程</p>
+<p>$$
+\begin{equation*}
+\frac{\hbar^{2}}{2 m} \frac{d^{2} \psi_{n}(x)}{d x^{2}}+\frac{1}{2} m \omega^{2} x^{2} \psi_{n}(x)=E \psi_{n}(x) \tag{7.8}
+\end{equation*}
+$$</p>
+<p>令 $x= \pm \infty$ 处 $\psi(x) \rightarrow 0$ ，且 $\int|\psi(x)|^{2} \mathrm{~d} x=1$ ，可得本征态 $\psi_{n}(x)$ 和本征能量 $E$ ；头五个解如下图所示。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-101.jpg?height=1222&amp;width=1182&amp;top_left_y=494&amp;top_left_x=1235" /></p>
+<p>这些波函数描述了一个谐振子粒子在势阱内不同位置被发现的概率幅。
+尽管此图像能给出物理系统在坐标空间中如何运转的某些直觉，我们通常对量子态抽象的代数特性更有兴趣。特别地，假设 $|\psi\rangle$ 满足式（7.8），具有能量 $E$ 。然后如式（7.6）和式（7.7）那样定义算子 $a$ 和 $a^{\dagger}$ 。既然 $\left[H, a^{\dagger}\right]=\hbar \omega a^{\dagger}$ ，我们有</p>
+<p>$$
+\begin{equation*}
+H a^{\dagger}|\psi\rangle=\left(\left[H, a^{\dagger}\right]+a^{\dagger} H\right)|\psi\rangle=(\hbar \omega+E) a^{\dagger}|\psi\rangle \tag{7.9}
+\end{equation*}
+$$</p>
+<p>也就是说 $a^{\dagger}|\psi\rangle$ 是 $H$ 的本征态，具有能量 $E+\hbar \omega$ ！类似地，$a|\psi\rangle$ 也是 $H$ 的本征态，具有能量 $E-\hbar \omega$ 。因此，$a^{\dagger}$ 和 $a$ 被称为上升与下降算子。这意味着对任意整数 $n$ 而言 $a^{\dagger^{n}}|\psi\rangle$ 都是本征态，其本征能量为 $E+n \hbar \omega$ 。因此存在无穷个能量本征态，它们的能量间距相等，为 $\hbar \omega$ 。不仅如此，因为 $H$ 是正定的，必然存在某个 $\left|\psi_{0}\right\rangle$ 满足 $a\left|\psi_{0}\right\rangle=0$ ；这就是基态－$H$的最低能态。这些结论有效地抓住了量子简谐振子的精髓，且允许我们利用紧凑的表示 $|n\rangle$代表本征态，其中 $n$ 是整数，$H|n\rangle=\hbar \omega(n+1 / 2)|n\rangle$ 。在本章中我们将会经常用到 $|n\rangle, a$ 和 $a^{\dagger}$ ，因为谐振子在很多不同的物理系统的表示中都出现了。
+$H$ 的本征态 $|n\rangle$ ，其中 $n=0,1, \cdots$ ，具有如下性质</p>
+<p>$$
+\begin{align*}
+a^{\dagger} a|n\rangle &amp; =n|n\rangle  \tag{7.10}\\
+a^{\dagger}|n\rangle &amp; =\sqrt{n+1}|n+1\rangle  \tag{7.11}\\
+a|n\rangle &amp; =\sqrt{n}|n-1\rangle \tag{7.12}
+\end{align*}
+$$</p>
+<p>接下来，我们会发现对简谐振子施加相互作用是很方便的，引入包含 $a$ 和 $a^{\dagger}$ 的额外项就可以，振子之间的相互作用可以引入形如 $a_{1}^{\dagger} a_{2}+a_{1} a_{2}^{\dagger}$ 的项。但是，目前我们把注意力集中在单个振子上。
+习题 7.1 利用 $x$ 与 $p$ 不对易的特性，即 $[x, p]=\mathrm{i} \hbar$ ，证明 $a^{\dagger} a=H / \hbar \omega-1 / 2$ 。
+习题 7.2 利用 $[x, p]=\mathrm{i} \hbar$ ，计算 $\left[a, a^{\dagger}\right]$ 。
+习题 7.3 计算 $[H, a]$ 并利用此结果证明如果 $|\psi\rangle$ 是 $H$ 的本征态，$E \geqslant n \hbar \omega$ 为本征值，那么 $a^{n}|\psi\rangle$是一个具有能量 $E-n \hbar \omega$ 的本征态。</p>
+<p>习题 7.4 证明 $|n\rangle=\frac{\left(a^{\dagger}\right)^{n}}{\sqrt{n!}}|0\rangle$ 。
+习题 7.5 验证式（7.11）和式（7.12）与式（7.10）是一致的，且归一化条件为 $\langle n \mid n\rangle=1$ 。
+本征态的演化通过求解薛定谔方程（式（2.86））获得，于是我们发现量子态 $|\psi(0)\rangle=\sum_{n} c_{n}(0)|n\rangle$随时间的演化为</p>
+<p>$$
+\begin{equation*}
+|\psi(t)\rangle=\mathrm{e}^{-\mathrm{i} H t / \hbar}|\psi(0)\rangle=\sum_{n} c_{n} \mathrm{e}^{-\mathrm{i} n \omega t}|n\rangle \tag{7.13}
+\end{equation*}
+$$</p>
+<p>出于讨论的目的，我们将假定任意态都可以被完美制备，且系统的状态可以被投影测量（2.2.2节），然而在另一方面，不存在与外部世界的耦合，因此系统是完全封闭的。</p>
+<h2>7.3.3 量子计算</h2>
+<p>假定我们用前面描述的单个简谐振子来完成量子计算，能做什么呢？最自然的代表量子比特的选择是能量本征态 $|n\rangle$ 。这个选择让我们能以如下方式完成受控非门。回忆一下这个变换对两个量子比特态实现了如下映射</p>
+<p>$$
+\begin{align*}
+|00\rangle_{L} &amp; \rightarrow|00\rangle_{L} \\
+|01\rangle_{L} &amp; \rightarrow|01\rangle_{L}  \tag{7.14}\\
+|10\rangle_{L} &amp; \rightarrow|11\rangle_{L} \\
+|11\rangle_{L} &amp; \rightarrow|01\rangle_{L}
+\end{align*}
+$$</p>
+<p>（ 这里下标 $L$ 用于区分＂局域＂态与谐振子的基准态）。让我们用映射</p>
+<p>$$
+\begin{align*}
+|00\rangle_{L} &amp; =|0\rangle \\
+|01\rangle_{L} &amp; =|2\rangle \\
+|10\rangle_{L} &amp; =(|4\rangle+|1\rangle) / \sqrt{2}  \tag{7.15}\\
+|11\rangle_{L} &amp; =(|4\rangle-|1\rangle) / \sqrt{2}
+\end{align*}
+$$</p>
+<p>来编码这两个量子比特。现在假设在 $t=0$ 时，系统处于一个由这些基矢态张成的量子态，我们让系统直接演化到时间 $t=\pi / \omega_{\text {。 }}$ 这引起能量本征态出现变换 $|n\rangle \rightarrow \exp \left(-\mathrm{i} \pi a^{\dagger} a\right)|n\rangle=(-1)^{n}|n\rangle$ ，也就是 $|0\rangle,|2\rangle,|4\rangle$ 不变，而 $|1\rangle$ 变为 $-|1\rangle$ 。结果我们就得到了需要的受控非门操作。</p>
+<p>一般来说，对一个物理系统而言能完成一个西变换 $U$ 的充要条件很简单，即为系统的时间演化算子 $T=\exp (-\mathrm{i} H t)$ ——由哈密顿量 $H$ 来定义——具有与 $U$ 近乎相同的本征值谱。在上面的例子中，受控非门很容易实现，因为它只有本征值 +1 和 -1 ；通过直接设计编码可从简谐振子的时间演化算子中获得同样的本征值。通过扰动振子的哈密顿量可以实现任意的本征值谱，要代表任意多个量子比特，可通过把它们映射到系统的无限个本征态上得以实现。这暗示人们有可能利用单个简谐振子来实现整个量子计算机！</p>
+<h2>7.3.4 缺陷</h2>
+<p>当然，上面的构想中存在很多问题。显然，人们并不总可以知道某个量子计算西算子的本征值谱，即便人们也许知道如何通过基本逻辑门来构建这个算子。实际上，对大部分量子算法涉及的问题而言，本征值谱的知识就相当于问题的解！</p>
+<p>另外一个显然的问题在于，上面使用的技术不能允许一个计算机与另外一个级联起来，因为一般而言，把两个酉变换级联起来，引入的新变化具有毫无关联的本征值。</p>
+<p>最后，使用单个简谐振子完成量子计算的想法是有缺陷的，因为它忽略了数字信息表示的原理。一个 $2^{n}$ 维的希尔伯特空间被映射到单个简谐振子的态空间中，必须要可能的状态的能量达到 $2^{n} \hbar \omega$ 。相比而言，相同的希尔伯特空间可以用 $n$ 个二能级系统来获得，它具有的最大能量为 $n \hbar \omega$ 。类似的比较也可以在一个经典的有 $2^{n}$ 种设定的经典表盘，和一个具有 $n$ 个经典比特的寄存器之间完成。量子计算基于数字计算，而不是模拟计算。</p>
+<p>简谐振子量子计算机的主要特性总结如下（对我们讨论的每一种系统，都会在每一节的最后给出小结）。至此，我们结束了对单个振子的研究，开始转人下一个谐振子系统，由光子与原子组成。</p>
+<h2>简谐振子量子计算机</h2>
+<ul>
+<li>量子比特的表示：单个振子的能级 $|0\rangle,|1\rangle, \cdots,\left|2^{n}\right\rangle$ 给出 $n$ 个量子比特。</li>
+<li>酉演化：任意变换 $U$ 都是通过与哈密顿量 $H=a^{\dagger} a$ 匹配其本征值谱而实现。</li>
+<li>初始态制备：未考虑。</li>
+<li>读出：未考虑。</li>
+<li>缺陷：不是数字表示！此外，匹配本征值实现变换并不能适用于任意的 $U$ ，它通常具有未知的本征值。</li>
+</ul>
+<h1>7.4 光学光量子计算机</h1>
+<p>一个吸引人的表示量子比特的物理体系是光学系统中的光子。光子是不带电的粒子，而且相互间，乃至与大部分物质之间的相互作用都不强。它们能在光纤中传输很长距离而损耗很少，利用相移器能高效地延迟，也可以用分束器方便地结合。光子展示出明显的量子现象，比如说双缝产生的干涉。不仅如此，原则上利用非线性光学介质做媒介，光子间也能实现相互作用。在这个理想的设想中也存在问题；不论如何，通过研究光学光子量子信息处理器的组成，结构和缺陷，可以学到很多东西，正如我们在本节中将要看到的那样。</p>
+<h2>7.4.1 物理装置</h2>
+<p>让我们先考虑什么是单光子，它们如何能表示量子比特，以及用于操控光子的实验装置。我们也将描述相移器，分束器和非线性克尔介质的典型行为。</p>
+<p>光子能以如下方式来表示量子比特。正如我们在对简谐振子的讨论中所看到的那样，在一个电磁腔中能量是量子化的，单位为 $\hbar \omega$ 。每一份这样的量子被称为一个光子。对一个腔而言，可以包含 0 与 1 光子的叠加，此量子态可被表示为一个量子比特 $c_{0}|0\rangle+c_{1}|1\rangle$ ，但我们要再做一些不一样的事。让我们考虑两个腔，其总能量为 $\hbar \omega$ ，然后令量子比特的两个态为单光子处于一个腔（ $|01\rangle$ ），还是处于另一个腔（ $|10\rangle)_{0}$ 。叠加的物理状态于是可被写为 $c_{0}|01\rangle+c_{1}|10\rangle$ ，我们可以把它称为双轨表示。注意我们将聚焦在以波包形式在自由空间中——而不是在腔内——传播的单光子。人们可以把这想象为让一个腔随着波包移动。每一个处于我们的量子比特状态的腔因而都对应于不同的空间模式。</p>
+<p>实验室中产生单光子的一种方案是减弱激光的输出。已知激光输出的态为一个相干态 $|\alpha\rangle$ ，定义为</p>
+<p>$$
+\begin{equation*}
+|\alpha\rangle=\mathrm{e}^{-|\alpha|^{2} / 2} \sum_{n=0}^{\infty} \frac{\alpha^{n}}{\sqrt{n!}}|n\rangle \tag{7.16}
+\end{equation*}
+$$</p>
+<p>其中 $|n\rangle$ 是 $n$ 光子的能量本征态。这个态是在量子光学领域中被彻底研究过的，具有很多漂亮的特性，我们在此不做描述。我们只要知道相干态是被泉浦到激发阈值之上后，被驱动振子比如激光自然辐射出来的就够了。注意，平均能量是 $\langle\alpha| n|\alpha\rangle=|\alpha|^{2}$ 。减弱之后，一个相干态仅仅变为较弱的相干态，而一个弱相干态可以以很高的概率制备为只含有一个光子。</p>
+<p>习题 7.6 （光子湮灭的本征态）证明相干态是光子湮灭算子的本征态，也就是证明 $a|\alpha\rangle=\lambda|\alpha\rangle$ ，其中 $\lambda$ 为某个常数。</p>
+<p>举个例子，对 $\alpha=\sqrt{0.1}$ ，我们有相干态 $\sqrt{0.90}|0\rangle+\sqrt{0.09}|1\rangle+\sqrt{0.002}|2\rangle+\cdots$ 。因此如果光通过衰减器产生此态，人们知道它是单光子的概率大于 $95 \%$ ；失败概率为 $5 \%$ 。注意， $90 \%$ 的时间都没有光子通过，因此这个光源具有每单位时间 0.1 个光子的速率。最后，此光源无法（通过经典读出的方式）标示单光子何时出来没有，两个光源是无法同步的。</p>
+<p>更好的同步可以利用参量下转换实现。这意味着把频率为 $\omega_{0}$ 的光子送人非线性光学介质比如 KH2PO4，用于产生光子对，其频率满足 $\omega_{1}+\omega_{2}=\omega_{0}$ 。动量也需要守恒，即为 $\vec{k}_{1}+\vec{k}_{2}=\vec{k}_{3}$ 。因此当一个频率 $\omega_{2}$ 的光子被（破坏性地）探测到时，另一个频率 $\omega_{2}$ 的光子也就被知道是存在的 （图7－2）。把这与逻辑门结合起来，只有当一个单光子（而不是两个或多个）被探测到时逻辑门才打开，同时适当地延迟多个下转换光源的输出，人们原则上可以获得在传输时间上同步的多个单光子，同步精度取决于探测器与逻辑门的分辨率。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-104.jpg?height=362&amp;width=1269&amp;top_left_y=5019&amp;top_left_x=1186" /></p>
+<p>图 7－2 产生单光子的参量下转换方案</p>
+<p>利用各种技术，对于波长范围很广的单光子，都能以很高的量子效率探测到。基于我们的目标，探测器最重要的特性是能以很高的概率确定在特定的空间模式内存在 0 还是 1 个光子。对于双轨表示，这意味着在可计算基矢上的投影测量。实际上，不完美性降低了能探测单光子的概率。光电探测器的量子效率 $\eta(0 &lt; \eta &lt; 1)$ 是探测器上的人射单光子产生光载流子对，进而加载到探测器电流的概率。探测器其他的重要特性为它的带宽（时间响应性），噪声，以及＂暗计数＂，即无光子人射时产生的光载流子。</p>
+<p>操控光子态实验上最常用的三个器件是反射镜，相移器和分束器。高反射率镜子反射光子，同时改变其空间上的传播方向。 $0.01 \%$ 损耗率的反射镜很常见，在我们的情形里我们将默认此数值。相移器不过就是一块透明的介质，其折射率 $n$ 与自由空间的折射率 $n_{0}$ 不一样。比如通常的硼硅酸盐玻璃在光学波段的折射率 $n \approx 1.5 n_{0}$ 。在此介质中传输距离 $L$ 改变光子的相位 $\mathrm{e}^{\mathrm{i} k L}$ ，其中 $k=n \omega / c_{0}$ ，而 $c_{0}$ 是真空中的光速。因此，一个光子通过相移器后，相比在自由空间中通过相同距离的单光子将会出现相位移动 $\mathrm{e}^{\mathrm{i}\left(n-n_{0}\right) L \omega / c_{0}}$ 。</p>
+<p>另一个有用的元件分束器不过是一个部分镀银的玻璃片，它反射人射光中的一部分 $R$ ，透射 $1-R$ 。在实验室中，一个分束器通常由两块棱镜组成，一层薄的金属三明治结构夹在中间，示意图如图 7－3 所示。为方便起见，定义分束器的角度 $\theta$ 为 $\cos \theta=R$ ；注意角度参数化了部分反射率大小，而与分束器的物理指向毫无关系。此器件的两个输人与输出关系为</p>
+<p>$$
+\begin{align*}
+a_{\text {out }} &amp; =a_{\text {in }} \cos \theta+b_{\text {in }} \sin \theta  \tag{7.17}\\
+b_{\text {out }} &amp; =-a_{\text {in }} \sin \theta+b_{\text {in }} \cos \theta \tag{7.18}
+\end{align*}
+$$</p>
+<p>我们可以把 $a$ 和 $b$ 想成是在两个端口辐射的经典电磁场。注意在这个定义中，为了方便起见，我们选择了非标准的相位转换。对于特殊的 $50 / 50$ 分束器来说，$\theta=45^{\circ}$ 。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-105.jpg?height=466&amp;width=705&amp;top_left_y=3623&amp;top_left_x=1125" />
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-105.jpg?height=449&amp;width=675&amp;top_left_y=3626&amp;top_left_x=2024" /></p>
+<p>图 7－3 光学分束器的示意图，展示了两个输人端口，两个输出端口，以及 $50 / 50(\theta=\pi / 4)$ 分束器的相位变换。右边的分束器与左边的分束器互逆（二者通过画在中心的点来区分）。给出了 $\theta=\pi / 4$ 时模式算子 $a$ 与 $b$ 的输人输出关系</p>
+<p>非线性光学为此练习提供了最后的一个有用元件，其材料的折射率 $n$ 与通过它的总光强 $I$ 成正比：</p>
+<p>$$
+\begin{equation*}
+n(I)=n+n_{2} I \tag{7.19}
+\end{equation*}
+$$</p>
+<p>这就是所谓的光学克尔效应，在类似玻璃和糖水这样的材料中（非常微弱地）发生。在掺杂的玻璃中，$n_{2}$ 取值范围是 $10^{-14} \sim 10^{-7} \mathrm{~cm}^{2} / \mathrm{W}$ ，而在半导体中，取值范围是 $10^{-10} \sim 10^{2}$ 。实验上，相关的行为是当两束相同强度的光在克尔介质中近乎同向传输时，相比单束光的情况，它们每一个都会出现额外的相移 $\mathrm{e}^{-\mathrm{i} n_{2} I L \omega / c_{0}}$ 。如果长度 $L$ 能任意长就完美了，但不幸的是这不可能，因为大</p>
+<p>部分克尔介质的吸收也很强，或者会把光散射到预定的空间模式以外。这是单光量子计算机不现实的主要原因，正如我们将在 7.4.3 节讨论的那样。</p>
+<p>接下来我们讨论光学元件的量子描述。</p>
+<h2>7.4.2 量子计算</h2>
+<p>利用相移器，分束器和非线性光学克尔介质，可对编码于单光子态双轨表示的量子信息 $c_{0}|01\rangle+c_{1}|10\rangle$ 实现任意的酉变换。通过给出每个器件的量子力学哈密顿量描述，可让我们理解如何完成这些工作。</p>
+<p>正如我们在 7.3.2节看到的那样，腔模电磁辐射的时间演化可量子建模为一个简谐振子。 $|0\rangle$是真空态，$|1\rangle=a^{\dagger}|0\rangle$ 是单光子态，一般来说 $|n\rangle=\frac{a^{\dagger n}}{\sqrt{n!}}|0\rangle$ 是 $n$ 光子态，其中 $a^{\dagger}$ 是腔模的产生算子。自由空间演化由哈密顿量</p>
+<p>$$
+\begin{equation*}
+H=\hbar \omega a^{\dagger} a \tag{7.20}
+\end{equation*}
+$$</p>
+<p>描述。把它代人式（7.13），我们发现态 $\psi=c_{0}|0\rangle+c_{1}|1\rangle$ 随时间演化为 $|\psi(t)\rangle=c_{0}|0\rangle+c_{1} \mathrm{e}^{-\mathrm{i} \omega t}|1\rangle$ 。注意，双轨表示是很方便的，因为自由演化只改变 $|\varphi\rangle=c_{0}|01\rangle+c_{1}|10\rangle$ 的整体相位，它是测不到的。因此，对那个态来说，哈密顿量的演化是零。</p>
+<p>相移器。相移器 P 就像通常的时间演化一样起作用，但演化速率不同，且只局域地对通过它的模式起作用。那是因为光在大折射率的介质中减速，具体而言，在相对真空折射率为 $n$ 的介质中传输距离 $L$ ，需要多花的时间为 $\Delta \equiv\left(N-n_{0}\right) L / c_{0}$ 。比如，$P$ 对真空态不起作用：$P|0\rangle=|0\rangle$ ，但是对单光子态，我们有 $P|1\rangle=e^{i \Delta}|1\rangle$ 。
+$P$ 对双轨态实施了有用的逻辑操作。把一个相移器放置在一个模式上，延迟它与另外一个模式的相对相位。另外一个模式也传输了相同的距离，但是并没有通过相移器。对双轨态而言，这把态 $c_{0}|01\rangle+c_{1}|10\rangle$ 变换为 $c_{0} \mathrm{e}^{-\mathrm{i} \Delta / 2}|01\rangle+c_{1} \mathrm{e}^{\mathrm{i} \Delta / 2}|10\rangle$ ，加上一个无关紧要的整体相位。回忆一下 4.2 节，这个操作不过就是一个旋转</p>
+<p>$$
+\begin{equation*}
+R_{z}(\Delta)=\mathrm{e}^{-\mathrm{i} Z \Delta / 2} \tag{7.21}
+\end{equation*}
+$$</p>
+<p>其中我们令逻辑 0 为 $\left|0_{L}\right\rangle=|01\rangle$ ，逻辑 1 为 $|1\rangle_{L}=|10\rangle, Z$ 是通常的泡利算子。人们于是可以想象 $P$ 是哈密顿量</p>
+<p>$$
+\begin{equation*}
+H=\left(n_{0}-n\right) Z \tag{7.22}
+\end{equation*}
+$$</p>
+<p>时间演化的结果，这里的 $P=\exp \left(-\mathrm{i} H L / c_{0}\right)$ 。
+习题 7.7 证明下面的电路对一个双轨态的变换为</p>
+<p>$$
+\left|\psi_{\text {out }}\right\rangle=\left[\begin{array}{cc}
+\mathrm{e}^{\mathrm{i} \pi} &amp; 0  \tag{7.23}\\
+0 &amp; 1
+\end{array}\right]\left|\psi_{\text {in }}\right\rangle
+$$</p>
+<p>我们令上面的线代表 $|01\rangle$ 模，下面的线代表 $|10\rangle$ 模，而方框内的 $\pi$ 代表相位移动 $\pi \circ$
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-107.jpg?height=321&amp;width=1077&amp;top_left_y=526&amp;top_left_x=1346" /></p>
+<p>注意在这个＂光学电路＂中，空间中的传播被具体地表示为加入一块电路元件代表相位演化，如上图所示。在双轨表示中，遵循式（7.20）的演化只改变逻辑态不可观察的整体相位，因此我们可以扔掉它，只保留相对相位。
+习题 7.8 证明 $P|\alpha\rangle=\left|\alpha \mathrm{e}^{\mathrm{i} \Delta}\right\rangle$ ，其中 $|\alpha\rangle$ 是一个相干态（注意，一般而言 $\alpha$ 是一个复数！）。
+分束器。分束器的一个类似的哈密顿量描述也是存在的。我们将基于哈密顿量，而不是唯象地启发，证明如何产生出所预想的经典行为，比如式（7.17）和式（7.18）。回忆一下，分束器作用在两个模式上，我们可以用产生（湮灭）算子 $a\left(a^{\dagger}\right)$ 和 $b\left(b^{\dagger}\right)$ 描述它。哈密顿量为</p>
+<p>$$
+\begin{equation*}
+H_{b s}=\mathrm{i} \theta\left(a b^{\dagger}-a^{\dagger} b\right) \tag{7.24}
+\end{equation*}
+$$</p>
+<p>相应的分束器西操作为</p>
+<p>$$
+\begin{equation*}
+B=\exp \left[\theta\left(a^{\dagger} b-a b^{\dagger}\right)\right] \tag{7.25}
+\end{equation*}
+$$</p>
+<p>$B$ 对 $a$ 和 $b$ 产生的变换被发现是</p>
+<p>$$
+\begin{equation*}
+B a B^{\dagger}=a \cos \theta+b \sin \theta \quad \text { 和 } \quad B b B^{\dagger}=-a \sin \theta+b \cos \theta \tag{7.26}
+\end{equation*}
+$$</p>
+<p>这在后面会有用。我们利用贝克－坎贝尔－豪斯多夫公式</p>
+<p>$$
+\begin{equation*}
+\mathrm{e}^{\lambda G} A \mathrm{e}^{-\lambda G}=\sum_{n=0}^{\infty} \frac{\lambda^{n}}{n!} C_{n} \tag{7.27}
+\end{equation*}
+$$</p>
+<p>来证明这些关系（另见习题4.49），其中 $\lambda$ 是一个复数，$A, G, C_{n}$ 是算子，且 $C_{n}$ 是由一系列递归的对易子来定义的，$C_{0}=A, C_{1}=\left[G, C_{0}\right], C_{2}=\left[G, C_{1}\right], C_{3}=\left[G, C_{2}\right], \cdots, C_{n}=\left[G, C_{n-1}\right]$ 。既然基于 $\left[a, a^{\dagger}\right]=1$ 和 $\left[b, b^{\dagger}\right]=1$ ，对 $G \equiv a b^{\dagger}-a^{\dagger} b$ 我们有 $[G, a]=b$ 及 $[G, b]=-a$ 。对于 $B a B^{\dagger}$的展开式，我们得到一系列的参数 $C_{0}=a, C_{1}=[G, a]=b, C_{2}=\left[G, C_{1}\right]=-a, C_{3}=\left[G, C_{2}\right]=$ $-\left[G, C_{0}\right]=-b$ ，参数的通式为</p>
+<p>$$
+\begin{align*}
+&amp; C_{n \text { 为偶数 }}=\mathrm{i}^{n} a  \tag{7.28}\\
+&amp; C_{n} \text { 为奇数 } \tag{7.29}
+\end{align*}=-\mathrm{i}^{n+1} b
+$$</p>
+<p>于是，我们直接得到想要的结果：</p>
+<p>$$
+\begin{align*}
+B a B^{\dagger} &amp; =\mathrm{e}^{\theta G} a \mathrm{e}^{-\theta G}  \tag{7.30}\\
+&amp; =\sum_{n=0}^{\infty} \frac{\theta^{n}}{n!} C_{n} \tag{7.31}
+\end{align*}
+$$</p>
+<p>$$
+\begin{align*}
+&amp; =\sum_{n \text { 为偶数 }} \frac{(\mathrm{i} \theta)^{n}}{n!} a-\mathrm{i} \sum_{n \text { 为奇数 }} \frac{(\mathrm{i} \theta)^{n}}{n!} b  \tag{7.32}\\
+&amp; =a \cos \theta+b \sin \theta \tag{7.33}
+\end{align*}
+$$</p>
+<p>而变换 $B b B^{\dagger}$ 不过就是交换上述结果的 $a$ 与 $b$ 。注意，正如专题 7.3 解释的那样，分束器算子的出现来自于分束器与 $S U(2)$ 代数的深刻联系。</p>
+<p>在量子逻辑门方面，$B$ 实现了一个有用的操作。首先注意到 $B|00\rangle=|00\rangle$ ，也就是任意一个人射模式都不存在光子时，任意出射模也不存在光子。当模式 $a$ 存在一个光子时，考虑到 $|1\rangle=a^{\dagger}|0\rangle$ ，我们发现</p>
+<p>$$
+\begin{equation*}
+B|01\rangle=B a^{\dagger}|00\rangle=B a^{\dagger} B^{\dagger} B|00\rangle=\left(a^{\dagger} \cos \theta+b^{\dagger} \sin \theta\right)|00\rangle=\cos \theta|01\rangle+\sin \theta|10\rangle \tag{7.34}
+\end{equation*}
+$$</p>
+<p>类似地，$B|10\rangle=\cos \theta|10\rangle-\sin \theta|01\rangle$ 。于是，在 $\left|0_{L}\right\rangle$ 和 $\left|1_{L}\right\rangle$ 态的流形中，我们可以把 $B$ 写为</p>
+<p>$$
+B=\left[\begin{array}{cc}
+\cos \theta &amp; -\sin \theta  \tag{7.35}\\
+\sin \theta &amp; \cos \theta
+\end{array}\right]=\mathrm{e}^{\mathrm{i} \theta Y}
+$$</p>
+<p>相移器加上分束器可以在我们的光学量子比特上实现任意的单量子比特操作。这是定理 4.1 的推论，即所有单量子比特操作都可以通过沿 $\hat{z}$ 轴的旋转 $R_{z}(\alpha)=\exp (-\mathrm{i} \alpha Z / 2)$ 和沿 $\hat{y}$ 轴的旋转 $R_{y}(\alpha)=\exp (-\mathrm{i} \alpha Y / 2)$ 来生成。相移器实施 $R_{z}$ 旋转，而分束器实施 $R_{y}$ 旋转。</p>
+<h2>专题 $7.3 S U(2)$ 对称性与量子分束器</h2>
+<p>在李群 $S U(2)$ 与两个堣合的谐振子代数之间存在有趣的联系，它可以用于理解量子分束器变换。注意到</p>
+<p>$$
+\begin{align*}
+a^{\dagger} a-b^{\dagger} b &amp; \rightarrow Z  \tag{7.36}\\
+a^{\dagger} b &amp; \rightarrow \sigma_{+}  \tag{7.37}\\
+a b^{\dagger} &amp; \rightarrow \sigma_{-} \tag{7.38}
+\end{align*}
+$$</p>
+<p>其中 $Z$ 是泡利算子，而 $\sigma_{ \pm}=(X \pm \mathrm{i} Y) / 2$ 是通过泡利 $X$ 与 $Y$ 算子定义的上升与下降算子。从 $a, a^{\dagger}, b, b^{\dagger}$ 的对易关系，很容易确认这些定义满足泡利算子通常的对易关系，式（2.40）。同时考虑到整体粒子数算子 $a^{\dagger} a+b^{\dagger} b$ 与 $\sigma_{z}, \sigma_{+}, \sigma_{-}$对易，它应该是 $S U(2)$ 空间旋转下的不变量。在传统的 $S U(2)$ 旋转算子</p>
+<p>$$
+R(\hat{n}, \theta)=\mathrm{e}^{-\mathrm{i} \theta d \cdot \hat{n} / 2}
+$$</p>
+<p>中应用 $X=a^{\dagger} b+a b^{\dagger}$ 和 $Y=-\mathrm{i}\left(a^{\dagger} b-a b^{\dagger}\right)$ ，可给我们所需要的分束器算子，此时 $\hat{n}$ 选择沿</p>
+<p>着 $-\hat{y}$ 轴。
+习题 7.9 （光学阿达玛门）证明下面的电路在双轨表示单光子态上实现阿达玛门，也就是 $|01\rangle \rightarrow(|01\rangle+|10\rangle / \sqrt{2})$ ，以及 $|10\rangle \rightarrow(|01\rangle-|10\rangle) \sqrt{2}$ ，再加一个整体相位。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-109.jpg?height=304&amp;width=606&amp;top_left_y=1023&amp;top_left_x=1570" /></p>
+<p>习题 7.10 （马赫－曾德尔干涉仪）干涉仪是一个用于测量小相移的光学工具，它包含两个分束器。其基本操作原理可以通过如下的习题得以理解。</p>
+<p>1.考虑到到如下的电路实现一个全同操作。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-109.jpg?height=286&amp;width=1030&amp;top_left_y=1800&amp;top_left_x=1451" /></p>
+<p>2.计算如下电路实现的旋转操作与相位 $\varphi$ 的函数关系（在双轨表示态上）。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-109.jpg?height=327&amp;width=967&amp;top_left_y=2297&amp;top_left_x=1494" /></p>
+<p>习题 7.11 当 $\theta=\pi / 4$ 时，计算 $B|2,0\rangle$ 。
+习题 7.12 （经典输入时的量子分束器）如果 $|\alpha\rangle$ 与 $|\beta\rangle$ 是式（7.16）定义的相干态，计算 $B|\alpha\rangle|\beta\rangle$ （提示：考虑 $|n\rangle=\frac{\left(a^{\dagger}\right)^{n}}{\sqrt{n!}}|0\rangle$ ）。</p>
+<p>非线性克尔介质。克尔媒介最重要的效应是给光的两个模式提供的交叉相位调制（cross phase modulation）。此效应经典描述见式（7.19）中的 $n_{2}$ 项，它代表了在克尔介质中光子之间由原子做媒介产生的有效相互作用，基于量子力学，这个效应可以由如下哈密顿量描述</p>
+<p>$$
+\begin{equation*}
+H_{\mathrm{xpm}}=-\chi a^{\dagger} a b^{\dagger} b \tag{7.40}
+\end{equation*}
+$$</p>
+<p>其中 $a$ 和 $b$ 描述了在介质中传播的两个模式，而对于一个长为 $L$ 的晶体，我们可得酉变换</p>
+<p>$$
+\begin{equation*}
+K=\mathrm{e}^{\mathrm{i} \chi L a^{\dagger} a b^{\dagger} b} \tag{7.41}
+\end{equation*}
+$$</p>
+<p>这里的 $\chi$ 是与 $n_{2}$ 有关的参数，而三阶非线性极化率系数通常写为 $\chi^{(3)}$ 。由此哈密顿量产生的预料中的经典行为作为习题 7.14 留给读者。</p>
+<p>通过合并非线性媒介与分束器，一个受控非门可以如下方式构建出来。对单光子态，我们发现</p>
+<p>$$
+\begin{align*}
+K|00\rangle &amp; =|00\rangle  \tag{7.42}\\
+K|01\rangle &amp; =|01\rangle  \tag{7.43}\\
+K|10\rangle &amp; =|10\rangle  \tag{7.44}\\
+K|11\rangle &amp; =\mathrm{e}^{\mathrm{i} \chi L}|11\rangle \tag{7.45}
+\end{align*}
+$$</p>
+<p>此时我们选取 $\chi L=\pi$ ，于是有 $K|11\rangle=-|11\rangle$ 。现在考虑两个双轨表示态，即为光的四个模式。它们存在于一个由四基矢张开的空间：$e_{00}=|1001\rangle, e_{01}=|1010\rangle, e_{10}=|0101\rangle, e_{11}=|0110\rangle$ 。注意，为了方便起见，我们调换了第一对两个模式的通常顺序（物理上，用镜子可以很方便地调换这两个模式）。此时，如果一个克尔媒介作用于两个中间的模式上，我们可得，对所有 $i$ 来说， $K\left|e_{i}\right\rangle=\left|e_{i}\right\rangle$ ，除了 $K\left|e_{11}\right\rangle=-\left|e_{11}\right\rangle$ 。这很有用，因为受控非操作可以分解为</p>
+<p>$$
+\underbrace{\left[\begin{array}{cccc}
+1 &amp; 0 &amp; 0 &amp; 0  \tag{7.46}\\
+0 &amp; 1 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; 1 \\
+0 &amp; 0 &amp; 1 &amp; 0
+\end{array}\right]}_{U_{C N}}=\underbrace{\frac{1}{\sqrt{2}}\left[\begin{array}{cccc}
+1 &amp; 1 &amp; 0 &amp; 0 \\
+1 &amp; -1 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 1 &amp; 1 \\
+0 &amp; 0 &amp; 1 &amp; -1
+\end{array}\right]}_{I \otimes H} \underbrace{\left[\begin{array}{cccc}
+1 &amp; 0 &amp; 0 &amp; 0 \\
+0 &amp; 1 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 1 &amp; 0 \\
+0 &amp; 0 &amp; 0 &amp; -1
+\end{array}\right]}_{K} \underbrace{\frac{1}{\sqrt{2}}\left[\begin{array}{cccc}
+1 &amp; 1 &amp; 0 &amp; 0 \\
+1 &amp; -1 &amp; 0 &amp; 0 \\
+0 &amp; 0 &amp; 1 &amp; 1 \\
+0 &amp; 0 &amp; 1 &amp; -1
+\end{array}\right]}_{I \otimes H}
+$$</p>
+<p>其中 $H$ 是单量子比特阿达玛变换（用分束器与相移器很容易即可实现），而 $K$ 是我们刚考虑过的克尔相互作用，选取 $\chi L=\pi_{\circ}$ 。在构建可逆的经典光学逻辑门时，这种装置以前曾被讨论过，如专题 7.4 所示，在单光子区域，它也能起到量子逻辑门的功能。</p>
+<p>总结一下，通过克尔介质可以构建受控非门，而任意单量子比特操作可以用分束器与相移器实现。单光子可以用衰减后的激光器来产生，通过光子探测器测量。因此，理论上而言，一台量子计算机可由这些光学元件构建。</p>
+<h2>专题 7.4 量子光学 Fredkin 门</h2>
+<p>一个光学 Fredkin 门可以用两个分束器与一个非线性克尔介质构建，如这个原理图所示：
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-110.jpg?height=374&amp;width=1013&amp;top_left_y=3361&amp;top_left_x=1320" /></p>
+<p>这实现了酉变换 $U=B^{\dagger} K B$ ，其中 $B$ 是一个 $50 / 50$ 的分束器，$K$ 是克尔交叉相位调制算子 $K=\mathrm{e}^{\mathrm{i} \xi b^{\dagger} b c^{\dagger} c}$ ，而 $\xi=\chi L$ 是耦合常数与相互作用长度的乘积。化简之后可得</p>
+<p>$$
+\begin{align*}
+U &amp; =\exp \left[\mathrm{i} \xi c^{\dagger} c\left(\frac{b^{\dagger}-a^{\dagger}}{2}\right)\left(\frac{b-a}{2}\right)\right]  \tag{7.47}\\
+&amp; =\mathrm{e}^{\mathrm{i} \frac{\pi}{2} b^{\dagger} b} \mathrm{e}^{\frac{\xi}{2} c^{\dagger} c\left(a^{\dagger} b-b^{\dagger} a\right)} \mathrm{e}^{-\mathrm{i} \frac{\pi}{2} b^{\dagger} b} \mathrm{e}^{\mathrm{i} \frac{\xi}{2} a^{\dagger} a c^{\dagger} c} \mathrm{e}^{\mathrm{i} \frac{\xi}{2} b^{\dagger} b c^{\dagger} c} \tag{7.48}
+\end{align*}
+$$</p>
+<p>第一和第三个指数项是恒定的相移，而最后两个相移来自于交叉相位调制。所有这些效应都不是基本的，可以被抵消掉。有价值的是第二个指数项，它定义了量子 Fredkin 算子</p>
+<p>$$
+\begin{equation*}
+F(\xi)=\exp \left[\frac{\xi}{2} c^{\dagger} c\left(a^{\dagger} b-b^{\dagger} a\right)\right] \tag{7.49}
+\end{equation*}
+$$</p>
+<p>通常的（经典）Fredkin 门算子当 $\xi=\pi$ 时得到，此时如果 $c$ 模没有光子输入，那么 $a^{\prime}=a$</p>
+<p>且 $b^{\prime}=b$ ，而如果 $c$ 中有一个单光子输入，那么 $a^{\prime}=b$ 且 $b^{\prime}=a$ 。这可以被理解为 $F(\xi)$ 类似是一个控制分束器算子，其旋转角度是 $\xi c^{\dagger} c$ 。注意，这种描述没有用到双轨表示；在那个表示中，此 Fredkin 门对应于一个受控非门。</p>
+<p>习题7.13（光学 Deutsch－Jozsa 量子电路）在1.4.4节，我们描述了一个量子电路，用于解决单比特 Deutsch－Jozsa 问题。用分束器，相移器和非线性克尔介质实现的此电路的单光子态版本 （基于双轨表示）如下：
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_1c481e3f22570acf40f6g-111.jpg?height=786&amp;width=1786&amp;top_left_y=1387&amp;top_left_x=945" /></p>
+<p>1.用 Fredkin 门和分束器构建电路，实现四个可能的经典方程 $U_{f}$ 。
+2.为什么在此构建中相移器不是必需的？
+3.对每个 $U_{f}$ ，明确地展示出干涉如何用于解释量子算法的工作机理。
+4.如果单光子态被相干态代替，这种实现方式还可行吗？
+习题 7.14 （经典交叉相位调制）预料中的克尔媒介的经典行为可由 $K$ 的定义式（7.41）导出。为了看到这点，将其作用到两个模式上，一个处于相干态，另外一个处于 $|n\rangle$ 。即要证明</p>
+<p>$$
+\begin{equation*}
+K|\alpha\rangle|n\rangle=\left|\alpha \mathrm{e}^{\mathrm{i} \xi L n}\right\rangle|n\rangle \tag{7.50}
+\end{equation*}
+$$</p>
+<p>用它计算</p>
+<p>$$
+\begin{align*}
+\rho_{a} &amp; =\operatorname{Tr}_{b}\left[K|\alpha\rangle|\beta\rangle\langle\beta|\langle\alpha| K^{\dagger}\right]  \tag{7.51}\\
+&amp; =\mathrm{e}^{-|\beta|^{2}} \sum_{m} \frac{|\beta|^{2 m}}{m!}\left|\alpha \mathrm{e}^{\mathrm{i} \xi L m}\right\rangle\left\langle\alpha \mathrm{e}^{\mathrm{i} \xi L m}\right| \tag{7.52}
+\end{align*}
+$$</p>
+<p>并证明求和的主要贡献来自于 $m=|\beta|^{2}$ 。</p>
+<h2>7.4.3 缺陷</h2>
+<p>量子比特的单光子表示是有吸引力的。单光子相对容易制备和测量，且在双轨表示中，任意单光子操作也可实现。但不幸的是，光子的相互作用很难——在现有最好的非线性克尔介质中都很微弱，且无法实现单光子态之间的交叉 $\pi$ 相位的调制。实际上，因为非线性折射率通常在介质的光学共振区附近获得，非线性总会伴随着一些吸收。从理论上估计，在最好的情况下，为实现一个光子交叉 $\pi$ 相位的调制，大约有 50 个光子必须被吸收掉。这意味着用传统非线性光学元件建造量子计算机的前景是渺茫的。</p>
+<p>无论如何，通过研究这个光学量子计算机，我们增进了对量子计算机体系结构和系统设计本质的宝贵洞察力。现在我们可以知道实验室中真正的量子计算应该长什么样（如果有足够好的元件来建造它的话），且一个显著特征是它几乎完全由光学干涉仪来构建。在这个设备中，信息被编码在光子数和光子相位中，而干涉仪被用于在两种表示之间的转换。尽管建造稳定的光学干涉仪是可行的，但如果另外选有质量的量子比特表示，那么建造稳定的干涉仪就变得很困难了，因为通常德布罗意物质波波长太短。即使用光学表示，实现一个大的量子算法需要多个互相锁定的干涉仪，在实验室中稳定它们是极具挑战性的。</p>
+<p>在历史上，光学经典计算机曾被认为是有希望替代电子计算机的，但由于足够大的非线性光学材料未被发现，以及其速度与并行优势不足以抵消校准和功率的劣势，光学计算机最终并未如预计的那样出现。另一方面，光通信是一个有活力和重要的领域，一个原因是当距离长于一厘米时，利用光纤中的光子传输一个比特的的信息所需要的能量，小于给一个同样长的 50 欧姆传输电线充电所需的能量。类似地，很可能光学量子比特会在量子信息的通信中找到自然的归宿，比如说量子密码，而不是量子计算。</p>
+<p>尽管光学量子计算机的实现面临很多缺陷，但描述它的理论形式对我们将要在本章剩余部分讨论的其他物理实现而言绝对都是很基本的。实际上，你可以想象为我们接下来会讨论其他种类的光学量子计算机，只不过基于不同的（更好的！）非线性介质。</p>
+<h2>光学光量子计算机</h2>
+<ul>
+<li>量子比特表示：两个模式（ $|01\rangle$ 和 $|10\rangle$ ）单光子的位置或者偏振。</li>
+<li>酉演化：任意变换都可以通过相移器（ $R_{z}$ 旋转），分束器（ $R_{y}$ 旋转）及非线性克尔介质来实现，它可以让两个单光子间出现交叉相位调制，即 $\exp [\mathrm{i} \chi L|11\rangle\langle 11|]$ 。</li>
+<li>初态制备：产生单光子态（比如用衰减后的激光）。</li>
+<li>读出：探测单光子（比如用光电倍增管）。</li>
+<li>缺陷：交叉相位调制率与吸收率之比很大的非线性克尔介质难以实现。</li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QCQI.9QI2量子信息的距离度量</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js"></script>
+  <script>
+    // 在 DOMContentLoaded 后调用 renderMathInElement
+    document.addEventListener("DOMContentLoaded", function() {
+      renderMathInElement(document.body, {
+  "delimiters": [
+    {
+      "left": "$$",
+      "right": "$$",
+      "display": true
+    },
+    {
+      "left": "$",
+      "right": "$",
+      "display": false
+    }
+  ],
+  "ignoredTags": [
+    "script",
+    "noscript",
+    "style",
+    "textarea",
+    "pre",
+    "option"
+  ],
+  "throwOnError": false
+});
+    });
+</script>
+  <style>
+    html {
+      font-size: 100%;
+    }
+    body {
+      margin: 0 auto;
+      padding: 1rem;
+      max-width: 70ch;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      line-height: 1.7;
+      background-color: #fdfdfd;
+      color: #333;
+    }
+    img, video, svg {
+        max-width: 100%;
+        height: auto;
+        display: block;
+    }
+    h1, h2, h3, h4, h5, h6 {
+        line-height: 1.3;
+    }
+    code {
+      background: #f0f0f0;
+      padding: 0.2em 0.4em;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    pre {
+      background: #f0f0f0;
+      padding: 1em;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 0.9em;
+    }
+    pre code {
+        padding: 0;
+        background: none;
+        font-size: 1em;
+    }
+    a {
+        color: #007bff;
+        text-decoration: none;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+    .katex-display {
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 0.2em;
+    }
+    .katex {
+        font-size: 1.05em;
+    }
+  </style>
+</head>
+<body>
+<h1>第 9 章 量子信息的距离度量</h1>
+<p>两则信息类似是什么意思？一个过程保护一则信息意味着什么？这些问题都是量子信息处理理论的核心问题，而本章的目的就是通过发展距离度量来定量地回答上述问题。围绕上面的两个问题，我们将重点考察两大类距离度量：静态度量和动态度量。静态度量定量刻画两个量子态之间的距离，而动态度量则描述一个过程前后，量子信息被保护得好坏。我们的策略是首先发展出好的静态距离度量，然后以此为基础，发展出距离的动态度量。</p>
+<p>其实，无论从经典角度还是量子角度，距离度量的定义都有一定的随意性，而量子信息和量子计算圈子里的人们多年来就发现，使用一系列不同的距离度量是非常方便的。其中，迹距离和保真度是当今使用最广泛的两个距离度量，本章我们将详细介绍这两种度量。其实在大部分特性上，这两种度量十分相似，但在某些具体应用上，最合适的办法往往是选择其中更合适的那一个。本章讨论这两种度量的原因就是这个状况，以及它们在量子计算和量子信息中被广泛应用的事实。</p>
+<h1>9.1 经典信息的距离度量</h1>
+<h2>区分概率分布的想法需要小心应对。</h2>
+<p>我们从一个相对更容易运用我们直观想法的场景开始——经典信息的距离度量。在经典信息论中，我们比较的对象是什么呢？比如我们可能比较字符串 00010 和 10011 。一个可能的度量它们之间距离的方法是汉明距离，这种距离定义为这两个字符串中所有内容不同的比特位置的数量。例如， 00010 和 10011 在第一个和最后一个比特上内容不同，因此它们之间的汉明距离是 2。糟糕的是，两个对象之间的汉明距离仅仅涉及标号的问题，但量子力学所依赖的希尔伯特空间中，原本就没有标号的概念。</p>
+<p>实际上，对研究量子信息之间的距离度量来说，一个好得多的出发点是经典概率分布之间的比较。在经典信息论中，一个信源通常被建模为一个随机变量，也就是某个源信息对应字符表的概率分布。例如，一个未知的英语文字的信源一般被建模为一串取值在罗马字母表上的随机变量。在我们读取文字之前，我们可以就字母在文字中出现的相对频率，或者这些字母之间的特定关联，做一些合理的猜测。例如，字母对＂th＂在英文中比字母对＂zx＂常见得多。信源的这种可以被看作某种字母表上概率分布的特征，启发着我们在寻找距离度量的时候，将精力集中在对概率分布的比较上。</p>
+<p>对于两个定义在同一个标号集上的两个概率分布 $\left\{p_{x}\right\}$ 和 $\left\{q_{x}\right\}$ ，当我们说它们很接近的时候，到底意味着什么？为这个问题给出一个独一无二＂正确＂的答案是不容易的，因此，我们将尝试给出两个不同的回答，实际上这两种回答中的任何一种都在量子信息和量子计算圈子中被广泛应用。第一个度量是迹距离，其定义如下：</p>
+<p>$$
+\begin{equation*}
+D\left(p_{x}, q_{x}\right) \equiv \frac{1}{2} \sum_{x}\left|p_{x}-q_{x}\right| \tag{9.1}
+\end{equation*}
+$$</p>
+<p>这个量有时候也被称作 $L_{1}$ 距离或者 Kolmogorov 距离。我们倾向迹距离这个称呼，因为它预见了后来出现的量子力学对应，而这个对应就是用迹函数来定义的。实际上，迹距离是一个关于概率分布的真正度量（一个真正的度量 $D(x, y)$ 需要满足对称性，$D(x, y)=D(y, x)$ ，以及满足三角不等式，$D(x, z) \leqslant D(x, y)+D(y, z)$ ）。因此，这个名称中＂距离＂的提法恰如其分。
+习题 9.1 概率分布 $(1,0)$ 和 $(1 / 2,1 / 2)$ 之间的迹距离是多少？$(1 / 2,1 / 3,1 / 6)$ 和 $(3 / 4,1 / 8,1 / 8)$ 之间呢？</p>
+<p>习题 9.2 证明概率分布 $(p, 1-p)$ 和 $(q, 1-q)$ 之间的迹距离是 $|p-q|$ 。
+第二种概率分布间的距离度量是保真度。概率分布 $\left\{p_{x}\right\}$ 和 $\left\{q_{x}\right\}$ 之间的保真度定义为</p>
+<p>$$
+\begin{equation*}
+F\left(p_{x}, q_{x}\right) \equiv \sum_{x} \sqrt{p_{x} q_{x}} \tag{9.2}
+\end{equation*}
+$$</p>
+<p>相比迹距离，保真度是一个非常不同的度量概率分布间距离的方法。首先，保真度并不是一个真正的度量，虽然后面我们会看到，可以从保真度出发定义一个真正的度量。为了看出这一点，注意当 $\left\{p_{x}\right\}$ 和 $\left\{q_{x}\right\}$ 完全相同的时候，$F\left(p_{x}, q_{x}\right)=\sum_{x} p_{x}=1_{\circ}$ 一个更好的从几何角度出发理解保真度的方法见图 9－1；保真度实际上就是单位球面上的两个元素为 $\sqrt{p_{x}}$ 和 $\sqrt{q_{x}}$ 的向量间的内积。
+习题 9.3 概率分布 $(1,0)$ 和 $(1 / 2,1 / 2)$ 之间的保真度是多少？$(1 / 2,1 / 3,1 / 6)$ 和 $(3 / 4,1 / 8,1 / 8)$ 之间呢？</p>
+<p>从数学意义上来说，迹距离和保真度是两个有用的距离度量概念。那么，它们是否也有对应的物理意义呢？就迹距离来说，这个问题的答案是肯定的。</p>
+<p>特别是，不难证明</p>
+<p>$$
+\begin{equation*}
+D\left(p_{x}, q_{x}\right)=\max _{S}|p(S)-q(S)|=\max _{S}\left|\sum_{x \in S} p_{x}-\sum_{x \in S} q_{x}\right| \tag{9.3}
+\end{equation*}
+$$</p>
+<p>这里是对指标集 ${x}$ 的所有子集 $S$ 取最大值。被取最大值的量，其实就是根据概率分布 $\left\{p_{x}\right\}$ 事件 $S$ 发生的概率，和根据概率分布 $\left\{q_{x}\right\}$ 事件 $S$ 发生的概率之间的距离。因此，事件 $S$ 也就是当我们想分辨分布 $\left\{p_{x}\right\}$ 和 $\left\{q_{x}\right\}$ 时最佳的考察事件。在这里，迹距离决定了我们能多好地做出区分。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_a653dfefb9c869ab47feg-045.jpg?height=902&amp;width=891&amp;top_left_y=1003&amp;top_left_x=1416" />
+$F(p, q)=\sqrt{p} \cdot \sqrt{q}=\cos (\sigma)$
+图 9－1 保真度的几何解释，它可认为是单位球面上向量 $\sqrt{p_{x}}$ 和 $\sqrt{q_{x}}$ 之间的内积（因为 $1=\sum_{x}\left(\sqrt{p_{x}}\right)^{2}=$ $\left.\sum_{x}\left(\sqrt{q_{x}}\right)^{2}\right)$</p>
+<p>扫兴的是，类似的清晰解释对保真度来说依然是未知的。但是，在下一节我们会展示，即使没有清晰的物理解释，数学上保真度已经是一个足够好用的量，因此依然值得研究。而且，我们也不能排除未来能为保真度找到清晰物理解释的可能性。最后，还要指出，在迹距离和保真度之间其实存在着紧密的联系。因此，其中一个的特性经常被用来反推另外一个的性质，这常常是一个非常有用的事实。</p>
+<p>习题 9.4 证明式（9.3）。
+习题 9.5 证明式（9.3）中的绝对值符号可以去掉，也就是说，</p>
+<p>$$
+\begin{equation*}
+D\left(p_{x}, q_{x}\right)=\max _{S}(p(S)-q(S))=\max _{S}\left(\sum_{x \in S} p_{x}-\sum_{x \in S} q_{x}\right) \tag{9.4}
+\end{equation*}
+$$</p>
+<p>迹距离和保真度是比较两个固定概率分布的静态度量。另一个距离的度量是一个动态度量，它刻画了某个具体的物理过程中，量子信息被保护得好坏。假设一个随机变量 $X$ 被通过一个有噪声信道传送出去，以另一个随机变量 $Y$ 的形式输出，形成一个马尔可夫过程 $X \rightarrow Y$ 。为了方便讨论，我们假设 $X$ 和 $Y$ 有相同的取值范围，取值记作 $x$ 。那么，$X$ 和 $Y$ 分布不同的总概率，即 $p(X \neq Y)$ ，将是一个显而易见的可以衡量整个过程保护信息好坏程度的量。</p>
+<p>让人惊奇的是，动态距离度量也可以理解成静态迹距离的一个特例。想象我们被赋予一个随机变量 $X$ ，然后我们制备它的一个拷贝，产生一个新的随机变量 $\tilde{X}=X$ 。将 $X$ 通过一个有噪声信道传递出去，如图 9－2 所示产生输出随机变量 $Y$ 。那么开始的完美关联对 $(\tilde{X}, X)$ ，距离结尾的关联对（ $\tilde{X}, Y)$ 多远呢？我们可以用迹距离来衡量接近的程度，通过简单的计算可以得到</p>
+<p>$$
+\begin{align*}
+D((\tilde{X}, X),(X, Y)) &amp; =\frac{1}{2} \sum_{x x^{\prime}}\left|\delta_{x x^{\prime}} p(X=x)-p\left(\tilde{X}=x, Y=x^{\prime}\right)\right|  \tag{9.5}\\
+&amp; =\frac{1}{2} \sum_{x \neq x^{\prime}} p\left(\tilde{X}=x, Y=x^{\prime}\right)+\frac{1}{2} \sum_{x}|p(X=x)-p(\tilde{X}=x, Y=x)| \tag{9.6}
+\end{align*}
+$$</p>
+<p>$$
+\begin{align*}
+&amp; =\frac{1}{2} \sum_{x \neq x^{\prime}} p\left(\tilde{X}=x, Y=x^{\prime}\right)+\frac{1}{2} \sum_{x}(p(X=x)-p(\tilde{X}=x, Y=x))  \tag{9.7}\\
+&amp; =\frac{p(\tilde{X} \neq Y)+1-p(\tilde{X}=Y)}{2}  \tag{9.8}\\
+&amp; =\frac{p(X \neq Y)+p(\tilde{X} \neq Y)}{2}  \tag{9.9}\\
+&amp; =p(X \neq Y) \tag{9.10}
+\end{align*}
+$$</p>
+<p>因此，如图 9－3 所示，信道发生错误的概率，就是概率分布 $(\tilde{X}, X)$ 和 $(\tilde{X}, Y)$ 之间的迹距离。这是一个重要的构造，因为在量子情形我们也有类似的对应。这种对应是必不可少的，因为概率分布 $p(X \neq Y)$ 并没有一个直接的量子对应，其根源是，在量子力学中并没有经典情形这种于不同时间点出现的两个随机变量 $X$ 和 $Y$ 的联合分布的概念。于是，为了定义量子距离的动态度量，我们采用一种类似的构造。注意在这里，量子信道的动态行为所保护的重要对象，不再是经典关联，而是量子纠缠。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_a653dfefb9c869ab47feg-046.jpg?height=490&amp;width=1856&amp;top_left_y=2419&amp;top_left_x=875" /></p>
+<p>图 9－2 对于一个马尔可夫过程 $X \rightarrow Y$ ，我们可以先制备一个 $X$ 的拷贝 $\tilde{X}$ ，然后 $X$ 被噪声影响产生 $Y$
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_a653dfefb9c869ab47feg-046.jpg?height=1077&amp;width=1804&amp;top_left_y=3393&amp;top_left_x=895" /></p>
+<p>图 9－3 信道中错误发生的概率等于 $(\tilde{X}, X)$ 和 $(\tilde{X}, Y)$ 对应概率分布之间的迹距离</p>
+<h1>9.2 两个量子态有多接近</h1>
+<p>两个量子态有多接近？在接下来几节，我们将介绍迹距离和保真度这些经典概念的量子推广，并且讨论它们的具体特性。</p>
+<h2>9.2.1 迹距离</h2>
+<p>我们首先定义量子态 $\rho$ 和 $\sigma$ 之间的迹距离为</p>
+<p>$$
+\begin{equation*}
+D(\rho, \sigma) \equiv \frac{1}{2} \operatorname{tr}|\rho-\sigma| \tag{9.11}
+\end{equation*}
+$$</p>
+<p>这里跟平常一样，我们定义 $|A|=\sqrt{A^{\dagger} A}$ 是算子 $A^{\dagger} A$ 的正平方根。注意，当 $\rho$ 和 $\sigma$ 可交换时，$\rho$和 $\sigma$ 之间的量子迹距离正好就是它们特征值之间的经典迹距离，因此我们的量子迹距离确实可以看作经典迹距离的推广。具体来说，如果 $\rho$ 和 $\sigma$ 可交换，那么它们就可以被同时对角化，即有</p>
+<p>$$
+\begin{equation*}
+\rho=\sum_{i} r_{i}|i\rangle\langle i| ; \quad \sigma=\sum_{i} s_{i}|i\rangle\langle i| \tag{9.12}
+\end{equation*}
+$$</p>
+<p>对某组正交基 $|i\rangle$ 成立。因此</p>
+<p>$$
+\begin{align*}
+D(\rho, \sigma) &amp; \left.=\frac{1}{2} \operatorname{tr}\left|\sum_{i}\left(r_{i}-s_{i}\right)\right| i\right\rangle\langle i| \mid  \tag{9.13}\\
+&amp; =D\left(r_{i}, s_{i}\right) \tag{9.14}
+\end{align*}
+$$</p>
+<p>习题 9.6 密度算子</p>
+<p>$$
+\begin{equation*}
+\frac{3}{4}|0\rangle\langle 0|+\frac{1}{4}|1\rangle\langle 1|, \quad \frac{2}{3}|0\rangle\langle 0|+\frac{1}{3}|1\rangle\langle 1| \tag{9.15}
+\end{equation*}
+$$</p>
+<p>之间的迹距离是多少？</p>
+<p>$$
+\begin{equation*}
+\frac{3}{4}|0\rangle\langle 0|+\frac{1}{4}|1\rangle\langle 1|, \quad \frac{2}{3}|+\rangle\langle+|+\frac{1}{3}|-\rangle\langle-| \tag{9.16}
+\end{equation*}
+$$</p>
+<p>之间呢？（注意 $| \pm\rangle \equiv(|0\rangle \pm|1\rangle) / \sqrt{2}$ 。）</p>
+<p>为了体会迹距离的特点，一个好的开端是以布洛赫球描述的方式，考察单量子比特这种特殊情况。假设 $\rho$ 和 $\sigma$ 的布洛赫向量分别为 $\vec{r}$ 和 $\vec{s}$ ，</p>
+<p>$$
+\begin{equation*}
+\rho=\frac{I+\vec{r} \cdot \vec{\sigma}}{2} ; \quad \sigma=\frac{I+\vec{s} \cdot \vec{\sigma}}{2} \tag{9.17}
+\end{equation*}
+$$</p>
+<p>（如前所述，$\vec{\sigma}$ 代表泡利矩阵的向量，所以跟量子态 $\sigma$ 不同。）不难计算，$\rho$ 和 $\sigma$ 之间的迹距离为</p>
+<p>$$
+\begin{align*}
+D(\rho, \sigma) &amp; =\frac{1}{2} \operatorname{tr}|\rho-\sigma|  \tag{9.18}\\
+&amp; =\frac{1}{4} \operatorname{tr}|(\vec{r}-\vec{s}) \cdot \vec{\sigma}| \tag{9.19}
+\end{align*}
+$$</p>
+<p>$(\vec{r}-\vec{s}) \cdot \vec{\sigma}$ 的特征值为 $\pm|\vec{r}-\vec{s}|$ ，因此，$|(\vec{r}-\vec{s}) \cdot \vec{\sigma}|$ 的迹为 $2|\vec{r}-\vec{s}|$ ，于是我们有</p>
+<p>$$
+\begin{equation*}
+D(\rho, \sigma)=\frac{|\vec{r}-\vec{s}|}{2} \tag{9.20}
+\end{equation*}
+$$</p>
+<p>也就是说，两个单量子比特之间的迹距离，就是它们在布洛赫球上欧几里得距离的一半！
+量子比特情形的这种直观几何解释，经常被用来帮助理解迹距离的一般特性。通过布洛赫球上的简单例子，我们可以猜测或否决迹距离的一些可能特性，又或者初步确认一些候选特性的合理性。例如，布洛赫球上的旋转不改变欧几里得距离，因此，一般来说西变换应该不会改变迹距离，即</p>
+<p>$$
+\begin{equation*}
+D\left(U \rho U^{\dagger}, U \sigma U^{\dagger}\right)=D(\rho, \sigma) \tag{9.21}
+\end{equation*}
+$$</p>
+<p>其实这是一个很容易确认为正确的猜想。在距离度量的研究中，我们时不时会回到布洛赫球上来。
+为了真正理解迹距离，一个很好的起始点是将式（9.3）中对经典迹距离的刻画推广到量子情形：</p>
+<p>$$
+\begin{equation*}
+D(\rho, \sigma)=\max _{P} \operatorname{tr}(P(\rho-\sigma)) \tag{9.22}
+\end{equation*}
+$$</p>
+<p>这里，最大值是取值在所有可能的投影算子 $P$ ，或者所有满足 $P \leqslant I$ 的正定算子上，两者都给出相同的形式。这个表达形式为迹距离赋予了一个非常吸引人的解释。如前所述，POVM 元素是满足 $P \leqslant I$ 的正定算子。因此，迹距离实际上是在取遍所有可能的 POVM 元素 $P$ 的情况下， POVM 作用在 $\rho$ 和 $\sigma$ 上输出元素 $P$ 对应结果的概率的最大可能差值。</p>
+<p>我们现在针对式（9.22）中 $P$ 取投影算子的情形，证明其正确性；取满足 $P \leqslant I$ 的正定算子的情形证明过程类似。证明将基于下面的事实，$\rho-\sigma$ 可以表示为 $\rho-\sigma=Q-S$ ，这里，$Q$ 和 $S$ 是具有正交支集的正定算子（见习题9.7）。这意味着 $|\rho-\sigma|=Q+S$ ，因此 $D(\rho, \sigma)=(\operatorname{tr}(Q)+\operatorname{tr}(S)) / 2$ 。但是 $\operatorname{tr}(Q-S)=\operatorname{tr}(\rho-\sigma)=0$ ，于是 $\operatorname{tr}(Q)=\operatorname{tr}(S)$ ，所以 $D(\rho, \sigma)=\operatorname{tr}(Q)$ 。假设 $P$ 是投影到 $Q$的支集空间上的投影算子，则 $\operatorname{tr}(P(\rho-\sigma))=\operatorname{tr}(P(Q-S))=\operatorname{tr}(Q)=D(\rho, \sigma)$ 。与之相反，假设 $P$ 是任意投影算子。则 $\operatorname{tr}(P(\rho-\sigma))=\operatorname{tr}(P(Q-S)) \leqslant \operatorname{tr}(P Q) \leqslant \operatorname{tr}(Q)=D(\rho, \sigma)$ 。这样就完成了证明。</p>
+<p>习题 9.7 证明对于任意密度算子 $\rho$ 和 $\sigma$ ，我们有 $\rho-\sigma=Q-S$ ，这里 $Q$ 和 $S$ 是两个正定算子，它们的支集是正交的两个向量子空间。（提示：使用谱分解 $\rho-\sigma=U D U^{\dagger}$ ，并将对角矩阵 $D$ 分为正负两个部分。我们后面将反复使用这个结论。）</p>
+<p>下面的结果显示，量子迹距离跟经典迹距离之间的关系，比看起来的更紧密。
+定理 9.1 假设 $\left\{E_{m}\right\}$ 是一个 POVM，$p_{m} \equiv \operatorname{tr}\left(\rho E_{m}\right)$ 和 $q_{m} \equiv \operatorname{tr}\left(\sigma E_{m}\right)$ 分别是测量 $\rho$ 和 $\sigma$ 得到标号为 $m$ 的结果的概率。则</p>
+<p>$$
+\begin{equation*}
+D(\rho, \sigma)=\max _{\left\{E_{m}\right\}} D\left(p_{m}, q_{m}\right) \tag{9.23}
+\end{equation*}
+$$</p>
+<p>其中最大值取值在所有可能的 POVM $\left\{E_{m}\right\}$ 上。</p>
+<p>证明
+注意到</p>
+<p>$$
+\begin{equation*}
+D\left(p_{m}, q_{m}\right)=\frac{1}{2} \sum_{m}\left|\operatorname{tr}\left(E_{m}(\rho-\sigma)\right)\right| \tag{9.24}
+\end{equation*}
+$$</p>
+<p>利用谱分解，我们有 $\rho-\sigma=Q-S$ ，其中 $Q$ 和 $S$ 是具有正交支集的正定算子。因此我们有
+$|\rho-\sigma|=Q+S$ ，以及</p>
+<p>$$
+\begin{align*}
+\left|\operatorname{tr}\left(E_{m}(\rho-\sigma)\right)\right| &amp; =\left|\operatorname{tr}\left(E_{m}(Q-S)\right)\right|  \tag{9.25}\\
+&amp; \leqslant \operatorname{tr}\left(E_{m}(Q+S)\right)  \tag{9.26}\\
+&amp; \leqslant \operatorname{tr}\left(E_{m}|\rho-\sigma|\right) \tag{9.27}
+\end{align*}
+$$</p>
+<p>因此，</p>
+<p>$$
+\begin{align*}
+D\left(p_{m}, q_{m}\right) &amp; \leqslant \frac{1}{2} \sum_{m} \operatorname{tr}\left(E_{m}|\rho-\sigma|\right)  \tag{9.28}\\
+&amp; =\frac{1}{2} \operatorname{tr}(|\rho-\sigma|)  \tag{9.29}\\
+&amp; =D(\rho, \sigma) \tag{9.30}
+\end{align*}
+$$</p>
+<p>这里我们利用了 POVM 元素的完整性条件，即 $\sum_{m} E_{m}=I$ 。
+反过来，我们选取这样一个 POVM，它的元素正好是投影到 $Q$ 和 $S$ 的支集上的投影算子。于是，我们看到确实存在这样的测量，使得 $D\left(p_{m}, q_{m}\right)=D(\rho, \sigma)$ 。</p>
+<p>因此，如果两个密度算子之间的迹距离很小，那么对这两个量子态的任意量子测量得到的概率分布之间的经典迹距离也很小。于是，这可以看成是量子态之间迹距离的第二个解释，即它是这两个量子态在所有测量作用下能得到的概率分布之间经典迹距离的最大可达上界。</p>
+<p>既然我们把迹距离称为一种距离，那就应该确认一下它是否满足密度算子空间上的一个度量应该具有的特性。根据我们前面提到的单量子比特的几何图像，单量子比特的情形显然是满足的。但对一般情况来说，是否也满足呢？显然，$D(\rho, \sigma)=0$ 当且仅当 $\rho=\sigma$ ，同时 $D(\cdot)$ 对输人也是对称的。所以，剩下要确认的就是它满足三角不等式，即</p>
+<p>$$
+\begin{equation*}
+D(\rho, \tau) \leqslant D(\rho, \sigma)+D(\sigma, \tau) \tag{9.31}
+\end{equation*}
+$$</p>
+<p>为了看出这一点，注意到根据式（9.22），存在一个投影算子 $P$ ，使得</p>
+<p>$$
+\begin{align*}
+D(\rho, \tau) &amp; =\operatorname{tr}(P(\rho-\tau))  \tag{9.32}\\
+&amp; =\operatorname{tr}(P(\rho-\sigma))+\operatorname{tr}(P(\sigma-\tau))  \tag{9.33}\\
+&amp; \leqslant D(\rho, \sigma)+D(\sigma, \tau) \tag{9.34}
+\end{align*}
+$$</p>
+<p>这确认了迹距离确实是一个合法的度量。
+到目前为止，我们还不能说已经很了解迹距离，但是，我们下面将证明一系列重要的结果，它们有非常广泛的应用。一个最有趣的结果是，如图 9－4 所示，没有任何物理过程可以增加两个量子态之间的迹距离。具体地，我们以下面的定理介绍这个结果。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_a653dfefb9c869ab47feg-050.jpg?height=891&amp;width=908&amp;top_left_y=497&amp;top_left_x=1291" /></p>
+<p>图 9－4 保迹量子操作会造成密度算子空间的收缩</p>
+<p>定理 9.2 （保迹量子操作是收缩性的）假设 $\mathcal{E}$ 是一个保迹量子操作，而 $\rho$ 和 $\sigma$ 是两个量子态，那么</p>
+<p>$$
+\begin{equation*}
+D(\mathcal{E}(\rho), \mathcal{E}(\sigma)) \leqslant D(\rho, \sigma) \tag{9.35}
+\end{equation*}
+$$</p>
+<p>证明
+根据谱分解，我们有 $\rho-\sigma=Q-S$ ，其中 $Q$ 和 $S$ 是具有正交支集的正定算子，假设 $P$ 是满足 $D(\mathcal{E}(\rho), \mathcal{E}(\sigma))=\operatorname{tr}[P(\mathcal{E}(\rho)-\mathcal{E}(\sigma))]$ 的投影算子。注意到 $\operatorname{tr}(Q)-\operatorname{tr}(S)=\operatorname{tr}(\rho)-\operatorname{tr}(\sigma)=0$ ，因此 $\operatorname{tr}(Q)=\operatorname{tr}(S)$ ，于是 $\operatorname{tr}(\mathcal{E}(Q))=\operatorname{tr}(\mathcal{E}(S))$ 。利用这个事实，我们有</p>
+<p>$$
+\begin{align*}
+D(\rho, \sigma) &amp; =\frac{1}{2} \operatorname{tr}|\rho-\sigma|  \tag{9.36}\\
+&amp; =\frac{1}{2} \operatorname{tr}|Q-S|  \tag{9.37}\\
+&amp; =\frac{1}{2} \operatorname{tr}(Q)+\frac{1}{2} \operatorname{tr}(S)  \tag{9.38}\\
+&amp; =\frac{1}{2} \operatorname{tr}(\mathcal{E}(Q))+\frac{1}{2} \operatorname{tr}(\mathcal{E}(S))  \tag{9.39}\\
+&amp; =\operatorname{tr}(\mathcal{E}(Q))  \tag{9.40}\\
+&amp; \geqslant \operatorname{tr}(P \mathcal{E}(Q))  \tag{9.41}\\
+&amp; \geqslant \operatorname{tr}(P(\mathcal{E}(Q)-\mathcal{E}(S)))  \tag{9.42}\\
+&amp; =\operatorname{tr}(P(\mathcal{E}(\rho)-\mathcal{E}(\sigma)))  \tag{9.43}\\
+&amp; =D(\mathcal{E}(\rho), \mathcal{E}(\sigma)) \tag{9.44}
+\end{align*}
+$$</p>
+<p>得证。</p>
+<p>我们可以用下面的类比来理解这个结果的一个特殊情形。假设有人在画廊里向你展示两幅不同的绘画作品，而且你的视觉良好，那么一般来说分辨这两幅画并不困难。但是，如果将这两幅画的绝大部分盖起来，那么如图 9－5 所示，仅仅根据剩下的部分将两幅画区分开来可能就没那么容易了。类似地，如果将两个量子态的部分＂掩盖＂起来，那么剩下部分之间的距离肯定不会增加。为了看出这一点，回顾一下，部分迹其实是一个保迹操作。因此，根据定理 9.2 ，如果 $\rho^{A B}$</p>
+<p>和 $\sigma^{A B}$ 是复合量子系统 $A B$ 上的两个量子态，则 $\rho^{A}=\operatorname{tr}_{B}\left(\rho^{A B}\right)$ 和 $\sigma^{A}=\operatorname{tr}_{B}\left(\sigma^{A B}\right)$ 之间的距离将不比 $\rho^{A B}$ 和 $\sigma^{A B}$ 之间的距离大，也就是</p>
+<p>$$
+\begin{equation*}
+D\left(\rho^{A}, \sigma^{A}\right) \leqslant D\left(\rho^{A B}, \sigma^{A B}\right) \tag{9.45}
+\end{equation*}
+$$</p>
+<p><img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_a653dfefb9c869ab47feg-051.jpg?height=606&amp;width=2513&amp;top_left_y=1244&amp;top_left_x=593" /></p>
+<p>图9－5 当只有部分信息可知时，不同对象之间的分辨变得更加困难
+有许多应用中，我们希望估计一些混合输人之间的迹距离。下面的结果对这个问题的解决很有帮助。</p>
+<p>定理 9.3 （迹距离的强凸性）假设 $\left\{p_{i}\right\}$ 和 $\left\{q_{i}\right\}$ 是同一个指标集上的两个概率分布，$\rho_{i}$ 和 $\sigma_{i}$ 是同一个指标集标识的密度算子，那么有</p>
+<p>$$
+\begin{equation*}
+D\left(\sum_{i} p_{i} \rho_{i}, \sum_{i} q_{i} \sigma_{i}\right) \leqslant D\left(p_{i}, q_{i}\right)+\sum_{i} p_{i} D\left(\rho_{i}, \sigma_{i}\right) \tag{9.46}
+\end{equation*}
+$$</p>
+<p>其中 $D\left(p_{i}, q_{i}\right)$ 是概率分布 $\left\{p_{i}\right\}$ 和 $\left\{q_{i}\right\}$ 之间的迹距离。
+这个结果可用来证明跟迹距离凸性相关的结果，因此我们称之为迹距离的强凸性。证明</p>
+<p>根据式（9.22），存在一个投影算子使得下式成立，即</p>
+<p>$$
+\begin{align*}
+D\left(\sum_{i} p_{i} \rho_{i}, \sum_{i} q_{i} \sigma_{i}\right) &amp; =\sum_{i} p_{i} \operatorname{tr}\left(P \rho_{i}\right)-\sum_{i} q_{i} \operatorname{tr}\left(P \sigma_{i}\right)  \tag{9.47}\\
+&amp; =\sum_{i} p_{i} \operatorname{tr}\left(P\left(\rho_{i}-\sigma_{i}\right)\right)+\sum_{i}\left(p_{i}-q_{i}\right) \operatorname{tr}\left(P \sigma_{i}\right)  \tag{9.48}\\
+&amp; \leqslant \sum_{i} p_{i} D\left(\rho_{i}, \sigma_{i}\right)+D\left(p_{i}, q_{i}\right) \tag{9.49}
+\end{align*}
+$$</p>
+<p>其中 $D\left(p_{i}, q_{i}\right)$ 是概率分布 $\left\{p_{i}\right\}$ 和 $\left\{q_{i}\right\}$ 之间的迹距离，在最后一行我们用到了式（9.22）。</p>
+<p>作为上述结果的一个特殊情形，迹距离相对于输人有联合凸性，即</p>
+<p>$$
+\begin{equation*}
+D\left(\sum_{i} p_{i} \rho_{i}, \sum_{i} p_{i} \sigma_{i}\right) \leqslant \sum_{i} p_{i} D\left(\rho_{i}, \sigma_{i}\right) \tag{9.50}
+\end{equation*}
+$$</p>
+<p>习题 9.8 （迹距离的凸性）证明迹距离对于它的第一个输人来说是凸的，即</p>
+<p>$$
+\begin{equation*}
+D\left(\sum_{i} p_{i} \rho_{i}, \sigma\right) \leqslant \sum_{i} p_{i} D\left(\rho_{i}, \sigma\right) \tag{9.51}
+\end{equation*}
+$$</p>
+<p>根据对称性，由对第一项输人的凸性可知，迹距离对于第二项输人也是凸的。
+习题 9.9 （不动点的存在性）Schauder 不动点定理是数学中的一个经典结果，它指出，任何定义在希尔伯特空间的一个凸的紧子集上的连续函数，都有不动点。利用 Schauder 不动点定理证明，任何保迹量子操作 $\mathcal{E}$ 都有不动点，即存在 $\rho$ 使得 $\mathcal{E}(\rho)=\rho$ 。
+习题 9.10 假设 $\mathcal{E}$ 是一个严格收缩的保迹量子操作，即对任意 $\rho$ 和 $\sigma, D(\mathcal{E}(\rho), \mathcal{E}(\sigma)) &lt; D(\rho, \sigma)$成立。证明 $\mathcal{E}$ 有唯一的不动点。
+习题 9.11 假设 $\mathcal{E}$ 是一个保迹的量子操作，并且存在一个密度算子 $\rho_{0}$ 和另一个保迹量子操作 $\mathcal{E}^{\prime}$ ，使得下式对某个 $p$ 成立，且 $0 &lt; p \leqslant 1$ 。</p>
+<p>$$
+\begin{equation*}
+\mathcal{E}(\rho)=p \rho_{0}+(1-p) \mathcal{E}^{\prime}(\rho) \tag{9.52}
+\end{equation*}
+$$</p>
+<p>物理上看，这意味着输人量子态以概率 $p$ 被抛弃，并被固定的量子态 $\rho_{0}$ 取代，然后以 $1-p$ 的概率量子操作 $\mathcal{E}^{\prime}$ 发生。利用联合凸性证明 $\mathcal{E}$ 是一个严格收缩的量子操作，因此具有唯一的不动点。习题 9.12 考虑 8.3.4 节介绍的去极化信道， $\mathcal{E}(\rho)=p I / 2+(1-p) \rho_{\circ}$ 对任意 $\rho$ 和 $\sigma$ ，利用布洛赫球表示给出 $D(\mathcal{E}(\rho), \mathcal{E}(\sigma))$ ，并证明映射 $\mathcal{E}$ 是严格收缩的，即 $D(\mathcal{E}(\rho), \mathcal{E}(\sigma)) &lt; D(\rho, \sigma)$ 。
+习题 9.13 证明比特翻转信道（ 8.3.3 节）是收缩的，但不是严格收缩。给出比特翻转信道的不动点集合。</p>
+<h2>9.2.2 保真度</h2>
+<p>我们要介绍的第二种距离度量是保真度。虽然保真度不是密度算子上的真正度量，但我们会看到它可以诱导出一个真正的度量。本节我们将回顾一下保真度的定义和它的基本特性。量子态 $\rho$ 和 $\sigma$ 之间的保真度定义为</p>
+<p>$$
+\begin{equation*}
+F(\rho, \sigma) \equiv \operatorname{tr} \sqrt{\rho^{1 / 2} \sigma \rho^{1 / 2}} \tag{9.53}
+\end{equation*}
+$$</p>
+<p>为什么这是 $\rho$ 和 $\sigma$ 之间的一个有用距离度量，其实并不显然，实际上这个量看起来甚至对输入不对称。但是，我们会看到相对输人保真度确实对称，而且也满足距离度量所共有的很多特性。</p>
+<p>有两个我们可以为保真度给出精确形式的特殊情况。第一个是当 $\rho$ 和 $\sigma$ 交换时，也就是，当它们可以在某一组基 $|i\rangle$ 下被同时对角化时，</p>
+<p>$$
+\begin{equation*}
+\rho=\sum_{i} r_{i}|i\rangle\langle i| ; \quad \sigma=\sum_{i} s_{i}|i\rangle\langle i| \tag{9.54}
+\end{equation*}
+$$</p>
+<p>在这种情况下，我们有</p>
+<p>$$
+\begin{align*}
+F(\rho, \sigma) &amp; =\operatorname{tr} \sqrt{\sum_{i} r_{i} s_{i}|i\rangle\langle i|}  \tag{9.55}\\
+&amp; =\operatorname{tr}\left(\sum_{i} \sqrt{r_{i} s_{i}}|i\rangle\langle i|\right)  \tag{9.56}\\
+&amp; =\sum_{i} \sqrt{r_{i} s_{i}}  \tag{9.57}\\
+&amp; =F\left(r_{i}, s_{i}\right) \tag{9.58}
+\end{align*}
+$$</p>
+<p>也就是说，当 $\rho$ 和 $\sigma$ 交换时，量子保真度 $F(\rho, \sigma)$ 退化为它们的特征值分布 $r_{i}$ 和 $s_{i}$ 之间的经典保真度 $F\left(r_{i}, s_{i}\right)$ 。</p>
+<p>第二个例子是当计算一个纯态 $|\psi\rangle$ 和一个混态 $\rho$ 之间的保真度时。根据式（9.53），我们有</p>
+<p>$$
+\begin{align*}
+F(|\psi\rangle, \rho) &amp; =\operatorname{tr} \sqrt{\langle\psi| \rho|\psi\rangle|\psi\rangle\langle\psi|}  \tag{9.59}\\
+&amp; =\sqrt{\langle\psi| \rho|\psi\rangle} \tag{9.60}
+\end{align*}
+$$</p>
+<p>于是，保真度正好是 $|\psi\rangle$ 和 $\rho$ 之间交叠的平方根，这是一个我们将会经常用到的重要结果。
+对于单量子比特的情形，我们可以精确估计两个量子态之间的迹距离。这构成了这种情形下迹距离的一个几何解释，即布洛赫球上对应点之间欧几里得距离的一半。不过，人们还没有找到类似的，关于两个单量子比特之间保真度的几何解释。</p>
+<p>但是，保真度确实也满足迹距离所具有的许多性质。例如，它在酉变换下保持不变，即</p>
+<p>$$
+\begin{equation*}
+F\left(U \rho U^{\dagger}, U \sigma U^{\dagger}\right)=F(\rho, \sigma) \tag{9.61}
+\end{equation*}
+$$</p>
+<p>习题9.14（酉变换下保真度的不变性）利用对任意正定算子 $A$ 都有 $\sqrt{U A U^{\dagger}}=U \sqrt{A} U^{\dagger}$ 的事实，证明式（9.61）。</p>
+<p>关于保真度，有一个与式（9.22）所描述的迹距离的特征类似的性质。
+定理 9.4 （Uhlmann 定理）假设 $\rho$ 和 $\sigma$ 是量子系统 $Q$ 上的两个量子态，而 $R$ 是 $Q$ 的一个拷贝。那么</p>
+<p>$$
+\begin{equation*}
+F(\rho, \sigma)=\max _{|\psi\rangle,|\varphi\rangle}|\langle\psi \mid \varphi\rangle| \tag{9.62}
+\end{equation*}
+$$</p>
+<p>其中最大值取值于 $\rho$ 和 $\sigma$ 在 $R Q$ 上所有可能的纯化 $|\psi\rangle$ 和 $|\varphi\rangle$ 上。
+在证明 Uhlmann 定理之前，我们需要一个相对容易证明的引理。
+引理 9.5 若 $A$ 是一个算子，$U$ 是西矩阵，那么</p>
+<p>$$
+\begin{equation*}
+|\operatorname{tr}(A U)| \leqslant \operatorname{tr}|A| \tag{9.63}
+\end{equation*}
+$$</p>
+<p>并且，当 $U=V^{\dagger}$ 时等式成立，其中 $A=|A| V$ 是 $A$ 的极分解。</p>
+<p>证明
+首先，在上面的条件成立时，等式显然成立。注意到</p>
+<p>$$
+\begin{equation*}
+|\operatorname{tr}(A U)|=|\operatorname{tr}(|A| V U)|=\left|\operatorname{tr}\left(|A|^{1 / 2}|A|^{1 / 2} V U\right)\right| \tag{9.64}
+\end{equation*}
+$$</p>
+<p>对希尔伯特－施密特内积运用柯西－施瓦茨不等式，我们有</p>
+<p>$$
+\begin{equation*}
+|\operatorname{tr}(A U)| \leqslant \sqrt{\operatorname{tr}|A| \operatorname{tr}\left(U^{\dagger} V^{\dagger}|A| V U\right)}=\operatorname{tr}|A| \tag{9.65}
+\end{equation*}
+$$</p>
+<p>得证。</p>
+<p>证明（ UhImann 定理）</p>
+<p>我们分别固定 $R$ 和 $Q$ 的一组正交基为 $\left|i_{R}\right\rangle$ 和 $\left|i_{Q}\right\rangle_{\circ}$ 因为 $R$ 和 $Q$ 的维数相同，因此可以认为 $i$ 在同一个指标集取值。定义 $|m\rangle \equiv \sum_{i}\left|i_{R}\right\rangle\left|i_{Q}\right\rangle$ ，并且假设 $|\psi\rangle$ 是 $\rho$ 的一个纯化。通过施密特分解和简单的思考，我们可以得到，存在 $R$ 和 $Q$ 上的西变换 $U_{R}$ 和 $U_{Q}$ 使得下式成立。</p>
+<p>$$
+\begin{equation*}
+|\psi\rangle=\left(U_{R} \otimes \sqrt{\rho} U_{Q}\right)|m\rangle \tag{9.66}
+\end{equation*}
+$$</p>
+<p>类似地，如果 $|\varphi\rangle$ 是 $\sigma$ 的纯化，则存在西变换 $V_{R}$ 和 $V_{Q}$ 使得</p>
+<p>$$
+\begin{equation*}
+|\varphi\rangle=\left(V_{R} \otimes \sqrt{\sigma} V_{Q}\right)|m\rangle \tag{9.67}
+\end{equation*}
+$$</p>
+<p>取这两个纯态的内积，得到</p>
+<p>$$
+\begin{equation*}
+\left.|\langle\psi \mid \varphi\rangle|=\left|\langle m|\left(U_{R}^{\dagger} V_{R} \otimes U_{Q}^{\dagger} \sqrt{\rho} \sqrt{\sigma} V_{Q}\right)\right| m\right\rangle \mid \tag{9.68}
+\end{equation*}
+$$</p>
+<p>根据下面的习题 9.16，我们有</p>
+<p>$$
+\begin{equation*}
+|\langle\psi \mid \varphi\rangle|=\left|\operatorname{tr}\left(V_{R}^{\mathrm{T}} U_{R}^{*} U_{Q}^{\dagger} \sqrt{\rho} \sqrt{\sigma} V_{Q}\right)\right| \tag{9.69}
+\end{equation*}
+$$</p>
+<p>取 $U \equiv V_{Q} V_{R}^{\mathrm{T}} U_{R}^{*} U_{Q}^{\dagger}$ ，则</p>
+<p>$$
+\begin{equation*}
+|\langle\psi \mid \varphi\rangle|=|\operatorname{tr}(\sqrt{\rho} \sqrt{\sigma} U)| \tag{9.70}
+\end{equation*}
+$$</p>
+<p>根据引理 9.5，我们有</p>
+<p>$$
+\begin{equation*}
+|\langle\psi \mid \varphi\rangle| \leqslant \operatorname{tr}|\sqrt{\rho} \sqrt{\sigma}|=\operatorname{tr} \sqrt{\rho^{1 / 2} \sigma \rho^{1 / 2}} \tag{9.71}
+\end{equation*}
+$$</p>
+<p>为了证明其中等式可能成立，假设 $\sqrt{\rho} \sqrt{\sigma}=|\sqrt{\rho} \sqrt{\sigma}| V$ 是 $\sqrt{\rho} \sqrt{\sigma}$ 的极分解。取 $U_{Q}=U_{R}=V_{R}=I$和 $V_{Q}=V^{\dagger}$ ，可以看到等式确实成立。</p>
+<p>习题 9.15 证明</p>
+<p>$$
+\begin{equation*}
+F(\rho, \sigma)=\max _{|\varphi\rangle}|\langle\psi \mid \varphi\rangle| \tag{9.72}
+\end{equation*}
+$$</p>
+<p>其中 $|\psi\rangle$ 是任意一个固定的 $\rho$ 的纯化，最大值取值在 $\sigma$ 所有的纯化上。
+习题9.16（希尔伯特－施密特内积和纠缠）假设 $R$ 和 $Q$ 是两个具有相同希尔伯特空间的量子系统，令 $\left|i_{R}\right\rangle$ 和 $\left|i_{Q}\right\rangle$ 分别是 $R$ 和 $Q$ 的标准正交基。令 $A$ 是 $R$ 上的算子，而 $B$ 是 $Q$ 上的算子。定义 $|m\rangle \equiv \sum_{i}\left|i_{R}\right\rangle\left|i_{Q}\right\rangle$ ，证明</p>
+<p>$$
+\begin{equation*}
+\operatorname{tr}\left(A^{\mathrm{T}} B\right)=\langle m|(A \otimes B)|m\rangle \tag{9.73}
+\end{equation*}
+$$</p>
+<p>其中左边的乘法是矩阵乘法，可以理解为 $A$ 的矩阵元素相对基矢 $\left|i_{R}\right\rangle$ 取值，而 $B$ 的矩阵元素相对基矢 $\left|i_{Q}\right\rangle$ 取值。</p>
+<p>和式（9.53）一样，式（9.62）中的 Uhlmann 形式并没有提供计算保真度的工具。但是，在许多情况下，为了证明保真度的性质，使用 Uhlmann 形式比式（9.53）更容易。例如，Uhlmann 形式清楚地展示了保真度对于输人是对称的，即 $F(\rho, \sigma)=F(\sigma, \rho)$ ，以及保真度具有上下界 1 和 0 ，即 $0 \leqslant F(\rho, \sigma) \leqslant 1$ 。如果 $\rho=\sigma$ ，Uhlmann形式清楚地说明了 $F(\rho, \sigma)=1$ 。如果 $\rho \neq \sigma$ ，则对于 $\rho$ 和 $\sigma$ 的任何纯化 $|\psi\rangle$ 和 $|\varphi\rangle$ ，我们有 $|\psi\rangle \neq|\varphi\rangle$ ，于是 $F(\rho, \sigma) &lt; 1_{\text {。 }}$ 另一方面，式（9.53）有时候对理解保真度的性质非常有帮助。例如，我们知道当且仅当 $\rho$ 和 $\sigma$ 的支集正交时，我们有 $F(\rho, \sigma)=0$ 。直观上看，当 $\rho$ 和 $\sigma$ 的支集正交时，它们可以被完美分辨，因此保真度在这种情形下应该取最小值。总结一下，保真度对于输入是对称的，且满足 $0 \leqslant F(\rho, \sigma) \leqslant 1$ 。其中当且仅当 $\rho$ 和 $\sigma$ 的支集正交时，左边的等式成立；当且仅当 $\rho=\sigma$ 时，右边的等式成立。</p>
+<p>我们已经看到，当考虑测量诱导的概率分布时，量子迹距离可以和经典迹距离建立紧密联系。类似地，我们也有</p>
+<p>$$
+\begin{equation*}
+F(\rho, \sigma)=\min _{\left\{E_{m}\right\}} F\left(p_{m}, q_{m}\right) \tag{9.74}
+\end{equation*}
+$$</p>
+<p>其中最小值取值于所有可能的 POVM $\left\{E_{m}\right\}, p_{m} \equiv \operatorname{tr}\left(\rho E_{m}\right)$ 和 $q_{m} \equiv \operatorname{tr}\left(\sigma E_{m}\right)$ 分别是测量 $\rho$ 和 $\sigma$ 时对应的概率分布。为了看出这一点，考虑极分解 $\sqrt{\rho^{1 / 2} \sigma \rho^{1 / 2}}=\sqrt{\rho} \sqrt{\sigma} U$ ，同时我们有</p>
+<p>$$
+\begin{align*}
+F(\rho, \sigma) &amp; =\operatorname{tr}(\sqrt{\rho} \sqrt{\sigma} U)  \tag{9.75}\\
+&amp; =\sum_{m} \operatorname{tr}\left(\sqrt{\rho} \sqrt{E_{m}} \sqrt{E_{m}} \sqrt{\sigma} U\right) \tag{9.76}
+\end{align*}
+$$</p>
+<p>通过柯西－施瓦茨不等式及简单计算，可以得到</p>
+<p>$$
+\begin{equation*}
+F(\rho, \sigma) \leqslant \sum_{m} \sqrt{\operatorname{tr}\left(\rho E_{m}\right) \operatorname{tr}\left(\sigma E_{m}\right)} \tag{9.77}
+\end{equation*}
+$$</p>
+<p>$$
+\begin{equation*}
+=F\left(p_{m}, q_{m}\right) \tag{9.78}
+\end{equation*}
+$$</p>
+<p>这样就得到</p>
+<p>$$
+\begin{equation*}
+F(\rho, \sigma) \leqslant \min _{\left\{E_{m}\right\}} F\left(p_{m}, q_{m}\right) \tag{9.79}
+\end{equation*}
+$$</p>
+<p>为了看出上式的等号可以成立，我们需要找到一个合适的 POVM 使得上述求和中每一项的柯西－施瓦茨不等式取等号，也就是说，存在一组复数 $\alpha_{m}$ ，我们有 $\sqrt{E_{m}} \sqrt{\rho}=\alpha_{m} \sqrt{E_{m}} \sqrt{\sigma} U$ 。但是， $\sqrt{\rho} \sqrt{\sigma} U=\sqrt{\rho^{1 / 2} \sigma \rho^{1 / 2}}$ ，因此对于可逆的 $\rho$ ，</p>
+<p>$$
+\begin{equation*}
+\sqrt{\sigma} U=\rho^{-1 / 2} \sqrt{\rho^{1 / 2} \sigma \rho^{1 / 2}} \tag{9.80}
+\end{equation*}
+$$</p>
+<p>通过代人，我们得到上述的等式条件也就是</p>
+<p>$$
+\begin{equation*}
+\sqrt{E_{m}}\left(I-\alpha_{m} M\right)=0 \tag{9.81}
+\end{equation*}
+$$</p>
+<p>其中 $M \equiv \rho^{-1 / 2} \sqrt{\rho^{1 / 2} \sigma \rho^{1 / 2}} \rho^{-1 / 2}$ 。如果 $M=\sum_{m} \beta_{m}|m\rangle\langle m|$ 是 $M$ 的一组谱分解，那么我们选取 $E_{m}=|m\rangle\langle m|$ 和 $\alpha_{m}=1 / \beta_{m} \circ \rho$ 不可逆的情形则根据连续性可证。</p>
+<p>我们已经证明了迹距离的三个重要特征——度量特征，收缩性，以及强凸性。非常值得注意的是，对于保真度来说类似的特性也成立。而且，保真度用到的证明技术跟迹距离用到的非常不同，因此，仔细地考察这些结果是非常值得的。</p>
+<p>保真度不是一个真正的度量，但是有一个简单的办法将其转变为真正的度量。基本想法如图 9－6 所示，在这里注意两个点之间的夹角是一个真正的度量。对量子的情形，Uhlmann 定理告诉我们，这两个状态之间的保真度，是这两个态纯化之间内积的最大值。这意味着我们可以将 $\rho$和 $\sigma$ 之间的角度定义为</p>
+<p>$$
+A(\rho, \sigma) \equiv \arccos F(\rho, \sigma)
+$$</p>
+<p>很明显，这个角度是非负的，对输人对称，而且当且仅当 $\rho=\sigma$ 时取值为 0 。如果我们能进一步证明三角不等式成立，那么就证明了它确实是一个真正的度量。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_a653dfefb9c869ab47feg-056.jpg?height=810&amp;width=856&amp;top_left_y=4318&amp;top_left_x=1375" /></p>
+<p>图9－6 单位球面上点之间的角度是一个度量</p>
+<p>我们现在用 Uhlmann 定理和一些三维空间向量的简单事实来证明三角不等式。假设 $|\varphi\rangle$ 是 $\sigma$</p>
+<p>的一个纯化，选取 $\rho$ 和 $\tau$ 的纯化 $|\psi\rangle$ 和 $|\gamma\rangle$ ，使得</p>
+<p>$$
+\begin{align*}
+&amp; F(\rho, \sigma)=\langle\psi \mid \varphi\rangle  \tag{9.83}\\
+&amp; F(\sigma, \tau)=\langle\varphi \mid \gamma\rangle \tag{9.84}
+\end{align*}
+$$</p>
+<p>并且 $\langle\psi \mid \gamma\rangle$ 是实数。（注意，通过在必要时为 $|\varphi\rangle,|\psi\rangle$ 和 $|\gamma\rangle$ 提供合适的系数，这一点总可以满足。）那么从图 9－6 可以看出，</p>
+<p>$$
+\begin{equation*}
+\arccos (\langle\psi \mid \gamma\rangle) \leqslant A(\rho, \sigma)+A(\sigma, \tau) \tag{9.85}
+\end{equation*}
+$$</p>
+<p>但是根据 Uhlmann 定理，$F(\rho, \tau) \geqslant\langle\psi \mid \gamma\rangle$ ，因此 $A(\rho, \tau) \leqslant \arccos (\langle\psi \mid \gamma\rangle)$ 。结合上面的不等式，我们有</p>
+<p>$$
+\begin{equation*}
+A(\rho, \tau) \leqslant A(\rho, \sigma)+A(\sigma, \tau) \tag{9.86}
+\end{equation*}
+$$</p>
+<p>此即三角不等式。
+习题 9.17 证明 $0 \leqslant A(\rho, \sigma) \leqslant \pi / 2$ ，而且左边的不等式等号成立当且仅当 $\rho=\sigma$ 。
+定性地说，保真度像是迹距离的一个颠倒，当两个量子态容易被分辨时，保真度下降；当它们不容易被分辨时，保真度上升。因此，我们不应该期望迹距离所拥有的收缩性或非增加性也能让保真度满足。相反地，保真度满足的类似性质应该是非减性，我们称之为保真度在量子操作下的单调性。
+定理 9.6 （保真度的单调性）假设 $\mathcal{E}$ 是一个保迹量子操作，而 $\rho$ 和 $\sigma$ 是密度算子。则有</p>
+<p>$$
+\begin{equation*}
+F(\mathcal{E}(\rho), \mathcal{E}(\sigma)) \geqslant F(\rho, \sigma) \tag{9.87}
+\end{equation*}
+$$</p>
+<p>证明
+假设 $|\psi\rangle$ 和 $|\varphi\rangle$ 分别是 $\rho$ 和 $\sigma$ 在联合量子系统 $R Q$ 上的纯化，并且 $F(\rho, \sigma)=|\langle\psi \mid \varphi\rangle|$ 。我们为量子操作 $\mathcal{E}$ 引入一个环境系统 $E$ ，它的初态为 $|0\rangle$ ，并且跟系统 $Q$ 通过一个西变换 $U$ 相互作用。注意到 $U|\psi\rangle|0\rangle$ 是 $\mathcal{E}(\rho)$ 的一个纯化，而 $U|\varphi\rangle|0\rangle$ 是 $\mathcal{E}(\sigma)$ 的一个纯化。根据 Uhlmann 定理，我们有</p>
+<p>$$
+\begin{align*}
+F(\mathcal{E}(\rho), \mathcal{E}(\sigma)) &amp; \left.\geqslant\left|\langle\psi|\langle 0| U^{\dagger} U\right| \varphi\right\rangle|0\rangle \mid  \tag{9.88}\\
+&amp; =|\langle\psi \mid \varphi\rangle|  \tag{9.89}\\
+&amp; =F(\rho, \sigma) \tag{9.90}
+\end{align*}
+$$</p>
+<p>证毕。</p>
+<p>习题9.18（角度的收缩性） $\mathcal{E}$ 是一个保迹的量子操作，证明</p>
+<p>$$
+\begin{equation*}
+A(\mathcal{E}(\rho), \mathcal{E}(\sigma)) \leqslant A(\rho, \sigma) \tag{9.91}
+\end{equation*}
+$$</p>
+<p>我们现在通过 Uhlmann 定理来证明，保真度也具有类似迹距离强凸性的性质，以此来结束我们对保真度基本性质的研究。</p>
+<p>定理 9.7 （保真度的强凹性）假设 $p_{i}$ 和 $q_{i}$ 是在相同指标集上取值的概率分布，$\rho_{i}$ 和 $\sigma_{i}$ 是标号取值范围相同的密度算子，则有</p>
+<p>$$
+\begin{equation*}
+F\left(\sum_{i} p_{i} \rho_{i}, \sum_{i} q_{i} \sigma_{i}\right) \geqslant \sum_{i} \sqrt{p_{i} q_{i}} F\left(\rho_{i}, \sigma_{i}\right) \tag{9.92}
+\end{equation*}
+$$</p>
+<p>很自然地，这个结果可以用来证明与保真度凹性相关的结果，因此我们称之为保真度的强凹性。其实它和迹距离的强凸性并不完全一致，但基于相似性我们依然采用类似的命名。</p>
+<p>证明
+假设 $\left|\psi_{i}\right\rangle$ 和 $\mid \varphi_{i}$ 分别是 $\rho_{i}$ 和 $\sigma_{i}$ 的纯化，而且 $F\left(\rho_{i}, \sigma_{i}\right)=\left\langle\psi_{i} \mid \varphi_{i}\right\rangle$ 。引入一个辅助系统，并且它的正交基 $|i\rangle$ 对应着概率分布的标号取值。定义</p>
+<p>$$
+\begin{equation*}
+|\psi\rangle \equiv \sum_{i} \sqrt{p_{i}}\left|\psi_{i}\right\rangle|i\rangle ; \quad|\varphi\rangle \equiv \sum_{i} \sqrt{q_{i}}\left|\varphi_{i}\right\rangle|i\rangle \tag{9.93}
+\end{equation*}
+$$</p>
+<p>注意到 $|\psi\rangle$ 是 $\sum_{i} p_{i} \rho_{i}$ 的一个纯化，$|\varphi\rangle$ 是 $\sum_{i} p_{i} \rho_{i}$ 的一个纯化，因此根据 Uhlmann 定理，</p>
+<p>$$
+\begin{equation*}
+F\left(\sum_{i} p_{i} \rho_{i}, \sum_{i} q_{i} \sigma_{i}\right) \geqslant|\langle\psi \mid \varphi\rangle|=\sum_{i} \sqrt{p_{i} q_{i}}\left\langle\psi_{i} \mid \varphi_{i}\right\rangle=\sum_{i} \sqrt{p_{i} q_{i}} F\left(\rho_{i}, \sigma_{i}\right) \tag{9.94}
+\end{equation*}
+$$</p>
+<p>证毕。</p>
+<p>习题 9.19（保真度的联合凹性）证明保真度是联合凹的，即</p>
+<p>$$
+\begin{equation*}
+F\left(\sum_{i} p_{i} \rho_{i}, \sum_{i} p_{i} \sigma_{i}\right) \geqslant \sum_{i} p_{i} F\left(\rho_{i}, \sigma_{i}\right) \tag{9.95}
+\end{equation*}
+$$</p>
+<p>习题 9.20（保真度的凹性）证明保真度对它的第一个输人是凹的，即</p>
+<p>$$
+\begin{equation*}
+F\left(\sum_{i} p_{i} \rho_{i}, \sigma\right) \geqslant \sum_{i} p_{i} F\left(\rho_{i}, \sigma\right) \tag{9.96}
+\end{equation*}
+$$</p>
+<p>根据对称性，保真度对它的第二个输入也是凹的。</p>
+<h2>9.2.3 距离度量之间的关系</h2>
+<p>迹距离和保真度虽然形式很不同，但它们之间的关系密切。大致说来，在许多应用中它们可以被认为是等价的度量。本节我们对它们之间的关系做更多的刻画。</p>
+<p>对于纯态的情况，迹距离和保真度实际上是完全等价的。为了证明这一点，我们考虑两个纯态 $|a\rangle$ 和 $|b\rangle$ 之间的迹距离。利用格拉姆－施密特过程，我们可以找到标准正交量子态 $|0\rangle$ 和 $|1\rangle$ 使得 $|a\rangle=|0\rangle$ 且 $|b\rangle=\cos \theta|0\rangle+\sin \theta|1\rangle$ 。注意到 $F(|a\rangle,|b\rangle)=|\cos \theta|$ ，并且，</p>
+<p>$$
+\begin{align*}
+D(|a\rangle,|b\rangle) &amp; =\frac{1}{2} \operatorname{tr}\left|\left[\begin{array}{cc}
+1-\cos {}^{2} \theta &amp; -\cos \theta \sin \theta \\
+-\cos \theta \sin \theta &amp; -\sin {}^{2} \theta
+\end{array}\right]\right|  \tag{9.97}\\
+&amp; =|\sin \theta|  \tag{9.98}\\
+&amp; =\sqrt{1-F(|a\rangle,|b\rangle)^{2}} \tag{9.99}
+\end{align*}
+$$</p>
+<p>因此，两个纯态之间的迹距离是一个它们之间保真度的函数，反之亦然。由迹距离和保真度在纯态情形下的关系，可以推导出它们在混态情形下的关系。假设 $\rho$ 和 $\sigma$ 是两个量子态，$|\psi\rangle$ 和 $|\varphi\rangle$分别是它们的纯化，而且 $F(\rho, \sigma)=|\langle\psi \mid \varphi\rangle|=F(|\psi\rangle,|\varphi\rangle)$ 。如前所述，迹距离在取部分迹操作时不会增加，于是我们有</p>
+<p>$$
+\begin{align*}
+D(\rho, \sigma) &amp; \leqslant D(|\psi\rangle,|\varphi\rangle)  \tag{9.100}\\
+&amp; =\sqrt{1-F(\rho, \sigma)^{2}} \tag{9.101}
+\end{align*}
+$$</p>
+<p>因此，如果两个状态之间的保真度接近 1，那么它们在迹距离意义下也会很接近；反之亦然。为了说明这一点，假设 $\left\{E_{m}\right\}$ 是一个 POVM，使得</p>
+<p>$$
+\begin{equation*}
+F(\rho, \sigma)=\sum_{m} \sqrt{p_{m} q_{m}} \tag{9.102}
+\end{equation*}
+$$</p>
+<p>其中 $p_{m} \equiv \operatorname{tr}\left(\rho E_{m}\right)$ 和 $q_{m} \equiv \operatorname{tr}\left(\sigma E_{m}\right)$ 分别是测量 $\rho$ 和 $\sigma$ 时输出结果 $m$ 的概率。注意到</p>
+<p>$$
+\begin{align*}
+\sum_{m}\left(\sqrt{p_{m}}-\sqrt{q_{m}}\right)^{2} &amp; =\sum_{m} p_{m}+\sum_{m} q_{m}-2 F(\rho, \sigma)  \tag{9.103}\\
+&amp; =2(1-F(\rho, \sigma)) \tag{9.104}
+\end{align*}
+$$</p>
+<p>但是，我们同时也有 $\left|\sqrt{p_{m}}-\sqrt{q_{m}}\right| \leqslant\left|\sqrt{p_{m}}+\sqrt{q_{m}}\right|$ ，所以</p>
+<p>$$
+\begin{align*}
+\sum_{m}\left(\sqrt{p_{m}}-\sqrt{q_{m}}\right)^{2} &amp; \leqslant \sum_{m}\left|\sqrt{p_{m}}-\sqrt{q_{m}}\right|\left|\sqrt{p_{m}}+\sqrt{q_{m}}\right|  \tag{9.105}\\
+&amp; =\sum_{m}\left|p_{m}-q_{m}\right|  \tag{9.106}\\
+&amp; =2 D\left(p_{m}, q_{m}\right)  \tag{9.107}\\
+&amp; \leqslant 2 D(\rho, \sigma) \tag{9.108}
+\end{align*}
+$$</p>
+<p>比较式（9.104）和式（9.108），我们可知</p>
+<p>$$
+\begin{equation*}
+1-F(\rho, \sigma) \leqslant D(\rho, \sigma) \tag{9.109}
+\end{equation*}
+$$</p>
+<p>总之，我们最终得到</p>
+<p>$$
+\begin{equation*}
+1-F(\rho, \sigma) \leqslant D(\rho, \sigma) \leqslant \sqrt{1-F(\rho, \sigma)^{2}} \tag{9.110}
+\end{equation*}
+$$</p>
+<p>这意味着，从定性的意义来说，迹距离和保真度在刻画两个量子态的接近程度这个问题上，是等价的。实际上，在许多问题上，当量化距离时，到底是选择迹距离还是保真度其实是无关紧要的，因为从关于其中一个的结论，可以推出关于另一个的等价结论。</p>
+<p>习题 9.21 当比较纯态和混态的时候，关于迹距离和保真度之间的关系我们可以得出比式（9.110）更强的结论。证明</p>
+<p>$$
+\begin{equation*}
+1-F(|\psi\rangle, \sigma)^{2} \leqslant D(|\psi\rangle, \sigma) \tag{9.111}
+\end{equation*}
+$$</p>
+<h1>9.3 量子信道保护信息的效果怎么样</h1>
+<p>朋友来了又去，可敌人却越来越多。</p>
+<p>——Jones＇Law，出自 Thomas Jones</p>
+<p>一个量子信道保护信息的效果怎么样？或者更精确地说，假设一个量子系统处于状态 $|\psi\rangle$ ，然后某个物理过程发生了，使得系统的状态演化到 $\mathcal{E}(|\psi\rangle\langle\psi|)$ 。那么信道 $\mathcal{E}$ 将系统的状态 $|\psi\rangle$ 保护得怎么样？在本节，我们将用之前章节中所讨论的静态距离度量，来发展出衡量量子信道保护信息好坏程度的度量。</p>
+<p>这种情景在量子信息和量子计算中经常发生。比如说，假设量子计算机中存储器的初始状态是 $|\psi\rangle$ ，而 $\mathcal{E}$ 代表存储器实际执行的动态过程，其中包括因为与环境作用而引人的噪声。另一个例子是将信息 $|\psi\rangle$ 从一个地点传送到另一个地点的量子通信信道。没有信道是完美的，因此信道的实际操作也被描述为一个量子操作 $\mathcal{E}$ 。</p>
+<p>一个显而易见的量化信道保护量子态 $|\psi\rangle$ 好坏程度的办法是使用上一节所介绍的经典距离度量。例如，我们可以计算起始状态 $|\psi\rangle$ 和结束状态 $|\psi\rangle\langle\psi|$ ）之间的保真度。对于去极化噪声信道的情形，我们得到</p>
+<p>$$
+\begin{align*}
+F(|\psi\rangle, \mathcal{E}(|\psi\rangle\langle\psi|)) &amp; =\sqrt{\langle\psi|\left(p \frac{I}{2}+(1-p)|\psi\rangle\langle\psi|\right)|\psi\rangle}  \tag{9.112}\\
+&amp; =\sqrt{1-\frac{p}{2}} \tag{9.113}
+\end{align*}
+$$</p>
+<p>这个结果与我们的直觉非常符合——去极化发生的概率 $p$ 越高，末态和初态之间的保真度越低。如果 $p$ 非常小，则对应的保真度将非常接近 1 ，状态 $\mathcal{E}(\rho)$ 和初态 $|\psi\rangle$ 实际上很难被分辨出来。</p>
+<p>在上面的表述中，使用保真度没有什么特别的考虑，实际上我们也可以用迹距离来得出类似的结论。但是，在本章剩下的篇幅中，我们将使用保真度及相关的量作为距离度量的选择。利用上节得到的迹距离的特性，从基于保真度得出的结果出发，在绝大部分时候我们可以很容易得出基于迹距离的平行结果。但是，由于基于保真度的计算一般来说更容易，因此我们选择只采用保真度。</p>
+<p>然而，我们提出的关于信息保护的度量原型，也就是保真度 $F(|\psi\rangle, \mathcal{E}(|\psi\rangle\langle\psi|))$ ，有一些需要修正的缺点。在一个真实的量子存储或量子通信信道中，我们并不知道系统的初态 $|\psi\rangle$ 是什么。但是，我们可以通过对所有可能的初态做最优化，来量化系统最坏的行为：</p>
+<p>$$
+\begin{equation*}
+F_{\min }(\mathcal{E}) \equiv \min _{|\psi\rangle} F(|\psi\rangle, \mathcal{E}(|\psi\rangle\langle\psi|)) \tag{9.114}
+\end{equation*}
+$$</p>
+<p>例如，对于 $p$ 去极化信道，$F_{\min }=\sqrt{1-p / 2}$ ，因为对于所有的输人态 $|\psi\rangle$ ，信道的保真度是相同的。一个更有趣的例子是相位衰减信道：</p>
+<p>$$
+\begin{equation*}
+\mathcal{E}(\rho)=p \rho+(1-p) Z \rho Z \tag{9.115}
+\end{equation*}
+$$</p>
+<p>对于这种信道，通过计算可知保真度为</p>
+<p>$$
+\begin{align*}
+F(|\psi\rangle, \mathcal{E}(|\psi\rangle\langle\psi|)) &amp; =\sqrt{\langle\psi|(p|\psi\rangle\langle\psi|+(1-p) Z|\psi\rangle\langle\psi| Z)|\psi\rangle}  \tag{9.116}\\
+&amp; =\sqrt{p+(1-p)\langle\psi| Z|\psi\rangle^{2}} \tag{9.117}
+\end{align*}
+$$</p>
+<p>根号下的第二项是非负的，当 $|\psi\rangle=(|0\rangle+|1\rangle) / \sqrt{2}$ 时取值为 0 。因此，对相位衰减信道来说，最小的保真度为</p>
+<p>$$
+\begin{equation*}
+F_{\min }(\mathcal{E})=\sqrt{p} \tag{9.118}
+\end{equation*}
+$$</p>
+<p>读者可能想问，我们为什么在 $F_{\text {min }}$ 的定义中只对所有的纯态取最小值。毕竟，我们关心的量子系统的初态可能是个混态 $\rho$ 。例如，量子存储器可能跟量子计算机的其他部分纠缠起来了，因此存储器的初态将会是一个混态。幸运的是，使用保真度的联合凹性，不难证明允许混态并不能改变 $F_{\text {min }}$ 的定义。为了看出这一点，假设 $\rho=\sum_{i} \lambda_{i}|i\rangle\langle i|$ 是量子系统的初态，则我们有</p>
+<p>$$
+\begin{align*}
+F(\rho, \mathcal{E}(\rho)) &amp; =F\left(\sum_{i} \lambda_{i}|i\rangle\langle i|, \sum_{i} \lambda_{i} \mathcal{E}(|i\rangle\langle i|)\right)  \tag{9.119}\\
+&amp; \geqslant \sum_{i} \lambda_{i} F(|i\rangle, \mathcal{E}(|i\rangle\langle i|)) \tag{9.120}
+\end{align*}
+$$</p>
+<p>于是，对于至少状态 $|i\rangle$ 中的一个，</p>
+<p>$$
+\begin{equation*}
+F(\rho, \mathcal{E}(\rho)) \geqslant F(|i\rangle, \mathcal{E}(|i\rangle\langle i|)) \tag{9.121}
+\end{equation*}
+$$</p>
+<p>成立，因此 $F(\rho, \mathcal{E}(\rho)) \geqslant F_{\text {min。 }}$</p>
+<p>当然，我们感兴趣的，不光是当信息通过量子通信信道时保护量子信息，也包括作为计算的动态过程本身。例如，作为一个量子计算过程的一部分，我们尝试实现一个西变换 $U$ 所描述的逻辑门。如前一章所述，任何此类尝试都将遇到噪声的影响，因此这个逻辑门的正确描述应该是一个量子操作 $\mathcal{E}$ 。一个刻画逻辑门成功程度的自然度量是逻辑门保真度，即</p>
+<p>$$
+\begin{equation*}
+F(U, \mathcal{E}) \equiv \min _{|\psi\rangle} F(U|\psi\rangle, \mathcal{E}(|\psi\rangle\langle\psi|)) \tag{9.122}
+\end{equation*}
+$$</p>
+<p>例如，假设我们想实现一个单量子比特上的非门，结果真正实现的是有噪声操作 $\mathcal{E}(\rho)=(1-$ p）$X \rho X+p Z \rho Z$ ，这里 $p$ 是某种噪声参数。于是，这个操作的逻辑门保真度是</p>
+<p>$$
+\begin{align*}
+F(X, \mathcal{E}) &amp; =\min _{|\psi\rangle} \sqrt{\langle\psi| X((1-p) X|\psi\rangle\langle\psi| X+p Z|\psi\rangle\langle\psi| Z) X|\psi\rangle}  \tag{9.123}\\
+&amp; =\min _{|\psi\rangle} \sqrt{(1-p)+p\langle\psi| Y|\psi\rangle^{2}}  \tag{9.124}\\
+&amp; =\sqrt{(1-p)} \tag{9.125}
+\end{align*}
+$$</p>
+<p>在习题 9.22 中我们将证明，如果一系列逻辑门中的每一个都被高保真度地实现，则整体操作的保真度也将很高。因此，为了实现量子计算，将涉及的每一个逻辑门都以高保真度实现就够了。（可以与第 4 章中类似但一般性稍逊的关于近似量子电路的讨论对比。）</p>
+<p>习题9.22（保真度的链式特征）假设 $U$ 和 $V$ 是西操作， $\mathcal{E}$ 和 $\mathcal{F}$ 分别是用来近似 $U$ 和 $V$ 的保迹量子操作。假设 $d(\cdot, \cdot)$ 是密度算子空间上的任意度量，且满足对所有密度算子 $\rho$ 和 $\sigma$ ，以及酉变换 $U$ ，都有 $d\left(U \rho U^{\dagger}, U \sigma U^{\dagger}\right)=d(\rho, \sigma)$ 成立（例如角度 $\left.\arccos (F(\rho, \sigma))\right)$ 。定义对应的错误 $E(U, \mathcal{E})$ 为</p>
+<p>$$
+\begin{equation*}
+E(U, \mathcal{E}) \equiv \max _{\rho} d\left(U \rho U^{\dagger}, \mathcal{E}(\rho)\right) \tag{9.126}
+\end{equation*}
+$$</p>
+<p>证明 $E(V U, \mathcal{F} \circ \mathcal{E}) \leqslant E(U, \mathcal{E})+E(V, \mathcal{F})$ 。因此，为了实现高保真度的量子计算，将计算涉及的每一步都以高保真度完成就足够了。</p>
+<h2>量子信息源和纠缠保真度</h2>
+<p>我们已经谈及信息保护的动态度量，但并没有精确定义什么是量子信息源，我们现在来讨论两种可能的定义，然后从这些定义出发，介绍信息保护的一些动态度量。从先验的角度来说，什么是最好的定义信息源的方式并不完全清楚。就经典的情况，这个问题最好的定义方法也不是显然的，有可能以不同的方式定义，并且每一个都可以成功引出有价值的信息论。量子信息以特殊情形的方式涵盖了经典信息，因此存在更多的方式来定义信息源这个概念也并不意外。在结束本章之前，我们将介绍量子信息源的两个可能定义，同时也将解释从保护信息这个目的出发，它们会诱导出不同的距离度量。我们将证明这些距离度量的一些基本性质，进一步的讨论将出现在后面第 12 章。</p>
+<p>一个吸引人的量子信源定义方法是将它想象成一个由很多相同量子系统（比如量子比特）构成的信息流，这些量子系统都由同一个物理过程产生，对应的量子态由 $\rho_{X_{1}}, \rho_{X_{2}}, \cdots$ 描述。其中
+$X_{j}$ 是独立同分布的随机变量，$\rho_{j}$ 是一组固定的量子态。例如，可以想象一个由量子比特组成的信息流，每个量子比特以一半的概率处于 $|0\rangle$ 状态，以剩下一半的概率处于 $(|0\rangle+|1\rangle) / \sqrt{2}$ 状态。</p>
+<p>量子信源的这种系综概念，自然地产生了系综平均保真度的概念，它描述的是信源在一个保迹量子操作描述的有噪声信道 $\mathcal{E}$ 中被保护的程度，即</p>
+<p>$$
+\begin{equation*}
+\bar{F}=\sum_{j} p_{j} F\left(\rho_{j}, \mathcal{E}\left(\rho_{j}\right)\right)^{2} \tag{9.127}
+\end{equation*}
+$$</p>
+<p>其中，$p_{j}$ 是信源的可能输出 $\rho_{j}$ 对应的概率。显然地， $0 \leqslant \bar{F} \leqslant 1$ ；如果 $\bar{F} \approx 1$ ，则我们可以很有信心地判断，平均来说信道 $\mathcal{E}$ 以很高的精确度保护了来自信源的信息。可能有人会问，为什么等号右边的保真度被取平方了，这个问题的回答由两个方面构成，一个简单，一个复杂。简单回答是，取平方可以让系综保真度和后面将要定义的纠缠保真度更自然地联系起来；复杂的回答是，其实到目前为止，量子信息的概念还没有被严格界定，甚至类似何为信息被保护等诸多概念的正确定义方法还不十分清楚。但是，正如在后面第 12 章将会看到的，系综平均保真度和纠缠保真度将会产生一个关于量子信息的丰富理论，这使我们相信，即使完整的量子信息论尚未建立起来，这些度量都有其合理的地位。
+习题 9.23 证明 $\bar{F}=1$ ，当且仅当 $\mathcal{E}\left(\rho_{j}\right)=\rho_{j}$ 对所有满足 $p_{j} &gt; 0$ 的 $j$ 成立。
+我们考虑的信源的第二个定义来自这样一个想法，那就是一个信道如果能很好地保护信息，它也能很好地保护纠缠，这个基本思路来自 9.1 节中对错误概率分布的讨论。那里我们已经指出，错误概率 $p(X \neq Y)$ 的直接对应，并不能在量子过程中定义，因为不同时刻的概率分布在量子世界并无直接对应。相应地，我们将采用图 9－7 所示思路的量子对应，即一个距离的动态度量可以如下定义：先制备一个随机变量 $X$ 的拷贝 $\tilde{X}$ ，接着让噪声作用在 $X$ 上产生 $Y$ ，最后将联合概率分布（ $\tilde{X}, X$ ）和（ $\tilde{X}^{\prime}, Y$ ）之间的某种度量当作我们的距离度量。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_a653dfefb9c869ab47feg-063.jpg?height=447&amp;width=1716&amp;top_left_y=3755&amp;top_left_x=985" /></p>
+<p>$$
+p(X \neq Y)=\text { 距离: }
+$$</p>
+<p><img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_a653dfefb9c869ab47feg-063.jpg?height=1083&amp;width=1123&amp;top_left_y=4309&amp;top_left_x=1707" /></p>
+<p>图 9－7 信道中错误发生的概率等于 $(\tilde{X}, X)$ 和 $(\tilde{X}, Y)$ 对应概率分布之间的迹距离</p>
+<p>这个模型的量子对应可以描述如下。首先，假设量子系统 $Q$ 的初态是 $\rho$ ，而且 $Q$ 被认为以某种形式跟外部世界纠缠起来。在这里，纠缠替代了经典模型中 $X$ 和 $\tilde{X}$ 之间的关联。为了描述纠缠，我们假想有一个量子系统 $R$ ，使得 $R Q$ 的联合量子态是纯态。实际上，我们将要得到的结果，完全不依赖于这个纯化是如何实现的，所以我们在这里假设这是一个任意的纠缠。然后让系统 $Q$ 经历一个量子操作 $\mathcal{E}$ 描述的动态过程，如图 9－8 所示。
+<img alt="" src="https://cdn.mathpix.com/cropped/2025_02_13_a653dfefb9c869ab47feg-064.jpg?height=589&amp;width=1199&amp;top_left_y=1241&amp;top_left_x=1227" /></p>
+<p>图 9－8 信道的 $R Q$ 图像。 $R Q$ 的初态是一个纯态
+那么 $Q$ 和 $R$ 之间的纠缠，在量子操作 $\mathcal{E}$ 作用下被保护得怎么样呢？我们用纠缠保真度 $F(\rho, \mathcal{E})$来量化这个效果，它是一个 $\mathcal{E}$ 和 $\rho$ 的函数，定义为</p>
+<p>$$
+\begin{align*}
+F(\rho, \mathcal{E}) &amp; \equiv F\left(R Q, R^{\prime} Q^{\prime}\right)^{2}  \tag{9.128}\\
+&amp; =\langle R Q|\left[\left(\mathcal{I}_{R} \otimes \mathcal{E}\right)(|R Q\rangle\langle R Q|)\right]|R Q\rangle \tag{9.129}
+\end{align*}
+$$</p>
+<p>其中，敉代表着量子操作之后的量子态，没有敉代表着量子操作之前的量子态。
+在等式右边出现的量，是 $R Q$ 初态和末态之间静态保真度的平方，这里取平方仅仅是为了方便，它将简化纠缠保真度的一些特性。注意，纠缠保真度只依赖于 $\mathcal{E}$ 和 $\rho$ ，与纯化 $|R Q\rangle$ 的细节无关。为了看出这一点，我们将利用习题 2.81 中证明的事实，即 $\rho$ 的两个纯化 $\left|R_{1} Q_{1}\right\rangle$ 和 $\left|R_{2} Q_{2}\right\rangle$只相差一个西变换 $U$ ，即 $\left|R_{2} Q_{2}\right\rangle=U\left|R_{1} Q_{1}\right\rangle$ ，于是，</p>
+<p>$$
+\begin{equation*}
+F\left(\left|R_{2} Q_{2}\right\rangle, \rho^{R_{2}^{\prime} Q_{2}^{\prime}}\right)=F\left(\left|R_{1} Q_{1}\right\rangle, \rho^{R_{1}^{\prime} Q_{2}^{\prime}}\right) \tag{9.130}
+\end{equation*}
+$$</p>
+<p>这样就得到了我们的结论。纠缠保真度提供了动态过程 $\mathcal{E}$ 保护 $R$ 和 $Q$ 之间纠缠的好坏程度的度量，它的值越接近 1 ，说明纠缠被保护得越好，接近 0 则说明绝大部分纠缠被破坏掉了。这里选择保真度的时候是否平方完全是任意的，上面这样定义会在数学处理上更方便些。</p>
+<p>关于纠缠保真度，一个吸引人的特点是它有一个简单的形式，使得精确计算变得很方便。假设 $E_{i}$ 是量子操作 $\mathcal{E}$ 的元素，那么</p>
+<p>$$
+\begin{equation*}
+\left.F(\rho, \mathcal{E})=\langle R Q| \rho^{R^{\prime} Q^{\prime}}|R Q\rangle=\sum\left|\langle R Q| E_{i}\right| R Q\right\rangle\left.\right|^{2} \tag{9.131}
+\end{equation*}
+$$</p>
+<p>假设我们将 $|R Q\rangle$ 写作 $|R Q\rangle=\sum_{j} \sqrt{p_{j}}|j\rangle|j\rangle$ ，其中 $\rho=\sum_{j} p_{j}|j\rangle\langle j|$ ，则</p>
+<p>$$
+\begin{align*}
+\langle R Q| E_{i}|R Q\rangle &amp; =\sum_{j k} \sqrt{p_{j} p_{k}}\langle j \mid k\rangle\langle j| E_{i}|k\rangle  \tag{9.132}\\
+&amp; =\sum_{j} p_{j}\langle j| E_{i}|j\rangle \tag{9.133}
+\end{align*}
+$$</p>
+<p>$$
+\begin{equation*}
+=\operatorname{tr}\left(E_{i} \rho\right) \tag{9.134}
+\end{equation*}
+$$</p>
+<p>将这个表达式代人式（9.131），我们就得到一个很有用的计算形式</p>
+<p>$$
+\begin{equation*}
+F(\rho, \mathcal{E})=\sum_{i}\left|\operatorname{tr}\left(\rho E_{i}\right)\right|^{2} \tag{9.135}
+\end{equation*}
+$$</p>
+<p>比如说，相位衰减信道 $\mathcal{E}(\rho)=p \rho+(1-p) Z \rho Z$ 的纠缠保真度由下式给出：</p>
+<p>$$
+\begin{equation*}
+F(\rho, \mathcal{E})=p|\operatorname{tr}(\rho)|^{2}+(1-p)|\operatorname{tr}(\rho Z)|^{2}=p+(1-p) \operatorname{tr}(\rho Z)^{2} \tag{9.136}
+\end{equation*}
+$$</p>
+<p>因此我们可以看到，当 $p$ 减小时，纠缠保真度下降，这跟我们的直觉吻合。
+我们已经以两种不同的方式定义了量子信息源，也讨论了相关的距离度量。其中一个是基于将量子态系综以高保真度保护的想法；而另一个则是基于我们真正需要保护的是信息源和参照系统之间的纠缠。也许有点意外的是，这两个看似不同的定义其实有紧密的联系。为了看出这一点，我们需要考察纠缠保真度的两个有用特性。首先，纠缠保真度是动态过程输人和输出之间静态保真度平方的一个下界，即</p>
+<p>$$
+\begin{equation*}
+F(\rho, \mathcal{E}) \leqslant[F(\rho, \mathcal{E}(\rho))]^{2} \tag{9.137}
+\end{equation*}
+$$</p>
+<p>直观上看，这个结果指出，同时保护量子态和纠缠，比仅仅保护量子态要来得困难。证明它需要用到部分迹操作下静态保真度的单调性，即 $F(\rho, \mathcal{E})=F\left(|R Q\rangle, \rho^{R^{\prime} Q^{\prime}}\right)^{2} \leqslant F\left(\rho^{Q}, \rho^{Q^{\prime}}\right)^{2}$ 。</p>
+<p>为了跟系综平均保真度联系起来，我们需要的关于纠缠保真度的第二个特性是它是 $\rho$ 的凸函数。为此，我们定义 $f(x) \equiv F\left(x \rho_{1}+(1-x) \rho_{2}, \mathcal{E}\right)$ ，根据式（9.135），通过简单计算可知</p>
+<p>$$
+\begin{equation*}
+f^{\prime \prime}(x)=\sum_{i}\left|\operatorname{tr}\left(\left(\rho_{1}-\rho_{2}\right) E_{i}\right)\right|^{2} \tag{9.138}
+\end{equation*}
+$$</p>
+<p>因此，$f^{\prime \prime}(x) \geqslant 0$ ，这意味着纠缠保真度是凸的。
+将这两个结果结合起来，我们有</p>
+<p>$$
+\begin{align*}
+F\left(\sum_{j} p_{j} \rho_{j}, \mathcal{E}\right) &amp; \leqslant \sum_{j} p_{j} F\left(\rho_{j}, \mathcal{E}\right)  \tag{9.139}\\
+&amp; \leqslant \sum_{j} p_{j} F\left(\rho_{j}, \mathcal{E}\left(\rho_{j}\right)\right)^{2} \tag{9.140}
+\end{align*}
+$$</p>
+<p>因此，</p>
+<p>$$
+\begin{equation*}
+F\left(\sum_{j} p_{j} \rho_{j}, \mathcal{E}\right) \leqslant \bar{F} \tag{9.141}
+\end{equation*}
+$$</p>
+<p>所以，如果一个量子信道 $\mathcal{E}$ 很好地保护了一个密度算子 $\rho$ 和参照系统之间的纠缠，则它也会自动地将概率 $p_{i}$ 和量子态 $\rho_{i}$ 构成的系综 $\rho=\sum_{j} p_{j} \rho_{j}$ 保护得很好。从这个意义上说，基于纠缠保真</p>
+<p>度定义的信息源概念，与基于系综定义的类似概念比起来更严格。因此，在第 12 章关于量子信息的研究中，我们倾向于使用基于纠缠保真度的定义。</p>
+<p>在本章的最后，我们列举一些容易证明的关于纠缠保真度的性质，它们在后面的章节中非常有用。</p>
+<ol>
+<li>$0 \leqslant F(\rho, \mathcal{E}) \leqslant 1$ 。由静态保真度的性质立得。
+   2.纠缠保真度对输人的量子操作来说是线性的，这可以根据纠缠保真度的定义立得。
+   3.对输人纯态来说，纠缯保真度等于输人和输出量子态之间静态保真度的平方，即</li>
+</ol>
+<p>$$
+\begin{equation*}
+F(|\psi\rangle, \mathcal{E})=F(|\psi\rangle, \mathcal{E}(|\psi\rangle\langle\psi|))^{2} \tag{9.142}
+\end{equation*}
+$$</p>
+<p>结合状态 $|\psi\rangle$ 是它自己的纯化这个事实，上述结论可由纠缠保真度的定义立得。
+4.$F(\rho, \mathcal{E})=1$ ，当且仅当对 $\rho$ 支集中的任意纯态 $|\psi\rangle$ ，都有</p>
+<p>$$
+\begin{equation*}
+\mathcal{E}(|\psi\rangle\langle\psi|)=|\psi\rangle\langle\psi| \tag{9.143}
+\end{equation*}
+$$</p>
+<p>为了证明这一点，假设 $F(\rho, \mathcal{E})=1$ ，而 $|\psi\rangle$ 是 $\rho$ 支集中的一个纯态。定义 $p \equiv 1 /\langle\psi| \rho^{-1}|\psi\rangle &gt; $ 0 （比较习题2.73），而 $\sigma$ 是一个满足 $(1-p) \sigma=\rho-p|\psi\rangle\langle\psi|$ 的密度算子。则根据保真度的凸性，</p>
+<p>$$
+\begin{equation*}
+1=F(\rho, \mathcal{E}) \leqslant p \sqrt{F(|\psi\rangle, \mathcal{E})}+(1-p) \tag{9.144}
+\end{equation*}
+$$</p>
+<p>因此，$F(|\psi\rangle, \mathcal{E})=1$ ，证明了上述结论中的一个方向，而另一个方向可看作纠细保真度定义的一个直接应用。</p>
+<p>5.假设存在 $\eta &gt; 0$ ，使得 $\langle\psi| \mathcal{E}(|\psi\rangle\langle\psi|)|\psi\rangle \geqslant 1-\eta$ 对 $\rho$ 支集中的所有纯态 $|\psi\rangle$ 成立，则 $F(\rho, \mathcal{E}) \geqslant$ $1-(3 \eta / 2)$（见问题 9.3 ）。
+问题9.1（保真度的一种新刻画）证明</p>
+<p>$$
+\begin{equation*}
+F(\rho, \sigma)=\inf _{P} \operatorname{tr}(\rho P) \operatorname{tr}\left(\sigma P^{-1}\right) \tag{9.145}
+\end{equation*}
+$$</p>
+<p>其中下确界是取在所有可逆正定矩阵 $P$ 上。
+问题 $9.2 \mathcal{E}$ 为一个保迹的量子操作，证明对每个 $\rho$ 有一组 $\mathcal{E}$ 的操作元素 $\left\{E_{i}\right\}$ ，使得</p>
+<p>$$
+\begin{equation*}
+F(\rho, \mathcal{E})=\left|\operatorname{tr}\left(\rho E_{1}\right)\right|^{2} \tag{9.146}
+\end{equation*}
+$$</p>
+<p>成立。
+问题9.3 证明结论（5）。</p>
+<h1>本章小结</h1>
+<p>1.迹距离：$D(\rho, \sigma) \equiv \frac{1}{2} \operatorname{tr}|\rho-\sigma|$ 。密度算子上的双重凸度量，在量子操作下会收缩。
+2.保真度：</p>
+<p>$$
+F(\rho, \sigma) \equiv \operatorname{tr} \sqrt{\rho^{1 / 2} \sigma \rho^{1 / 2}}=\max _{|\psi\rangle,|\varphi\rangle}|\langle\psi \mid \varphi\rangle|
+$$</p>
+<p>具有强凹性，$F\left(\sum_{i} p_{i} \rho_{i}, \sum_{i} q_{i} \sigma_{i}\right) \geqslant \sum_{i} \sqrt{p_{i} q_{i}} F\left(\rho_{i}, \sigma_{i}\right)$ 。
+3.纠缠保真度：$F(\rho, \mathcal{E})$ 。度量量子纠缠在一个量子力学过程中被保护的程度。在这个过程中，主系统 $Q$ 的状态是 $\rho$ ，且 $Q$ 与另一个量子系统 $R$ 之间存在纠缠，量子操作 $\mathcal{E}$ 作用在系统 $Q$ 上。</p>
+<h1>背景资料与延伸阅读</h1>
+<p>希望更深人了解量子信息距离度量的读者，可以参考 Fuchs 在 1996 年的博士论文 ${ }^{[F u c 96]}$ 。该论文涵盖了大量关于量子信息距离度量的材料，其中包括相关专题的 528 个参考文献，并且被分门别类。特别是，关于式（9.74）的证明可以在那里找到，还有许多其他有趣的内容。Fuchs 和 van de Graaf 的论文也值得参考 ${ }^{[F v d G 99]}$ ，不等式（9.110）就来自这篇论文。这篇论文也是一篇很好的对量子信息距离度量的概述，特别是在量子密码学的场景下。迹距离的收缩性由 Ruskai 证明 ${ }^{[R u s 94]}$ ；保真度的单调性由 Barnum，Caves，Fuchs，Jozsa 和 Schumacher 证明 $\left.{ }^{\left[B C F^{+}\right.} 96\right]$ 。注意，在文献中，我们称之为保真度的量，及其平方都被称作保真度。在 Uhlmann 证明以他名字命名的定理的论文中［Uh176］，对保真度的基本特性做了广泛的讨论。本文关于 Uhlmann 定理的证明，来自 Jozsa ${ }^{[J o z 94]}$ 。 Aharonov，Kitaev 和 Nisan 对保真度的链式特征，以及和有噪声量子计算之间的关系做了更详细的讨论 ${ }^{[A K N 98]}$ 。Schumacher 介绍了纠缠保真度的概念，并证明了它的很多基本性质 ${ }^{[\text {［ch96bb］}}$ 。Knill和 Laflamme 建立了问题 9.3 中子空间保真度和纠缠保真度之间的关系 ${ }^{[K L 97]}$ ；Barnum，Knill 和 Nielsen 则对这一结论做了更详细的证明 ${ }^{[B K N 98]}$ 。问题 9.1 由 Alberti 提出 ${ }^{[A 1 b 83]}$ 。</p>
+</body>
+</html>

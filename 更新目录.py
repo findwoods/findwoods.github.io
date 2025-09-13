@@ -18,7 +18,7 @@ EXCLUDED_DIRECTORIES = ["_layouts"]
 EXCLUDED_FILES = ["index0.html", output_file_local, output_file_github] # 排除两个索引文件自身
 
 # 定义顶层目录的期望顺序
-PREDEFINED_ORDER = ["线性代数", "MQST", "QCQI", "MathODE", "PhysLab", "ChemLab", "PhysChem"]
+PREDEFINED_ORDER = ["线性代数", "MQST", "QCQI", "MathODE", "PhysLab", "ChemLab", "PhysChem", "PhysChem1", "OrgChem1", "PhysChem1课堂", "PhysAnaChemLab"]
 
 # --- 添加自然排序键函数 ---
 def natural_sort_key(s):

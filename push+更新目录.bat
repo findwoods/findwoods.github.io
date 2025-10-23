@@ -3,8 +3,8 @@ cd /d D:\Columbia\findwoods\findwoods.github.io
 
 
 
-echo Running 更新目录.py...
-python 更新目录.py
+echo Running "更新目录.py"...
+python "更新目录.py"
 
 echo Adding all changes...
 git add .

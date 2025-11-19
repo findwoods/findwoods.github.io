@@ -1,0 +1,639 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>有机化学第11章：取代与消除反应可视化工具</title>
+    <style>
+        :root { --primary: #2563eb; --primary-hover: #1d4ed8; --bg: #f8fafc; --card: #ffffff; --text: #334155; --border: #e2e8f0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        .container { width: 100%; max-width: 1000px; background: var(--card); border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); display: flex; overflow: hidden; min-height: 650px; border: 1px solid var(--border); }
+        
+        /* Sidebar */
+        .sidebar { width: 260px; background: #f1f5f9; border-right: 1px solid var(--border); padding: 15px; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; }
+        .cat-title { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; margin: 15px 0 5px 5px; letter-spacing: 0.5px; }
+        .tool-btn { text-align: left; padding: 12px 15px; border: none; background: transparent; color: #475569; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.2s; font-weight: 500; }
+        .tool-btn:hover { background: #e2e8f0; color: #1e293b; }
+        .tool-btn.active { background: white; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.05); font-weight: 700; border-left: 4px solid var(--primary); }
+
+        /* Main Content */
+        .main { flex: 1; display: flex; flex-direction: column; padding: 25px; }
+        
+        .header { margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+        .header h2 { margin: 0 0 5px 0; color: #0f172a; font-size: 20px; }
+        .header p { margin: 0; color: #64748b; font-size: 14px; }
+
+        .canvas-wrapper { position: relative; height: 350px; background: #fafafa; border: 2px solid var(--border); border-radius: 12px; margin-bottom: 20px; overflow: hidden; }
+        svg { width: 100%; height: 100%; display: block; }
+
+        /* Info Box */
+        .info-box { background: #eff6ff; border-left: 4px solid var(--primary); padding: 15px 20px; border-radius: 6px; margin-bottom: 20px; min-height: 80px; }
+        .info-step { font-size: 12px; font-weight: bold; color: var(--primary); text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .info-text { font-size: 15px; line-height: 1.6; color: #1e3a8a; }
+
+        /* Controls */
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+        .legend { display: flex; gap: 15px; font-size: 12px; color: #64748b; flex-wrap: wrap;}
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+        .btn-action { background: var(--primary); color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); display: flex; align-items: center; gap: 8px; }
+        .btn-action:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-action:active { transform: translateY(0); }
+        .btn-reset { background: #10b981; } /* Green for reset */
+        .btn-reset:hover { background: #059669; }
+
+        /* Animations & Atoms */
+        .atom-group { transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .atom-circle { stroke: rgba(0,0,0,0.2); stroke-width: 1; }
+        .bond { stroke-width: 5; stroke-linecap: round; transition: all 1s ease; }
+        .text-label { font-family: Arial, sans-serif; font-weight: bold; font-size: 14px; fill: white; text-anchor: middle; dominant-baseline: central; pointer-events: none; text-shadow: 0px 1px 2px rgba(0,0,0,0.3); }
+        
+        /* Colors based on CPK generally */
+        .c-atom { fill: #334155; } 
+        .h-atom { fill: #94a3b8; }
+        .br-atom { fill: #991b1b; } /* Dark Red */
+        .cl-atom { fill: #16a34a; } /* Green */
+        .o-atom { fill: #dc2626; } /* Red */
+        .n-atom { fill: #2563eb; } /* Blue */
+        .s-atom { fill: #d97706; } /* Yellow/Orange */
+        .base-atom { fill: #7c3aed; } /* Purple for Base */
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="cat-title">双分子反应 (SN2/E2)</div>
+        <button class="tool-btn active" onclick="loadTool('sn2')">工具1: SN2 瓦尔登翻转</button>
+        <button class="tool-btn" onclick="loadTool('e2')">工具2: E2 反式共平面</button>
+        <button class="tool-btn" onclick="loadTool('cyclohexane')">工具3: 环己烷消除</button>
+        
+        <div class="cat-title">醇的转化</div>
+        <button class="tool-btn" onclick="loadTool('socl2')">工具4: SOCl₂ 机理 (SN2)</button>
+        
+        <div class="cat-title">单分子反应 (SN1/E1)</div>
+        <button class="tool-btn" onclick="loadTool('sn1')">工具5: SN1 外消旋化</button>
+        <button class="tool-btn" onclick="loadTool('e1')">工具6: E1 消除机理</button>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="main">
+        <div class="header">
+            <h2 id="tool-title">工具1: SN2 反应机理</h2>
+            <p id="tool-desc">亲核试剂背面进攻导致构型翻转</p>
+        </div>
+
+        <div class="canvas-wrapper">
+            <svg id="main-svg" viewBox="0 0 600 350">
+                <!-- Graphics injected by JS -->
+            </svg>
+        </div>
+
+        <div class="info-box">
+            <span class="info-step" id="step-label">准备就绪</span>
+            <div class="info-text" id="step-text">
+                点击下方按钮开始逐步演示。
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="legend">
+                <div class="legend-item"><div class="dot" style="background:#334155"></div>C</div>
+                <div class="legend-item"><div class="dot" style="background:#94a3b8"></div>H</div>
+                <div class="legend-item"><div class="dot" style="background:#991b1b"></div>Br</div>
+                <div class="legend-item"><div class="dot" style="background:#dc2626"></div>O</div>
+                <div class="legend-item"><div class="dot" style="background:#7c3aed"></div>碱/亲核</div>
+            </div>
+            <button class="btn-action" id="main-btn" onclick="handleBtnClick()">
+                ▶ 播放第一步
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // SVG & Engine Helper
+    const svg = document.getElementById('main-svg');
+    const svgNS = "http://www.w3.org/2000/svg";
+
+    const engine = {
+        clear: () => svg.innerHTML = '',
+        
+        // create atom group (circle + text)
+        atom: (id, x, y, type, label, r=22) => {
+            const g = document.createElementNS(svgNS, 'g');
+            g.setAttribute('id', id);
+            g.setAttribute('class', 'atom-group');
+            g.setAttribute('transform', `translate(${x},${y})`);
+            
+            const c = document.createElementNS(svgNS, 'circle');
+            c.setAttribute('r', r);
+            c.setAttribute('class', `atom-circle ${type}-atom`);
+            
+            const t = document.createElementNS(svgNS, 'text');
+            t.setAttribute('class', 'text-label');
+            // Resize text based on radius
+            t.setAttribute('font-size', r * 0.6); 
+            t.textContent = label;
+
+            g.appendChild(c);
+            g.appendChild(t);
+            svg.appendChild(g);
+        },
+
+        // create bond
+        bond: (id, x1, y1, x2, y2, color='#94a3b8', width=6, dash=false) => {
+            const l = document.createElementNS(svgNS, 'line');
+            l.setAttribute('id', id);
+            l.setAttribute('class', 'bond');
+            l.setAttribute('x1', x1); l.setAttribute('y1', y1);
+            l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+            l.setAttribute('stroke', color);
+            l.setAttribute('stroke-width', width);
+            if(dash) l.setAttribute('stroke-dasharray', "10,5");
+            svg.insertBefore(l, svg.firstChild); // bond behind atom
+        },
+
+        // Move element
+        move: (id, x, y) => {
+            const el = document.getElementById(id);
+            if(el) el.setAttribute('transform', `translate(${x},${y})`);
+        },
+
+        // Modify visual style
+        style: (id, props) => {
+            const el = document.getElementById(id);
+            if(!el) return;
+            
+            if(props.opacity !== undefined) el.style.opacity = props.opacity;
+            if(props.strokeWidth) el.setAttribute('stroke-width', props.strokeWidth);
+            if(props.stroke) el.setAttribute('stroke', props.stroke);
+            if(props.dash !== undefined) el.setAttribute('stroke-dasharray', props.dash ? "10,5" : "none");
+            
+            if(props.fill) {
+                const circle = el.querySelector('circle');
+                if(circle) {
+                    circle.style.fill = props.fill;
+                    circle.setAttribute('class', 'atom-circle'); // remove class color override
+                }
+            }
+            if(props.text) {
+                const txt = el.querySelector('text');
+                if(txt) txt.textContent = props.text;
+            }
+            
+            // Bond coordinate updates
+            if(el.tagName === 'line') {
+                if(props.x1) el.setAttribute('x1', props.x1);
+                if(props.x2) el.setAttribute('x2', props.x2);
+                if(props.y1) el.setAttribute('y1', props.y1);
+                if(props.y2) el.setAttribute('y2', props.y2);
+            }
+        }
+    };
+
+    // --- Tool Content Definitions (Based on Chapter 11 PDF) ---
+    const tools = {
+        'sn2': {
+            title: "工具1: SN2 反应机理 (瓦尔登翻转)",
+            desc: "一级/二级卤代烷 + 强亲核试剂 | 协同反应",
+            steps: [
+                {
+                    label: "初始状态",
+                    text: "<b>背面进攻要求：</b>亲核试剂 OH⁻ (红色) 必须从离去基团 Br (深红色) 的正后方进攻。<br>此时氢原子像伞一样指向左侧。",
+                    setup: (e) => {
+                        e.clear();
+                        // Center C
+                        e.atom('c', 300, 175, 'c', 'C');
+                        // Leaving Group
+                        e.atom('br', 450, 175, 'br', 'Br', 30);
+                        e.bond('b_br', 300, 175, 450, 175, '#991b1b');
+                        
+                        // Nucleophile (Left side)
+                        e.atom('nu', 50, 175, 'o', 'OH⁻', 25);
+                        
+                        // Hydrogens (Tetrahedral-ish pointing left)
+                        e.atom('h1', 260, 100, 'h', 'H', 15);
+                        e.bond('b_h1', 300, 175, 260, 100);
+                        e.atom('h2', 260, 250, 'h', 'H', 15);
+                        e.bond('b_h2', 300, 175, 260, 250);
+                        e.atom('h3', 230, 175, 'h', 'H', 15); // Back H
+                        e.bond('b_h3', 300, 175, 230, 175);
+                    }
+                },
+                {
+                    label: "第一步：过渡态 [TS]‡",
+                    text: "<b>五配位碳：</b>OH⁻ 接近，Br 开始离去。<br>三个 H 原子被迫移动到同一平面上 (sp²杂化特征)。<br>这是能量最高的时刻。",
+                    action: (e) => {
+                        e.move('nu', 200, 175); // Nu Approaches
+                        e.move('br', 480, 175); // Br starts moving away
+                        
+                        // Form partial bonds
+                        e.bond('b_nu', 200, 175, 300, 175, '#dc2626', 4, true); // dotted
+                        e.style('b_br', {x2: 480, dash: true}); // dotted
+                        
+                        // Planarize Hydrogens (Vertical alignment)
+                        e.move('h1', 300, 90); e.style('b_h1', {x2: 300, y2: 90});
+                        e.move('h2', 300, 260); e.style('b_h2', {x2: 300, y2: 260});
+                        e.move('h3', 300, 200); e.style('b_h3', {x2: 300, y2: 200}); // slightly offset for 3D
+                    }
+                },
+                {
+                    label: "第二步：翻转与产物",
+                    text: "<b>构型翻转 (Inversion)：</b>Br⁻ 完全脱落。<br>为了保持四面体结构，三个 H 原子像伞被风吹翻一样翻转到了右侧。",
+                    action: (e) => {
+                        e.move('nu', 180, 175); // Bond gets closer/solid
+                        e.style('b_nu', {x1: 180, dash: false, strokeWidth: 6}); // Solid bond
+                        
+                        e.move('br', 550, 175); // Leaves completely
+                        e.style('b_br', {opacity: 0});
+                        
+                        // Flip Hydrogens to Right
+                        e.move('h1', 340, 100); e.style('b_h1', {x2: 340, y2: 100});
+                        e.move('h2', 340, 250); e.style('b_h2', {x2: 340, y2: 250});
+                        e.move('h3', 370, 175); e.style('b_h3', {x2: 370, y2: 175});
+                    }
+                }
+            ]
+        },
+        'e2': {
+            title: "工具2: E2 反应立体化学 (反式共平面)",
+            desc: "强碱 + 有β-H的卤代烷 | 必须满足反式共平面几何要求",
+            steps: [
+                {
+                    label: "初始构象 (锯架式)",
+                    text: "<b>反式共平面 (Anti-Periplanar)：</b><br>观察几何结构：离去基团 Br (上方) 和 β-氢原子 H (下方) 处于 180° 反式位置。<br>这是 E2 反应发生的<b>前提条件</b>。",
+                    setup: (e) => {
+                        e.clear();
+                        // C-C Bond
+                        e.atom('c1', 250, 220, 'c', 'Cα');
+                        e.atom('c2', 350, 160, 'c', 'Cβ');
+                        e.bond('cc', 250, 220, 350, 160, '#334155', 10);
+
+                        // LG (Up on C2) - wait, usually LG is on Alpha. Let's define C1 as Alpha (Front/Left)
+                        // Let's do: C1(Left) holds H(Down), C2(Right) holds Br(Up)
+                        
+                        // Beta H (Down on C1)
+                        e.atom('h_beta', 250, 300, 'h', 'Hβ', 18);
+                        e.bond('b_h', 250, 220, 250, 300);
+
+                        // LG (Up on C2)
+                        e.atom('br', 350, 80, 'br', 'Br', 28);
+                        e.bond('b_br', 350, 160, 350, 80, '#991b1b');
+
+                        // Base
+                        e.atom('base', 150, 300, 'base', 'B:⁻', 25);
+                    }
+                },
+                {
+                    label: "第一步：协同消除",
+                    text: "<b>一步完成：</b>碱夺取 β-H 的同时，C-H 键电子流向 C-C 之间形成双键，顶出 Br⁻。<br>所有键的断裂与形成同时发生。",
+                    action: (e) => {
+                        e.move('base', 220, 300); // Approaches H
+                        
+                        // Arrows logic simplified by animation
+                        e.style('b_h', {dash: true, stroke: '#ef4444'}); // Breaking
+                        e.style('b_br', {dash: true, stroke: '#ef4444'}); // Breaking
+                        e.style('cc', {strokeWidth: 14, stroke: '#334155'}); // Double bond forming thick
+                    }
+                },
+                {
+                    label: "第二步：烯烃产物",
+                    text: "<b>结果：</b>生成烯烃 (C=C)。<br>产物的顺反构型 (Z/E) 取决于反应物在反式共平面时的基团排布。",
+                    action: (e) => {
+                        e.move('base', 150, 350); 
+                        e.move('h_beta', 180, 350); // H leaves with base
+                        e.style('b_h', {opacity: 0});
+                        
+                        e.move('br', 450, 50); // Br leaves
+                        e.style('b_br', {opacity: 0});
+                        
+                        // Finalize Double Bond
+                        e.style('cc', {stroke: '#2563eb'}); // Blue for double bond highlight
+                    }
+                }
+            ]
+        },
+        'cyclohexane': {
+            title: "工具3: 环己烷上的消除 (新孟基氯)",
+            desc: "E2 必须在“反式双直立键 (Trans-Diaxial)”构象下进行",
+            steps: [
+                {
+                    label: "反应构象分析",
+                    text: "<b>新孟基氯：</b>在最稳定构象中，Cl 处于<b>直立键 (Axial)</b>。<br>邻位的 H 也处于直立键。<br>二者满足反式共平面 (Trans-diaxial)，因此反应<b>极快</b>。",
+                    setup: (e) => {
+                        e.clear();
+                        // Simplified Chair View
+                        // C1 (Left) holds H (Axial Down), C2 (Right) holds Cl (Axial Up)
+                        e.bond('ring1', 200, 200, 300, 230, '#94a3b8', 4); // C1-C2
+                        e.bond('ring2', 300, 230, 380, 180, '#94a3b8', 4);
+                        e.bond('ring3', 380, 180, 350, 100, '#94a3b8', 4);
+                        e.bond('ring4', 350, 100, 250, 80, '#94a3b8', 4);
+                        e.bond('ring5', 250, 80, 170, 130, '#94a3b8', 4);
+                        e.bond('ring6', 170, 130, 200, 200, '#94a3b8', 4);
+
+                        e.atom('c1', 200, 200, 'c', 'C1');
+                        e.atom('c2', 300, 230, 'c', 'C2');
+
+                        // H Axial Down on C1
+                        e.atom('h', 200, 280, 'h', 'H(a)', 18);
+                        e.bond('b_h', 200, 200, 200, 280, '#ef4444', 4); // Red for emphasis
+
+                        // Cl Axial Up on C2
+                        e.atom('cl', 300, 150, 'cl', 'Cl(a)', 20);
+                        e.bond('b_cl', 300, 230, 300, 150, '#ef4444', 4);
+
+                        e.atom('base', 100, 280, 'base', 'Base');
+                    }
+                },
+                {
+                    label: "第一步：消除",
+                    text: "<b>反应顺利进行：</b>因为 Cl 和 H 都是直立键，它们是反式的。<br>碱夺取 H，电子对推向 C-C 键，Cl 离去。",
+                    action: (e) => {
+                        e.move('base', 160, 280); // Attack
+                        e.style('b_h', {dash: true});
+                        e.style('b_cl', {dash: true});
+                        
+                        // Highlight Double Bond formation area
+                        e.bond('dbl', 200, 200, 300, 230, '#2563eb', 8); 
+                    }
+                },
+                {
+                    label: "结果",
+                    text: "<b>生成烯烃：</b>如果 Cl 是平伏键 (如孟基氯)，则无法与 H 共平面，反应将极慢 (需环翻转)。<br>只有反式双直立键能快速反应。",
+                    action: (e) => {
+                        e.move('h', 120, 300); // Leaves
+                        e.move('base', 120, 300);
+                        e.move('cl', 350, 100); // Leaves
+                        e.style('b_h', {opacity: 0});
+                        e.style('b_cl', {opacity: 0});
+                    }
+                }
+            ]
+        },
+        'socl2': {
+            title: "工具4: 醇转化为卤代烷 (SOCl₂)",
+            desc: "利用 SN2 机理将不良离去基团 (OH) 转化为好离去基团",
+            steps: [
+                {
+                    label: "中间体状态",
+                    text: "<b>第一阶段完成：</b>醇 (ROH) 已与 SOCl₂ 反应，形成了<b>氯亚硫酸酯 (-O-SO-Cl)</b>。<br>这是一个极好的离去基团。",
+                    setup: (e) => {
+                        e.clear();
+                        e.atom('c', 300, 180, 'c', 'C');
+                        
+                        // O-S-O-Cl group
+                        e.atom('o', 380, 180, 'o', 'O');
+                        e.atom('s', 440, 180, 's', 'S');
+                        e.atom('cl_lg', 500, 180, 'cl', 'Cl');
+                        
+                        e.bond('b_co', 300, 180, 380, 180);
+                        e.bond('b_os', 380, 180, 440, 180);
+                        e.bond('b_scl', 440, 180, 500, 180);
+                        
+                        // Cl- Nucleophile free in solution
+                        e.atom('cl_nu', 100, 180, 'cl', 'Cl⁻', 22);
+                        
+                        // Hydrogens for stereo
+                        e.atom('h1', 260, 120, 'h', 'H');
+                        e.bond('b_h1', 300, 180, 260, 120);
+                        e.atom('h2', 260, 240, 'h', 'H');
+                        e.bond('b_h2', 300, 180, 260, 240);
+                    }
+                },
+                {
+                    label: "第一步：SN2 进攻",
+                    text: "<b>背面进攻：</b>游离的 Cl⁻ 从背面进攻碳原子。<br>整个 -O-SO-Cl 基团作为一个单元离去。",
+                    action: (e) => {
+                        e.move('cl_nu', 250, 180);
+                        
+                        // Group leaves
+                        e.move('o', 400, 180);
+                        e.move('s', 460, 180);
+                        e.move('cl_lg', 520, 180);
+                        
+                        e.style('b_co', {dash: true});
+                        
+                        // Stereo starts flattening
+                        e.move('h1', 300, 110); e.style('b_h1', {x2: 300, y2: 110});
+                        e.move('h2', 300, 250); e.style('b_h2', {x2: 300, y2: 250});
+                    }
+                },
+                {
+                    label: "第二步：翻转与分解",
+                    text: "<b>产物：</b>生成 R-Cl，构型<b>翻转</b>。<br>离去的基团分解为 SO₂ (气体) 和 Cl⁻，驱动反应向右进行。",
+                    action: (e) => {
+                        e.move('cl_nu', 250, 180); // Bond
+                        e.bond('b_final', 250, 180, 300, 180, '#16a34a');
+                        
+                        e.style('b_co', {opacity: 0});
+                        e.style('b_os', {opacity: 0});
+                        e.style('b_scl', {opacity: 0});
+                        
+                        // Fly away decomposed
+                        e.move('o', 550, 120); e.style('o', {opacity: 0});
+                        e.move('s', 580, 150); e.style('s', {opacity: 0});
+                        e.move('cl_lg', 600, 180); e.style('cl_lg', {opacity: 0});
+                        
+                        // Flip H
+                        e.move('h1', 340, 120); e.style('b_h1', {x2: 340, y2: 120});
+                        e.move('h2', 340, 240); e.style('b_h2', {x2: 340, y2: 240});
+                    }
+                }
+            ]
+        },
+        'sn1': {
+            title: "工具5: SN1 反应机理 (外消旋化)",
+            desc: "叔卤代烷 + 弱亲核试剂 | 经由碳正离子中间体",
+            steps: [
+                {
+                    label: "初始状态",
+                    text: "<b>底物：</b>叔丁基溴 (3°)。由于位阻大，无法进行 SN2。<br><b>试剂：</b>水 (弱亲核试剂/溶剂)。",
+                    setup: (e) => {
+                        e.clear();
+                        e.atom('c', 300, 180, 'c', 'C');
+                        // 3 Methyl groups
+                        e.atom('m1', 240, 120, 'c', 'CH₃', 20); e.bond('b1', 300, 180, 240, 120);
+                        e.atom('m2', 240, 240, 'c', 'CH₃', 20); e.bond('b2', 300, 180, 240, 240);
+                        e.atom('m3', 360, 220, 'c', 'CH₃', 20); e.bond('b3', 300, 180, 360, 220);
+                        
+                        // LG
+                        e.atom('br', 360, 140, 'br', 'Br'); e.bond('b_br', 300, 180, 360, 140, '#991b1b');
+                        
+                        // Nu
+                        e.atom('nu', 100, 180, 'o', 'H₂O');
+                    }
+                },
+                {
+                    label: "第一步：异裂 (RDS)",
+                    text: "<b>速率决定步：</b>C-Br 键断裂，Br⁻ 离去。<br>形成<b>平面三角型</b>的叔碳正离子 (sp²)。甲基展开到同一平面。",
+                    action: (e) => {
+                        e.move('br', 450, 100); // Leaves
+                        e.style('b_br', {opacity: 0});
+                        
+                        // Flatten to planar
+                        e.move('m1', 300, 100); e.style('b1', {x2: 300, y2: 100});
+                        e.move('m2', 230, 220); e.style('b2', {x2: 230, y2: 220});
+                        e.move('m3', 370, 220); e.style('b3', {x2: 370, y2: 220});
+                        
+                        e.style('c', {fill: '#dc2626', text: 'C⁺'}); // Red Cation
+                    }
+                },
+                {
+                    label: "第二步：亲核结合",
+                    text: "<b>外消旋化：</b>水分子可以从平面上方或下方进攻 (概率均等)。<br>这导致产物既有构型保持的，也有构型翻转的。",
+                    action: (e) => {
+                        e.move('nu', 260, 180); // Attack
+                        
+                        // Visualize bonding
+                        setTimeout(() => {
+                            e.bond('b_nu', 260, 180, 300, 180, '#dc2626');
+                            e.style('c', {fill: '#334155', text: 'C'}); // Neutral
+                            e.style('nu', {text: 'OH₂⁺'});
+                        }, 800);
+                    }
+                }
+            ]
+        },
+        'e1': {
+            title: "工具6: E1 消除反应",
+            desc: "与 SN1 竞争 | 碱夺取碳正离子旁的质子",
+            steps: [
+                {
+                    label: "中间体：碳正离子",
+                    text: "<b>共同路径：</b>反应开始与 SN1 相同，已形成叔碳正离子。<br>此时，溶剂(如水/醇)作为<b>碱</b>，而不是亲核试剂行动。",
+                    setup: (e) => {
+                        e.clear();
+                        // Planar Carbocation
+                        e.atom('c_alpha', 300, 180, 'c', 'C⁺'); e.style('c_alpha', {fill: '#dc2626'});
+                        
+                        // Beta Carbon with H
+                        e.atom('c_beta', 400, 180, 'c', 'CH₂');
+                        e.bond('cc', 300, 180, 400, 180);
+                        
+                        // Other groups on C+
+                        e.atom('g1', 240, 120, 'c', 'CH₃'); e.bond('b1', 300, 180, 240, 120);
+                        e.atom('g2', 240, 240, 'c', 'CH₃'); e.bond('b2', 300, 180, 240, 240);
+                        
+                        // Beta H
+                        e.atom('h_beta', 400, 100, 'h', 'H', 18);
+                        e.bond('b_h', 400, 180, 400, 100);
+                        
+                        // Weak Base
+                        e.atom('base', 500, 80, 'o', 'H₂O', 22);
+                    }
+                },
+                {
+                    label: "去质子化",
+                    text: "<b>生成烯烃：</b>碱夺取 β-H。<br>C-H 键的电子对倒向 C-C 键，中和正电荷并形成双键 (π键)。",
+                    action: (e) => {
+                        e.move('base', 420, 90); // Approach H
+                        e.style('b_h', {dash: true, stroke: '#dc2626'});
+                    }
+                },
+                {
+                    label: "产物生成",
+                    text: "<b>结果：</b>生成 2-甲基丙烯。<br>E1 反应通常遵循扎伊采夫规则 (生成更稳定的多取代烯烃)。",
+                    action: (e) => {
+                        e.move('base', 550, 50);
+                        e.move('h_beta', 550, 50); // Leaves with base
+                        e.style('b_h', {opacity: 0});
+                        
+                        // Form Double Bond
+                        e.style('cc', {strokeWidth: 12, stroke: '#2563eb'});
+                        e.style('c_alpha', {fill: '#334155', text: 'C'}); // Neutral
+                        e.style('base', {text: 'H₃O⁺'});
+                    }
+                }
+            ]
+        }
+    };
+
+    // --- State Machine & Controller ---
+    let currentToolKey = null;
+    let currentStepIndex = 0; 
+
+    const ui = {
+        title: document.getElementById('tool-title'),
+        desc: document.getElementById('tool-desc'),
+        stepLabel: document.getElementById('step-label'),
+        stepText: document.getElementById('step-text'),
+        btn: document.getElementById('main-btn'),
+        buttons: document.querySelectorAll('.tool-btn')
+    };
+
+    function loadTool(key) {
+        currentToolKey = key;
+        currentStepIndex = 0;
+
+        // Update Selection
+        ui.buttons.forEach(b => b.classList.remove('active'));
+        document.querySelector(`button[onclick="loadTool('${key}')"]`).classList.add('active');
+
+        // Load Content
+        const tool = tools[key];
+        ui.title.textContent = tool.title;
+        ui.desc.textContent = tool.desc;
+
+        // Reset to Step 0
+        executeStep(0);
+    }
+
+    function executeStep(index) {
+        const tool = tools[currentToolKey];
+        const stepData = tool.steps[index];
+
+        // Update Text
+        ui.stepLabel.textContent = stepData.label;
+        ui.stepText.innerHTML = stepData.text;
+
+        // Run Action
+        if (index === 0) {
+            stepData.setup(engine);
+        } else {
+            stepData.action(engine);
+        }
+
+        // Update Button
+        updateButtonState(index, tool.steps.length);
+    }
+
+    function updateButtonState(index, total) {
+        const isLast = index === total - 1;
+        
+        if (isLast) {
+            ui.btn.innerHTML = "↺ 重置并循环";
+            ui.btn.classList.add('btn-reset');
+            ui.btn.classList.remove('btn-action');
+        } else {
+            const nextIndex = index + 1;
+            const nextLabel = tools[currentToolKey].steps[nextIndex].label;
+            ui.btn.innerHTML = `▶ 播放${nextLabel}`;
+            ui.btn.classList.remove('btn-reset');
+            ui.btn.classList.add('btn-action');
+        }
+    }
+
+    function handleBtnClick() {
+        const tool = tools[currentToolKey];
+        const total = tool.steps.length;
+
+        if (currentStepIndex === total - 1) {
+            currentStepIndex = 0;
+            executeStep(0);
+        } else {
+            currentStepIndex++;
+            executeStep(currentStepIndex);
+        }
+    }
+
+    // Init
+    loadTool('sn2');
+
+</script>
+
+</body>
+</html>\

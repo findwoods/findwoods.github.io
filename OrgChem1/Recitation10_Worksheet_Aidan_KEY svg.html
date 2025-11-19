@@ -1,0 +1,790 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>有机化学深度解析 (PDF Recitation 9)</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #2980b9;
+            --bg: #f5f6fa;
+            --text: #2c3e50;
+            --radius: 28px;
+            --panel-bg: #ffffff;
+        }
+
+        body {
+            font-family: "Helvetica Neue", Helvetica, "Microsoft YaHei", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background-color: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            width: 260px;
+            background-color: var(--primary);
+            color: #ecf0f1;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background-color: var(--secondary);
+            font-size: 18px;
+            font-weight: bold;
+            border-bottom: 1px solid #465c71;
+        }
+
+        .nav-list {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-item:hover { background-color: rgba(255,255,255,0.1); padding-left: 25px; }
+        .nav-item.active { background-color: var(--accent); border-left: 5px solid #fff; font-weight: bold; }
+
+        /* 主界面 */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            gap: 15px;
+            overflow-y: auto; /* 允许垂直滚动 */
+        }
+
+        /* 顶部标题区 */
+        .header-card {
+            background: var(--panel-bg);
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--accent);
+        }
+        .header-card h2 { margin: 0 0 5px 0; color: var(--primary); }
+        .header-card p { margin: 0; color: #7f8c8d; font-size: 14px; }
+
+        /* 可视化区域 */
+        .viz-wrapper {
+            height: 450px; /* 固定高度 */
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            position: relative;
+            border: 1px solid #e1e8ed;
+            flex-shrink: 0;
+        }
+
+        svg { width: 100%; height: 100%; cursor: crosshair; }
+
+        /* 控制栏 */
+        .controls {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            flex-shrink: 0;
+        }
+
+        .step-indicator { font-weight: bold; color: var(--accent); }
+
+        .btn-group button {
+            padding: 8px 16px;
+            margin-left: 8px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+            background: #ecf0f1;
+            color: var(--primary);
+        }
+        .btn-group button.play { background: var(--accent); color: white; }
+        .btn-group button:hover { transform: translateY(-2px); filter: brightness(95%); }
+
+        /* 深度推导面板 (核心新增部分) */
+        .derivation-panel {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            line-height: 1.6;
+            border-top: 4px solid #e67e22;
+        }
+
+        .derivation-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #d35400;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .derivation-content h4 { margin: 15px 0 5px 0; color: #2c3e50; border-bottom: 1px dashed #ccc; padding-bottom: 5px; }
+        .derivation-content ul { padding-left: 20px; margin: 5px 0; }
+        .derivation-content li { margin-bottom: 8px; font-size: 15px; color: #555; }
+        .highlight { background-color: #fff3cd; padding: 2px 5px; border-radius: 3px; font-weight: bold; color: #856404; }
+        .chem-formula { font-family: "Times New Roman", serif; font-style: italic; }
+
+        /* SVG 元素样式 */
+        .atom-group { transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
+        .atom-circle { stroke: #333; stroke-width: 2; }
+        .atom-label { font-size: 20px; font-weight: bold; text-anchor: middle; dominant-baseline: central; fill: white; pointer-events: none; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+        .bond { stroke: #333; stroke-width: 5; stroke-linecap: round; transition: d 0.8s; }
+        .bond.dashed { stroke-dasharray: 8,8; }
+        .bond.double { stroke-width: 12; } /* 背景宽线模拟双键 */
+        .bond.double-inner { stroke: white; stroke-width: 4; } /* 前景细线 */
+        
+        .electron-arrow {
+            fill: none; stroke: #e74c3c; stroke-width: 3;
+            marker-end: url(#arrowHead);
+            stroke-dasharray: 1000; stroke-dashoffset: 1000;
+            animation: drawPath 1.5s forwards ease-in-out;
+        }
+        
+        @keyframes drawPath { to { stroke-dashoffset: 0; } }
+
+    </style>
+</head>
+<body>
+
+<!-- 侧边导航 -->
+<div class="sidebar">
+    <div class="sidebar-header">📖 习题 Recitation 9</div>
+    <div class="nav-list" id="navList">
+        <!-- JS生成列表 -->
+    </div>
+</div>
+
+<!-- 主内容 -->
+<div class="main-content">
+    <!-- 题目信息 -->
+    <div class="header-card">
+        <h2 id="qTitle">Loading...</h2>
+        <p id="qSubtitle">选择左侧题目开始学习</p>
+    </div>
+
+    <!-- 动画区域 -->
+    <div class="viz-wrapper">
+        <svg id="mainSvg" viewBox="0 0 800 450">
+            <defs>
+                <marker id="arrowHead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                    <path d="M0,0 L0,6 L9,3 z" fill="#e74c3c" />
+                </marker>
+                <filter id="dropShadow">
+                    <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.3"/>
+                </filter>
+                <!-- 3D 球体渐变 -->
+                <radialGradient id="gradC" cx="30%" cy="30%"><stop offset="0%" stop-color="#90a4ae"/><stop offset="100%" stop-color="#455a64"/></radialGradient>
+                <radialGradient id="gradH" cx="30%" cy="30%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#cfd8dc"/></radialGradient>
+                <radialGradient id="gradBr" cx="30%" cy="30%"><stop offset="0%" stop-color="#ef9a9a"/><stop offset="100%" stop-color="#c62828"/></radialGradient>
+                <radialGradient id="gradMg" cx="30%" cy="30%"><stop offset="0%" stop-color="#e1bee7"/><stop offset="100%" stop-color="#8e24aa"/></radialGradient>
+                <radialGradient id="gradLi" cx="30%" cy="30%"><stop offset="0%" stop-color="#fff59d"/><stop offset="100%" stop-color="#fbc02d"/></radialGradient>
+                <radialGradient id="gradCu" cx="30%" cy="30%"><stop offset="0%" stop-color="#ffccbc"/><stop offset="100%" stop-color="#d84315"/></radialGradient>
+                <radialGradient id="gradO" cx="30%" cy="30%"><stop offset="0%" stop-color="#ffcdd2"/><stop offset="100%" stop-color="#d32f2f"/></radialGradient>
+                <radialGradient id="gradCl" cx="30%" cy="30%"><stop offset="0%" stop-color="#a5d6a7"/><stop offset="100%" stop-color="#2e7d32"/></radialGradient>
+            </defs>
+            <g id="scene"></g>
+        </svg>
+    </div>
+
+    <!-- 播放控制 -->
+    <div class="controls">
+        <div class="step-indicator" id="stepInfo">步骤 0 / 0</div>
+        <div class="btn-group">
+            <button onclick="app.reset()">↺ 重置</button>
+            <button onclick="app.prev()">❮ 上一步</button>
+            <button class="play" id="playBtn" onclick="app.togglePlay()">▶ 播放演示</button>
+            <button onclick="app.next()">下一步 ❯</button>
+        </div>
+    </div>
+
+    <!-- 深度推导面板 -->
+    <div class="derivation-panel">
+        <div class="derivation-title">
+            <span>💡 深度推导与原理详解 (From Scratch)</span>
+        </div>
+        <div class="derivation-content" id="derivationContent">
+            <!-- 内容由JS动态插入 -->
+        </div>
+    </div>
+</div>
+
+<script>
+/* ==========================================================================
+   DATA STORE: 包含所有题目、步骤动画数据以及“深度推导”文本
+   ========================================================================== */
+const DATA = {
+    "Q1": {
+        title: "1. NBS 自由基溴代机理 (Allylic Bromination)",
+        subtitle: "目标：在双键旁的碳原子上引入溴原子",
+        derivation: `
+            <h4>1. 为什么要用 NBS 而不是 Br2?</h4>
+            <ul>
+                <li>如果在高浓度 <span class="chem-formula">Br2</span> 下，双键会发生<strong>亲电加成反应</strong> (得到二溴邻位产物)，而不是取代。</li>
+                <li><span class="highlight">NBS (N-溴代丁二酰亚胺)</span> 提供持续但<strong>极低浓度</strong>的 <span class="chem-formula">Br2</span>。这保证了反应按自由基机理进行，即烯丙位取代。</li>
+            </ul>
+            <h4>2. 为什么选择“烯丙位” (Allylic Position)?</h4>
+            <ul>
+                <li>从键解离能 (BDE) 来看，烯丙位 C-H 键 (~88 kcal/mol) 比普通烷基 C-H 键 (~98 kcal/mol) 弱得多。</li>
+                <li>这是因为断裂后生成的<strong>烯丙位自由基</strong>可以通过<strong>共振 (Resonance)</strong> 稳定（单电子在三个碳上离域），降低了活化能。</li>
+            </ul>
+            <h4>3. 机理推导 (From Scratch)</h4>
+            <ul>
+                <li><strong>引发:</strong> 光照使 N-Br 键或微量 Br-Br 键断裂，产生 <span class="chem-formula">Br•</span>。</li>
+                <li><strong>增长 1 (决速步):</strong> <span class="chem-formula">Br•</span> 夺取烯丙位 H，生成 HBr 和共振稳定的碳自由基。</li>
+                <li><strong>增长 2:</strong> 碳自由基攻击 <span class="chem-formula">Br2</span> (由 NBS + HBr 原位生成)，得到产物并再生 <span class="chem-formula">Br•</span>。</li>
+            </ul>
+        `,
+        steps: [
+            {
+                desc: "引发 (Initiation): Br-Br 键均裂",
+                atoms: [
+                    {id: "br1", el: "Br", x: 350, y: 200}, {id: "br2", el: "Br", x: 450, y: 200}
+                ],
+                bonds: [{u: "br1", v: "br2", dashed: true}],
+                arrows: [{d: "M 380 190 Q 380 150 340 170"}, {d: "M 420 190 Q 420 150 460 170"}] // 鱼钩箭头
+            },
+            {
+                desc: "增长 (Propagation): 夺氢形成烯丙位自由基",
+                atoms: [
+                    {id: "c1", el: "C", x: 250, y: 250}, {id: "c2", el: "C", x: 330, y: 200}, {id: "c3", el: "C", x: 410, y: 250},
+                    {id: "h", el: "H", x: 450, y: 180}, // 靶向H
+                    {id: "br", el: "Br", x: 550, y: 180} // 进攻的自由基
+                ],
+                bonds: [
+                    {u: "c1", v: "c2", double: true}, {u: "c2", v: "c3"}, {u: "c3", v: "h", dashed: true}
+                ],
+                arrows: [{d: "M 530 180 Q 490 150 460 170"}] // 进攻H
+            },
+            {
+                desc: "共振 (Resonance): 自由基的离域化",
+                atoms: [
+                    {id: "c1", el: "C", x: 250, y: 250, label: "•"}, 
+                    {id: "c2", el: "C", x: 330, y: 200}, 
+                    {id: "c3", el: "C", x: 410, y: 250, label: "•"}
+                ],
+                bonds: [
+                    {u: "c1", v: "c2", double: true}, {u: "c2", v: "c3"}
+                ],
+                arrows: [{d: "M 300 210 Q 330 180 360 210", color: "blue"}],
+                text: "单电子在 C1 和 C3 之间跳跃 (共振杂化体)"
+            },
+            {
+                desc: "终止 (Termination): 偶联 (举例)",
+                atoms: [
+                    {id: "rad", el: "C", x: 300, y: 250, label: "R•"}, 
+                    {id: "br", el: "Br", x: 450, y: 250, label: "•Br"}
+                ],
+                bonds: [],
+                arrows: [{d: "M 320 250 L 430 250"}]
+            }
+        ]
+    },
+    "Q2": {
+        title: "2. 自由基共振结构绘制",
+        subtitle: "理解电子离域范围",
+        derivation: `
+            <h4>1. 识别共轭体系</h4>
+            <ul>
+                <li>题目给出的分子是一个环己二烯基自由基。</li>
+                <li>单电子 (radical) 位于顶部碳原子，它旁边是单键，再旁边是双键。这种结构体系 (<span class="chem-formula">C=C-C•</span>) 允许 p 轨道平行重叠。</li>
+            </ul>
+            <h4>2. 推导共振式 (Pushing Arrows)</h4>
+            <ul>
+                <li><strong>规则:</strong> 移动双键中的一个电子去和自由基配对形成新键，另一个电子留在原双键的远端碳上。</li>
+                <li><strong>步骤 A:</strong> 将右侧双键的 $\pi$ 电子向上传递 $\to$ 自由基转移到右下角。</li>
+                <li><strong>步骤 B:</strong> 将左侧双键的 $\pi$ 电子参与 $\to$ 自由基转移到左下角。</li>
+            </ul>
+            <h4>3. 结论</h4>
+            <ul>
+                <li>电子不是固定在一个碳上，而是“涂抹”在五个碳原子的共轭体系中。这也是为什么该中间体相对稳定的原因。</li>
+            </ul>
+        `,
+        steps: [
+            {
+                desc: "初始结构: 自由基在顶部",
+                atoms: [
+                    {id: "c1", el: "C", x: 400, y: 150, label: "•"},
+                    {id: "c2", el: "C", x: 480, y: 200}, {id: "c3", el: "C", x: 480, y: 300},
+                    {id: "c4", el: "C", x: 400, y: 350}, {id: "c5", el: "C", x: 320, y: 300}, {id: "c6", el: "C", x: 320, y: 200}
+                ],
+                bonds: [
+                    {u: "c1", v: "c2"}, {u: "c2", v: "c3", double: true}, {u: "c3", v: "c4"}, 
+                    {u: "c4", v: "c5", double: true}, {u: "c5", v: "c6"}, {u: "c6", v: "c1"}
+                ]
+            },
+            {
+                desc: "共振变换 1: 电子转移至右下方",
+                atoms: [
+                    {id: "c1", el: "C", x: 400, y: 150},
+                    {id: "c2", el: "C", x: 480, y: 200}, {id: "c3", el: "C", x: 480, y: 300, label: "•"},
+                    {id: "c4", el: "C", x: 400, y: 350}, {id: "c5", el: "C", x: 320, y: 300}, {id: "c6", el: "C", x: 320, y: 200}
+                ],
+                bonds: [
+                    {u: "c1", v: "c2", double: true}, {u: "c2", v: "c3"}, {u: "c3", v: "c4"}, 
+                    {u: "c4", v: "c5", double: true}, {u: "c5", v: "c6"}, {u: "c6", v: "c1"}
+                ],
+                arrows: [{d: "M 480 250 Q 450 220 420 180"}]
+            },
+            {
+                desc: "共振变换 2: 电子转移至左下方",
+                atoms: [
+                    {id: "c1", el: "C", x: 400, y: 150},
+                    {id: "c2", el: "C", x: 480, y: 200}, {id: "c3", el: "C", x: 480, y: 300},
+                    {id: "c4", el: "C", x: 400, y: 350}, {id: "c5", el: "C", x: 320, y: 300, label: "•"},
+                    {id: "c6", el: "C", x: 320, y: 200}
+                ],
+                bonds: [
+                    {u: "c1", v: "c2", double: true}, {u: "c2", v: "c3"}, {u: "c3", v: "c4", double: true}, 
+                    {u: "c4", v: "c5"}, {u: "c5", v: "c6"}, {u: "c6", v: "c1"}
+                ],
+                arrows: [{d: "M 360 325 L 440 325"}]
+            }
+        ]
+    },
+    "Q3": {
+        title: "3. 醇合成卤代烃 (Reagent Selection)",
+        subtitle: "SOCl2 和 PBr3 的应用",
+        derivation: `
+            <h4>1. 为什么不能直接用 HCl 或 HBr?</h4>
+            <ul>
+                <li>用 HX 反应通常涉及 <strong>碳正离子中间体</strong> (尤其是二级/三级醇)。</li>
+                <li>碳正离子容易发生<strong>重排 (Rearrangement)</strong>，导致复杂的产物混合物。</li>
+            </ul>
+            <h4>2. SOCl2 (氯化亚砜) 的优势</h4>
+            <ul>
+                <li>用于二级醇 (如图中环戊醇衍生物)。</li>
+                <li>机理：氧原子进攻 S，形成 <span class="chem-formula">-O-SO-Cl</span> 很好的离去基团。然后 <span class="chem-formula">Cl-</span> 进行背式进攻 ($S_N2$)。</li>
+                <li><strong>结果:</strong> 构型翻转，无重排，副产物 ($SO_2, HCl$) 是气体，易分离。</li>
+            </ul>
+            <h4>3. PBr3 (三溴化磷) 的优势</h4>
+            <ul>
+                <li>用于一级/二级醇转化为溴代烃。</li>
+                <li>机理：形成 <span class="chem-formula">P-O</span> 键 (好离去基团)，<span class="chem-formula">Br-</span> 进攻碳。</li>
+                <li>条件温和，同样避免了碳正离子重排。</li>
+            </ul>
+        `,
+        steps: [
+            {
+                desc: "路径 A: 醇 + SOCl2 -> 氯代物",
+                atoms: [
+                    {id: "r", el: "C", x: 300, y: 250, label: "R-OH"},
+                    {id: "socl2", el: "Cl", x: 500, y: 250, label: "SOCl2"}
+                ],
+                arrows: [{d: "M 350 250 L 450 250"}]
+            },
+            {
+                desc: "产物 A: R-Cl (构型翻转)",
+                atoms: [
+                    {id: "c", el: "C", x: 350, y: 250},
+                    {id: "cl", el: "Cl", x: 450, y: 250},
+                    {id: "by", el: "O", x: 600, y: 250, label: "SO2 + HCl"}
+                ],
+                bonds: [{u: "c", v: "cl"}]
+            },
+            {
+                desc: "路径 B: 醇 + PBr3 -> 溴代物",
+                atoms: [
+                    {id: "r", el: "C", x: 300, y: 250, label: "R-OH"},
+                    {id: "pbr3", el: "Br", x: 500, y: 250, label: "PBr3"}
+                ],
+                arrows: [{d: "M 350 250 L 450 250"}]
+            },
+            {
+                desc: "产物 B: R-Br (无重排)",
+                atoms: [
+                    {id: "c", el: "C", x: 300, y: 250, label: "C-Br"},
+                    {id: "by", el: "O", x: 500, y: 250, label: "HOPBr2"}
+                ],
+                bonds: []
+            }
+        ]
+    },
+    "Q4": {
+        title: "4. 有机金属试剂：预测与合成",
+        subtitle: "Grignard vs Gilman",
+        derivation: `
+            <h4>1. 极性翻转 (Umpolung)</h4>
+            <ul>
+                <li>普通卤代烃 <span class="chem-formula">C-X</span> 中，碳带部分正电荷 ($\delta+$)，是<strong>亲电试剂</strong>。</li>
+                <li>与金属 (Mg, Li) 反应后，碳带负电 ($\delta-$)，变为<strong>亲核试剂</strong>。</li>
+            </ul>
+            <h4>2. 左路: Grignard 试剂 (Mg)</h4>
+            <ul>
+                <li><strong>转化:</strong> <span class="chem-formula">R-X + Mg \to R-MgX</span>。</li>
+                <li><strong>反应:</strong> Grignard 是强碱。遇到 <span class="chem-formula">D_2O</span> (重水)，发生酸碱反应：<span class="chem-formula">R^- + D^+ \to R-D</span>。这是给分子打上氘标记的标准方法。</li>
+            </ul>
+            <h4>3. 右路: Gilman 试剂 (CuLi)</h4>
+            <ul>
+                <li><strong>制备:</strong> <span class="chem-formula">R-X \to R-Li \to R_2CuLi</span>。</li>
+                <li><strong>特性:</strong> 它是“软”亲核试剂，擅长与卤代烃发生<strong>偶联反应 (Coupling)</strong>。</li>
+                <li><strong>Corey-House 合成:</strong> <span class="chem-formula">R_2CuLi + R'-X \to R-R'</span>。这在构建碳-碳键时非常有用，而 Grignard 通常做不到这一点 (Grignard 遇到卤代烃通常发生 E2 消除或交换)。</li>
+            </ul>
+        `,
+        steps: [
+            {
+                desc: "制备 Grignard: R-I + Mg -> R-MgI",
+                atoms: [
+                    {id: "r", el: "C", x: 250, y: 250, label: "Propyl"}, 
+                    {id: "i", el: "I", x: 350, y: 250},
+                    {id: "mg", el: "Mg", x: 450, y: 200}
+                ],
+                bonds: [{u: "r", v: "i"}],
+                arrows: [{d: "M 430 200 Q 350 150 300 220"}] // Mg 插入
+            },
+            {
+                desc: "Grignard + D2O: 酸碱反应",
+                atoms: [
+                    {id: "rmg", el: "C", x: 300, y: 250, label: "Pr-MgI"},
+                    {id: "d2o", el: "O", x: 500, y: 250, label: "D-O-D"}
+                ],
+                arrows: [{d: "M 350 250 L 450 250"}]
+            },
+            {
+                desc: "产物: 1-氘代丙烷 (C-D 键形成)",
+                atoms: [
+                    {id: "c", el: "C", x: 350, y: 250, label: "Propyl"},
+                    {id: "d", el: "H", x: 450, y: 250, label: "D"}
+                ],
+                bonds: [{u: "c", v: "d"}]
+            },
+            {
+                desc: "Gilman 偶联: (Pr)2CuLi + Ph-I",
+                atoms: [
+                    {id: "culi", el: "Cu", x: 300, y: 200, label: "Pr2-CuLi"},
+                    {id: "phi", el: "C", x: 500, y: 200, label: "Ph-I"}
+                ],
+                arrows: [{d: "M 350 200 L 450 200"}]
+            },
+            {
+                desc: "产物: 丙苯 (Propylbenzene)",
+                atoms: [
+                    {id: "pr", el: "C", x: 350, y: 250, label: "Propyl"},
+                    {id: "ph", el: "C", x: 450, y: 250, label: "Ph"}
+                ],
+                bonds: [{u: "pr", v: "ph"}]
+            }
+        ]
+    },
+    "Q5": {
+        title: "5. 逆合成分析 (Retrosynthesis)",
+        subtitle: "构建碳骨架：异丁基 + 环己烯基",
+        derivation: `
+            <h4>1. 切断法 (Disconnection)</h4>
+            <ul>
+                <li>目标分子包含两个部分：一个六元环双键，一个异丁基链。</li>
+                <li>最佳切断位置是连接链与环的那个 C-C 单键。</li>
+                <li>这将分子分为：<span class="highlight">环己烯基片段</span> + <span class="highlight">异丁基片段</span>。</li>
+            </ul>
+            <h4>2. 试剂指派</h4>
+            <ul>
+                <li>我们需要一个做亲电体 (卤代烃)，一个做亲核体 (有机金属)。</li>
+                <li><strong>亲电体:</strong> 3-溴环己烯。这很容易通过 <span class="chem-formula">Cyclohexene + NBS</span> 制备 (见 Q1)。</li>
+                <li><strong>亲核体:</strong> 异丁基 Gilman 试剂 (<span class="chem-formula">iBu_2CuLi</span>)。</li>
+            </ul>
+            <h4>3. 为什么选 Gilman?</h4>
+            <ul>
+                <li>Grignard 试剂与烯丙位卤代烃反应容易发生 <span class="chem-formula">S_N2'</span> 副反应或 Wurtz 偶联副反应。</li>
+                <li>Gilman 试剂 (二烃基铜锂) 对卤代烷/烯丙位卤代烷的取代反应专一性高，产率好。</li>
+            </ul>
+        `,
+        steps: [
+            {
+                desc: "逆合成切断 (Retrosynthetic Cut)",
+                atoms: [
+                    {id: "ring", el: "C", x: 300, y: 250, label: "环己烯基"},
+                    {id: "chain", el: "C", x: 500, y: 250, label: "异丁基"}
+                ],
+                bonds: [{u: "ring", v: "chain", dashed: true}], // 虚线表示切断
+                text: "切断 C-C 键"
+            },
+            {
+                desc: "合成片段 A: 亲电体 (Br)",
+                atoms: [
+                    {id: "ring", el: "C", x: 350, y: 250, label: "环己烯"},
+                    {id: "br", el: "Br", x: 450, y: 250}
+                ],
+                bonds: [{u: "ring", v: "br"}],
+                text: "来源: NBS 光照溴代"
+            },
+            {
+                desc: "合成片段 B: 亲核体 (CuLi)",
+                atoms: [
+                    {id: "cu", el: "Cu", x: 400, y: 250, label: "CuLi"},
+                    {id: "r1", el: "C", x: 300, y: 200, label: "iBu"},
+                    {id: "r2", el: "C", x: 300, y: 300, label: "iBu"}
+                ],
+                bonds: [{u: "r1", v: "cu"}, {u: "r2", v: "cu"}],
+                text: "来源: 异丁醇 -> 溴 -> Li -> CuI"
+            }
+        ]
+    },
+    "Q6": {
+        title: "6. 找茬 (Spot the Error)",
+        subtitle: "Grignard 试剂的禁忌",
+        derivation: `
+            <h4>1. 错误分析</h4>
+            <ul>
+                <li>提出的路线试图在含有 <span class="highlight">-OH (羟基)</span> 的分子上制备 Grignard 试剂 (MgBr)。</li>
+                <li>这是不可能成功的。</li>
+            </ul>
+            <h4>2. 原理推导 (pK_a 对比)</h4>
+            <ul>
+                <li>Grignard 试剂 (<span class="chem-formula">R-MgBr</span>) 本质上是碳负离子，是<strong>极强的碱</strong> (对应共轭酸烷烃 $pK_a \approx 50$)。</li>
+                <li>醇 (<span class="chem-formula">R-OH</span>) 是弱酸 ($pK_a \approx 16-18$)。</li>
+                <li><strong>酸碱中和反应</strong>的速率远快于任何取代反应 ($S_N2$)。</li>
+                <li>一旦形成 Grignard，它会立刻夺取自己分子内或邻近分子的 -OH 质子。</li>
+            </ul>
+            <h4>3. 结果</h4>
+            <ul>
+                <li>Grignard 试剂被质子化变成烷烃 (死掉)。</li>
+                <li>生成 <span class="chem-formula">Mg(OR)Br</span> 盐。</li>
+                <li><strong>修正方案:</strong> 必须先保护羟基 (如用 TBSCl)，或者避免使用有机金属路线，改用其他方法。</li>
+            </ul>
+        `,
+        steps: [
+            {
+                desc: "场景: 试图制备 Grignard",
+                atoms: [
+                    {id: "mg", el: "Mg", x: 200, y: 250},
+                    {id: "sub", el: "C", x: 400, y: 250, label: "HO-R-Br"}
+                ],
+                arrows: [{d: "M 220 250 L 320 250"}]
+            },
+            {
+                desc: "酸碱反应 (自毁)",
+                atoms: [
+                    {id: "c", el: "C", x: 300, y: 250, label: "C-MgBr"},
+                    {id: "o", el: "O", x: 500, y: 250, label: "-OH"}
+                ],
+                bonds: [{u: "c", v: "o", dashed: true}],
+                arrows: [{d: "M 350 250 L 450 250"}], // 进攻质子
+                text: "极快反应: 夺取质子 H+"
+            },
+            {
+                desc: "最终结果: 反应失败",
+                atoms: [
+                    {id: "c", el: "C", x: 300, y: 250, label: "C-H (烷烃)"},
+                    {id: "o", el: "O", x: 500, y: 250, label: "O-MgBr (盐)"}
+                ],
+                bonds: [],
+                text: "Grignard 试剂被淬灭，无法进行后续合成"
+            }
+        ]
+    }
+};
+
+/* ==========================================================================
+   APP LOGIC
+   ========================================================================== */
+const app = {
+    currentQ: null,
+    stepIndex: 0,
+    timer: null,
+
+    init() {
+        const navList = document.getElementById('navList');
+        Object.keys(DATA).forEach((key, index) => {
+            const item = document.createElement('div');
+            item.className = 'nav-item';
+            item.innerText = DATA[key].title;
+            item.onclick = () => this.loadQ(key);
+            if (index === 0) this.currentQ = key; // Default
+            navList.appendChild(item);
+        });
+        this.loadQ(this.currentQ);
+    },
+
+    loadQ(key) {
+        this.currentQ = key;
+        this.stepIndex = 0;
+        this.stopPlay();
+
+        // Update UI Text
+        document.getElementById('qTitle').innerText = DATA[key].title;
+        document.getElementById('qSubtitle').innerText = DATA[key].subtitle;
+        document.getElementById('derivationContent').innerHTML = DATA[key].derivation;
+        
+        // Update Nav Active State
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.classList.toggle('active', item.innerText === DATA[key].title);
+        });
+
+        this.render();
+    },
+
+    render() {
+        const data = DATA[this.currentQ];
+        const step = data.steps[this.stepIndex];
+        const svg = document.getElementById('scene');
+        
+        document.getElementById('stepInfo').innerText = `步骤 ${this.stepIndex + 1} / ${data.steps.length}: ${step.desc}`;
+
+        // Clear SVG (Simple re-draw strategy)
+        svg.innerHTML = '';
+
+        // Draw Bonds
+        if (step.bonds) {
+            step.bonds.forEach(b => {
+                const u = step.atoms.find(a => a.id === b.u);
+                const v = step.atoms.find(a => a.id === b.v);
+                if (u && v) {
+                    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    let d = `M ${u.x} ${u.y} L ${v.x} ${v.y}`;
+                    
+                    if (b.double) {
+                        // Draw background thick line
+                        const bg = path.cloneNode();
+                        bg.setAttribute("d", d);
+                        bg.setAttribute("class", "bond double");
+                        svg.appendChild(bg);
+                        // Draw foreground thin line
+                        const fg = path.cloneNode();
+                        fg.setAttribute("d", d);
+                        fg.setAttribute("class", "bond double-inner");
+                        svg.appendChild(fg);
+                    } else {
+                        path.setAttribute("d", d);
+                        path.setAttribute("class", "bond" + (b.dashed ? " dashed" : ""));
+                        svg.appendChild(path);
+                    }
+                }
+            });
+        }
+
+        // Draw Arrows
+        if (step.arrows) {
+            step.arrows.forEach(arr => {
+                const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                p.setAttribute("d", arr.d);
+                p.setAttribute("class", "electron-arrow");
+                if(arr.color) p.setAttribute("stroke", arr.color);
+                svg.appendChild(p);
+            });
+        }
+
+        // Draw Atoms
+        step.atoms.forEach(a => {
+            const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            g.setAttribute("class", "atom-group");
+            g.setAttribute("transform", `translate(${a.x},${a.y})`);
+            
+            // Circle
+            const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            c.setAttribute("r", 28);
+            c.setAttribute("class", "atom-circle");
+            // Fill mapping
+            let fillUrl = "#gradC";
+            if(a.el === "H") fillUrl = "#gradH";
+            if(a.el === "Br") fillUrl = "#gradBr";
+            if(a.el === "Mg") fillUrl = "#gradMg";
+            if(a.el === "Li") fillUrl = "#gradLi";
+            if(a.el === "Cu") fillUrl = "#gradCu";
+            if(a.el === "O") fillUrl = "#gradO";
+            if(a.el === "Cl") fillUrl = "#gradCl";
+            c.setAttribute("fill", `url(${fillUrl})`);
+            c.setAttribute("filter", "url(#dropShadow)");
+            
+            // Label
+            const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            t.setAttribute("class", "atom-label");
+            t.setAttribute("fill", (a.el === "H" || a.el === "Li") ? "#333" : "#fff"); // Contrast text
+            t.textContent = a.label || a.el;
+
+            g.appendChild(c);
+            g.appendChild(t);
+            svg.appendChild(g);
+        });
+
+        // Draw Extra Text
+        if(step.text) {
+            const txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            txt.setAttribute("x", 400);
+            txt.setAttribute("y", 400);
+            txt.setAttribute("text-anchor", "middle");
+            txt.setAttribute("font-size", "18");
+            txt.setAttribute("fill", "#555");
+            txt.setAttribute("font-weight", "bold");
+            txt.textContent = step.text;
+            svg.appendChild(txt);
+        }
+    },
+
+    next() {
+        const max = DATA[this.currentQ].steps.length - 1;
+        if (this.stepIndex < max) {
+            this.stepIndex++;
+            this.render();
+        } else {
+            this.stopPlay();
+        }
+    },
+
+    prev() {
+        if (this.stepIndex > 0) {
+            this.stepIndex--;
+            this.render();
+        }
+    },
+
+    reset() {
+        this.stepIndex = 0;
+        this.stopPlay();
+        this.render();
+    },
+
+    togglePlay() {
+        const btn = document.getElementById('playBtn');
+        if (this.timer) {
+            this.stopPlay();
+        } else {
+            btn.innerHTML = "❚❚ 暂停";
+            btn.style.background = "#e74c3c";
+            if (this.stepIndex === DATA[this.currentQ].steps.length - 1) this.stepIndex = 0;
+            this.render();
+            this.timer = setInterval(() => this.next(), 2500);
+        }
+    },
+
+    stopPlay() {
+        clearInterval(this.timer);
+        this.timer = null;
+        const btn = document.getElementById('playBtn');
+        btn.innerHTML = "▶ 播放演示";
+        btn.style.background = ""; // reset to css default
+    }
+};
+
+// Boot
+app.init();
+</script>
+</body>
+</html>

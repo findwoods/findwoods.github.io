@@ -1,0 +1,799 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>有机化学反应机理可视化 (Recitation 11)</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .viz-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+            padding: 20px;
+            width: 95%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h2 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            width: 100%;
+            text-align: center;
+        }
+        .svg-box {
+            border: 1px solid #ddd;
+            background-color: #fff;
+            margin: 20px 0;
+            touch-action: none; /* For mobile */
+        }
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-next {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .btn-next:hover { background-color: #27ae60; }
+        .btn-reset {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .btn-reset:hover { background-color: #c0392b; }
+        
+        .explanation {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            width: 100%;
+            margin-top: 15px;
+            font-size: 16px;
+            line-height: 1.5;
+            border-left: 5px solid #3498db;
+        }
+        
+        /* SVG Elements Styling */
+        text {
+            font-family: 'Arial', sans-serif;
+            font-weight: bold;
+            pointer-events: none;
+            text-anchor: middle;
+            dominant-baseline: central;
+        }
+        .bond {
+            stroke: #333;
+            stroke-width: 6;
+            stroke-linecap: round;
+            transition: all 0.8s ease-in-out;
+        }
+        .atom-circle {
+            transition: all 0.8s ease-in-out;
+            stroke: #333;
+            stroke-width: 2;
+        }
+        .atom-label {
+            transition: all 0.8s ease-in-out;
+            fill: black;
+            font-size: 24px;
+        }
+        .arrow {
+            fill: none;
+            stroke: #e67e22;
+            stroke-width: 4;
+            marker-end: url(#arrowhead);
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        .hidden { opacity: 0; }
+        .visible { opacity: 1; }
+
+    </style>
+</head>
+<body>
+
+    <h1>Recitation 11: 有机化学反应机理可视化教学</h1>
+    <p>点击“下一步”观看动画，理解每个反应的详细步骤。</p>
+
+    <!-- Arrow Marker Definition -->
+    <svg style="display: none;">
+        <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+            refX="9" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" fill="#e67e22" />
+            </marker>
+        </defs>
+    </svg>
+
+    <!-- 1. Sn2 Reaction -->
+    <div class="viz-container" id="sn2-section">
+        <h2>1. Sn2 反应机理 (构型翻转)</h2>
+        <p>对应 PDF 第 3, 4, 12 页。强亲核试剂，位阻小，背面攻击。</p>
+        <svg class="svg-box" width="600" height="300" id="svg-sn2"></svg>
+        <div class="explanation" id="desc-sn2">准备就绪：点击“下一步”开始 Sn2 反应。</div>
+        <div class="controls">
+            <button class="btn-reset" onclick="resetSn2()">重置</button>
+            <button class="btn-next" onclick="nextSn2()">下一步</button>
+        </div>
+    </div>
+
+    <!-- 2. Sn1 Reaction -->
+    <div class="viz-container" id="sn1-section">
+        <h2>2. Sn1 反应机理 (外消旋化)</h2>
+        <p>对应 PDF 第 3, 4 页。弱亲核试剂，位阻大，形成碳正离子。</p>
+        <svg class="svg-box" width="600" height="300" id="svg-sn1"></svg>
+        <div class="explanation" id="desc-sn1">准备就绪：点击“下一步”开始 Sn1 反应。</div>
+        <div class="controls">
+            <button class="btn-reset" onclick="resetSn1()">重置</button>
+            <button class="btn-next" onclick="nextSn1()">下一步</button>
+        </div>
+    </div>
+
+    <!-- 3. E2 Reaction -->
+    <div class="viz-container" id="e2-section">
+        <h2>3. E2 反应机理 (反式共平面消除)</h2>
+        <p>对应 PDF 第 5, 6 页。强碱，协同反应，H 和离去基团必须处于反式位置。</p>
+        <svg class="svg-box" width="600" height="350" id="svg-e2"></svg>
+        <div class="explanation" id="desc-e2">准备就绪：点击“下一步”开始 E2 反应。</div>
+        <div class="controls">
+            <button class="btn-reset" onclick="resetE2()">重置</button>
+            <button class="btn-next" onclick="nextE2()">下一步</button>
+        </div>
+    </div>
+
+    <!-- 4. Practice Problem 1 -->
+    <div class="viz-container" id="prac1-section">
+        <h2>4. 练习题 1：旋转与 Zaitsev 规则</h2>
+        <p>对应 PDF 第 12, 13 页。为了进行 E2 消除，必须旋转 C-C 键使 H 和 Cl 反式共平面。</p>
+        <svg class="svg-box" width="600" height="350" id="svg-prac1"></svg>
+        <div class="explanation" id="desc-prac1">准备就绪：观察初始构象（H 和 Cl 不是反式）。</div>
+        <div class="controls">
+            <button class="btn-reset" onclick="resetPrac1()">重置</button>
+            <button class="btn-next" onclick="nextPrac1()">下一步</button>
+        </div>
+    </div>
+
+    <!-- 5. Challenge Problem -->
+    <div class="viz-container" id="chal-section">
+        <h2>5. 挑战题：溶剂解与环化</h2>
+        <p>对应 PDF 第 15, 16 页。离去基团离去后，双键作为亲核试剂进攻碳正离子形成新环。</p>
+        <svg class="svg-box" width="600" height="400" id="svg-chal"></svg>
+        <div class="explanation" id="desc-chal">准备就绪：环癸二烯衍生物。</div>
+        <div class="controls">
+            <button class="btn-reset" onclick="resetChal()">重置</button>
+            <button class="btn-next" onclick="nextChal()">下一步</button>
+        </div>
+    </div>
+
+<script>
+/* --- Shared Graphics Utilities --- */
+const ATOM_R = 32;
+const FONT_SIZE = 24;
+
+// Colors
+const COLORS = {
+    C: '#bdc3c7', // Carbon - Grey
+    H: '#ecf0f1', // Hydrogen - White-ish
+    Br: '#e74c3c', // Bromine - Red
+    Cl: '#27ae60', // Chlorine - Green
+    O: '#e67e22', // Oxygen - Orange
+    N: '#3498db', // Nitrogen - Blue
+    S: '#f1c40f', // Sulfur - Yellow
+    Base: '#9b59b6' // Generic Base - Purple
+};
+
+// Helper to draw an atom
+function drawAtom(svg, id, type, label, x, y, charge='') {
+    // Circle
+    let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", x);
+    circle.setAttribute("cy", y);
+    circle.setAttribute("r", ATOM_R);
+    circle.setAttribute("fill", COLORS[type] || '#bdc3c7');
+    circle.setAttribute("class", "atom-circle");
+    circle.setAttribute("id", id + "_c");
+    svg.appendChild(circle);
+
+    // Label
+    let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("x", x);
+    text.setAttribute("y", y);
+    text.setAttribute("class", "atom-label");
+    text.setAttribute("id", id + "_t");
+    text.textContent = label;
+    svg.appendChild(text);
+
+    // Charge (small text)
+    if(charge) {
+        let chg = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        chg.setAttribute("x", x + 15);
+        chg.setAttribute("y", y - 15);
+        chg.setAttribute("font-size", "16");
+        chg.setAttribute("fill", "red");
+        chg.setAttribute("font-weight", "bold");
+        chg.setAttribute("id", id + "_chg");
+        chg.textContent = charge;
+        svg.appendChild(chg);
+    }
+}
+
+// Helper to move atom
+function moveAtom(id, x, y, opacity=1) {
+    let c = document.getElementById(id + "_c");
+    let t = document.getElementById(id + "_t");
+    let chg = document.getElementById(id + "_chg");
+    
+    if(c) {
+        c.setAttribute("cx", x);
+        c.setAttribute("cy", y);
+        c.style.opacity = opacity;
+    }
+    if(t) {
+        t.setAttribute("x", x);
+        t.setAttribute("y", y);
+        t.style.opacity = opacity;
+    }
+    if(chg) {
+        chg.setAttribute("x", x + 15);
+        chg.setAttribute("y", y - 15);
+        chg.style.opacity = opacity;
+    }
+}
+
+// Helper to draw bond
+function drawBond(svg, id, atom1Id, atom2Id, x1, y1, x2, y2, type='single') {
+    let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    line.setAttribute("x1", x1);
+    line.setAttribute("y1", y1);
+    line.setAttribute("x2", x2);
+    line.setAttribute("y2", y2);
+    line.setAttribute("class", "bond");
+    line.setAttribute("id", id);
+    if (type === 'double') {
+        line.setAttribute("stroke-width", "10");
+        line.style.stroke = "#333";
+    }
+    svg.insertBefore(line, svg.firstChild); // Bonds behind atoms
+}
+
+// Helper to move bond
+function moveBond(id, x1, y1, x2, y2, opacity=1) {
+    let line = document.getElementById(id);
+    if(line) {
+        line.setAttribute("x1", x1);
+        line.setAttribute("y1", y1);
+        line.setAttribute("x2", x2);
+        line.setAttribute("y2", y2);
+        line.style.opacity = opacity;
+    }
+}
+
+/* --- 1. Sn2 Mechanism Logic --- */
+let sn2Step = 0;
+function initSn2() {
+    const svg = document.getElementById('svg-sn2');
+    svg.innerHTML = '';
+    // Central C
+    drawAtom(svg, 'sn2_c', 'C', 'C', 300, 150);
+    // Leaving Group Br (Right)
+    drawAtom(svg, 'sn2_br', 'Br', 'Br', 420, 150);
+    // Nucleophile OH (Far Left)
+    drawAtom(svg, 'sn2_oh', 'O', 'OH-', 50, 150, '-');
+    // Substituents (H, Me, Et - simplified visual)
+    drawAtom(svg, 'sn2_h', 'H', 'H', 300, 60);
+    drawAtom(svg, 'sn2_r1', 'C', 'Me', 260, 220); 
+    
+    // Bonds
+    drawBond(svg, 'b_c_br', 'sn2_c', 'sn2_br', 300, 150, 420, 150);
+    drawBond(svg, 'b_c_h', 'sn2_c', 'sn2_h', 300, 150, 300, 60);
+    drawBond(svg, 'b_c_r1', 'sn2_c', 'sn2_r1', 300, 150, 260, 220);
+    
+    // Add curved arrow (hidden initially)
+    let arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    arrow.setAttribute("d", "M 80 150 Q 150 100 280 140"); // Rough curve
+    arrow.setAttribute("class", "arrow");
+    arrow.setAttribute("id", "sn2_arrow");
+    svg.appendChild(arrow);
+}
+
+function nextSn2() {
+    sn2Step++;
+    const txt = document.getElementById('desc-sn2');
+    const arrow = document.getElementById('sn2_arrow');
+
+    if (sn2Step === 1) {
+        txt.innerHTML = "<strong>步骤 1:</strong> 强亲核试剂 (OH-) 发起“背面攻击”。<br>亲核试剂从离去基团 (Br) 的正后方接近。";
+        arrow.style.opacity = 1;
+        // Move OH closer
+        moveAtom('sn2_oh', 180, 150);
+    } 
+    else if (sn2Step === 2) {
+        txt.innerHTML = "<strong>步骤 2:</strong> 过渡态。碳原子处于五配位状态。<br>旧键断裂与新键形成同时发生。注意取代基像雨伞一样翻转。";
+        arrow.style.opacity = 0;
+        // Transition State Positions
+        moveAtom('sn2_oh', 250, 150); // OH connects
+        moveAtom('sn2_br', 450, 150); // Br starts leaving
+        moveAtom('sn2_h', 300, 40);   // H pushes up vertical
+        moveAtom('sn2_r1', 300, 260); // Me pushes down vertical
+        
+        // Bonds adjust
+        moveBond('b_c_br', 300, 150, 450, 150); // Stretching
+    }
+    else if (sn2Step === 3) {
+        txt.innerHTML = "<strong>步骤 3:</strong> 完成反应。<br>离去基团 (Br-) 完全脱离。立体化学发生**构型翻转** (Inversion)。";
+        // Final Inverted State
+        moveAtom('sn2_oh', 300, 150); // OH is now attached to C center (visually simplified logic, let's move C slightly left to keep OH left)
+        moveAtom('sn2_c', 350, 150); // C moves right
+        moveAtom('sn2_oh', 250, 150); // OH attached at left
+        
+        moveAtom('sn2_br', 550, 150, 0.5); // Br far away
+        
+        // Substituents flipped to right
+        moveAtom('sn2_h', 350, 60);
+        moveAtom('sn2_r1', 390, 220);
+        
+        // Update Bonds
+        // New bond C-OH (reusing visual line logic, need new line ideally, but let's act as if OH approached)
+        // Let's create the C-OH bond now visually
+        let svg = document.getElementById('svg-sn2');
+        let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", 350); line.setAttribute("y1", 150);
+        line.setAttribute("x2", 250); line.setAttribute("y2", 150);
+        line.setAttribute("class", "bond");
+        line.setAttribute("stroke", "red");
+        svg.appendChild(line);
+        
+        // Hide C-Br bond
+        moveBond('b_c_br', 350, 150, 550, 150, 0);
+        moveBond('b_c_h', 350, 150, 350, 60);
+        moveBond('b_c_r1', 350, 150, 390, 220);
+    }
+    else {
+        resetSn2();
+    }
+}
+
+function resetSn2() {
+    sn2Step = 0;
+    document.getElementById('desc-sn2').innerHTML = "准备就绪：点击“下一步”开始 Sn2 反应。";
+    initSn2();
+}
+
+/* --- 2. Sn1 Mechanism Logic --- */
+let sn1Step = 0;
+function initSn1() {
+    const svg = document.getElementById('svg-sn1');
+    svg.innerHTML = '';
+    // Tert-butyl bromide
+    drawAtom(svg, 'sn1_c', 'C', 'C', 300, 150);
+    drawAtom(svg, 'sn1_br', 'Br', 'Br', 420, 150);
+    drawAtom(svg, 'sn1_m1', 'C', 'Me', 300, 50);
+    drawAtom(svg, 'sn1_m2', 'C', 'Me', 230, 220);
+    drawAtom(svg, 'sn1_m3', 'C', 'Me', 370, 220); // Bulky!
+    
+    // Nucleophile (Water/MeOH)
+    drawAtom(svg, 'sn1_nu', 'O', 'MeOH', 100, 150);
+
+    drawBond(svg, 'b1_c_br', 'sn1_c', 'sn1_br', 300, 150, 420, 150);
+    drawBond(svg, 'b1_c_m1', 'sn1_c', 'sn1_m1', 300, 150, 300, 50);
+    drawBond(svg, 'b1_c_m2', 'sn1_c', 'sn1_m2', 300, 150, 230, 220);
+    drawBond(svg, 'b1_c_m3', 'sn1_c', 'sn1_m3', 300, 150, 370, 220);
+}
+
+function nextSn1() {
+    sn1Step++;
+    const txt = document.getElementById('desc-sn1');
+
+    if (sn1Step === 1) {
+        txt.innerHTML = "<strong>步骤 1:</strong> 离去基团离去 (决速步)。<br>Br- 自行离开，因为底物位阻太大，亲核试剂无法靠近。";
+        // Br leaves
+        moveAtom('sn1_br', 550, 150);
+        moveBond('b1_c_br', 300, 150, 550, 150, 0); // Fade bond
+    }
+    else if (sn1Step === 2) {
+        txt.innerHTML = "<strong>步骤 2:</strong> 形成平面型碳正离子。<br>C 原子变成 sp2 杂化，平面结构。丢失了原有的立体化学信息。";
+        // Flatten the structure
+        moveAtom('sn1_m1', 300, 50);  // Top
+        moveAtom('sn1_m2', 210, 200); // Left-down
+        moveAtom('sn1_m3', 390, 200); // Right-down
+        
+        // Add + charge visual
+        let svg = document.getElementById('svg-sn1');
+        let plus = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        plus.setAttribute("x", 320); plus.setAttribute("y", 130);
+        plus.textContent = "+";
+        plus.setAttribute("fill", "red");
+        plus.setAttribute("font-size", "30");
+        plus.setAttribute("id", "cat_plus");
+        svg.appendChild(plus);
+        
+        // Update bonds
+        moveBond('b1_c_m2', 300, 150, 210, 200);
+        moveBond('b1_c_m3', 300, 150, 390, 200);
+    }
+    else if (sn1Step === 3) {
+        txt.innerHTML = "<strong>步骤 3:</strong> 亲核试剂进攻。<br>MeOH 可以从平面上方或下方进攻，最终产物是外消旋体 (Racemic)。";
+        // Nu attacks
+        moveAtom('sn1_nu', 250, 130); // Attaches
+        document.getElementById("cat_plus").style.opacity = 0; // Charge neutralized
+        
+        // Draw new bond
+        let svg = document.getElementById('svg-sn1');
+        let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", 300); line.setAttribute("y1", 150);
+        line.setAttribute("x2", 250); line.setAttribute("y2", 130);
+        line.setAttribute("class", "bond");
+        line.setAttribute("stroke", "blue");
+        svg.appendChild(line);
+    }
+    else {
+        resetSn1();
+    }
+}
+
+function resetSn1() {
+    sn1Step = 0;
+    document.getElementById('desc-sn1').innerHTML = "准备就绪：点击“下一步”开始 Sn1 反应。";
+    initSn1();
+}
+
+/* --- 3. E2 Mechanism Logic --- */
+let e2Step = 0;
+function initE2() {
+    const svg = document.getElementById('svg-e2');
+    svg.innerHTML = '';
+    
+    // Structure: Base ... H-C-C-Br (Anti-periplanar setup)
+    // Base
+    drawAtom(svg, 'e2_base', 'Base', 'tBuO-', 50, 250);
+    
+    // Beta Carbon
+    drawAtom(svg, 'e2_cb', 'C', 'C', 200, 200);
+    drawAtom(svg, 'e2_h', 'H', 'H', 200, 280); // Anti H pointing down
+    drawAtom(svg, 'e2_r1', 'C', 'R', 160, 160);
+    
+    // Alpha Carbon
+    drawAtom(svg, 'e2_ca', 'C', 'C', 300, 200);
+    drawAtom(svg, 'e2_br', 'Br', 'Br', 300, 120); // Leaving group pointing up (Anti to H)
+    drawAtom(svg, 'e2_r2', 'C', 'R', 340, 240);
+
+    // Bonds
+    drawBond(svg, 'bond_cc', 'e2_cb', 'e2_ca', 200, 200, 300, 200); // C-C
+    drawBond(svg, 'bond_bh', 'e2_cb', 'e2_h', 200, 200, 200, 280); // C-H
+    drawBond(svg, 'bond_abr', 'e2_ca', 'e2_br', 300, 200, 300, 120); // C-Br
+    drawBond(svg, 'bond_br1', 'e2_cb', 'e2_r1', 200, 200, 160, 160);
+    drawBond(svg, 'bond_ar2', 'e2_ca', 'e2_r2', 300, 200, 340, 240);
+    
+    // Arrows
+    let arrow1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    arrow1.setAttribute("d", "M 80 250 Q 140 280 180 280"); // Base to H
+    arrow1.setAttribute("class", "arrow");
+    arrow1.setAttribute("id", "e2_a1");
+    svg.appendChild(arrow1);
+    
+    let arrow2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    arrow2.setAttribute("d", "M 210 260 Q 250 230 250 210"); // H bond to C-C bond
+    arrow2.setAttribute("class", "arrow");
+    arrow2.setAttribute("id", "e2_a2");
+    svg.appendChild(arrow2);
+
+    let arrow3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    arrow3.setAttribute("d", "M 300 180 Q 320 160 320 140"); // C-Br bond to Br
+    arrow3.setAttribute("class", "arrow");
+    arrow3.setAttribute("id", "e2_a3");
+    svg.appendChild(arrow3);
+}
+
+function nextE2() {
+    e2Step++;
+    const txt = document.getElementById('desc-e2');
+    
+    if(e2Step === 1) {
+        txt.innerHTML = "<strong>步骤 1 (协同反应):</strong> 强碱夺取 β-H，电子对形成双键，离去基团 (Br) 同时离去。<br>注意：H 和 Br 必须处于<strong>反式共平面 (Anti-Periplanar)</strong> 位置（一个朝上，一个朝下）。";
+        // Show arrows
+        document.getElementById('e2_a1').style.opacity = 1;
+        document.getElementById('e2_a2').style.opacity = 1;
+        document.getElementById('e2_a3').style.opacity = 1;
+        
+        // Base moves closer
+        moveAtom('e2_base', 150, 280);
+    }
+    else if(e2Step === 2) {
+        txt.innerHTML = "<strong>步骤 2:</strong> 形成烯烃。<br>单键变成了双键 (Zaitsev 产物倾向于生成更稳定的双键)。Br- 带着负电荷离去。";
+        // Hide arrows
+        document.getElementById('e2_a1').style.opacity = 0;
+        document.getElementById('e2_a2').style.opacity = 0;
+        document.getElementById('e2_a3').style.opacity = 0;
+        
+        // Mechanism Action
+        // Base takes H
+        moveAtom('e2_base', 150, 320);
+        moveAtom('e2_h', 170, 320); // H follows base
+        
+        // Br leaves
+        moveAtom('e2_br', 350, 50);
+        
+        // Atoms adjust to planar alkene shape
+        // C=C stay, R groups flatten
+        moveAtom('e2_r1', 150, 150); // Flatten
+        moveAtom('e2_r2', 350, 250); // Flatten
+        
+        // Bond Changes
+        moveBond('bond_bh', 170, 320, 150, 320); // H is now with Base (visual hack)
+        moveBond('bond_abr', 300, 200, 350, 50, 0); // Fade C-Br bond
+        
+        // Update C-R bonds
+        moveBond('bond_br1', 200, 200, 150, 150);
+        moveBond('bond_ar2', 300, 200, 350, 250);
+        
+        // Make double bond
+        let svg = document.getElementById('svg-e2');
+        let bond = document.getElementById('bond_cc');
+        bond.setAttribute("stroke-width", "12"); // Thicken
+        // Add second line for double bond visual
+        let line2 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line2.setAttribute("x1", 200); line2.setAttribute("y1", 190);
+        line2.setAttribute("x2", 300); line2.setAttribute("y2", 190);
+        line2.setAttribute("stroke", "white");
+        line2.setAttribute("stroke-width", "2");
+        svg.appendChild(line2);
+    }
+    else {
+        resetE2();
+    }
+}
+
+function resetE2() {
+    e2Step = 0;
+    document.getElementById('desc-e2').innerHTML = "准备就绪：点击“下一步”开始 E2 反应。";
+    initE2();
+}
+
+/* --- 4. Practice 1 Logic (Rotation) --- */
+let p1Step = 0;
+function initPrac1() {
+    const svg = document.getElementById('svg-prac1');
+    svg.innerHTML = '';
+    
+    // Page 12, Q1: 2-chlorobutane logic.
+    // Need to show C2-C3 bond.
+    // Left C (with H), Right C (with Cl).
+    
+    // Start in "Bad" conformation (Syn or Gauche)
+    drawAtom(svg, 'p1_c1', 'C', 'C', 250, 200);
+    drawAtom(svg, 'p1_c2', 'C', 'C', 350, 200);
+    
+    // C1 has H we want to remove
+    drawAtom(svg, 'p1_h', 'H', 'H', 250, 120); // Up
+    drawAtom(svg, 'p1_me', 'C', 'Me', 200, 250);
+    
+    // C2 has Cl leaving group
+    drawAtom(svg, 'p1_cl', 'Cl', 'Cl', 350, 120); // Also Up (Syn-ish to H) - BAD for E2
+    drawAtom(svg, 'p1_et', 'C', 'Et', 400, 250);
+    
+    // Bonds
+    drawBond(svg, 'pb_cc', 'p1_c1', 'p1_c2', 250, 200, 350, 200);
+    drawBond(svg, 'pb_ch', 'p1_c1', 'p1_h', 250, 200, 250, 120);
+    drawBond(svg, 'pb_cme', 'p1_c1', 'p1_me', 250, 200, 200, 250);
+    
+    drawBond(svg, 'pb_ccl', 'p1_c2', 'p1_cl', 350, 200, 350, 120); // Note: Cl is UP
+    drawBond(svg, 'pb_cet', 'p1_c2', 'p1_et', 350, 200, 400, 250);
+    
+    // Text indicator
+    let txt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    txt.setAttribute("x", 300); txt.setAttribute("y", 50);
+    txt.setAttribute("fill", "red");
+    txt.setAttribute("id", "warn_txt");
+    txt.textContent = "警告: H 和 Cl 不是反式 (Anti)!";
+    svg.appendChild(txt);
+}
+
+function nextPrac1() {
+    p1Step++;
+    const txt = document.getElementById('desc-prac1');
+    
+    if(p1Step === 1) {
+        txt.innerHTML = "<strong>步骤 1:</strong> 键的旋转。<br>为了发生 E2 消除，我们将右侧碳原子旋转 180 度，使 Cl 处于 H 的反面（反式共平面）。";
+        // Rotate C2 groups
+        moveAtom('p1_cl', 350, 280); // Cl moves Down
+        moveAtom('p1_et', 400, 150); // Et moves Up
+        
+        // Bonds follow
+        moveBond('pb_ccl', 350, 200, 350, 280);
+        moveBond('pb_cet', 350, 200, 400, 150);
+        
+        // Update Warning
+        let w = document.getElementById("warn_txt");
+        w.textContent = "OK: H 和 Cl 现在是反式 (Anti)!";
+        w.setAttribute("fill", "green");
+    }
+    else if(p1Step === 2) {
+        txt.innerHTML = "<strong>步骤 2:</strong> 消除反应。<br>碱夺走 H，Cl 离去，形成双键 (Z-isomer 形式，取决于具体基团大小，这里展示原理)。";
+        
+        // Base comes in (phantom)
+        // H leaves
+        moveAtom('p1_h', 200, 80, 0); // Fade out
+        // Cl leaves
+        moveAtom('p1_cl', 400, 350, 0.5); // Move away
+        
+        // Fade bonds
+        moveBond('pb_ch', 250, 200, 200, 80, 0);
+        moveBond('pb_ccl', 350, 200, 400, 350, 0);
+        
+        // Double Bond
+        let line = document.getElementById('pb_cc');
+        line.setAttribute("stroke-width", "12");
+    }
+    else {
+        resetPrac1();
+    }
+}
+
+function resetPrac1() {
+    p1Step = 0;
+    document.getElementById('desc-prac1').innerHTML = "准备就绪：观察初始构象（H 和 Cl 不是反式）。";
+    initPrac1();
+}
+
+/* --- 5. Challenge Problem Logic (Ring Closure) --- */
+let cStep = 0;
+function initChal() {
+    const svg = document.getElementById('svg-chal');
+    svg.innerHTML = '';
+    
+    // Drawing a simplified open ring chain (Cyclodecadienyl)
+    // Let's approximate the shape in Page 16
+    // C1(OTs) - C2... C6=C7 ... C10
+    
+    // Key atoms
+    drawAtom(svg, 'ch_c1', 'C', 'C', 200, 150); // Carbocation site
+    drawAtom(svg, 'ch_lg', 'O', 'OTs', 140, 120); // Leaving Group
+    
+    drawAtom(svg, 'ch_c_mid', 'C', '', 300, 100); // Chain
+    drawAtom(svg, 'ch_c6', 'C', 'C', 400, 200); // Double bond start
+    drawAtom(svg, 'ch_c7', 'C', 'C', 300, 250); // Double bond end
+    
+    drawAtom(svg, 'ch_c_connect', 'C', '', 200, 250); // Connection back to start
+    
+    // Bonds (Chain)
+    drawBond(svg, 'cb_1', 'ch_c1', 'ch_lg', 200, 150, 140, 120); // C-LG
+    
+    // Simplified chain visual (polygon-ish)
+    drawBond(svg, 'chain1', 'ch_c1', 'ch_c_mid', 200, 150, 300, 100);
+    drawBond(svg, 'chain2', 'ch_c_mid', 'ch_c6', 300, 100, 400, 200);
+    
+    // The double bond
+    drawBond(svg, 'db_pi', 'ch_c6', 'ch_c7', 400, 200, 300, 250, 'double');
+    
+    drawBond(svg, 'chain3', 'ch_c7', 'ch_c_connect', 300, 250, 200, 250);
+    drawBond(svg, 'chain4', 'ch_c_connect', 'ch_c1', 200, 250, 200, 150);
+    
+    // Solvent
+    drawAtom(svg, 'solv', 'O', 'MeOH', 500, 300);
+}
+
+function nextChal() {
+    cStep++;
+    const txt = document.getElementById('desc-chal');
+    
+    if(cStep === 1) {
+        txt.innerHTML = "<strong>步骤 1:</strong> 溶剂解/电离。<br>OTs 是极好的离去基团。它离开后，产生碳正离子。";
+        moveAtom('ch_lg', 80, 80, 0.5); // LG leaves
+        moveBond('cb_1', 200, 150, 80, 80, 0);
+        
+        // Show Cation
+        let svg = document.getElementById('svg-chal');
+        let plus = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        plus.setAttribute("x", 190); plus.setAttribute("y", 140);
+        plus.textContent = "+";
+        plus.setAttribute("fill", "red");
+        plus.setAttribute("font-size", "24");
+        plus.setAttribute("id", "chal_plus");
+        svg.appendChild(plus);
+    }
+    else if(cStep === 2) {
+        txt.innerHTML = "<strong>步骤 2:</strong> 跨环反应 (双键进攻)。<br>分子内的 C=C 双键充当亲核试剂，进攻碳正离子，形成新的 C-C 键 (闭环形成十氢萘骨架)。";
+        
+        // Arrow visual
+        let arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        arrow.setAttribute("d", "M 350 225 Q 300 200 220 160"); 
+        arrow.setAttribute("class", "arrow");
+        arrow.setAttribute("id", "chal_arrow");
+        document.getElementById('svg-chal').appendChild(arrow);
+        setTimeout(() => { arrow.style.opacity = 1; }, 100);
+    }
+    else if(cStep === 3) {
+        txt.innerHTML = "<strong>步骤 3:</strong> 形成新环和新正离子。<br>双键断裂，新键连接 C1 和 C6 (或 C7)。正电荷转移到另一个碳上。";
+        document.getElementById('chal_arrow').style.opacity = 0;
+        
+        // Morph shape to Bicyclic (roughly)
+        // Move C6 towards C1
+        moveAtom('ch_c6', 250, 180);
+        moveAtom('ch_c7', 320, 260); // Shift
+        
+        // Update bonds
+        moveBond('chain2', 300, 100, 250, 180);
+        // The double bond becomes single and connects to C1
+        let db = document.getElementById('db_pi');
+        db.setAttribute("stroke-width", "6"); // Single bond width
+        // It now technically represents bond C6-C7, but we need a NEW bond C1-C6
+        
+        let svg = document.getElementById('svg-chal');
+        let newBond = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        newBond.setAttribute("x1", 200); newBond.setAttribute("y1", 150);
+        newBond.setAttribute("x2", 250); newBond.setAttribute("y2", 180);
+        newBond.setAttribute("class", "bond");
+        newBond.setAttribute("stroke", "green"); // Highlight new bond
+        svg.appendChild(newBond);
+        
+        // Move Plus charge to C7 (Tertiary carbocation formed at bridgehead/junction usually)
+        let p = document.getElementById('chal_plus');
+        p.setAttribute("x", 330); p.setAttribute("y", 250);
+        
+        // Fix C6-C7 visual
+        moveBond('db_pi', 250, 180, 320, 260);
+    }
+    else if(cStep === 4) {
+        txt.innerHTML = "<strong>步骤 4:</strong> 溶剂捕获。<br>MeOH 进攻新的叔碳正离子，最后脱去质子形成醚。";
+        
+        moveAtom('solv', 340, 270); // Solv attacks C7
+        document.getElementById('chal_plus').style.opacity = 0;
+        
+        let svg = document.getElementById('svg-chal');
+        let bond = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        bond.setAttribute("x1", 320); bond.setAttribute("y1", 260);
+        bond.setAttribute("x2", 340); bond.setAttribute("y2", 270);
+        bond.setAttribute("class", "bond");
+        svg.appendChild(bond);
+        
+        // Change label to OMe
+        document.getElementById('solv_t').textContent = "OMe";
+    }
+    else {
+        resetChal();
+    }
+}
+
+function resetChal() {
+    cStep = 0;
+    document.getElementById('desc-chal').innerHTML = "准备就绪：环癸二烯衍生物。";
+    initChal();
+}
+
+// Initialize all on load
+window.onload = function() {
+    initSn2();
+    initSn1();
+    initE2();
+    initPrac1();
+    initChal();
+};
+</script>
+
+</body>
+</html>

@@ -1,0 +1,839 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>有机化学 Exam 3：全景战术控制台</title>
+    <style>
+        :root {
+            /* 战术高对比配色 (CPK 增强版) */
+            --c-atom: #334155; /* 碳: 蓝灰 */
+            --h-atom: #94a3b8; /* 氢: 亮灰 */
+            --o-atom: #ef4444; /* 氧: 战术红 */
+            --n-atom: #3b82f6; /* 氮: 信号蓝 */
+            --cl-atom: #22c55e; /* 氯: 荧光绿 */
+            --br-atom: #7f1d1d; /* 溴: 深褐红 */
+            --i-atom: #7e22ce; /* 碘: 紫 */
+            --mg-atom: #f97316; /* 镁: 橙 */
+            --cu-atom: #b45309; /* 铜: 铜色 */
+            --li-atom: #a855f7; /* 锂: 紫罗兰 */
+            --s-atom: #fbbf24; /* 硫: 黄 */
+            
+            --bg-panel: #ffffff;
+            --bg-sidebar: #1e293b;
+            --text-light: #f8fafc;
+            --text-dark: #0f172a;
+            --accent: #2563eb;
+        }
+        
+        body {
+            font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f1f5f9;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* 左侧导航栏 */
+        .sidebar {
+            width: 300px;
+            background: var(--bg-sidebar);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            border-right: 4px solid #334155;
+        }
+        .brand {
+            padding: 20px;
+            font-size: 22px;
+            font-weight: 900;
+            background: #0f172a;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #334155;
+        }
+        .nav-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .nav-cat {
+            font-size: 12px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            font-weight: 800;
+            margin: 20px 0 5px 10px;
+            letter-spacing: 1px;
+        }
+        .nav-btn {
+            width: 100%;
+            text-align: left;
+            background: transparent;
+            border: none;
+            color: #cbd5e1;
+            padding: 12px 15px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+            border-left: 3px solid transparent;
+        }
+        .nav-btn:hover {
+            background: #334155;
+            color: white;
+            padding-left: 20px;
+        }
+        .nav-btn.active {
+            background: var(--accent);
+            color: white;
+            border-left: 3px solid #60a5fa;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+        }
+
+        /* 主工作区 */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .header {
+            background: var(--bg-panel);
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .title h1 { margin: 0; font-size: 24px; color: var(--text-dark); }
+        .title span { font-size: 14px; color: #64748b; font-weight: 600; background: #e2e8f0; padding: 4px 8px; border-radius: 4px; margin-left: 10px; }
+
+        /* 舞台 (SVG) */
+        .stage-container {
+            flex: 1;
+            background: var(--bg-panel);
+            border-radius: 16px;
+            border: 2px solid #cbd5e1;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.02);
+            overflow: hidden;
+            /* 网格背景 */
+            background-image: 
+                linear-gradient(#e2e8f0 1px, transparent 1px),
+                linear-gradient(90deg, #e2e8f0 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        svg { width: 100%; height: 100%; display: block; }
+
+        /* 控制栏 */
+        .controls {
+            margin-top: 20px;
+            background: var(--bg-panel);
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .info { flex: 1; }
+        .step-label { font-size: 12px; font-weight: 900; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+        .step-desc { font-size: 18px; font-weight: 500; color: var(--text-dark); line-height: 1.4; margin-top: 5px; }
+        
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .btn-primary { background: var(--accent); color: white; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3); }
+        .btn-reset { background: #10b981; color: white; }
+        .btn:active { transform: scale(0.95); }
+
+        /* SVG 元素样式 */
+        .atom-circle { stroke: rgba(0,0,0,0.2); stroke-width: 2px; transition: fill 0.3s; }
+        .atom-text { font-family: Arial; font-weight: 900; fill: white; text-anchor: middle; dominant-baseline: central; pointer-events: none; font-size: 20px; }
+        .subscript { font-size: 14px; baseline-shift: sub; }
+        .bond { stroke-linecap: round; stroke-linejoin: round; transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .electron-flow { fill: none; stroke: #f59e0b; stroke-width: 4; stroke-dasharray: 8,4; animation: flow 0.5s linear infinite; opacity: 0; marker-end: url(#arrow); transition: opacity 0.3s; }
+        @keyframes flow { to { stroke-dashoffset: -12; } }
+        
+        /* 状态类 */
+        .atom-group { transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="brand">EXAM 3 REACTION<br>COMMANDER</div>
+    <div class="nav-scroll">
+        <div class="nav-cat">Part 1: 取代与消除 (SN/E)</div>
+        <button class="nav-btn active" onclick="loadTool('sn1_mech')">SN1 机理 (外消旋化)</button>
+        <button class="nav-btn" onclick="loadTool('sn2_mech')">SN2 机理 (构型翻转)</button>
+        <button class="nav-btn" onclick="loadTool('e1_mech')">E1 机理 (Zaitsev)</button>
+        <button class="nav-btn" onclick="loadTool('e2_mech')">E2 机理 (反式共平面)</button>
+        <button class="nav-btn" onclick="loadTool('competition')">反应竞争表 (可视化)</button>
+
+        <div class="nav-cat">Part 2: 醇的转化</div>
+        <button class="nav-btn" onclick="loadTool('alc_ts')">醇 -> Tosylate (保持)</button>
+        <button class="nav-btn" onclick="loadTool('alc_socl2')">醇 -> 氯代 (SOCl2 翻转)</button>
+        <button class="nav-btn" onclick="loadTool('alc_pbr3')">醇 -> 溴代 (PBr3 翻转)</button>
+
+        <div class="nav-cat">Part 3: 自由基与有机金属</div>
+        <button class="nav-btn" onclick="loadTool('nbs')">烯丙位溴代 (共振)</button>
+        <button class="nav-btn" onclick="loadTool('grignard_prep')">格氏试剂制备 (极性反转)</button>
+        <button class="nav-btn" onclick="loadTool('grignard_death')">格氏试剂遇水 (淬灭)</button>
+        <button class="nav-btn" onclick="loadTool('gilman')">吉尔曼试剂 (Corey-House)</button>
+
+        <div class="nav-cat">Part 4: 炔烃 (Alkynes)</div>
+        <button class="nav-btn" onclick="loadTool('alkyne_taut')">水合与互变异构</button>
+        <button class="nav-btn" onclick="loadTool('alkyne_add')">加成反应 (2x HBr)</button>
+        <button class="nav-btn" onclick="loadTool('alkyne_red')">还原选择性 (Cis vs Trans)</button>
+        <button class="nav-btn" onclick="loadTool('acetylide')">炔负离子 SN2 进攻</button>
+    </div>
+</div>
+
+<div class="main">
+    <div class="header">
+        <div class="title">
+            <h1 id="tool-title">载入中...</h1>
+            <span id="tool-tag">MECHANISM</span>
+        </div>
+    </div>
+
+    <div class="stage-container">
+        <svg id="svg-stage" viewBox="0 0 800 500">
+            <defs>
+                <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto" fill="#f59e0b">
+                    <path d="M0,0 L6,3 L0,6" />
+                </marker>
+                <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="3" result="blur"/>
+                    <feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer>
+                    <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+            </defs>
+            <!-- 动态内容将生成于此 -->
+        </svg>
+    </div>
+
+    <div class="controls">
+        <div class="info">
+            <div class="step-label" id="step-num">准备就绪</div>
+            <div class="step-desc" id="step-text">点击右侧按钮开始演示反应步骤。</div>
+        </div>
+        <button id="btn-action" class="btn btn-primary" onclick="nextStep()">▶ 下一步</button>
+    </div>
+</div>
+
+<script>
+    // --- 核心引擎 ---
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    const stage = document.getElementById('svg-stage');
+
+    const Engine = {
+        clear: () => {
+            while(stage.lastChild && stage.lastChild.tagName !== 'defs') {
+                stage.removeChild(stage.lastChild);
+            }
+        },
+        
+        // 创建原子 (r=32px+)
+        atom: (id, x, y, type, label) => {
+            const g = document.createElementNS(SVG_NS, 'g');
+            g.setAttribute('id', id);
+            g.setAttribute('class', 'atom-group');
+            g.setAttribute('transform', `translate(${x},${y})`);
+            
+            const c = document.createElementNS(SVG_NS, 'circle');
+            c.setAttribute('r', 36); // 半径增大
+            c.setAttribute('class', 'atom-circle');
+            c.style.fill = `var(--${type.toLowerCase()}-atom)`;
+            c.setAttribute('filter', 'url(#shadow)');
+            
+            const t = document.createElementNS(SVG_NS, 'text');
+            t.setAttribute('class', 'atom-text');
+            
+            // 解析下标 (例如 CH3)
+            if(label.match(/\d/)) {
+                const parts = label.split(/(\d)/);
+                parts.forEach((p, i) => {
+                    const span = document.createElementNS(SVG_NS, 'tspan');
+                    span.textContent = p;
+                    if(p.match(/\d/)) {
+                        span.setAttribute('dy', '10');
+                        span.setAttribute('font-size', '14px');
+                    } else if (i > 0) {
+                        span.setAttribute('dy', '-10');
+                    }
+                    t.appendChild(span);
+                });
+            } else {
+                t.textContent = label;
+            }
+            
+            g.appendChild(c);
+            g.appendChild(t);
+            stage.appendChild(g);
+            return g;
+        },
+
+        // 创建键 (位于原子下方)
+        bond: (id, x1, y1, x2, y2, color='#94a3b8', width=10) => {
+            const l = document.createElementNS(SVG_NS, 'line');
+            l.setAttribute('id', id);
+            l.setAttribute('class', 'bond');
+            l.setAttribute('x1', x1); l.setAttribute('y1', y1);
+            l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+            l.setAttribute('stroke', color);
+            l.setAttribute('stroke-width', width);
+            // 插入到 defs 之后，原子之前
+            const firstAtom = stage.querySelector('.atom-group');
+            if(firstAtom) {
+                stage.insertBefore(l, firstAtom);
+            } else {
+                stage.appendChild(l);
+            }
+        },
+
+        // 电子流箭头
+        arrow: (id, d) => {
+            const p = document.createElementNS(SVG_NS, 'path');
+            p.setAttribute('id', id);
+            p.setAttribute('class', 'electron-flow');
+            p.setAttribute('d', d);
+            stage.appendChild(p);
+        },
+
+        // 辅助文字
+        label: (id, x, y, text, color='#334155') => {
+            const t = document.createElementNS(SVG_NS, 'text');
+            t.setAttribute('id', id);
+            t.setAttribute('x', x); t.setAttribute('y', y);
+            t.setAttribute('text-anchor', 'middle');
+            t.setAttribute('font-weight', 'bold');
+            t.setAttribute('font-size', '20');
+            t.setAttribute('fill', color);
+            t.textContent = text;
+            stage.appendChild(t);
+        },
+
+        // 动作：移动原子
+        move: (id, x, y) => {
+            const el = document.getElementById(id);
+            if(el) el.setAttribute('transform', `translate(${x},${y})`);
+        },
+
+        // 动作：更新键/样式
+        style: (id, props) => {
+            const el = document.getElementById(id);
+            if(!el) return;
+            if(el.tagName === 'line') {
+                if(props.x1) el.setAttribute('x1', props.x1);
+                if(props.y1) el.setAttribute('y1', props.y1);
+                if(props.x2) el.setAttribute('x2', props.x2);
+                if(props.y2) el.setAttribute('y2', props.y2);
+                if(props.color) el.setAttribute('stroke', props.color);
+                if(props.width) el.setAttribute('stroke-width', props.width);
+                if(props.opacity !== undefined) el.style.opacity = props.opacity;
+            } else {
+                if(props.opacity !== undefined) el.style.opacity = props.opacity;
+                // 更改原子标签或颜色
+                if(props.type) el.querySelector('circle').style.fill = `var(--${props.type}-atom)`;
+                if(props.label) el.querySelector('text').textContent = props.label;
+            }
+        }
+    };
+
+    // --- 数据库：涵盖所有 PDF 内容 ---
+    const Tools = {
+        // 1. SN1 (Page 3-4)
+        'sn1_mech': {
+            title: "SN1 机理：外消旋化", tag: "Page 3-4",
+            steps: [
+                {
+                    t: "底物：叔丁基溴", d: "这是一个三级卤代烷 (3°)。空间位阻大，SN2 无法进行。Br 是离去基团。",
+                    setup: (E) => {
+                        E.clear();
+                        E.atom('c', 400, 250, 'c', 'C');
+                        E.bond('b1', 400, 250, 550, 250, '#7f1d1d'); E.atom('br', 550, 250, 'br', 'Br');
+                        E.bond('b2', 400, 250, 320, 150); E.atom('m1', 320, 150, 'c', 'CH3');
+                        E.bond('b3', 400, 250, 320, 350); E.atom('m2', 320, 350, 'c', 'CH3');
+                        E.bond('b4', 400, 250, 280, 250); E.atom('m3', 280, 250, 'c', 'CH3');
+                    }
+                },
+                {
+                    t: "步骤1：离去基团离去 (慢)", d: "C-Br 键断裂，Br 带走电子。形成平面三角形的<b>碳正离子</b>。",
+                    action: (E) => {
+                        E.style('b1', {opacity: 0});
+                        E.move('br', 700, 250); // Br 离开
+                        // 变平
+                        E.move('m1', 350, 150); E.style('b2', {x2: 350, y2: 150});
+                        E.move('m2', 350, 350); E.style('b3', {x2: 350, y2: 350});
+                        E.move('m3', 300, 250); E.style('b4', {x2: 300, y2: 250});
+                        E.label('cation', 400, 180, "平面碳正离子 (sp²)", '#2563eb');
+                    }
+                },
+                {
+                    t: "步骤2：亲核进攻 (外消旋)", d: "亲核试剂 (Cl⁻) 可以从上方或下方进攻，概率相等。导致 R/S 混合。",
+                    action: (E) => {
+                        E.atom('cl_top', 400, 50, 'cl', 'Cl⁻');
+                        E.atom('cl_bot', 400, 450, 'cl', 'Cl⁻');
+                        E.arrow('a1', "M 400 80 L 400 200");
+                        E.arrow('a2', "M 400 420 L 400 300");
+                        E.style('a1', {opacity: 1}); E.style('a2', {opacity: 1});
+                    }
+                }
+            ]
+        },
+
+        // 2. SN2 (Page 3-4)
+        'sn2_mech': {
+            title: "SN2 机理：构型翻转", tag: "Page 3-4",
+            steps: [
+                {
+                    t: "底物：(R)-2-氯丁烷", d: "二级卤代烷。强亲核试剂 (OH⁻) 准备从<b>背面</b>进攻。",
+                    setup: (E) => {
+                        E.clear();
+                        E.atom('c', 400, 250, 'c', 'C');
+                        // 离去基团在右
+                        E.bond('b_lg', 400, 250, 550, 250, '#22c55e'); E.atom('cl', 550, 250, 'cl', 'Cl');
+                        // 取代基偏左
+                        E.bond('b1', 400, 250, 350, 150); E.atom('sub1', 350, 150, 'c', 'CH3');
+                        E.bond('b2', 400, 250, 350, 350); E.atom('sub2', 350, 350, 'c', 'Et');
+                        E.bond('b3', 400, 250, 320, 250); E.atom('sub3', 320, 250, 'h', 'H');
+                        // 亲核试剂在左远方
+                        E.atom('nu', 100, 250, 'o', 'OH⁻');
+                    }
+                },
+                {
+                    t: "过渡态：背面进攻", d: "OH⁻ 撞击 C 背面，C-Cl 键开始断裂。像雨伞被风吹翻。",
+                    action: (E) => {
+                        E.move('nu', 300, 250); // Nu 靠近
+                        E.bond('bond_nu', 300, 250, 400, 250, '#ef4444', 4); // 虚键生成
+                        E.move('cl', 600, 250); // Cl 稍远
+                        // 变平
+                        E.move('sub1', 400, 120); E.style('b1', {x2:400, y2:120});
+                        E.move('sub2', 400, 380); E.style('b2', {x2:400, y2:380});
+                        E.move('sub3', 400, 200); E.style('b3', {x2:400, y2:200, opacity:0.5});
+                    }
+                },
+                {
+                    t: "产物：(S)-2-丁醇", d: "Cl⁻ 离去，C-OH 键形成。取代基被推向右侧。构型由 (R) 变为 (S)。",
+                    action: (E) => {
+                        E.move('cl', 750, 250); E.style('b_lg', {opacity:0}); // Cl 消失
+                        E.move('nu', 340, 250); E.style('bond_nu', {x1:340, width:10}); // OH 连接
+                        // 翻转完成
+                        E.move('sub1', 460, 150); E.style('b1', {x2:460, y2:150});
+                        E.move('sub2', 460, 350); E.style('b2', {x2:460, y2:350});
+                        E.move('sub3', 480, 250); E.style('b3', {x2:480, y2:250, opacity:1});
+                    }
+                }
+            ]
+        },
+
+        // 3. E1 (Page 5-6)
+        'e1_mech': {
+            title: "E1 机理：单分子消除", tag: "Page 5-6",
+            steps: [
+                {
+                    t: "步骤1：生成碳正离子", d: "与 SN1 相同，离去基团先走。这是一个慢步骤。",
+                    setup: (E) => {
+                        E.clear();
+                        E.atom('ca', 450, 250, 'c', 'Cα'); // Alpha C
+                        E.atom('cb', 300, 250, 'c', 'Cβ'); // Beta C
+                        E.bond('cc', 300, 250, 450, 250);
+                        E.bond('b_lg', 450, 250, 550, 350, '#7f1d1d'); E.atom('lg', 550, 350, 'br', 'Br'); // LG
+                        E.bond('b_h', 300, 250, 300, 120); E.atom('h', 300, 120, 'h', 'H'); // Beta H
+                    },
+                    action: (E) => {
+                        // Do nothing just visualize structure first? No, execute step 1
+                        // Simulation of leaving
+                    }
+                },
+                {
+                    t: "中间体", d: "Br⁻ 离去后，形成 Cα⁺。现在弱碱 (MeOH) 来了。",
+                    action: (E) => {
+                        E.style('b_lg', {opacity: 0});
+                        E.move('lg', 600, 400);
+                        E.atom('base', 150, 100, 'o', 'MeOH'); // Weak base
+                    }
+                },
+                {
+                    t: "步骤2：脱质子成烯", d: "碱夺取 β-H，电子对倒向 C-C 键，形成双键。",
+                    action: (E) => {
+                        E.arrow('a1', "M 180 110 Q 250 100 290 110"); // Base to H
+                        E.arrow('a2', "M 300 150 Q 375 200 375 240"); // H-C bond to C-C
+                        E.style('a1', {opacity:1}); E.style('a2', {opacity:1});
+                        setTimeout(() => {
+                            E.style('a1', {opacity:0}); E.style('a2', {opacity:0});
+                            E.move('base', 250, 100); E.move('h', 250, 130); E.style('b_h', {opacity:0});
+                            E.style('cc', {width: 18, color: '#f59e0b'}); // Double bond
+                        }, 1000);
+                    }
+                }
+            ]
+        },
+
+        // 4. E2 (Page 5-6)
+        'e2_mech': {
+            title: "E2 机理：反式共平面", tag: "Page 5-6",
+            steps: [
+                {
+                    t: "几何要求", d: "β-H 和 离去基团 (Br) 必须处于反式 (Anti, 180°)。强碱 (tBuO⁻) 准备进攻。",
+                    setup: (E) => {
+                        E.clear();
+                        E.atom('ca', 500, 250, 'c', 'Cα');
+                        E.atom('cb', 350, 250, 'c', 'Cβ');
+                        E.bond('cc', 350, 250, 500, 250);
+                        // Anti position: H up, Br down
+                        E.bond('b_h', 350, 250, 350, 100); E.atom('h', 350, 100, 'h', 'H');
+                        E.bond('b_br', 500, 250, 500, 400, '#7f1d1d'); E.atom('br', 500, 400, 'br', 'Br');
+                        // Strong base
+                        E.atom('base', 150, 100, 'o', 'tBuO⁻');
+                    }
+                },
+                {
+                    t: "协同消除", d: "碱抓 H，H 电子变成双键，Br 被挤走。三件事同时发生。",
+                    action: (E) => {
+                        E.arrow('a1', "M 180 110 Q 280 90 340 90"); // Base -> H
+                        E.arrow('a2', "M 350 140 Q 425 180 425 240"); // C-H -> C=C
+                        E.arrow('a3', "M 500 300 Q 520 350 540 390"); // C-Br leaves
+                        E.style('a1', {opacity:1}); E.style('a2', {opacity:1}); E.style('a3', {opacity:1});
+                        E.move('base', 280, 100);
+                    }
+                },
+                {
+                    t: "产物：烯烃", d: "生成更稳定的烯烃 (通常遵循 Zaitsev 规则)。",
+                    action: (E) => {
+                        E.style('a1', {opacity:0}); E.style('a2', {opacity:0}); E.style('a3', {opacity:0});
+                        E.style('b_h', {opacity:0}); E.move('h', 280, 130); // H taken
+                        E.style('b_br', {opacity:0}); E.move('br', 600, 450); // Br leaves
+                        E.style('cc', {width: 20, color: '#f59e0b'}); // Double bond
+                    }
+                }
+            ]
+        },
+
+        // 5. Competition (Page 7)
+        'competition': {
+            title: "SN/E 竞争表", tag: "Page 7",
+            steps: [
+                {
+                    t: "1° 底物 (一级)", d: "空间开放。强亲核试剂 -> <b>SN2</b>。<br>只有遇上大胖子强碱 (tBuOK) 才会走 E2。",
+                    setup: (E) => { E.clear(); E.atom('c', 400, 250, 'c', '1° Substrate'); }
+                },
+                {
+                    t: "2° 底物 (二级)", d: "强碱/强亲核 (OH⁻) -> <b>E2 主导</b> (SN2 次之)。<br>弱碱/强亲核 (I⁻, RS⁻) -> <b>SN2</b>。<br>全弱 -> 不反应。",
+                    action: (E) => { E.style('c', {label: '2° Substrate', type: 'mg'}); }
+                },
+                {
+                    t: "3° 底物 (三级)", d: "位阻太大 -> <b>绝无 SN2</b>。<br>有强碱 -> <b>E2</b>。<br>全弱 (H2O) -> <b>SN1/E1</b>。",
+                    action: (E) => { E.style('c', {label: '3° Substrate', type: 'br'}); }
+                }
+            ]
+        },
+
+        // 6. Alcohol -> Ts (Page 8)
+        'alc_ts': {
+            title: "醇 -> Tosylate (OTs)", tag: "Page 8",
+            steps: [
+                { t: "原理", d: "OH 是坏离去基团。TsCl 将其变成 OTs (好离去基团)。<br>反应发生在 O 上，<b>不影响 C 的构型</b>。", setup: (E) => {
+                    E.clear();
+                    E.atom('c', 350, 250, 'c', '(R)-C');
+                    E.bond('b', 350, 250, 450, 250); E.atom('o', 450, 250, 'o', 'OH');
+                    E.atom('ts', 600, 250, 's', 'TsCl');
+                }},
+                { t: "结果", d: "构型保持 (Retention)。现在 OTs 类似于 I⁻，可以做 SN2 了。", action: (E) => {
+                    E.move('ts', 500, 250); E.style('ts', {opacity:0});
+                    E.style('o', {label: 'OTs'}); // Same position
+                    E.label('tag', 350, 150, "构型保持 (Retention)", '#22c55e');
+                }}
+            ]
+        },
+
+        // 7. Alcohol -> Chlor (Page 8)
+        'alc_socl2': {
+            title: "醇 -> 氯代烷 (SOCl2)", tag: "Page 8",
+            steps: [
+                { t: "原理", d: "SOCl2 将 OH 转化为 Cl。<br>机理涉及背面进攻。", setup: (E) => {
+                    E.clear();
+                    E.atom('c', 350, 250, 'c', '(R)-C');
+                    E.bond('b', 350, 250, 450, 250); E.atom('o', 450, 250, 'o', 'OH');
+                    E.atom('reag', 600, 250, 'cl', 'SOCl2');
+                }},
+                { t: "结果", d: "构型翻转 (Inversion)。(R) 变成 (S)。", action: (E) => {
+                    E.style('reag', {opacity:0}); E.style('o', {opacity:0}); E.style('b', {opacity:0});
+                    // Cl adds to back (left)
+                    E.bond('b_new', 350, 250, 250, 250, '#22c55e'); E.atom('cl', 250, 250, 'cl', 'Cl');
+                    E.style('c', {label: '(S)-C'});
+                    E.label('tag', 350, 150, "构型翻转 (Inversion)", '#ef4444');
+                }}
+            ]
+        },
+         // 8. Alcohol -> Brom (Page 8)
+        'alc_pbr3': {
+            title: "醇 -> 溴代烷 (PBr3)", tag: "Page 8",
+            steps: [
+                { t: "原理", d: "PBr3 将 OH 转化为 Br。<br>同样涉及背面进攻。", setup: (E) => {
+                    E.clear();
+                    E.atom('c', 350, 250, 'c', '(R)-C');
+                    E.bond('b', 350, 250, 450, 250); E.atom('o', 450, 250, 'o', 'OH');
+                    E.atom('reag', 600, 250, 'br', 'PBr3');
+                }},
+                { t: "结果", d: "构型翻转 (Inversion)。", action: (E) => {
+                    E.style('reag', {opacity:0}); E.style('o', {opacity:0}); E.style('b', {opacity:0});
+                    E.bond('b_new', 350, 250, 250, 250, '#7f1d1d'); E.atom('br', 250, 250, 'br', 'Br');
+                    E.style('c', {label: '(S)-C'});
+                    E.label('tag', 350, 150, "构型翻转 (Inversion)", '#ef4444');
+                }}
+            ]
+        },
+
+        // 9. NBS (Page 9)
+        'nbs': {
+            title: "烯丙位溴代 (NBS)", tag: "Page 9",
+            steps: [
+                { t: "自由基生成", d: "NBS 提供 Br• 自由基。夺取烯丙位 H (双键旁边的碳)。", setup: (E) => {
+                    E.clear();
+                    E.atom('c1', 200, 250, 'c', 'C');
+                    E.atom('c2', 350, 250, 'c', 'C'); E.bond('db', 200, 250, 350, 250, '#334155', 14);
+                    E.atom('c3', 500, 250, 'c', 'C•'); E.bond('sb', 350, 250, 500, 250);
+                }},
+                { t: "共振 (关键)", d: "单电子可以在 C1 和 C3 之间跳跃。<br>这就是为什么会有混合产物。", action: (E) => {
+                    // Resonance structure
+                    E.style('db', {opacity: 0.3}); // Fade old bond
+                    E.bond('new_db', 350, 250, 500, 250, '#f59e0b', 14); // New bond on right
+                    E.style('c1', {label: '•C'}); E.style('c3', {label: 'C'});
+                }},
+                { t: "产物", d: "Br 可以加在左边，也可以加在右边。", action: (E) => {
+                    E.atom('br1', 200, 150, 'br', 'Br?'); E.bond('bx1', 200, 250, 200, 150);
+                    E.atom('br2', 500, 150, 'br', 'Br?'); E.bond('bx2', 500, 250, 500, 150);
+                }}
+            ]
+        },
+
+        // 10. Grignard Prep (Page 10)
+        'grignard_prep': {
+            title: "格氏试剂制备", tag: "Page 10",
+            steps: [
+                { t: "插入反应", d: "R-Br + Mg (在乙醚中)。Mg 插入 C-Br 键之间。", setup: (E) => {
+                    E.clear();
+                    E.atom('c', 300, 250, 'c', 'R');
+                    E.atom('br', 500, 250, 'br', 'Br');
+                    E.bond('b', 300, 250, 500, 250);
+                    E.atom('mg', 400, 100, 'mg', 'Mg');
+                }},
+                { t: "极性反转 (Umpolung)", d: "形成 R-Mg-Br。碳变成<b>负电性</b> (亲核/强碱)。", action: (E) => {
+                    E.move('mg', 400, 250); E.move('br', 550, 250);
+                    E.style('b', {opacity:0});
+                    E.bond('b1', 300, 250, 400, 250);
+                    E.bond('b2', 400, 250, 550, 250);
+                    E.label('charge', 300, 320, "R:⁻ (强碱)", '#ef4444');
+                }}
+            ]
+        },
+
+        // 11. Grignard Death (Page 11)
+        'grignard_death': {
+            title: "格氏试剂的“死亡”", tag: "Page 11",
+            steps: [
+                { t: "危险", d: "格氏试剂 (R:⁻) 是极强的碱。如果遇到水 (H-OH)。", setup: (E) => {
+                    E.clear();
+                    E.atom('r', 300, 250, 'c', 'R:⁻');
+                    E.atom('mg', 400, 250, 'mg', 'MgBr'); E.bond('b', 300, 250, 400, 250);
+                    E.atom('water', 300, 100, 'o', 'H-OH');
+                }},
+                { t: "酸碱反应", d: "R:⁻ 迅速夺取质子 H⁺。格氏试剂变成烷烃 (R-H)，被淬灭。", action: (E) => {
+                    E.arrow('a', "M 300 220 L 300 130"); E.style('a', {opacity:1});
+                    setTimeout(() => {
+                         E.style('a', {opacity:0});
+                         E.style('r', {label: 'R-H'});
+                         E.style('b', {opacity:0}); E.move('mg', 500, 250);
+                         E.label('dead', 400, 350, "试剂失效 (Dead)", '#7f1d1d');
+                    }, 1000);
+                }}
+            ]
+        },
+
+        // 12. Gilman (Page 11)
+        'gilman': {
+            title: "吉尔曼试剂 (R₂CuLi)", tag: "Page 11",
+            steps: [
+                { t: "唯一功能", d: "只有吉尔曼试剂能和卤代烷做取代。格氏试剂不行！", setup: (E) => {
+                    E.clear();
+                    E.atom('cu', 250, 250, 'cu', 'Et₂CuLi');
+                    E.atom('sub', 450, 250, 'c', 'R-Br'); E.bond('b', 450, 250, 550, 250); E.atom('br', 550, 250, 'br', 'Br');
+                }},
+                { t: "偶联", d: "一个 Et 基团取代 Br。生成 R-Et。", action: (E) => {
+                    E.style('b', {opacity:0}); E.move('br', 650, 250);
+                    E.bond('new_b', 450, 250, 350, 250); E.atom('et', 350, 250, 'c', 'Et');
+                    E.move('cu', 150, 250); // Reagent consumed
+                }}
+            ]
+        },
+
+        // 13. Alkyne Taut (Page 12)
+        'alkyne_taut': {
+            title: "互变异构 (Tautomerization)", tag: "Page 12",
+            steps: [
+                { t: "烯醇中间体", d: "炔烃水合后，先生成<b>烯醇</b> (C=C-OH)。这不稳定。", setup: (E) => {
+                    E.clear();
+                    E.atom('c1', 300, 250, 'c', 'C'); E.atom('c2', 450, 250, 'c', 'C');
+                    E.bond('db', 300, 250, 450, 250, '#334155', 14); // Double bond
+                    E.bond('oh', 450, 250, 450, 150); E.atom('o', 450, 150, 'o', 'O-H');
+                    E.bond('h', 300, 250, 300, 350); E.atom('h', 300, 350, 'h', 'H');
+                }},
+                { t: "重排", d: "双键变单键，C-O 变双键 (C=O)，H 跑到隔壁碳上。生成<b>酮</b>。", action: (E) => {
+                    E.style('db', {width: 8}); // Single bond
+                    E.style('oh', {width: 14, color: '#ef4444'}); // C=O
+                    E.style('o', {label: 'O'}); // Lose H
+                    
+                    // H moves
+                    E.bond('new_h', 300, 250, 220, 250); E.atom('h2', 220, 250, 'h', 'H');
+                    E.label('res', 375, 400, "酮 (Ketone) - 稳定", '#22c55e');
+                }}
+            ]
+        },
+        
+        // 14. Alkyne Add (Page 13)
+        'alkyne_add': {
+            title: "炔烃加成 (2x)", tag: "Page 13",
+            steps: [
+                { t: "第一次加成", d: "R-C≡C-R + HBr -> 烯烃 (R-CBr=CH-R)。", setup: (E) => {
+                    E.clear();
+                    E.atom('c1', 300, 250, 'c', 'C'); E.atom('c2', 450, 250, 'c', 'C');
+                    E.bond('tb', 300, 250, 450, 250, '#334155', 20); // Triple
+                }},
+                { t: "中间产物", d: "双键烯烃。Br 加在取代基多的碳上 (马氏)。", action: (E) => {
+                    E.style('tb', {width: 14}); // Double
+                    E.atom('br1', 300, 150, 'br', 'Br'); E.bond('b1', 300, 250, 300, 150);
+                    E.atom('h1', 450, 350, 'h', 'H'); E.bond('h1b', 450, 250, 450, 350);
+                }},
+                { t: "第二次加成", d: "再加一分子 HBr。最终变成烷烃。两个 Br 在同一个碳上 (偕二卤代)。", action: (E) => {
+                    E.style('tb', {width: 8}); // Single
+                    E.atom('br2', 300, 350, 'br', 'Br'); E.bond('b2', 300, 250, 300, 350);
+                    E.atom('h2', 450, 150, 'h', 'H'); E.bond('h2b', 450, 250, 450, 150);
+                }}
+            ]
+        },
+
+        // 15. Alkyne Reduction (Page 14)
+        'alkyne_red': {
+            title: "炔烃还原选择性", tag: "Page 14",
+            steps: [
+                { t: "起始：炔烃", d: "R-C≡C-R。三键是直线的。", setup: (E) => {
+                    E.clear();
+                    E.bond('b', 300, 250, 500, 250, '#334155', 18);
+                    E.atom('c1', 300, 250, 'c', 'C'); E.atom('c2', 500, 250, 'c', 'C');
+                }},
+                { t: "Lindlar 催化剂", d: "H₂, Lindlar -> <b>顺式 (Cis)</b> 烯烃。H 加在同一侧。", action: (E) => {
+                    E.style('b', {width: 12});
+                    // Bent structure Cis
+                    E.move('c1', 350, 250); E.move('c2', 450, 250);
+                    E.atom('r1', 300, 350, 'c', 'R'); E.bond('br1', 350, 250, 300, 350);
+                    E.atom('r2', 500, 350, 'c', 'R'); E.bond('br2', 450, 250, 500, 350);
+                    E.label('tag', 400, 150, "顺式 (Cis)", '#2563eb');
+                }},
+                { t: "Na / NH3(l)", d: "溶解金属还原 -> <b>反式 (Trans)</b> 烯烃。更稳定。", action: (E) => {
+                     // Trans structure
+                    E.move('r2', 500, 150); E.style('br2', {y2:150});
+                    E.style('tag', {label: '反式 (Trans)', opacity: 0});
+                    setTimeout(()=> E.label('tag2', 400, 150, "反式 (Trans)", '#7f1d1d'), 100);
+                }}
+            ]
+        },
+        
+        // 16. Acetylide (Page 15)
+        'acetylide': {
+            title: "炔负离子 SN2", tag: "Page 15",
+            steps: [
+                { t: "形成亲核试剂", d: "NaNH2 拔掉末端炔氢 -> R-C≡C:⁻ (强亲核)。", setup: (E) => {
+                    E.clear();
+                    E.atom('nuc', 200, 250, 'c', 'R-C≡C:⁻');
+                    E.atom('sub', 450, 250, 'c', 'Et-Br'); 
+                    E.bond('b', 450, 250, 550, 250); E.atom('br', 550, 250, 'br', 'Br');
+                }},
+                { t: "进攻", d: "进行 SN2 反应，增长碳链。", action: (E) => {
+                    E.move('nuc', 350, 250); 
+                    E.style('b', {opacity:0}); E.move('br', 650, 250); // Br leaves
+                    E.bond('new', 350, 250, 450, 250); // New C-C bond
+                    E.label('res', 400, 350, "碳链增长！", '#22c55e');
+                }}
+            ]
+        }
+    };
+
+    // --- 控制逻辑 ---
+    let currentTool = null;
+    let stepIndex = -1;
+
+    const UI = {
+        title: document.getElementById('tool-title'),
+        tag: document.getElementById('tool-tag'),
+        stepNum: document.getElementById('step-num'),
+        stepText: document.getElementById('step-text'),
+        btn: document.getElementById('btn-action')
+    };
+
+    function loadTool(key) {
+        // UI Reset
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`[onclick="loadTool('${key}')"]`).classList.add('active');
+        
+        currentTool = Tools[key];
+        stepIndex = -1;
+        
+        UI.title.textContent = currentTool.title;
+        UI.tag.textContent = currentTool.tag;
+        
+        // Initialize Step 0
+        nextStep();
+    }
+
+    function nextStep() {
+        stepIndex++;
+        
+        // Check Reset
+        if (stepIndex >= currentTool.steps.length) {
+            stepIndex = 0; // Loop back to start
+        }
+
+        const step = currentTool.steps[stepIndex];
+        
+        UI.stepNum.textContent = `STEP ${stepIndex + 1}: ${step.t}`;
+        UI.stepText.innerHTML = step.d;
+
+        // Button State
+        if (stepIndex === currentTool.steps.length - 1) {
+            UI.btn.textContent = "↺ 重置演示";
+            UI.btn.classList.add('btn-reset');
+            UI.btn.classList.remove('btn-primary');
+        } else {
+            UI.btn.textContent = "▶ 下一步";
+            UI.btn.classList.remove('btn-reset');
+            UI.btn.classList.add('btn-primary');
+        }
+
+        // Execute Logic
+        if (stepIndex === 0) {
+            if(step.setup) step.setup(Engine);
+        } else {
+            if(step.action) step.action(Engine);
+        }
+    }
+
+    // 启动
+    loadTool('sn1_mech');
+
+</script>
+</body>
+</html>

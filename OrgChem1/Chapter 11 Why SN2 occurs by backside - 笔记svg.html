@@ -1,0 +1,505 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>SN2 反应立体化学深度解析</title>
+    <style>
+        :root { --primary: #2563eb; --primary-hover: #1d4ed8; --bg: #f8fafc; --card: #ffffff; --text: #334155; --border: #e2e8f0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        .container { width: 100%; max-width: 1000px; background: var(--card); border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); display: flex; overflow: hidden; min-height: 650px; border: 1px solid var(--border); }
+        
+        /* Sidebar */
+        .sidebar { width: 260px; background: #f1f5f9; border-right: 1px solid var(--border); padding: 15px; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; }
+        .cat-title { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; margin: 15px 0 5px 5px; letter-spacing: 0.5px; }
+        .tool-btn { text-align: left; padding: 12px 15px; border: none; background: transparent; color: #475569; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.2s; font-weight: 500; }
+        .tool-btn:hover { background: #e2e8f0; color: #1e293b; }
+        .tool-btn.active { background: white; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.05); font-weight: 700; border-left: 4px solid var(--primary); }
+
+        /* Main Content */
+        .main { flex: 1; display: flex; flex-direction: column; padding: 25px; }
+        
+        .header { margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+        .header h2 { margin: 0 0 5px 0; color: #0f172a; font-size: 20px; }
+        .header p { margin: 0; color: #64748b; font-size: 14px; }
+
+        .canvas-wrapper { position: relative; height: 380px; background: #ffffff; border: 2px solid var(--border); border-radius: 12px; margin-bottom: 20px; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        svg { width: 100%; height: 100%; display: block; user-select: none; }
+
+        /* Info Box */
+        .info-box { background: #eff6ff; border-left: 4px solid var(--primary); padding: 15px 20px; border-radius: 6px; margin-bottom: 20px; min-height: 100px; transition: all 0.3s ease; }
+        .info-step { font-size: 12px; font-weight: bold; color: var(--primary); text-transform: uppercase; margin-bottom: 8px; display: block; }
+        .info-text { font-size: 15px; line-height: 1.6; color: #1e3a8a; }
+        .info-detail { font-size: 13px; color: #475569; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #bfdbfe; }
+
+        /* Controls */
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+        .legend { display: flex; gap: 15px; font-size: 12px; color: #64748b; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+        .btn-action { background: var(--primary); color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); display: flex; align-items: center; gap: 8px; }
+        .btn-action:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-action:active { transform: translateY(0); }
+        .btn-reset { background: #10b981; } /* Green for reset */
+        .btn-reset:hover { background: #059669; }
+
+        /* SVG Elements Styling */
+        .atom-group { transition: transform 1s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s; cursor: pointer; }
+        .atom-circle { stroke: #333; stroke-width: 2px; fill: #fff; transition: fill 0.5s; }
+        .atom-label { font-family: Arial, sans-serif; font-weight: bold; text-anchor: middle; dominant-baseline: central; pointer-events: none; user-select: none; }
+        
+        .bond { stroke: #475569; stroke-width: 8px; stroke-linecap: round; transition: all 1s ease; }
+        .orbital { mix-blend-mode: multiply; opacity: 0.7; transition: all 1s ease; }
+
+        /* Specific Atom Colors */
+        .atom-c { fill: #333333; } 
+        .atom-nu { fill: #22c55e; } /* Green */
+        .atom-lg { fill: #ef4444; } /* Red (Br) */
+        .atom-sub { fill: #cbd5e1; } /* Substituents */
+        
+        .text-inv { fill: white; }
+        .text-norm { fill: #1e293b; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="cat-title">宏观视角：立体化学</div>
+        <button class="tool-btn active" onclick="loadTool('mech')">工具1: SN2 反应机理 (雨伞翻转)</button>
+        
+        <div class="cat-title">微观视角：分子轨道</div>
+        <button class="tool-btn" onclick="loadTool('orbital_back')">工具2: 背面进攻 (有效重叠)</button>
+        <button class="tool-btn" onclick="loadTool('orbital_front')">工具3: 正面进攻 (被禁阻)</button>
+        
+        <div class="cat-title">能量与动力学</div>
+        <button class="tool-btn" onclick="loadTool('kinetics')">工具4: 双分子动力学 (速率)</button>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="main">
+        <div class="header">
+            <h2 id="tool-title">工具1: SN2 反应机理 (雨伞翻转)</h2>
+            <p id="tool-desc">构型翻转 | 协同反应 | 无中间体</p>
+        </div>
+
+        <div class="canvas-wrapper">
+            <svg id="main-svg" viewBox="0 0 800 400">
+                <defs>
+                    <radialGradient id="gradGreen" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" style="stop-color:#4ade80;stop-opacity:0.9" />
+                        <stop offset="100%" style="stop-color:#4ade80;stop-opacity:0" />
+                    </radialGradient>
+                    <radialGradient id="gradBlue" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:0.9" />
+                        <stop offset="100%" style="stop-color:#60a5fa;stop-opacity:0" />
+                    </radialGradient>
+                </defs>
+                <!-- Graphics injected by JS -->
+            </svg>
+        </div>
+
+        <div class="info-box">
+            <span class="info-step" id="step-label">准备就绪</span>
+            <div class="info-text" id="step-text">点击下方按钮开始演示。</div>
+            <div class="info-detail" id="step-detail"></div>
+        </div>
+
+        <div class="controls">
+            <div class="legend">
+                <div class="legend-item"><div class="dot" style="background:#333"></div>C (亲电中心)</div>
+                <div class="legend-item"><div class="dot" style="background:#ef4444"></div>Br/X (离去基团)</div>
+                <div class="legend-item"><div class="dot" style="background:#22c55e"></div>Nu (亲核试剂)</div>
+                <div class="legend-item"><div class="dot" style="background:#cbd5e1"></div>R/H (取代基)</div>
+            </div>
+            <button class="btn-action" id="main-btn" onclick="handleBtnClick()">
+                ▶ 播放第一步
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // SVG & Engine Helper
+    const svg = document.getElementById('main-svg');
+    const svgNS = "http://www.w3.org/2000/svg";
+
+    const engine = {
+        clear: () => svg.innerHTML = '', // Clears existing content but keeps defs if handled carefully, actually innerHTML clears defs too if not careful. Let's assume defs are re-added or preserved.
+        
+        // Initialize scene (clears non-defs)
+        init: () => {
+            const defs = svg.querySelector('defs');
+            svg.innerHTML = '';
+            if(defs) svg.appendChild(defs);
+        },
+
+        // Create Atom (Radius 32px as requested)
+        atom: (id, x, y, colorClass, label, labelColor='text-norm', r=32) => {
+            const g = document.createElementNS(svgNS, 'g');
+            g.setAttribute('id', id);
+            g.setAttribute('class', 'atom-group');
+            g.setAttribute('transform', `translate(${x},${y})`);
+            
+            const c = document.createElementNS(svgNS, 'circle');
+            c.setAttribute('r', r);
+            c.setAttribute('class', `atom-circle ${colorClass}`);
+            
+            const t = document.createElementNS(svgNS, 'text');
+            t.setAttribute('class', `atom-label ${labelColor}`);
+            t.setAttribute('font-size', r * 0.6 + 'px'); // Label size scales with radius
+            t.textContent = label;
+
+            g.appendChild(c);
+            g.appendChild(t);
+            svg.appendChild(g); // Atoms on top
+        },
+
+        // Create Bond
+        bond: (id, x1, y1, x2, y2, style={}) => {
+            const l = document.createElementNS(svgNS, 'line');
+            l.setAttribute('id', id);
+            l.setAttribute('class', 'bond');
+            l.setAttribute('x1', x1); l.setAttribute('y1', y1);
+            l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+            
+            if(style.dash) l.setAttribute('stroke-dasharray', style.dash);
+            if(style.opacity !== undefined) l.style.opacity = style.opacity;
+            if(style.color) l.setAttribute('stroke', style.color);
+            
+            // Insert before the first atom group to keep bonds in background
+            const firstGroup = svg.querySelector('.atom-group');
+            if(firstGroup) {
+                svg.insertBefore(l, firstGroup);
+            } else {
+                svg.appendChild(l);
+            }
+        },
+
+        // Create Orbital Lobe (Path)
+        orbital: (id, d, fillId) => {
+            const p = document.createElementNS(svgNS, 'path');
+            p.setAttribute('id', id);
+            p.setAttribute('class', 'orbital');
+            p.setAttribute('d', d);
+            p.setAttribute('fill', `url(#${fillId})`);
+            
+            // Insert at very bottom
+            svg.insertBefore(p, svg.firstChild);
+        },
+
+        // Move Element
+        move: (id, x, y) => {
+            const el = document.getElementById(id);
+            if(el) el.style.transform = `translate(${x}px,${y}px)`;
+        },
+
+        // Modify Style/Attribute
+        modify: (id, props) => {
+            const el = document.getElementById(id);
+            if(!el) return;
+            
+            if(props.opacity !== undefined) el.style.opacity = props.opacity;
+            if(props.dash !== undefined) el.setAttribute('stroke-dasharray', props.dash);
+            if(props.d !== undefined) el.setAttribute('d', props.d); // Morph path
+            
+            // Handle line coordinates
+            if(el.tagName === 'line') {
+                if(props.x1) el.setAttribute('x1', props.x1);
+                if(props.x2) el.setAttribute('x2', props.x2);
+                if(props.y1) el.setAttribute('y1', props.y1);
+                if(props.y2) el.setAttribute('y2', props.y2);
+            }
+        }
+    };
+
+    // --- Tool Definitions (Data) ---
+    const tools = {
+        'mech': {
+            title: "工具1: SN2 反应机理 (立体化学)",
+            desc: "S-2-溴辛烷 + I⁻ → R-2-碘辛烷 (瓦尔登翻转)",
+            steps: [
+                {
+                    label: "1. 初始状态",
+                    text: "<b>底物：</b>(S)-2-溴辛烷。中心碳(C)连接离去基团(Br)和三个不同基团。<br><b>试剂：</b>碘离子 (I⁻, 亲核试剂)。",
+                    detail: "C-Br 键极化，碳显正电性(δ+)。伞状结构指向左侧。",
+                    setup: (e) => {
+                        e.init();
+                        // Bonds
+                        e.bond('b_r1', 400, 200, 350, 120);
+                        e.bond('b_r2', 400, 200, 350, 280);
+                        e.bond('b_h', 400, 200, 330, 200);
+                        e.bond('b_lg', 400, 200, 550, 200, {color:'#ef4444'}); // C-Br
+                        e.bond('b_nu', 100, 200, 400, 200, {opacity:0, color:'#22c55e'}); // Nu-C (Hidden)
+
+                        // Atoms (Radius 32)
+                        e.atom('nu', 100, 200, 'atom-nu', 'I⁻', 'text-norm', 36);
+                        e.atom('r1', 350, 120, 'atom-sub', 'C₆H₁₃', 'text-norm', 28);
+                        e.atom('r2', 350, 280, 'atom-sub', 'CH₃', 'text-norm', 28);
+                        e.atom('h', 330, 200, 'atom-sub', 'H', 'text-norm', 24);
+                        e.atom('lg', 550, 200, 'atom-lg', 'Br', 'text-inv', 36);
+                        e.atom('c', 400, 200, 'atom-c', 'C', 'text-inv', 32);
+                    }
+                },
+                {
+                    label: "2. 背面进攻",
+                    text: "<b>路径：</b>I⁻ 沿着 C-Br 键轴线的<b>正背面 (180°)</b> 接近碳原子。",
+                    detail: "亲核试剂 Nu 携带孤对电子寻找亲电中心 C 的背面。此时排斥力开始推动取代基移动。",
+                    action: (e) => {
+                        e.move('nu', 250, 200); // Nu approaches
+                        
+                        // Substituents start to flatten slightly
+                        e.move('r1', 360, 130); e.modify('b_r1', {x2: 360, y2: 130});
+                        e.move('r2', 360, 270); e.modify('b_r2', {x2: 360, y2: 270});
+                        e.move('h', 350, 200);  e.modify('b_h', {x2: 350});
+                        
+                        // Bond visualization
+                        e.modify('b_nu', {x1: 250, opacity: 0.3, dash: '5,5'}); // Forming bond
+                        e.modify('b_lg', {dash: '5,5'}); // Breaking bond starts
+                        e.move('lg', 570, 200); e.modify('b_lg', {x2: 570}); // Br moves slightly away
+                    }
+                },
+                {
+                    label: "3. 过渡态 (Transition State)",
+                    text: "<b>能量最高点：</b>Nu-C 键形成与 C-Br 键断裂同步进行。",
+                    detail: "碳原子呈 sp² 杂化特征。三个取代基(H, Methyl, Hexyl)位于同一平面，与反应轴垂直。这就像雨伞被吹到一半。",
+                    action: (e) => {
+                        e.move('nu', 300, 200); e.modify('b_nu', {x1: 300, opacity: 1});
+                        
+                        // Planar geometry
+                        e.move('r1', 400, 100); e.modify('b_r1', {x2: 400, y2: 100});
+                        e.move('r2', 400, 300); e.modify('b_r2', {x2: 400, y2: 300});
+                        e.move('h', 380, 220);  e.modify('b_h', {x2: 380, y2: 220}); // Slightly offset for visual depth
+                        
+                        e.move('lg', 500, 200); e.modify('b_lg', {x2: 500});
+                    }
+                },
+                {
+                    label: "4. 构型翻转完成",
+                    text: "<b>瓦尔登翻转 (Walden Inversion)：</b>Br⁻ 离去，C-I 键完全形成。",
+                    detail: "取代基从左侧翻转到了右侧（(S)-构型 变为 (R)-构型）。就像大风中雨伞完全被吹翻。产物是 (R)-2-碘辛烷。",
+                    action: (e) => {
+                        e.move('nu', 320, 200); // Bonded
+                        e.move('lg', 700, 200); e.modify('b_lg', {opacity: 0}); // LG leaves
+                        e.modify('b_nu', {x1: 320, dash: '0'}); // Solid bond
+                        
+                        // Flipped geometry (Umbrella right)
+                        e.move('r1', 450, 120); e.modify('b_r1', {x2: 450, y2: 120});
+                        e.move('r2', 450, 280); e.modify('b_r2', {x2: 450, y2: 280});
+                        e.move('h', 470, 200);  e.modify('b_h', {x2: 470, y2: 200});
+                    }
+                }
+            ]
+        },
+        'orbital_back': {
+            title: "工具2: 轨道理论 - 背面进攻",
+            desc: "为什么SN2只能背面进攻？HOMO/LUMO 有效重叠。",
+            steps: [
+                {
+                    label: "1. 轨道识别",
+                    text: "<b>Nu (HOMO)：</b>亲核试剂的最高已占轨道 (绿色)，富含电子。<br><b>底物 (LUMO)：</b>C-Br 键的反键轨道 σ* (C端背面为绿色瓣，Br端为蓝色瓣)。",
+                    detail: "LUMO 是空的，等待接收电子。注意 C 背面的绿色大瓣。",
+                    setup: (e) => {
+                        e.init();
+                        // Simple skeleton
+                        e.bond('b_cbr', 400, 200, 550, 200);
+                        e.atom('c', 400, 200, 'atom-c', 'C', 'text-inv', 32);
+                        e.atom('br', 550, 200, 'atom-lg', 'Br', 'text-inv', 36);
+                        
+                        // Orbitals
+                        // LUMO Back (Green match)
+                        e.orbital('lumo_back', "M 400,200 Q 350,120 300,200 Q 350,280 400,200", "gradGreen");
+                        // LUMO Front (Blue mismatch)
+                        e.orbital('lumo_front', "M 420,200 Q 450,160 480,200 Q 450,240 420,200", "gradBlue");
+                        
+                        // Nu HOMO
+                        e.atom('nu', 100, 200, 'atom-nu', 'Nu', 'text-norm', 32);
+                        e.orbital('homo', "M 100,200 Q 130,150 180,200 Q 130,250 100,200", "gradGreen");
+                    }
+                },
+                {
+                    label: "2. 轨道重叠 (同相)",
+                    text: "<b>同相重叠 (Constructive Interference)：</b>绿色 HOMO 遇到 绿色 LUMO 瓣。",
+                    detail: "相位相同(绿色对绿色)意味着波函数叠加增强。这是成键相互作用，能有效降低体系能量。",
+                    action: (e) => {
+                        e.move('nu', 250, 200); // Move atom
+                        // Move HOMO with atom
+                        e.modify('homo', {d: "M 250,200 Q 280,150 330,200 Q 280,250 250,200"});
+                    }
+                },
+                {
+                    label: "3. 结果",
+                    text: "<b>反应发生：</b>电子从 HOMO 流入 LUMO (σ*)。",
+                    detail: "填充反键轨道导致 C-Br 键断裂，同时新的 Nu-C 键形成。这就是化学键的本质。",
+                    action: (e) => {
+                        e.modify('lumo_back', {opacity: 1}); // Glow brighter
+                        e.modify('lumo_front', {opacity: 0.2}); // Fade irrelevant part
+                        e.move('br', 600, 200); // Bond breaks
+                    }
+                }
+            ]
+        },
+        'orbital_front': {
+            title: "工具3: 轨道理论 - 正面进攻",
+            desc: "为什么正面进攻被禁止？(Does not occur!)",
+            steps: [
+                {
+                    label: "1. 尝试正面接近",
+                    text: "<b>假设：</b>Nu 试图从 Br 所在的同一侧进攻。",
+                    detail: "此时 Nu 面对的是 LUMO 在 Br 端的小瓣（蓝色）以及 Br 原子的电子云。",
+                    setup: (e) => {
+                        e.init();
+                        // Same setup as Backside
+                        e.bond('b_cbr', 400, 200, 550, 200);
+                        e.atom('c', 400, 200, 'atom-c', 'C', 'text-inv', 32);
+                        e.atom('br', 550, 200, 'atom-lg', 'Br', 'text-inv', 36);
+                        
+                        e.orbital('lumo_back', "M 400,200 Q 350,120 300,200 Q 350,280 400,200", "gradGreen");
+                        e.orbital('lumo_front', "M 420,200 Q 450,160 480,200 Q 450,240 420,200", "gradBlue");
+                        
+                        // Nu starts top right
+                        e.atom('nu', 550, 50, 'atom-nu', 'Nu', 'text-norm', 32);
+                        e.orbital('homo', "M 550,50 Q 540,80 520,100 Q 560,80 550,50", "gradGreen");
+                    }
+                },
+                {
+                    label: "2. 轨道抵消 (异相)",
+                    text: "<b>异相重叠 (Destructive Interference)：</b>绿色 HOMO 遇到 蓝色 LUMO 瓣。",
+                    detail: "相位相反导致节点生成，无法成键。此外，成键作用和反键作用几乎相互抵消。",
+                    action: (e) => {
+                        e.move('nu', 520, 150);
+                        e.modify('homo', {d: "M 520,150 Q 510,180 500,210 Q 540,180 520,150"});
+                    }
+                },
+                {
+                    label: "3. 能量壁垒",
+                    text: "<b>静电排斥与位阻：</b>除了轨道不匹配，Nu(负电) 与 Br(δ-) 之间存在强烈的静电排斥。",
+                    detail: "结果：过渡态能量极高，反应活化能无法克服。这就是为什么构型保持（正面进攻）在 SN2 中绝不发生。",
+                    action: (e) => {
+                        // Repulsion animation
+                        e.move('nu', 650, 50); // Bounce away
+                        e.modify('homo', {d: "M 650,50 Q 640,80 620,100 Q 660,80 650,50"});
+                        
+                        // Visual "X" or cue
+                        e.atom('cross', 500, 150, 'atom-lg', 'X', 'text-inv', 20);
+                    }
+                }
+            ]
+        },
+        'kinetics': {
+            title: "工具4: 双分子动力学",
+            desc: "v = k[底物][Nu:]",
+            steps: [
+                {
+                    label: "1. 反应速率方程",
+                    text: "<b>SN2 = Substitution Nucleophilic Bimolecular</b><br>“2” 代表双分子。决速步涉及两个分子：底物和亲核试剂。",
+                    detail: "这意味着：底物浓度加倍 -> 速率加倍；亲核试剂浓度加倍 -> 速率加倍。",
+                    setup: (e) => {
+                        e.init();
+                        e.atom('sub', 300, 200, 'atom-c', 'Sub', 'text-inv', 40);
+                        e.atom('nu', 500, 200, 'atom-nu', 'Nu', 'text-norm', 40);
+                        e.bond('collide', 340, 200, 460, 200, {opacity:0});
+                    }
+                },
+                {
+                    label: "2. 协同碰撞",
+                    text: "<b>机理含义：</b>必须发生有效的碰撞才能反应。",
+                    detail: "由于是一步完成的协同反应，没有中间体（如碳正离子）生成。过渡态不仅要有足够的能量，还要有正确的方向（背面）。",
+                    action: (e) => {
+                        e.move('sub', 380, 200);
+                        e.move('nu', 420, 200);
+                        // Simple visual cue of collision
+                        setTimeout(() => {
+                            e.move('sub', 200, 200); // Product leaves
+                            e.move('nu', 600, 200); // LG leaves
+                        }, 800);
+                    }
+                }
+            ]
+        }
+    };
+
+    // --- Logic Controller ---
+    let currentToolKey = null;
+    let currentStepIndex = 0;
+
+    const ui = {
+        title: document.getElementById('tool-title'),
+        desc: document.getElementById('tool-desc'),
+        stepLabel: document.getElementById('step-label'),
+        stepText: document.getElementById('step-text'),
+        stepDetail: document.getElementById('step-detail'),
+        btn: document.getElementById('main-btn'),
+        buttons: document.querySelectorAll('.tool-btn')
+    };
+
+    function loadTool(key) {
+        currentToolKey = key;
+        currentStepIndex = 0;
+
+        // Update Sidebar UI
+        ui.buttons.forEach(b => b.classList.remove('active'));
+        // Find button with matching onclick and add active
+        const activeBtn = Array.from(ui.buttons).find(b => b.getAttribute('onclick').includes(key));
+        if(activeBtn) activeBtn.classList.add('active');
+
+        // Load Content
+        const tool = tools[key];
+        ui.title.textContent = tool.title;
+        ui.desc.textContent = tool.desc;
+
+        // Execute Setup (Step 0)
+        executeStep(0);
+    }
+
+    function executeStep(index) {
+        const tool = tools[currentToolKey];
+        const stepData = tool.steps[index];
+
+        // Update Info Box
+        ui.stepLabel.textContent = stepData.label;
+        ui.stepText.innerHTML = stepData.text;
+        ui.stepDetail.textContent = stepData.detail || "";
+
+        // Execute Logic
+        if (index === 0) {
+            stepData.setup(engine);
+        } else {
+            stepData.action(engine);
+        }
+
+        // Update Button
+        const isLast = index === tool.steps.length - 1;
+        if (isLast) {
+            ui.btn.innerHTML = "↺ 重置动画";
+            ui.btn.classList.add('btn-reset');
+            ui.btn.classList.remove('btn-action');
+        } else {
+            const nextLabel = tool.steps[index + 1].label;
+            // Shorten label for button
+            const shortLabel = nextLabel.split('：')[0].split(' ')[1] || nextLabel;
+            ui.btn.innerHTML = `▶ 下一步`;
+            ui.btn.classList.remove('btn-reset');
+            ui.btn.classList.add('btn-action');
+        }
+    }
+
+    function handleBtnClick() {
+        const tool = tools[currentToolKey];
+        if (currentStepIndex === tool.steps.length - 1) {
+            currentStepIndex = 0; // Reset
+        } else {
+            currentStepIndex++; // Next
+        }
+        executeStep(currentStepIndex);
+    }
+
+    // Init
+    window.onload = () => loadTool('mech');
+
+</script>
+</body>
+</html>

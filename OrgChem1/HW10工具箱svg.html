@@ -1,0 +1,623 @@
+这是一个完全按照您要求定制的版本。
+
+**交互逻辑的核心改进：**
+这个版本不再是一次性播放到底。**“主按钮”**现在是一个智能状态机：
+1.  初始状态：显示 **“▶ 播放第一步”**。
+2.  中间状态：点击后播放动画，完成后按钮变为 **“▶ 播放下一步”**。
+3.  结束状态：所有步骤完成后，按钮变为 **“↺ 重置并循环”**。
+4.  点击重置：瞬间回到初始状态，允许你再次循环演示。
+
+这种**步进式（Step-by-Step）**的交互方式最适合教学，让孩子/学生可以在每一步停下来思考，而不是被动观看。
+
+::: html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        :root { --primary: #2563eb; --primary-hover: #1d4ed8; --bg: #f8fafc; --card: #ffffff; --text: #334155; --border: #e2e8f0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        .container { width: 100%; max-width: 1000px; background: var(--card); border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); display: flex; overflow: hidden; min-height: 600px; border: 1px solid var(--border); }
+        
+        /* Sidebar */
+        .sidebar { width: 260px; background: #f1f5f9; border-right: 1px solid var(--border); padding: 15px; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; }
+        .cat-title { font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; margin: 15px 0 5px 5px; letter-spacing: 0.5px; }
+        .tool-btn { text-align: left; padding: 12px 15px; border: none; background: transparent; color: #475569; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.2s; font-weight: 500; }
+        .tool-btn:hover { background: #e2e8f0; color: #1e293b; }
+        .tool-btn.active { background: white; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.05); font-weight: 700; border-left: 4px solid var(--primary); }
+
+        /* Main Content */
+        .main { flex: 1; display: flex; flex-direction: column; padding: 25px; }
+        
+        .header { margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+        .header h2 { margin: 0 0 5px 0; color: #0f172a; font-size: 20px; }
+        .header p { margin: 0; color: #64748b; font-size: 14px; }
+
+        .canvas-wrapper { position: relative; height: 320px; background: #fafafa; border: 2px solid var(--border); border-radius: 12px; margin-bottom: 20px; overflow: hidden; }
+        svg { width: 100%; height: 100%; display: block; }
+
+        /* Info Box */
+        .info-box { background: #eff6ff; border-left: 4px solid var(--primary); padding: 15px 20px; border-radius: 6px; margin-bottom: 20px; min-height: 80px; }
+        .info-step { font-size: 12px; font-weight: bold; color: var(--primary); text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .info-text { font-size: 15px; line-height: 1.6; color: #1e3a8a; }
+
+        /* Controls */
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+        .legend { display: flex; gap: 15px; font-size: 12px; color: #64748b; }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+        .btn-action { background: var(--primary); color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2); display: flex; align-items: center; gap: 8px; }
+        .btn-action:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-action:active { transform: translateY(0); }
+        .btn-reset { background: #10b981; } /* Green for reset */
+        .btn-reset:hover { background: #059669; }
+
+        /* Animations & Atoms */
+        .atom-group { transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .atom-circle { stroke: rgba(0,0,0,0.1); stroke-width: 1; }
+        .bond { stroke-width: 6; stroke-linecap: round; transition: all 0.8s ease; }
+        .text-label { font-family: Arial, sans-serif; font-weight: bold; font-size: 13px; fill: white; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+        
+        /* Colors */
+        .c-atom { fill: #334155; } 
+        .h-atom { fill: #94a3b8; }
+        .br-atom { fill: #991b1b; }
+        .cl-atom { fill: #15803d; }
+        .o-atom { fill: #dc2626; }
+        .cu-atom { fill: #d97706; }
+        .li-atom { fill: #7c3aed; }
+        .rad-atom { fill: #f59e0b; } /* Orange for radicals/electrons */
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="cat-title">核心机理 (SN/E)</div>
+        <button class="tool-btn active" onclick="loadTool('sn1')">工具1: SN1 反应机理</button>
+        
+        <div class="cat-title">自由基反应</div>
+        <button class="tool-btn" onclick="loadTool('radical')">工具2: 自由基卤代 (选择性)</button>
+        <button class="tool-btn" onclick="loadTool('nbs')">工具3: NBS 烯丙基共振</button>
+        <button class="tool-btn" onclick="loadTool('stability')">工具6: 自由基稳定性排序</button>
+        
+        <div class="cat-title">合成与分析</div>
+        <button class="tool-btn" onclick="loadTool('gilman')">工具4: 吉尔曼试剂 (合成)</button>
+        <button class="tool-btn" onclick="loadTool('redox')">工具5: 氧化还原判断</button>
+        <button class="tool-btn" onclick="loadTool('resonance')">工具7: 亲电加成与共振</button>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="main">
+        <div class="header">
+            <h2 id="tool-title">工具1: SN1 反应机理</h2>
+            <p id="tool-desc">叔卤代烷 + 弱亲核试剂 | 速率决定步：碳正离子生成</p>
+        </div>
+
+        <div class="canvas-wrapper">
+            <svg id="main-svg" viewBox="0 0 600 320">
+                <!-- Graphics injected by JS -->
+            </svg>
+        </div>
+
+        <div class="info-box">
+            <span class="info-step" id="step-label">准备就绪</span>
+            <div class="info-text" id="step-text">
+                点击下方按钮开始逐步演示。
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="legend">
+                <div class="legend-item"><div class="dot" style="background:#334155"></div>C</div>
+                <div class="legend-item"><div class="dot" style="background:#94a3b8"></div>H</div>
+                <div class="legend-item"><div class="dot" style="background:#991b1b"></div>Br</div>
+                <div class="legend-item"><div class="dot" style="background:#dc2626"></div>O</div>
+                <div class="legend-item"><div class="dot" style="background:#f59e0b"></div>•自由基/电子</div>
+            </div>
+            <button class="btn-action" id="main-btn" onclick="handleBtnClick()">
+                ▶ 播放第一步
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // SVG & Engine Helper
+    const svg = document.getElementById('main-svg');
+    const svgNS = "http://www.w3.org/2000/svg";
+
+    const engine = {
+        clear: () => svg.innerHTML = '',
+        
+        // create atom group (circle + text)
+        atom: (id, x, y, type, label, r=20) => {
+            const g = document.createElementNS(svgNS, 'g');
+            g.setAttribute('id', id);
+            g.setAttribute('class', 'atom-group');
+            g.setAttribute('transform', `translate(${x},${y})`);
+            
+            const c = document.createElementNS(svgNS, 'circle');
+            c.setAttribute('r', r);
+            c.setAttribute('class', `atom-circle ${type}-atom`);
+            
+            const t = document.createElementNS(svgNS, 'text');
+            t.setAttribute('class', 'text-label');
+            t.textContent = label;
+
+            g.appendChild(c);
+            g.appendChild(t);
+            svg.appendChild(g);
+        },
+
+        // create bond
+        bond: (id, x1, y1, x2, y2, color='#cbd5e1', width=6) => {
+            const l = document.createElementNS(svgNS, 'line');
+            l.setAttribute('id', id);
+            l.setAttribute('class', 'bond');
+            l.setAttribute('x1', x1); l.setAttribute('y1', y1);
+            l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+            l.setAttribute('stroke', color);
+            l.setAttribute('stroke-width', width);
+            svg.insertBefore(l, svg.firstChild); // bond behind atom
+        },
+
+        // Move element
+        move: (id, x, y) => {
+            const el = document.getElementById(id);
+            if(el) el.setAttribute('transform', `translate(${x},${y})`);
+        },
+
+        // Modify visual style
+        style: (id, props) => {
+            const el = document.getElementById(id);
+            if(!el) return;
+            // Handle specific SVG props or CSS styles
+            if(props.opacity !== undefined) el.style.opacity = props.opacity;
+            if(props.strokeWidth) el.setAttribute('stroke-width', props.strokeWidth);
+            if(props.stroke) el.setAttribute('stroke', props.stroke);
+            
+            // Special handler for Atom Color change
+            if(props.fill) {
+                const circle = el.querySelector('circle');
+                if(circle) circle.style.fill = props.fill;
+            }
+            // Special handler for Text change
+            if(props.text) {
+                const txt = el.querySelector('text');
+                if(txt) txt.textContent = props.text;
+            }
+            // Bond coordinate updates
+            if(el.tagName === 'line') {
+                if(props.x1) el.setAttribute('x1', props.x1);
+                if(props.x2) el.setAttribute('x2', props.x2);
+                if(props.y1) el.setAttribute('y1', props.y1);
+                if(props.y2) el.setAttribute('y2', props.y2);
+            }
+        }
+    };
+
+    // --- Tool Definitions (Data) ---
+    // Logic strictly follows the PDF content provided
+    const tools = {
+        'sn1': {
+            title: "工具1: SN1 反应机理",
+            desc: "核心：叔卤代烷 + 弱亲核试剂 -> 碳正离子 -> 外消旋化",
+            steps: [
+                {
+                    label: "初始状态",
+                    text: "<b>底物：</b>叔丁基溴 (叔卤代烷)。<br><b>试剂：</b>H₂O (弱亲核试剂/极性溶剂)。<br>准备发生 S_N1 反应。",
+                    setup: (e) => {
+                        e.clear();
+                        // Substrate (Tetrahedral-ish projection)
+                        e.bond('b1', 300, 160, 300, 90);
+                        e.bond('b2', 300, 160, 240, 200);
+                        e.bond('b3', 300, 160, 360, 200);
+                        e.bond('b_br', 300, 160, 380, 160, '#ef4444');
+                        
+                        e.atom('c', 300, 160, 'c', 'C');
+                        e.atom('me1', 300, 90, 'c', 'CH₃');
+                        e.atom('me2', 240, 200, 'c', 'CH₃');
+                        e.atom('me3', 360, 200, 'c', 'CH₃');
+                        e.atom('br', 380, 160, 'br', 'Br');
+                        
+                        e.atom('nu', 100, 160, 'o', 'H₂O');
+                    }
+                },
+                {
+                    label: "第一步：异裂 (慢)",
+                    text: "<b>决速步：</b>C-Br 键异裂。离去基团离去。<br>形成<b>平面三角型</b>的叔碳正离子 (sp²杂化，稳定)。",
+                    action: (e) => {
+                        e.move('br', 480, 160); // Br leaves
+                        e.style('b_br', {opacity: 0}); // Bond fades
+                        
+                        // Flatten geometry to planar
+                        e.move('me1', 300, 80); e.style('b1', {y2: 80});
+                        e.move('me2', 230, 200); e.style('b2', {x2: 230});
+                        e.move('me3', 370, 200); e.style('b3', {x2: 370});
+                        
+                        e.style('c', {fill: '#ef4444', text: 'C⁺'}); // Turn red for cation
+                    }
+                },
+                {
+                    label: "第二步：亲核进攻 (快)",
+                    text: "<b>亲核进攻：</b>H₂O 进攻 C⁺ 的空 p 轨道。<br>由于 C⁺ 是平面的，进攻可发生在两侧，导致<b>外消旋化</b>。",
+                    action: (e) => {
+                        e.move('nu', 270, 160); // Attack
+                        setTimeout(() => {
+                             e.style('c', {fill: '#334155', text: 'C'}); // Back to neutral color
+                             e.style('nu', {text: 'OH₂⁺'}); // Protonated
+                        }, 600);
+                    }
+                }
+            ]
+        },
+        'radical': {
+            title: "工具2: 自由基卤代 (选择性)",
+            desc: "核心：自由基稳定性 (3° > 2° > 1°) 决定夺氢位置",
+            steps: [
+                {
+                    label: "初始状态",
+                    text: "<b>底物：</b>异丁烷。含有 9个一级氢 (1°) 和 1个三级氢 (3°)。<br><b>试剂：</b>Cl• (氯自由基)。",
+                    setup: (e) => {
+                        e.clear();
+                        // Isobutane
+                        e.bond('b_h', 300, 160, 300, 100); // 3 degree H
+                        e.bond('b1', 300, 160, 240, 200);
+                        e.bond('b2', 300, 160, 360, 200);
+                        e.bond('b3', 300, 160, 300, 220);
+
+                        e.atom('c', 300, 160, 'c', 'C');
+                        e.atom('h', 300, 100, 'h', 'H'); // Target
+                        e.atom('me1', 240, 200, 'c', 'CH₃');
+                        e.atom('me2', 360, 200, 'c', 'CH₃');
+                        e.atom('me3', 300, 220, 'c', 'CH₃');
+
+                        e.atom('cl', 450, 50, 'cl', 'Cl•');
+                    }
+                },
+                {
+                    label: "步骤一：夺氢",
+                    text: "<b>选择性：</b>Cl• 优先夺取<b>三级氢</b>。<br>因为生成的<b>三级碳自由基</b>比一级自由基更稳定 (键能更低)。",
+                    action: (e) => {
+                        e.move('cl', 330, 80); // Cl approaches H
+                        setTimeout(() => {
+                            e.style('b_h', {opacity: 0}); // Break Bond
+                            e.move('h', 350, 60); // H moves with Cl
+                            e.move('cl', 370, 40); // Moves away as HCl
+                            
+                            e.style('c', {fill: '#f59e0b', text: 'C•'}); // Radical Carbon
+                        }, 800);
+                    }
+                },
+                {
+                    label: "步骤二：链增长",
+                    text: "<b>生成产物：</b>三级碳自由基从 Cl₂ 分子夺取 Cl。<br>生成主要产物：叔丁基氯。",
+                    action: (e) => {
+                        e.atom('cl2_1', 150, 100, 'cl', 'Cl');
+                        e.atom('cl2_2', 110, 100, 'cl', 'Cl');
+                        e.bond('b_clcl', 150, 100, 110, 100);
+                        
+                        setTimeout(() => {
+                             e.move('cl2_1', 270, 130); // Attack radical
+                             e.style('b_clcl', {opacity: 0}); // Break Cl-Cl
+                             e.style('c', {fill: '#334155', text: 'C'}); // Back to normal
+                        }, 600);
+                    }
+                }
+            ]
+        },
+        'nbs': {
+            title: "工具3: NBS 烯丙基共振",
+            desc: "核心：烯丙基自由基的共振导致产物混合物",
+            steps: [
+                {
+                    label: "初始状态",
+                    text: "<b>机理：</b>NBS 提供 Br•，夺取烯丙位氢，生成<b>烯丙基自由基</b>。<br>注意：单电子并不固定在某一个碳上。",
+                    setup: (e) => {
+                        e.clear();
+                        // Structure: C1=C2-C3•
+                        e.bond('dbl', 150, 160, 250, 160, '#334155', 10); // Double
+                        e.bond('sgl', 250, 160, 350, 160, '#cbd5e1', 6); // Single
+
+                        e.atom('c1', 150, 160, 'c', 'CH₂');
+                        e.atom('c2', 250, 160, 'c', 'CH');
+                        e.atom('c3', 350, 160, 'rad', '•CH₂'); // Radical
+                    }
+                },
+                {
+                    label: "步骤一：共振变换",
+                    text: "<b>共振离域：</b>双键电子与单电子离域。<br>双键移位，自由基位置改变。这解释了为何会有<b>异构体产物</b>。",
+                    action: (e) => {
+                        // Move double bond to right side visually
+                        e.style('dbl', {x1: 250, x2: 350}); 
+                        e.style('sgl', {x1: 150, x2: 250});
+                        
+                        e.style('c3', {text: 'CH₂', fill: '#334155'});
+                        e.style('c1', {text: '•CH₂', fill: '#f59e0b'}); // Radical moves to C1
+                    }
+                },
+                {
+                    label: "步骤二：加成",
+                    text: "<b>最终产物：</b>Br• 可以结合在 C1 或 C3。<br>通常生成<b>热力学更稳定</b>（取代度更高/共轭）的烯烃产物。",
+                    action: (e) => {
+                        e.atom('br', 150, 90, 'br', 'Br');
+                        e.bond('b_new', 150, 160, 150, 90);
+                        e.style('c1', {fill: '#334155', text: 'CH₂'});
+                    }
+                }
+            ]
+        },
+        'gilman': {
+            title: "工具4: 吉尔曼试剂 (C-C合成)",
+            desc: "核心：R₂CuLi + R'X -> R-R' (Corey-House 合成)",
+            steps: [
+                {
+                    label: "准备反应",
+                    text: "<b>任务：</b>将碳链延长。将 1-溴乙烷 (R-X) 转化为丙烷。<br><b>试剂：</b>二甲基铜锂 (吉尔曼试剂)。",
+                    setup: (e) => {
+                        e.clear();
+                        // Substrate: Et-Br
+                        e.bond('b_rx', 200, 160, 280, 160);
+                        e.atom('et', 200, 160, 'c', 'C₂H₅', 25);
+                        e.atom('br', 280, 160, 'br', 'Br');
+
+                        // Gilman
+                        e.atom('cu', 400, 160, 'cu', 'Cu');
+                        e.atom('me', 400, 110, 'c', 'CH₃');
+                    }
+                },
+                {
+                    label: "步骤一：取代",
+                    text: "<b>偶联机理：</b>吉尔曼试剂中的甲基 (CH₃) 取代离去基团 (Br)。<br>相比格氏试剂，它更温和，主要发生取代而非消除。",
+                    action: (e) => {
+                        e.move('br', 280, 220); // Br Leaves
+                        e.style('b_rx', {opacity: 0});
+                        
+                        e.move('me', 250, 160); // Me transfers
+                        e.bond('b_new', 200, 160, 250, 160);
+                    }
+                },
+                {
+                    label: "完成",
+                    text: "<b>结果：</b>生成丙烷。成功构建了新的 C-C 键。",
+                    action: (e) => {
+                        // Just highlight result
+                        e.style('et', {fill: '#16a34a'});
+                        e.style('me', {fill: '#16a34a'});
+                    }
+                }
+            ]
+        },
+        'redox': {
+            title: "工具5: 氧化还原判断",
+            desc: "核心：C-H 减少 / C-O 增加 = 氧化",
+            steps: [
+                {
+                    label: "初始：醇",
+                    text: "<b>底物：</b>乙醇 (-CH₂OH)。<br>中心碳连接：1个O，2个H。<br>计算氧化数或观察键的变化。",
+                    setup: (e) => {
+                        e.clear();
+                        // Ethanol part
+                        e.bond('b1', 200, 160, 200, 100);
+                        e.bond('b2', 200, 160, 200, 220);
+                        e.bond('b3', 200, 160, 270, 160);
+
+                        e.atom('c', 200, 160, 'c', 'C');
+                        e.atom('h1', 200, 100, 'h', 'H');
+                        e.atom('h2', 200, 220, 'h', 'H');
+                        e.atom('o', 270, 160, 'o', 'OH');
+
+                        e.atom('arrow', 350, 160, 'c', '→'); // simple text placeholder
+                    }
+                },
+                {
+                    label: "转化：氧化",
+                    text: "<b>反应后：</b>乙醛 (-CHO)。<br>变化：失去2个H，增加1个C-O键(变成双键)。<br>结论：这是一个<b>氧化反应</b>。",
+                    action: (e) => {
+                        // Hide old H, change O bond
+                        e.style('b2', {opacity: 0}); // lose H2
+                        e.style('h2', {opacity: 0});
+                        
+                        e.style('b3', {strokeWidth: 10, stroke: '#dc2626'}); // Double bond
+                        e.style('o', {text: 'O'});
+                        
+                        e.atom('label', 200, 240, 'o', '氧化态升高'); // Visual cue
+                    }
+                }
+            ]
+        },
+        'stability': {
+            title: "工具6: 自由基稳定性排序",
+            desc: "法则：共振 > 3° > 2° > 1° > 甲基 > 乙烯基",
+            steps: [
+                {
+                    label: "展示所有",
+                    text: "我们将根据<b>电子离域能力</b>对不同类型的自由基进行排序。<br>电子越分散，能量越低，越稳定。",
+                    setup: (e) => {
+                        e.clear();
+                        // Draw 3 distinct types scrambled vertically
+                        e.atom('r_3', 150, 100, 'rad', '3° •');
+                        e.atom('r_benzyl', 150, 180, 'rad', '苯甲基•');
+                        e.atom('r_1', 150, 260, 'rad', '1° •');
+                    }
+                },
+                {
+                    label: "排序",
+                    text: "<b>排序结果：</b><br>1. <b>苯甲基</b> (最稳定)：因为共振。<br>2. <b>3° 自由基</b>：因为超共轭。<br>3. <b>1° 自由基</b>：不稳定。",
+                    action: (e) => {
+                        e.move('r_benzyl', 100, 180); // Left (Most stable)
+                        e.move('r_3', 300, 180); // Middle
+                        e.move('r_1', 500, 180); // Right (Least)
+                        
+                        // Draw arrow
+                        e.bond('arrow', 100, 230, 500, 230, '#64748b', 2);
+                        e.atom('txt', 300, 250, 'c', '稳定性降低 >>>');
+                    }
+                }
+            ]
+        },
+        'resonance': {
+            title: "工具7: 亲电加成与共振",
+            desc: "核心：马氏规则扩展 (共振稳定性 > 取代度)",
+            steps: [
+                {
+                    label: "问题分析",
+                    text: "<b>底物：</b>CH₂=CH-OCH₃ (乙烯基醚)。<br><b>问题：</b>H⁺ 加到双键的哪一端？<br>这取决于形成的碳正离子的稳定性。",
+                    setup: (e) => {
+                        e.clear();
+                        e.bond('dbl', 200, 160, 300, 160, '#334155', 10);
+                        e.bond('sgl', 300, 160, 380, 160);
+                        e.bond('sgl2', 380, 160, 440, 160);
+
+                        e.atom('c1', 200, 160, 'c', 'CH₂');
+                        e.atom('c2', 300, 160, 'c', 'CH');
+                        e.atom('o', 380, 160, 'o', 'O');
+                        e.atom('me', 440, 160, 'c', 'Me');
+
+                        e.atom('h', 200, 80, 'h', 'H⁺');
+                    }
+                },
+                {
+                    label: "步骤一：质子化",
+                    text: "<b>路径选择：</b>H⁺ 加到 CH₂ 端，正电荷落在中间的 CH 上。<br>虽然这看起来像二级碳，但它<b>紧邻氧原子</b>。",
+                    action: (e) => {
+                        e.move('h', 200, 130); 
+                        setTimeout(() => {
+                             e.style('c1', {text: 'CH₃'});
+                             e.style('dbl', {strokeWidth: 6}); // Single bond
+                             e.style('c2', {fill: '#ef4444', text: 'C⁺'}); // Cation
+                        }, 500);
+                    }
+                },
+                {
+                    label: "步骤二：共振稳定",
+                    text: "<b>关键：</b>氧原子的孤对电子形成 C=O 双键 (氧鎓离子)。<br>这使得所有原子都满足<b>八隅体规则</b>，极其稳定！",
+                    action: (e) => {
+                        e.style('sgl', {strokeWidth: 10, stroke: '#dc2626'}); // Double bond C=O
+                        e.style('c2', {fill: '#334155', text: 'CH'});
+                        e.style('o', {text: 'O⁺'}); // Charge moves to O
+                    }
+                }
+            ]
+        }
+    };
+
+    // --- State Machine & Controller ---
+    let currentToolKey = null;
+    let currentStepIndex = 0; // 0 = Setup, 1 = Step 1 Action...
+
+    const ui = {
+        title: document.getElementById('tool-title'),
+        desc: document.getElementById('tool-desc'),
+        stepLabel: document.getElementById('step-label'),
+        stepText: document.getElementById('step-text'),
+        btn: document.getElementById('main-btn'),
+        buttons: document.querySelectorAll('.tool-btn')
+    };
+
+    function loadTool(key) {
+        currentToolKey = key;
+        currentStepIndex = 0;
+
+        // 1. Update UI Selection
+        ui.buttons.forEach(b => b.classList.remove('active'));
+        document.querySelector(`button[onclick="loadTool('${key}')"]`).classList.add('active');
+
+        // 2. Load Content
+        const tool = tools[key];
+        ui.title.textContent = tool.title;
+        ui.desc.textContent = tool.desc;
+
+        // 3. Reset to Step 0 (Setup)
+        executeStep(0);
+    }
+
+    function executeStep(index) {
+        const tool = tools[currentToolKey];
+        const stepData = tool.steps[index];
+
+        // Update Text info
+        ui.stepLabel.textContent = stepData.label;
+        ui.stepText.innerHTML = stepData.text;
+
+        // Run SVG Logic
+        // If index is 0, run setup. If > 0, run action.
+        if (index === 0) {
+            stepData.setup(engine);
+        } else {
+            stepData.action(engine);
+        }
+
+        // Update Button State
+        updateButtonState(index, tool.steps.length);
+    }
+
+    function updateButtonState(index, total) {
+        const isLast = index === total - 1;
+        
+        if (isLast) {
+            ui.btn.innerHTML = "↺ 重置并循环";
+            ui.btn.classList.add('btn-reset');
+            ui.btn.classList.remove('btn-action'); // Toggle color style if needed
+        } else {
+            const nextIndex = index + 1;
+            const nextLabel = tools[currentToolKey].steps[nextIndex].label;
+            ui.btn.innerHTML = `▶ 播放${nextLabel}`;
+            ui.btn.classList.remove('btn-reset');
+            ui.btn.classList.add('btn-action');
+        }
+    }
+
+    function handleBtnClick() {
+        const tool = tools[currentToolKey];
+        const total = tool.steps.length;
+
+        // If we are at the end, Reset to 0
+        if (currentStepIndex === total - 1) {
+            currentStepIndex = 0;
+            executeStep(0);
+        } else {
+            // Otherwise go to next
+            currentStepIndex++;
+            executeStep(currentStepIndex);
+        }
+    }
+
+    // Init
+    loadTool('sn1');
+
+</script>
+
+</body>
+</html>
+:::
+
+### 如何使用和理解这个新版本
+
+1.  **状态 1：初始准备**
+    *   选择左侧任意工具（例如 **工具 1: SN1**）。
+    *   画面会显示反应的初始状态（底物和试剂已就位）。
+    *   右下角按钮显示 **“▶ 播放第一步：异裂”**。
+
+2.  **状态 2：逐步推进**
+    *   点击按钮。你会看到动画（Br 离去，C 变红变平）。
+    *   下方的文字解释会更新，告诉你这一步的化学含义（“决速步”、“平面三角型”）。
+    *   按钮文字自动变为 **“▶ 播放第二步：亲核进攻”**。
+
+3.  **状态 3：完成与循环**
+    *   再次点击按钮。播放最后一步动画（H₂O 结合，外消旋化）。
+    *   此时所有步骤演示完毕。按钮变为绿色的 **“↺ 重置并循环”**。
+    *   点击它，瞬间回到初始状态，方便你再次给孩子讲解或让孩子自己操作。
+
+### 此版本的优势
+*   **可控性强**：不会一股脑播完，而是必须由用户点击触发下一步。这对于讲解“为什么这一步会发生”非常关键。
+*   **无遗漏**：涵盖了 PDF 中所有 7 个关键工具。
+*   **视觉辅助**：
+    *   **红色原子/键**：表示离去基团或双键。
+    *   **红色填充**：表示碳正离子（缺电子）。
+    *   **橙色填充**：表示自由基（单电子）。
+    *   **平面化动画**：在 SN1 中通过移动甲基的位置，模拟了从四面体到平面的立体化学变化。

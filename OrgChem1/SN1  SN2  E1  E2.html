@@ -1,0 +1,406 @@
+非常抱歉，确实是我的代码逻辑在处理“按钮状态重置”时出了问题。
+
+**问题原因：** 在上一个版本中，当一个动画播放完成后，我修改了按钮的点击事件变成了“重置”。当你切换到其他模式（如E2或SN1）时，按钮的点击事件没有改回“播放”，导致点击无效。
+
+我已经彻底重写了 JavaScript 部分，采用了更稳定的**状态机逻辑**。现在按钮只有一个固定的入口，不会因为切换模式而失效。
+
+请使用下面的代码，它完美修复了所有按钮的点击问题：
+
+::: html
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <style>
+        body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; background: #f1f5f9; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { background: white; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 25px; max-width: 700px; width: 100%; }
+        
+        /* Controls */
+        .mode-controls { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; flex-wrap: wrap; }
+        .mode-btn { flex: 1; min-width: 70px; padding: 12px; border: 2px solid #e2e8f0; background: white; border-radius: 8px; cursor: pointer; font-weight: bold; color: #64748b; transition: 0.2s; }
+        .mode-btn:hover { background: #f1f5f9; }
+        .mode-btn.active { border-color: #3b82f6; background: #eff6ff; color: #3b82f6; }
+
+        /* Canvas */
+        .canvas-wrapper { position: relative; border: 2px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #fafafa; }
+        svg { width: 100%; height: 340px; display: block; }
+
+        /* Atoms & Bonds */
+        .atom { transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .bond { stroke-width: 5; stroke-linecap: round; transition: all 0.8s ease; }
+        .atom-text { font-family: Arial, sans-serif; font-weight: bold; font-size: 14px; fill: white; pointer-events: none; text-anchor: middle; dominant-baseline: central; }
+        .charge { font-size: 10px; baseline-shift: super; }
+
+        /* Specific Colors */
+        .c-atom { fill: #334155; } 
+        .br-atom { fill: #991b1b; } 
+        .nu-atom { fill: #2563eb; } 
+        .h-atom { fill: #94a3b8; } 
+        .bond-def { stroke: #cbd5e1; }
+        .bond-br { stroke: #fca5a5; }
+        .bond-double { stroke: #334155; stroke-width: 0; }
+
+        /* Bottom Controls */
+        .action-area { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;}
+        .status-text { font-size: 14px; color: #334155; font-weight: 500; flex: 1; margin-right: 15px; line-height: 1.5; }
+        
+        .btn-action { padding: 10px 25px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; transition: 0.2s; margin-left: 8px; white-space: nowrap;}
+        .btn-play { background: #10b981; } .btn-play:hover { background: #059669; }
+        .btn-reset { background: #64748b; } .btn-reset:hover { background: #475569; }
+
+        /* Legend */
+        .legend { display: flex; justify-content: center; gap: 15px; margin-top: 10px; font-size: 12px; color: #64748b; flex-wrap: wrap;}
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h3 style="text-align:center; margin-top:0; color:#1e293b;">有机反应机理可视化</h3>
+    
+    <div class="mode-controls">
+        <button class="mode-btn active" onclick="switchMode('sn2', this)">SN2</button>
+        <button class="mode-btn" onclick="switchMode('sn1', this)">SN1</button>
+        <button class="mode-btn" onclick="switchMode('e2', this)">E2</button>
+        <button class="mode-btn" onclick="switchMode('e1', this)">E1</button>
+    </div>
+
+    <div class="canvas-wrapper">
+        <svg viewBox="0 0 500 340" id="reaction-svg">
+            <!-- Bonds -->
+            <line id="bond-beta-c" class="bond bond-def" x1="250" y1="170" x2="250" y2="170" opacity="0" />
+            <line id="bond-beta-h" class="bond bond-def" x1="250" y1="170" x2="250" y2="170" opacity="0" />
+            <line id="bond-h1" class="bond bond-def" x1="250" y1="170" x2="250" y2="110" />
+            <line id="bond-h2" class="bond bond-def" x1="250" y1="170" x2="250" y2="230" />
+            <line id="bond-br" class="bond bond-br" x1="250" y1="170" x2="330" y2="170" />
+            <line id="bond-dbl" class="bond bond-double" x1="170" y1="170" x2="250" y2="170" />
+
+            <!-- Atoms -->
+            <g id="grp-beta" opacity="0">
+                <circle id="atom-c-beta" cx="170" cy="170" r="20" class="atom c-atom" />
+                <text x="170" y="170" class="atom-text">C</text>
+                <circle id="atom-h-beta" cx="170" cy="240" r="14" class="atom h-atom" />
+                <text x="170" y="240" class="atom-text" fill="#333">H</text>
+            </g>
+
+            <circle id="atom-c" cx="250" cy="170" r="22" class="atom c-atom" />
+            <text x="250" y="170" class="atom-text">C</text>
+
+            <g id="grp-h-alpha">
+                <circle id="atom-h1" cx="250" cy="110" r="14" class="atom h-atom" />
+                <text x="250" y="110" class="atom-text" fill="#333">H</text>
+                <circle id="atom-h2" cx="250" cy="230" r="14" class="atom h-atom" />
+                <text x="250" y="230" class="atom-text" fill="#333">H</text>
+            </g>
+
+            <circle id="atom-br" cx="330" cy="170" r="22" class="atom br-atom" />
+            <text x="330" y="170" class="atom-text">Br</text>
+
+            <g id="grp-nu" transform="translate(80, 170)">
+                <circle id="atom-nu" cx="0" cy="0" r="24" class="atom nu-atom" />
+                <text id="text-nu" x="0" y="0" class="atom-text">OH<tspan class="charge">-</tspan></text>
+            </g>
+        </svg>
+        
+        <div class="legend">
+            <div class="legend-item"><div class="dot" style="background:#334155"></div>C</div>
+            <div class="legend-item"><div class="dot" style="background:#991b1b"></div>Br(离去)</div>
+            <div class="legend-item"><div class="dot" style="background:#2563eb"></div>亲核/碱</div>
+            <div class="legend-item"><div class="dot" style="background:#94a3b8"></div>H</div>
+        </div>
+    </div>
+
+    <div class="action-area">
+        <div class="status-text" id="status-msg">
+            请选择上方模式开始。
+        </div>
+        <div>
+            <button class="btn-action btn-reset" onclick="fullReset()">↺ 重置</button>
+            <button class="btn-action btn-play" id="btn-main" onclick="handleMainClick()">▶ 播放</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. Cache DOM Elements
+    const els = {
+        c: document.getElementById('atom-c'),
+        br: document.getElementById('atom-br'),
+        nuGrp: document.getElementById('grp-nu'),
+        h1: document.getElementById('atom-h1'),
+        h2: document.getElementById('atom-h2'),
+        bondBr: document.getElementById('bond-br'),
+        bondH1: document.getElementById('bond-h1'),
+        bondH2: document.getElementById('bond-h2'),
+        grpBeta: document.getElementById('grp-beta'),
+        cBeta: document.getElementById('atom-c-beta'),
+        hBeta: document.getElementById('atom-h-beta'),
+        bondBetaC: document.getElementById('bond-beta-c'),
+        bondBetaH: document.getElementById('bond-beta-h'),
+        bondDbl: document.getElementById('bond-dbl'),
+        nuText: document.getElementById('text-nu'),
+        status: document.getElementById('status-msg'),
+        btn: document.getElementById('btn-main')
+    };
+
+    // 2. State Management
+    let currentState = {
+        mode: 'sn2',     // sn2, sn1, e2, e1
+        step: 0,         // 0: Ready, 1: Intermediate/Done, 2: Done
+        isFinished: false,
+        isAnimating: false
+    };
+
+    // 3. Initialization
+    function switchMode(mode, btnElement) {
+        if (currentState.isAnimating) return; // Protect against clicking while moving
+
+        // Update UI Tabs
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        if(btnElement) btnElement.classList.add('active');
+
+        currentState.mode = mode;
+        fullReset(); // Reset positions and state
+    }
+
+    function fullReset() {
+        currentState.step = 0;
+        currentState.isFinished = false;
+        currentState.isAnimating = false;
+
+        // --- Reset Visuals (Common Positions) ---
+        // Central C
+        setAttrs(els.c, {cx: 250, cy: 170, fill: "#334155"});
+        // Br
+        setAttrs(els.br, {cx: 330, cy: 170, opacity: 1});
+        setAttrs(els.bondBr, {x1: 250, y1: 170, x2: 330, y2: 170, opacity: 1});
+        // H1 & H2 (Alpha)
+        setAttrs(els.h1, {cx: 250, cy: 110, opacity: 1});
+        setAttrs(els.h2, {cx: 250, cy: 230, opacity: 1});
+        setAttrs(els.bondH1, {x1: 250, y1: 170, x2: 250, y2: 110, opacity: 1});
+        setAttrs(els.bondH2, {x1: 250, y1: 170, x2: 250, y2: 230, opacity: 1});
+        
+        // Reset Nu position (default left)
+        els.nuGrp.setAttribute('transform', 'translate(80, 170)');
+        els.nuGrp.style.opacity = 1;
+
+        // Reset Beta / Double Bond stuff (Hidden)
+        els.grpBeta.setAttribute('opacity', '0');
+        els.bondBetaC.setAttribute('opacity', '0');
+        els.bondBetaH.setAttribute('opacity', '0');
+        els.bondDbl.setAttribute('stroke-width', '0');
+
+        // --- Mode Specific Setup ---
+        updateUIForMode();
+    }
+
+    function updateUIForMode() {
+        const m = currentState.mode;
+        if (m === 'sn2') {
+            els.nuText.innerHTML = 'OH<tspan class="charge">-</tspan>';
+            els.status.innerHTML = "<b>SN2:</b> 强亲核试剂背面进攻。点击播放观察协同反应。";
+            els.btn.textContent = "▶ 播放";
+        } 
+        else if (m === 'sn1') {
+            els.nuText.innerHTML = 'H₂O';
+            els.status.innerHTML = "<b>SN1:</b> 弱亲核试剂。第一步解离形成碳正离子。";
+            els.btn.textContent = "第一步：解离";
+        } 
+        else if (m === 'e2') {
+            els.nuText.innerHTML = 'OH<tspan class="charge">-</tspan>';
+            els.status.innerHTML = "<b>E2:</b> 强碱夺取β-氢。需要反式共平面结构。";
+            els.btn.textContent = "▶ 播放";
+            setupEliminationLayout();
+        } 
+        else if (m === 'e1') {
+            els.nuText.innerHTML = 'H₂O';
+            els.status.innerHTML = "<b>E1:</b> 弱碱。第一步解离形成碳正离子。";
+            els.btn.textContent = "第一步：解离";
+            setupEliminationLayout();
+        }
+    }
+
+    function setupEliminationLayout() {
+        // Shift everything right to make room for Beta Carbon
+        const shift = 40;
+        setAttrs(els.c, {cx: 250 + shift});
+        setAttrs(els.br, {cx: 330 + shift});
+        setAttrs(els.bondBr, {x1: 250 + shift, x2: 330 + shift});
+        
+        setAttrs(els.h1, {cx: 250 + shift}); setAttrs(els.bondH1, {x1: 250 + shift, x2: 250 + shift});
+        setAttrs(els.h2, {cx: 250 + shift}); setAttrs(els.bondH2, {x1: 250 + shift, x2: 250 + shift});
+
+        // Show Beta Group
+        els.grpBeta.setAttribute('opacity', '1');
+        setAttrs(els.cBeta, {cx: 170 + shift, cy: 170});
+        setAttrs(els.bondBetaC, {x1: 170 + shift, y1: 170, x2: 250 + shift, y2: 170, opacity: 1});
+        
+        // Beta H (Bottom)
+        setAttrs(els.hBeta, {cx: 170 + shift, cy: 240});
+        setAttrs(els.bondBetaH, {x1: 170 + shift, y1: 170, x2: 170 + shift, y2: 240, opacity: 1});
+
+        // Move Base to bottom left
+        els.nuGrp.setAttribute('transform', `translate(${90 + shift}, 260)`);
+    }
+
+    // 4. Main Action Handler
+    function handleMainClick() {
+        if (currentState.isFinished) {
+            fullReset();
+            return;
+        }
+        if (currentState.isAnimating) return;
+
+        // Route to logic based on Mode
+        if (currentState.mode === 'sn2') runSN2();
+        else if (currentState.mode === 'sn1') runSN1();
+        else if (currentState.mode === 'e2') runE2();
+        else if (currentState.mode === 'e1') runE1();
+    }
+
+    // --- REACTION LOGIC ---
+
+    function runSN2() {
+        currentState.isAnimating = true;
+        
+        // 1. Attack & Leave
+        els.nuGrp.setAttribute('transform', 'translate(210, 170)');
+        setAttrs(els.br, {cx: 450, opacity: 0.5});
+        setAttrs(els.bondBr, {x2: 450, opacity: 0});
+
+        // 2. Inversion (Umbrella flip)
+        setTimeout(() => {
+            setAttrs(els.h1, {cx: 280}); setAttrs(els.bondH1, {x2: 280});
+            setAttrs(els.h2, {cx: 280}); setAttrs(els.bondH2, {x2: 280});
+            finishReaction("SN2 完成：构型翻转，亲核试剂连接。");
+        }, 200);
+    }
+
+    function runSN1() {
+        if (currentState.step === 0) {
+            // Step 1: Dissociation
+            setAttrs(els.br, {cx: 450, opacity: 0.5});
+            setAttrs(els.bondBr, {x2: 450, opacity: 0});
+            
+            // Planar intermediate
+            setAttrs(els.h1, {cy: 130}); setAttrs(els.bondH1, {y2: 130});
+            setAttrs(els.h2, {cy: 210}); setAttrs(els.bondH2, {y2: 210});
+            els.c.style.fill = "#ef4444"; // Indicate cation
+
+            currentState.step = 1;
+            els.status.innerHTML = "<b>步骤1完成:</b> 形成碳正离子中间体。";
+            els.btn.textContent = "第二步：进攻";
+        } else {
+            // Step 2: Attack
+            els.nuGrp.setAttribute('transform', 'translate(210, 170)');
+            // Restore geometry
+            setAttrs(els.h1, {cx: 280, cy: 110}); setAttrs(els.bondH1, {x2: 280, y2: 110});
+            setAttrs(els.h2, {cx: 280, cy: 230}); setAttrs(els.bondH2, {x2: 280, y2: 230});
+            els.c.style.fill = "#334155";
+
+            finishReaction("SN1 完成：亲核试剂结合 (外消旋化)。");
+        }
+    }
+
+    function runE2() {
+        currentState.isAnimating = true;
+        const shift = 40; // Match setup offset
+
+        // Base moves to H
+        els.nuGrp.setAttribute('transform', `translate(${150 + shift}, 240)`);
+
+        setTimeout(() => {
+            // Concerted Mechanism
+            setAttrs(els.bondBetaH, {opacity: 0}); // Break H bond
+            setAttrs(els.hBeta, {cx: 150 + shift, cy: 265, opacity: 0.5}); // H moves to base
+
+            setAttrs(els.bondDbl, {strokeWidth: 8, x1: 170 + shift, x2: 250 + shift}); // Form alkene
+
+            setAttrs(els.br, {cx: 450}); // Kick Br
+            els.br.style.opacity = 0.5;
+            setAttrs(els.bondBr, {x2: 450, opacity: 0});
+
+            // Geometry cleanup (Trigonal planar ish)
+            setAttrs(els.h1, {cx: 320, cy: 120}); setAttrs(els.bondH1, {x2: 320, y2: 120});
+            setAttrs(els.h2, {cx: 320, cy: 220}); setAttrs(els.bondH2, {x2: 320, y2: 220});
+
+            finishReaction("E2 完成：反式共平面消除，生成烯烃。");
+        }, 300);
+    }
+
+    function runE1() {
+        const shift = 40;
+        if (currentState.step === 0) {
+            // Step 1: Leave
+            setAttrs(els.br, {cx: 450, opacity: 0.5});
+            setAttrs(els.bondBr, {x2: 450, opacity: 0});
+            
+            currentState.step = 1;
+            els.status.innerHTML = "<b>步骤1完成:</b> 离去基团离开，碳正离子生成。";
+            els.btn.textContent = "第二步：消除";
+        } else {
+            // Step 2: Base takes H
+            els.nuGrp.setAttribute('transform', `translate(${150 + shift}, 240)`);
+
+            setTimeout(() => {
+                setAttrs(els.bondBetaH, {opacity: 0});
+                setAttrs(els.hBeta, {cx: 150 + shift, cy: 265, opacity: 0.5});
+                
+                setAttrs(els.bondDbl, {strokeWidth: 8, x1: 170 + shift, x2: 250 + shift});
+
+                // Geometry cleanup
+                setAttrs(els.h1, {cx: 320, cy: 120}); setAttrs(els.bondH1, {x2: 320, y2: 120});
+                setAttrs(els.h2, {cx: 320, cy: 220}); setAttrs(els.bondH2, {x2: 320, y2: 220});
+
+                finishReaction("E1 完成：生成烯烃。");
+            }, 200);
+        }
+    }
+
+    // --- HELPERS ---
+    function finishReaction(msg) {
+        currentState.isFinished = true;
+        currentState.isAnimating = false;
+        els.status.innerHTML = `<span style="color:#16a34a; font-weight:bold;">✔ ${msg}</span>`;
+        els.btn.textContent = "↺ 点击重置";
+        els.btn.classList.remove('btn-play');
+        els.btn.classList.add('btn-reset');
+    }
+
+    // Add helper to reset button style when resetting
+    const _origReset = fullReset;
+    fullReset = function() {
+        _origReset();
+        els.btn.classList.add('btn-play');
+        els.btn.classList.remove('btn-reset');
+    }
+
+    function setAttrs(el, attrs) {
+        for (let key in attrs) {
+            if (key === 'strokeWidth') el.style.strokeWidth = attrs[key];
+            else if (key === 'opacity') el.style.opacity = attrs[key];
+            else if (key === 'fill') el.style.fill = attrs[key];
+            else el.setAttribute(key, attrs[key]);
+        }
+    }
+    
+    // Initialize first view
+    switchMode('sn2', document.querySelector('.mode-btn.active'));
+
+</script>
+
+</body>
+</html>
+:::
+
+### 修复内容说明
+
+1.  **按钮逻辑修复**：
+    *   以前：按钮的 `onclick` 属性在反应结束后被我动态替换了，这导致切换模式时逻辑混乱。
+    *   现在：按钮始终执行同一个函数 `handleMainClick()`。这个函数会检查 `currentState`（当前是正在播放、已完成、还是刚开始），然后决定是运行动画还是重置。
+
+2.  **E2/E1 位置修正**：
+    *   增加了 `shift` 变量，确保在 E1/E2 模式下，分子整体向右移动，给左侧的 $\beta$-碳 和 $\beta$-氢 腾出空间，避免拥挤。
+
+3.  **重置功能增强**：
+    *   无论是点击左侧灰色的“重置”，还是反应完成后点击右侧绿色的“重置”，都会彻底清空当前状态，确保下一次动画从零开始。

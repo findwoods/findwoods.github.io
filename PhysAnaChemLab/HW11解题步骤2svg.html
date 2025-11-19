@@ -1,0 +1,653 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HW11 有机化学全解 (Q1-Q12 完整版)</title>
+    <style>
+        :root {
+            --atom-r: 32px;
+            --anim-duration: 1.5s;
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --danger: #c0392b;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background-color: var(--bg-color);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        h1 { text-align: center; color: var(--primary); margin-bottom: 10px; }
+        .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 40px; font-weight: normal;}
+
+        /* 卡片容器 */
+        .problem-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 50px;
+            border: 1px solid #eaeaea;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: var(--primary);
+            color: #fff;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-title { font-size: 1.2rem; font-weight: bold; }
+        .card-tag { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; }
+
+        /* 选项卡导航 */
+        .tabs {
+            display: flex;
+            background: #ecf0f1;
+            overflow-x: auto;
+            border-bottom: 1px solid #bdc3c7;
+            padding-bottom: 2px;
+        }
+        .tab-btn {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #7f8c8d;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+        .tab-btn:hover { background: #e6e6e6; }
+        .tab-btn.active {
+            color: var(--secondary);
+            border-bottom-color: var(--secondary);
+            background: #fff;
+        }
+
+        /* 可视化舞台 */
+        .viz-stage {
+            width: 100%;
+            height: 450px;
+            position: relative;
+            background-color: #ffffff;
+            background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
+            background-size: 20px 20px;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        svg { width: 100%; height: 100%; }
+        
+        /* 动画核心 */
+        .atom-group {
+            transition: transform var(--anim-duration) cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease;
+            cursor: default;
+        }
+        
+        .atom-circle {
+            stroke: #2c3e50;
+            stroke-width: 2px;
+            fill: #fff;
+            transition: fill 0.5s;
+        }
+        
+        .atom-text {
+            font-size: 20px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+            fill: #fff;
+            text-shadow: 0px 1px 2px rgba(0,0,0,0.6);
+        }
+
+        .bond {
+            stroke: #555;
+            stroke-width: 8px;
+            stroke-linecap: round;
+            transition: all var(--anim-duration) cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .bond-double { stroke-width: 14px; }
+
+        /* 说明区域 */
+        .explainer {
+            padding: 20px;
+            background: #fdfbf0;
+            border-top: 1px solid #f1c40f;
+            min-height: 80px;
+        }
+        .step-badge {
+            display: inline-block;
+            background: var(--secondary);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .step-text { font-size: 1.05rem; color: #2c3e50; }
+
+        /* 控制按钮 */
+        .controls {
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            background: #fff;
+            border-top: 1px solid #eee;
+        }
+        .btn {
+            padding: 10px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+            color: #fff;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-next { background: var(--success); }
+        .btn-reset { background: var(--danger); }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>HW11 有机化学全解 (Q1-Q12 完整版)</h1>
+    <p class="subtitle">包含所有子问题 (a, b, c...) | 步进式交互机理动画 | 全原子标注</p>
+
+    <div id="app"></div>
+</div>
+
+<script>
+const ATOM_R = 32;
+
+// CPK 颜色映射
+const COLORS = {
+    C: '#34495e', H: '#bdc3c7', O: '#e74c3c', N: '#3498db',
+    Br: '#8e44ad', Cl: '#27ae60', I: '#9b59b6', S: '#f1c40f', F: '#16a085',
+    Mg: '#e67e22', Li: '#d35400', K: '#8e44ad', Na: '#8e44ad',
+    Tos: '#95a5a6', Ghost: 'transparent'
+};
+
+// 创建SVG辅助函数
+function createSVG(tag, attrs) {
+    const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (let k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+}
+
+// ==========================================
+//              数据定义区 (Q1-Q12)
+// ==========================================
+
+const QUESTIONS = [
+    {
+        id: 'q1', title: 'Q1: SN2 反应预测', tag: 'SN2 / 构型翻转',
+        tabs: [
+            {
+                name: '(a) OTos + NaBr',
+                steps: [
+                    { text: "分析：底物为伯碳(1°)甲苯磺酸酯(OTos是极好离去基团)，Br⁻为亲核试剂，DMF为极性非质子溶剂。SN2。", atoms: [{id:1,e:'C',x:400,y:200},{id:2,e:'O',l:'OTos',x:550,y:200},{id:3,e:'Br',l:'Br⁻',x:150,y:200},{id:4,e:'H',x:400,y:100},{id:5,e:'H',x:400,y:300},{id:6,e:'C',l:'Pr',x:320,y:200}], bonds: [[1,2],[1,4],[1,5],[1,6]] },
+                    { text: "过渡态：Br⁻ 从背面进攻，C-O 键同时断裂。", atoms: [{id:1,e:'C',x:400,y:200},{id:2,e:'O',l:'OTos',x:650,y:200},{id:3,e:'Br',l:'Br',x:250,y:200},{id:4,e:'H',x:400,y:80},{id:5,e:'H',x:400,y:320},{id:6,e:'C',l:'Pr',x:400,y:140}], bonds: [[1,2],[1,3],[1,4],[1,5],[1,6]] },
+                    { text: "产物：1-溴丙烷。OTos⁻ 离去。", atoms: [{id:1,e:'C',x:400,y:200},{id:2,e:'O',l:'OTos⁻',x:750,y:200,o:0},{id:3,e:'Br',l:'Br',x:300,y:200},{id:4,e:'H',x:450,y:100},{id:5,e:'H',x:450,y:300},{id:6,e:'C',l:'Pr',x:500,y:200}], bonds: [[1,3],[1,4],[1,5],[1,6]] }
+                ]
+            },
+            {
+                name: '(b) 仲卤 + 炔负离子',
+                steps: [
+                    { text: "分析：仲卤(2°) + 强亲核试剂(乙炔负离子)。发生SN2，构型翻转。", atoms: [{id:1,e:'C',x:400,y:200},{id:2,e:'Br',x:550,y:200},{id:3,e:'C',l:'C≡C⁻',x:150,y:200},{id:4,e:'H',x:400,y:100},{id:5,e:'C',l:'Me',x:400,y:300},{id:6,e:'C',l:'iPr',x:340,y:200}], bonds: [[1,2],[1,4],[1,5],[1,6]] },
+                    { text: "产物：发生瓦尔登翻转。Br⁻离去。", atoms: [{id:1,e:'C',x:400,y:200},{id:2,e:'Br',l:'Br⁻',x:750,y:200,o:0},{id:3,e:'C',l:'C≡CR',x:300,y:200},{id:4,e:'H',x:460,y:100},{id:5,e:'C',l:'Me',x:460,y:300},{id:6,e:'C',l:'iPr',x:500,y:200}], bonds: [[1,3],[1,4],[1,5],[1,6]] }
+                ]
+            },
+            {
+                name: '(c) 碘环己烷 + CN⁻',
+                steps: [
+                    { text: "分析：仲碘代烷 + CN⁻ + DMSO。SN2导致构型翻转。", atoms: [{id:1,e:'C',x:400,y:200},{id:2,e:'I',x:550,y:200},{id:3,e:'C',l:'CN⁻',x:150,y:200},{id:4,e:'H',x:350,y:120},{id:6,e:'C',l:'Ring',x:300,y:250}], bonds: [[1,2],[1,4],[1,6]] },
+                    { text: "产物：氰基环己烷 (构型翻转)。", atoms: [{id:1,e:'C',x:400,y:200},{id:2,e:'I',l:'I⁻',x:750,y:200,o:0},{id:3,e:'C',l:'CN',x:300,y:200},{id:4,e:'H',x:450,y:120},{id:6,e:'C',l:'Ring',x:500,y:250}], bonds: [[1,3],[1,4],[1,6]] }
+                ]
+            },
+            {
+                name: '(d) 环醚氯代物 + CH3S⁻',
+                steps: [
+                    { text: "分析：强亲核试剂 CH3S⁻ 进攻仲碳。SN2。", atoms: [{id:1,e:'C',x:400,y:200},{id:2,e:'Cl',x:550,y:200},{id:3,e:'S',l:'SMe⁻',x:150,y:200},{id:4,e:'C',l:'Ring',x:300,y:250}], bonds: [[1,2],[1,4]] },
+                    { text: "产物：硫醚生成，构型翻转。", atoms: [{id:1,e:'C',x:400,y:200},{id:2,e:'Cl',l:'Cl⁻',x:750,y:200,o:0},{id:3,e:'S',l:'SMe',x:300,y:200},{id:4,e:'C',l:'Ring',x:500,y:250}], bonds: [[1,3],[1,4]] }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q2', title: 'Q2: SN1 机理', tag: 'SN1 / 碳正离子 / 溶剂解',
+        tabs: [
+            {
+                name: '(a) 叔卤代烷水解',
+                steps: [
+                    { text: "初始：3-氯-3-乙基戊烷 (叔卤代烷)。水环境。SN1。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'Cl',x:450,y:200},{id:3,e:'C',l:'Et',x:200,y:100},{id:4,e:'C',l:'Et',x:200,y:300},{id:5,e:'C',l:'Et',x:180,y:200},{id:6,e:'O',l:'H2O',x:600,y:300}], bonds: [[1,2],[1,3],[1,4],[1,5]] },
+                    { text: "决速步：Cl⁻ 离去，生成平面的叔碳正离子(C+)。", atoms: [{id:1,e:'C',l:'C+',x:300,y:200},{id:2,e:'Cl',l:'Cl⁻',x:600,y:200},{id:3,e:'C',l:'Et',x:220,y:100},{id:4,e:'C',l:'Et',x:220,y:300},{id:5,e:'C',l:'Et',x:150,y:200},{id:6,e:'O',l:'H2O',x:500,y:200}], bonds: [[1,3],[1,4],[1,5]] },
+                    { text: "亲核进攻：H2O进攻C+，去质子后得醇。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'Cl',l:'Cl⁻',x:700,y:100,o:0},{id:3,e:'C',l:'Et',x:220,y:100},{id:4,e:'C',l:'Et',x:220,y:300},{id:5,e:'C',l:'Et',x:150,y:200},{id:6,e:'O',l:'OH',x:400,y:200}], bonds: [[1,3],[1,4],[1,5],[1,6]] }
+                ]
+            },
+            {
+                name: '(b) 烯丙基卤',
+                steps: [
+                    { text: "初始：烯丙基位+叔碳。极易形成稳定碳正离子。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'Cl',x:450,y:200},{id:3,e:'C',l:'C=C',x:200,y:100},{id:4,e:'C',l:'Me',x:200,y:300}], bonds: [[1,2],[1,3],[1,4]] },
+                    { text: "离去：形成共振稳定的烯丙基碳正离子。", atoms: [{id:1,e:'C',l:'C+',x:300,y:200},{id:2,e:'Cl',l:'Cl⁻',x:600,y:200},{id:3,e:'C',l:'C=C',x:200,y:100},{id:4,e:'C',l:'Me',x:200,y:300},{id:5,e:'O',l:'OAc⁻',x:500,y:300}], bonds: [[1,3],[1,4]] },
+                    { text: "产物：醋酸根进攻生成酯。", atoms: [{id:1,e:'C',x:300,y:200},{id:3,e:'C',l:'C=C',x:200,y:100},{id:4,e:'C',l:'Me',x:200,y:300},{id:5,e:'O',l:'OAc',x:420,y:200}], bonds: [[1,3],[1,4],[1,5]] }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q3', title: 'Q3: E2 消除反应', tag: '强碱 / 区域选择性',
+        tabs: [
+            {
+                name: '(a) 查依采夫',
+                steps: [
+                    { text: "小碱(CH3O⁻)进攻叔卤代烷。遵循查依采夫规则(生成多取代烯烃)。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'Cl',x:300,y:100},{id:3,e:'C',l:'Me',x:300,y:300},{id:4,e:'C',l:'Ring-H',x:450,y:200},{id:5,e:'O',l:'MeO⁻',x:550,y:200}], bonds: [[1,2],[1,3],[1,4]] },
+                    { text: "消除环上氢，生成1-甲基环己烯。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'Cl',l:'Cl⁻',x:150,y:50,o:0},{id:3,e:'C',l:'Me',x:300,y:320},{id:4,e:'C',l:'Ring',x:450,y:200},{id:5,e:'O',l:'MeOH',x:550,y:150}], bonds: [[1,4,2],[1,3]] }
+                ]
+            },
+            {
+                name: '(b) 霍夫曼',
+                steps: [
+                    { text: "大碱(t-BuOK)进攻。由于位阻，只能夺取末端氢。遵循霍夫曼规则。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'C',x:450,y:200},{id:3,e:'Br',x:300,y:100},{id:4,e:'H',l:'H(端)',x:450,y:300},{id:5,e:'O',l:'tBuO⁻',x:600,y:350}], bonds: [[1,2],[1,3],[2,4]] },
+                    { text: "产物：末端烯烃(少取代)。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'C',x:450,y:200},{id:3,e:'Br',l:'Br⁻',x:150,y:50,o:0},{id:4,e:'H',l:'H',x:650,y:380,o:0},{id:5,e:'O',l:'tBuOH',x:600,y:350}], bonds: [[1,2,2]] }
+                ]
+            },
+            {
+                name: '(c) 查依采夫 (OTos)',
+                steps: [
+                    { text: "小碱(CH3O⁻) + 叔OTos。查依采夫消除。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'O',l:'OTos',x:300,y:100},{id:3,e:'C',l:'CH2-R',x:450,y:200},{id:4,e:'O',l:'MeO⁻',x:600,y:250}], bonds: [[1,2],[1,3]] },
+                    { text: "产物：多取代烯烃。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'O',l:'OTos⁻',x:150,y:50,o:0},{id:3,e:'C',l:'CH-R',x:450,y:200}], bonds: [[1,3,2]] }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q4', title: 'Q4: 分子内 SN2 (环氧化)', tag: '威廉姆逊成醚',
+        tabs: [
+            {
+                name: '机理演示',
+                steps: [
+                    { text: "1. NaOH 夺取醇羟基质子，生成醇盐负离子。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'C',x:450,y:200},{id:3,e:'O',l:'OH',x:300,y:100},{id:4,e:'Br',x:450,y:300},{id:5,e:'O',l:'OH⁻',x:150,y:100}], bonds: [[1,2],[1,3],[2,4]] },
+                    { text: "2. 醇盐负离子 O⁻ 旋转至 Br 的反式位置。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'C',x:450,y:200},{id:3,e:'O',l:'O⁻',x:300,y:80},{id:4,e:'Br',x:450,y:320},{id:5,e:'O',l:'H2O',x:100,y:50}], bonds: [[1,2],[1,3],[2,4]] },
+                    { text: "3. 分子内 SN2：O⁻ 进攻 C，Br⁻ 离去，闭环。", atoms: [{id:1,e:'C',x:350,y:250},{id:2,e:'C',x:450,y:250},{id:3,e:'O',x:400,y:150},{id:4,e:'Br',l:'Br⁻',x:600,y:350}], bonds: [[1,2],[1,3],[2,3]] }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q5', title: 'Q5: 桥头碳惰性', tag: '布莱特规则',
+        tabs: [
+            {
+                name: '分析',
+                steps: [
+                    { text: "结构：1-溴双环[2.2.1]庚烷。Br在桥头碳。", atoms: [{id:1,e:'C',x:400,y:200},{id:2,e:'Br',x:550,y:200},{id:3,e:'C',l:'C',x:300,y:100},{id:4,e:'C',l:'C',x:300,y:300},{id:5,e:'C',l:'Bridge',x:200,y:200}], bonds: [[1,2],[1,3],[1,4],[3,5],[4,5]] },
+                    { text: "SN2：背面被笼状结构阻挡。SN1：无法形成平面的桥头碳正离子(Bredt规则)。", atoms: [{id:1,e:'C',l:'No Rxn',x:400,y:200},{id:2,e:'Br',x:550,y:200},{id:3,e:'C',l:'C',x:300,y:100},{id:4,e:'C',l:'C',x:300,y:300},{id:5,e:'C',l:'Bridge',x:200,y:200}], bonds: [[1,2],[1,3],[1,4],[3,5],[4,5]] }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q6', title: 'Q6: SN2 速率比较', tag: '基础因素',
+        tabs: [
+            {
+                name: '(a) MeBr vs MeI',
+                steps: [
+                    { text: "I⁻ 离去能力 > Br⁻。MeI 更快。", atoms: [{id:1,e:'C',l:'Me-I',x:300,y:200},{id:2,e:'C',l:'Me-Br',x:500,y:200}], bonds: [] },
+                    { text: "MeI 反应完成。", atoms: [{id:1,e:'C',l:'Done',x:300,y:150},{id:2,e:'C',l:'Slow',x:500,y:200}], bonds: [] }
+                ]
+            },
+            {
+                name: '(b) EtOH vs DMSO',
+                steps: [
+                    { text: "DMSO(极性非质子) > EtOH(质子)。DMSO中亲核试剂更强。", atoms: [{id:1,e:'S',l:'DMSO',x:300,y:200},{id:2,e:'O',l:'EtOH',x:500,y:200}], bonds: [] },
+                    { text: "DMSO 反应极快。", atoms: [{id:1,e:'S',l:'Fast!',x:300,y:150},{id:2,e:'O',l:'Slow',x:500,y:200}], bonds: [] }
+                ]
+            },
+            {
+                name: '(c) 1° vs 3°',
+                steps: [
+                    { text: "1°(MeCl) > 3°(tBuCl)。SN2受位阻控制。", atoms: [{id:1,e:'C',l:'1°',x:300,y:200},{id:2,e:'C',l:'3°',x:500,y:200}], bonds: [] },
+                    { text: "1° 反应顺利。", atoms: [{id:1,e:'C',l:'Product',x:300,y:150},{id:2,e:'C',l:'No Rxn',x:500,y:200}], bonds: [] }
+                ]
+            },
+            {
+                name: '(d) Vinyl vs Allyl',
+                steps: [
+                    { text: "Allyl(烯丙基) >> Vinyl(乙烯基)。Vinyl无背面进攻路径。", atoms: [{id:1,e:'C',l:'Allyl',x:300,y:200},{id:2,e:'C',l:'Vinyl',x:500,y:200}], bonds: [] },
+                    { text: "Allyl 反应极快。", atoms: [{id:1,e:'C',l:'Done',x:300,y:150},{id:2,e:'C',l:'Blocked',x:500,y:200}], bonds: [] }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q7', title: 'Q7: SN2 速率比较 (扩展)', tag: '变量分析',
+        tabs: [
+            {
+                name: '(a) Cl vs OTos',
+                steps: [
+                    { text: "比较：CH3Cl vs CH3OTos (甲苯磺酸酯) + I-。\n分析：TosO- 共振稳定，是极好离去基团(优于Cl-)。", atoms: [{id:1,e:'C',l:'Me-Cl',x:300,y:200},{id:2,e:'Cl',x:400,y:200},{id:3,e:'C',l:'Me-OTos',x:600,y:200},{id:4,e:'O',l:'OTos',x:700,y:200}], bonds: [[1,2],[3,4]] },
+                    { text: "结果：CH3OTos 反应明显更快。", atoms: [{id:1,e:'C',l:'Slow',x:300,y:200},{id:2,e:'Cl',x:400,y:200},{id:3,e:'C',l:'Product',x:600,y:150},{id:4,e:'O',l:'OTos⁻',x:750,y:250}], bonds: [[1,2]] }
+                ]
+            },
+            {
+                name: '(b) 1° vs 2°',
+                steps: [
+                    { text: "比较：溴乙烷(1°) vs 溴环己烷(2°) + CH3CO2-。\n分析：SN2 对位阻敏感。1° 位阻远小于 2°(环结构)。", atoms: [{id:1,e:'C',l:'Et-Br(1°)',x:300,y:200},{id:2,e:'Br',x:400,y:200},{id:3,e:'C',l:'Cy-Br(2°)',x:600,y:200},{id:4,e:'Br',x:700,y:200}], bonds: [[1,2],[3,4]] },
+                    { text: "结果：溴乙烷(1°) 更快。", atoms: [{id:1,e:'C',l:'Fast!',x:300,y:150},{id:2,e:'Br',l:'Br⁻',x:450,y:250},{id:3,e:'C',l:'Slow',x:600,y:200},{id:4,e:'Br',x:700,y:200}], bonds: [[3,4]] }
+                ]
+            },
+            {
+                name: '(c) EtO⁻ vs CN⁻',
+                steps: [
+                    { text: "比较：2-溴丙烷 + EtO- 或 CN-。\n分析：CN- 极化率高、位阻小，是更好的亲核试剂。EtO-碱性强但位阻稍大。", atoms: [{id:1,e:'C',l:'R-Br',x:400,y:100},{id:2,e:'O',l:'EtO⁻',x:300,y:300},{id:3,e:'C',l:'CN⁻',x:500,y:300}], bonds: [] },
+                    { text: "结果：CN- 反应更快。", atoms: [{id:1,e:'C',l:'R-CN',x:500,y:150},{id:2,e:'O',l:'EtO⁻',x:300,y:300},{id:3,e:'Br',l:'Br⁻',x:600,y:100}], bonds: [] }
+                ]
+            },
+            {
+                name: '(d) 苯 vs 乙腈',
+                steps: [
+                    { text: "比较：溴甲烷 + 乙炔负离子。溶剂：苯(非极性) vs 乙腈(极性非质子)。\n分析：非极性溶剂不溶离子试剂。极性非质子溶剂加速SN2。", atoms: [{id:1,e:'C',l:'Benzene',x:300,y:200},{id:2,e:'C',l:'MeCN',x:600,y:200}], bonds: [] },
+                    { text: "结果：乙腈(MeCN)中反应快。", atoms: [{id:1,e:'C',l:'No Rxn',x:300,y:200},{id:2,e:'C',l:'Fast!',x:600,y:150}], bonds: [] }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q8', title: 'Q8: 1-溴丙烷反应全集', tag: 'SN2 vs E2',
+        tabs: [
+            {
+                name: '(a) NaNH2',
+                steps: [
+                    { text: "试剂：NaNH2 (强碱)。\n分析：伯卤 + 极强碱 -> E2 消除。", atoms: [{id:1,e:'C',x:400,y:200},{id:2,e:'Br',x:500,y:200},{id:3,e:'C',l:'Et',x:300,y:200},{id:4,e:'N',l:'NH2⁻',x:400,y:300}], bonds: [[1,2],[1,3]] },
+                    { text: "产物：丙烯 (Propene)。", atoms: [{id:1,e:'C',l:'C=C',x:350,y:200},{id:2,e:'Br',l:'Br⁻',x:600,y:100},{id:3,e:'C',l:'Me',x:250,y:300},{id:4,e:'N',l:'NH3',x:400,y:350}], bonds: [[1,3]] }
+                ]
+            },
+            {
+                name: '(b) tBuOK',
+                steps: [
+                    { text: "试剂：tBuOK (大位阻强碱)。\n分析：大位阻阻碍SN2，强碱促进E2。", atoms: [{id:1,e:'C',x:400,y:200},{id:2,e:'Br',x:500,y:200},{id:3,e:'C',l:'Et',x:300,y:200},{id:4,e:'O',l:'tBuO⁻',x:400,y:320}], bonds: [[1,2],[1,3]] },
+                    { text: "产物：丙烯 (Propene)。", atoms: [{id:1,e:'C',l:'C=C',x:350,y:200},{id:2,e:'Br',l:'Br⁻',x:600,y:100},{id:3,e:'C',l:'Me',x:250,y:300},{id:4,e:'O',l:'tBuOH',x:400,y:350}], bonds: [[1,3]] }
+                ]
+            },
+            {
+                name: '(c) NaI',
+                steps: [
+                    { text: "试剂：NaI (良亲核，弱碱)。\n分析：伯卤 + 良亲核 = SN2。", atoms: [{id:1,e:'C',x:400,y:200},{id:2,e:'Br',x:500,y:200},{id:3,e:'C',l:'Pr',x:300,y:200},{id:4,e:'I',l:'I⁻',x:200,y:200}], bonds: [[1,2],[1,3]] },
+                    { text: "产物：1-碘丙烷。", atoms: [{id:1,e:'C',x:400,y:200},{id:2,e:'Br',l:'Br⁻',x:600,y:200},{id:3,e:'C',l:'Pr',x:300,y:200},{id:4,e:'I',l:'I',x:300,y:200}], bonds: [[1,3],[1,4]] }
+                ]
+            },
+            {
+                name: '(d) NaCN',
+                steps: [
+                    { text: "试剂：NaCN (良亲核)。\n分析：SN2 取代。", atoms: [{id:1,e:'C',x:400,y:200},{id:2,e:'Br',x:500,y:200},{id:3,e:'C',l:'Pr',x:300,y:200},{id:4,e:'C',l:'CN⁻',x:200,y:200}], bonds: [[1,2],[1,3]] },
+                    { text: "产物：丁腈 (Butanenitrile)。", atoms: [{id:1,e:'C',x:400,y:200},{id:2,e:'Br',l:'Br⁻',x:600,y:200},{id:3,e:'C',l:'Pr',x:300,y:200},{id:4,e:'C',l:'CN',x:300,y:200}], bonds: [[1,3],[1,4]] }
+                ]
+            },
+            {
+                name: '(e) NaC≡CH',
+                steps: [
+                    { text: "试剂：乙炔钠 (强亲核)。\n分析：伯卤优先 SN2。", atoms: [{id:1,e:'C',x:400,y:200},{id:2,e:'Br',x:500,y:200},{id:3,e:'C',l:'Pr',x:300,y:200},{id:4,e:'C',l:'HC≡C⁻',x:150,y:200}], bonds: [[1,2],[1,3]] },
+                    { text: "产物：1-戊炔 (1-Pentyne)。", atoms: [{id:1,e:'C',x:400,y:200},{id:2,e:'Br',l:'Br⁻',x:600,y:200},{id:3,e:'C',l:'Pr',x:300,y:200},{id:4,e:'C',l:'C≡CH',x:300,y:200}], bonds: [[1,3],[1,4]] }
+                ]
+            },
+            {
+                name: '(f) Mg, H2O',
+                steps: [
+                    { text: "1. Mg 插入：形成格氏试剂 Pr-MgBr。", atoms: [{id:1,e:'C',l:'C⁻',x:300,y:200},{id:2,e:'Br',x:500,y:200},{id:3,e:'Mg',l:'Mg²⁺',x:400,y:200}], bonds: [[1,3],[3,2]] },
+                    { text: "2. 水解：C⁻ 夺取 H+。", atoms: [{id:1,e:'C',l:'Propane',x:300,y:200},{id:4,e:'H',x:380,y:200},{id:5,e:'O',l:'Mg(OH)Br',x:550,y:200}], bonds: [[1,4]] }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q9', title: 'Q9: E2 立体化学 (纽曼投影)', tag: '反式-芪 / 构象分析',
+        tabs: [
+            {
+                name: '纽曼投影',
+                steps: [
+                    { text: "1. 分析：制备反式-芪。需要H和Cl反式共平面(Anti)。", atoms: [{id:1,e:'C',x:400,y:200,l:'前碳'},{id:2,e:'Cl',x:400,y:100},{id:3,e:'C',l:'Ph',x:500,y:260},{id:4,e:'H',x:300,y:260},{id:5,e:'C',l:'Ph(后)',x:400,y:350,o:0.7},{id:6,e:'H',l:'H(后)',x:530,y:130,o:0.7},{id:7,e:'H',l:'H(后)',x:270,y:130,o:0.7}], bonds: [[1,2],[1,3],[1,4]] },
+                    { text: "2. 旋转：使H(后)和Cl(前)反式。此时两个大基团Ph处于旁式(Gauche)。", atoms: [{id:1,e:'C',x:400,y:200},{id:2,e:'Cl',x:400,y:100},{id:3,e:'C',l:'Ph',x:500,y:260},{id:4,e:'H',x:300,y:260},{id:5,e:'C',l:'Ph(后)',x:270,y:130,o:0.7},{id:6,e:'H',l:'H(反式)',x:400,y:350,o:0.7},{id:7,e:'H',l:'H(后)',x:530,y:130,o:0.7}], bonds: [[1,2],[1,3],[1,4]] },
+                    { text: "3. 消除：生成反式-芪。", atoms: [{id:1,e:'C',x:350,y:200},{id:2,e:'C',x:450,y:200},{id:3,e:'C',l:'Ph',x:250,y:300},{id:4,e:'C',l:'Ph',x:550,y:100},{id:5,e:'Cl',l:'Cl⁻',x:400,y:50}], bonds: [[1,2,2],[1,3],[2,4]] }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q10', title: 'Q10: 纠正预测', tag: '错误分析',
+        tabs: [
+            {
+                name: '(a) 仲卤 + tBuOK',
+                steps: [
+                    { text: "错误：预测为取代。正确：大位阻强碱 -> E2。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'Br',x:400,y:200},{id:3,e:'O',l:'tBuO⁻',x:500,y:150}], bonds: [[1,2]] },
+                    { text: "产物：1-丁烯 (霍夫曼)。", atoms: [{id:1,e:'C',l:'C=C',x:350,y:200},{id:2,e:'Br',l:'Br⁻',x:550,y:300}], bonds: [] }
+                ]
+            },
+            {
+                name: '(b) 氟代烷',
+                steps: [
+                    { text: "错误：预测为醇。正确：F- 是极差离去基团，不反应。", atoms: [{id:1,e:'C',l:'Ring',x:300,y:200},{id:2,e:'F',x:400,y:200},{id:3,e:'O',l:'OH⁻',x:500,y:200}], bonds: [[1,2]] },
+                    { text: "结果：不反应 (No Rxn)。", atoms: [{id:1,e:'C',l:'Ring',x:300,y:200},{id:2,e:'F',x:400,y:200}], bonds: [[1,2]] }
+                ]
+            },
+            {
+                name: '(c) SOCl2',
+                steps: [
+                    { text: "错误：构型保持。正确：SOCl2+吡啶 -> SN2 -> 翻转。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'O',l:'OH',x:400,y:200}], bonds: [[1,2]] },
+                    { text: "产物：构型翻转的氯代烷。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'Cl',x:200,y:200}], bonds: [[1,2]] }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q11', title: 'Q11: 碳正离子稳定性', tag: '共振 > 超共轭',
+        tabs: [
+            {
+                name: '(a) 共振效应',
+                steps: [
+                    { text: "比较：伯 < 仲 < 烯丙基(Allylic)。", atoms: [{id:1,e:'C',l:'1°',x:150,y:200},{id:2,e:'C',l:'<',x:250,y:200},{id:3,e:'C',l:'2°',x:350,y:200},{id:4,e:'C',l:'<',x:450,y:200},{id:5,e:'C',l:'Allyl',x:600,y:200}], bonds: [] }
+                ]
+            },
+            {
+                name: '(b) 诱导效应',
+                steps: [
+                    { text: "比较：仲(2°) < 叔(3°)。超共轭基团越多越稳定。", atoms: [{id:1,e:'C',l:'2°',x:150,y:200},{id:2,e:'C',l:'<',x:280,y:200},{id:3,e:'C',l:'3°',x:550,y:200}], bonds: [] }
+                ]
+            },
+            {
+                name: '(c) 混合效应',
+                steps: [
+                    { text: "比较：2° < 伯-烯丙基 < 叔-烯丙基。", atoms: [{id:1,e:'C',l:'2°',x:150,y:200},{id:2,e:'C',l:'<',x:250,y:200},{id:3,e:'C',l:'Allyl-1°',x:380,y:200},{id:4,e:'C',l:'<',x:480,y:200},{id:5,e:'C',l:'Allyl-3°',x:620,y:200}], bonds: [] }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q12', title: 'Q12: 乙烯基卤消除', tag: '顺式消除 (Syn)',
+        tabs: [
+            {
+                name: '顺式消除',
+                steps: [
+                    { text: "Z-异构体(顺式H,Cl)反应极快。结论：乙烯基卤偏好顺式消除。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'C',x:500,y:200},{id:3,e:'Cl',x:500,y:100},{id:4,e:'H',x:300,y:100},{id:5,e:'C',l:'R',x:300,y:300},{id:6,e:'C',l:'R',x:500,y:300}], bonds: [[1,2,2],[1,4],[1,5],[2,3],[2,6]] },
+                    { text: "产物：炔烃。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'C',x:500,y:200},{id:3,e:'Cl',l:'Cl⁻',x:650,y:50,o:0},{id:4,e:'H',l:'BH',x:150,y:50,o:0}], bonds: [[1,2,2]] }
+                ]
+            }
+        ]
+    }
+];
+
+// ==========================================
+//              渲染逻辑类
+// ==========================================
+
+class Visualizer {
+    constructor(containerId, data) {
+        this.container = document.getElementById(containerId);
+        this.data = data;
+        this.currentTabIdx = 0;
+        this.currentStepIdx = 0;
+        this.render();
+    }
+
+    render() {
+        const html = `
+            <div class="problem-card">
+                <div class="card-header">
+                    <span class="card-title">${this.data.title}</span>
+                    <span class="card-tag">${this.data.tag}</span>
+                </div>
+                <div class="tabs">
+                    ${this.data.tabs.map((t, i) => `
+                        <button class="tab-btn ${i===0?'active':''}" onclick="instances['${this.data.id}'].switchTab(${i}, this)">
+                            ${t.name}
+                        </button>
+                    `).join('')}
+                </div>
+                <div class="viz-stage">
+                    <svg id="svg-${this.data.id}" viewBox="0 0 800 450"></svg>
+                </div>
+                <div class="explainer">
+                    <span class="step-badge" id="badge-${this.data.id}">Step 1</span>
+                    <div class="step-text" id="text-${this.data.id}"></div>
+                </div>
+                <div class="controls">
+                    <button class="btn btn-reset" onclick="instances['${this.data.id}'].reset()">↺ 重置</button>
+                    <button class="btn btn-next" onclick="instances['${this.data.id}'].next()">▶ 下一步</button>
+                </div>
+            </div>
+        `;
+        this.container.innerHTML = html;
+        this.updateScene();
+    }
+
+    switchTab(idx, btn) {
+        this.currentTabIdx = idx;
+        this.currentStepIdx = 0;
+        const parent = btn.parentElement;
+        [...parent.children].forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        this.updateScene();
+    }
+
+    next() {
+        const steps = this.data.tabs[this.currentTabIdx].steps;
+        if (this.currentStepIdx < steps.length - 1) {
+            this.currentStepIdx++;
+        } else {
+            this.currentStepIdx = 0; 
+        }
+        this.updateScene();
+    }
+
+    reset() {
+        this.currentStepIdx = 0;
+        this.updateScene();
+    }
+
+    updateScene() {
+        const step = this.data.tabs[this.currentTabIdx].steps[this.currentStepIdx];
+        const total = this.data.tabs[this.currentTabIdx].steps.length;
+        const svg = document.getElementById(`svg-${this.data.id}`);
+
+        document.getElementById(`badge-${this.data.id}`).innerText = `Step ${this.currentStepIdx + 1} / ${total}`;
+        document.getElementById(`text-${this.data.id}`).innerText = step.text;
+
+        // 绘制键 (Layer 1)
+        let bondGroup = svg.querySelector('.bond-layer');
+        if (!bondGroup) {
+            bondGroup = createSVG('g', {'class': 'bond-layer'});
+            svg.appendChild(bondGroup);
+        }
+        bondGroup.innerHTML = ''; 
+        
+        if(step.bonds) {
+            step.bonds.forEach(b => {
+                const a1 = step.atoms.find(a => a.id === b[0]);
+                const a2 = step.atoms.find(a => a.id === b[1]);
+                if(a1 && a2) {
+                    const line = createSVG('line', {
+                        x1: a1.x, y1: a1.y, x2: a2.x, y2: a2.y,
+                        class: `bond ${b.length>2 ? 'bond-double' : ''}`
+                    });
+                    bondGroup.appendChild(line);
+                }
+            });
+        }
+
+        // 绘制原子 (Layer 2)
+        let atomGroup = svg.querySelector('.atom-layer');
+        if (!atomGroup) {
+            atomGroup = createSVG('g', {'class': 'atom-layer'});
+            svg.appendChild(atomGroup);
+        }
+
+        step.atoms.forEach(atom => {
+            let el = document.getElementById(`${this.data.id}-a-${atom.id}`);
+            if (!el) {
+                el = createSVG('g', {
+                    id: `${this.data.id}-a-${atom.id}`,
+                    class: 'atom-group'
+                });
+                
+                const circle = createSVG('circle', {r: ATOM_R, class: 'atom-circle'});
+                const text = createSVG('text', {class: 'atom-text'});
+                
+                el.appendChild(circle);
+                el.appendChild(text);
+                atomGroup.appendChild(el);
+            }
+
+            el.style.transform = `translate(${atom.x}px, ${atom.y}px)`;
+            el.style.opacity = (atom.o !== undefined) ? atom.o : 1;
+
+            const circle = el.querySelector('circle');
+            circle.style.fill = COLORS[atom.e] || '#999';
+            
+            const text = el.querySelector('text');
+            text.textContent = atom.l || atom.e;
+        });
+        
+        // 清理消失的原子
+        [...atomGroup.children].forEach(el => {
+            const id = parseInt(el.id.split('-a-')[1]);
+            if(!step.atoms.find(a => a.id === id)) {
+                el.style.opacity = 0;
+            }
+        });
+    }
+}
+
+// 初始化
+const instances = {};
+const app = document.getElementById('app');
+
+QUESTIONS.forEach(q => {
+    const div = document.createElement('div');
+    div.id = `container-${q.id}`;
+    app.appendChild(div);
+    instances[q.id] = new Visualizer(div.id, q);
+});
+
+</script>
+</body>
+</html>

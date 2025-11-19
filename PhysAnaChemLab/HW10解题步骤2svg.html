@@ -1,0 +1,610 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HW10 有机化学全解 (Q1-Q11 完整版)</title>
+    <style>
+        :root {
+            --atom-r: 32px;
+            --anim-duration: 1.5s;
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --success: #27ae60;
+            --danger: #c0392b;
+            --bg-color: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background-color: var(--bg-color);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        h1 { text-align: center; color: var(--primary); margin-bottom: 10px; }
+        .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 40px; }
+
+        /* 卡片样式 */
+        .problem-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 50px;
+            border: 1px solid #eaeaea;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: var(--primary);
+            color: #fff;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card-title { font-size: 1.2rem; font-weight: bold; }
+        .card-tag { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; }
+
+        /* 选项卡 */
+        .tabs {
+            display: flex;
+            background: #ecf0f1;
+            overflow-x: auto;
+            border-bottom: 1px solid #bdc3c7;
+            padding-bottom: 2px;
+        }
+        .tab-btn {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: #7f8c8d;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+        .tab-btn:hover { background: #e6e6e6; }
+        .tab-btn.active {
+            color: var(--secondary);
+            border-bottom-color: var(--secondary);
+            background: #fff;
+        }
+
+        /* 可视化区域 */
+        .viz-stage {
+            width: 100%;
+            height: 450px;
+            position: relative;
+            background-color: #ffffff;
+            background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
+            background-size: 20px 20px;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        svg { width: 100%; height: 100%; }
+        
+        /* 动画类 */
+        .atom-group {
+            transition: transform var(--anim-duration) cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease;
+            cursor: default;
+        }
+        
+        .atom-circle {
+            stroke: #2c3e50;
+            stroke-width: 2px;
+            fill: #fff;
+            transition: fill 0.5s;
+        }
+        
+        .atom-text {
+            font-size: 20px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+            fill: #fff;
+            text-shadow: 0px 1px 2px rgba(0,0,0,0.6);
+        }
+
+        .bond {
+            stroke: #555;
+            stroke-width: 8px;
+            stroke-linecap: round;
+            transition: all var(--anim-duration) cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .bond-double { stroke-width: 14px; }
+
+        /* 解释文字区 */
+        .explainer {
+            padding: 20px;
+            background: #fdfbf0;
+            border-top: 1px solid #f1c40f;
+            min-height: 80px;
+        }
+        .step-badge {
+            display: inline-block;
+            background: var(--secondary);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .step-text { font-size: 1.05rem; color: #2c3e50; }
+
+        /* 按钮区 */
+        .controls {
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            background: #fff;
+            border-top: 1px solid #eee;
+        }
+        .btn {
+            padding: 10px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+            color: #fff;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-next { background: var(--success); }
+        .btn-reset { background: var(--danger); }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>HW10 有机化学全解 (Q1-Q11)</h1>
+    <p class="subtitle">包含所有补充问题 | 全流程步进动画 | 32px 原子视图</p>
+
+    <div id="app"></div>
+</div>
+
+<script>
+const ATOM_R = 32;
+
+// 颜色定义
+const COLORS = {
+    C: '#34495e', H: '#bdc3c7', O: '#e74c3c', N: '#3498db',
+    Br: '#8e44ad', Cl: '#27ae60', I: '#9b59b6', S: '#f1c40f',
+    Mg: '#e67e22', Li: '#d35400', Cu: '#e67e22', Cr: '#f39c12',
+    Ghost: 'transparent'
+};
+
+function createSVG(tag, attrs) {
+    const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for (let k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+}
+
+/* ================= 数据定义区 (Q1-Q11 全集) ================= */
+
+const QUESTIONS = [
+    {
+        id: 'q1', title: 'Q1: 叔卤代烷的水解 (SN1)', tag: 'SN1 机理',
+        tabs: [
+            {
+                name: '机理演示',
+                steps: [
+                    { text: "1. 离解: t-BuBr 中 C-Br 键异裂。Br⁻ 离去，形成叔碳正离子。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'Br',x:450,y:200},{id:3,e:'C',l:'Me',x:300,y:100},{id:4,e:'C',l:'Me',x:300,y:300},{id:5,e:'C',l:'Me',x:200,y:200},{id:6,e:'O',l:'H2O',x:600,y:300}], bonds: [[1,2],[1,3],[1,4],[1,5]] },
+                    { text: "2. 碳正离子: 平面型叔碳正离子 (3°) 形成。决速步。", atoms: [{id:1,e:'C',l:'C+',x:300,y:200},{id:2,e:'Br',l:'Br⁻',x:600,y:100},{id:3,e:'C',l:'Me',x:300,y:100},{id:4,e:'C',l:'Me',x:300,y:300},{id:5,e:'C',l:'Me',x:200,y:200},{id:6,e:'O',l:'H2O',x:500,y:200}], bonds: [[1,3],[1,4],[1,5]] },
+                    { text: "3. 产物: 水进攻 C+，去质子后生成叔丁醇。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'Br',l:'Br⁻',x:700,y:100,o:0},{id:3,e:'C',l:'Me',x:300,y:100},{id:4,e:'C',l:'Me',x:300,y:300},{id:5,e:'C',l:'Me',x:200,y:200},{id:6,e:'O',l:'OH',x:420,y:200}], bonds: [[1,3],[1,4],[1,5],[1,6]] }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q2', title: 'Q2: 单氯代与手性', tag: '手性中心',
+        tabs: [
+            {
+                name: '(a) 2-甲基丁烷',
+                steps: [
+                    { text: "底物：2-甲基丁烷。在 C1, C2, C3, C4 位均可氯代。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'C',x:400,y:200},{id:3,e:'C',x:500,y:200},{id:4,e:'C',x:600,y:200},{id:5,e:'C',l:'Me',x:400,y:100}], bonds: [[1,2],[2,3],[3,4],[2,5]] },
+                    { text: "C3 氯代产物：2-氯-3-甲基丁烷。C2 是手性碳 (*)。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'C',l:'C*',x:400,y:200},{id:3,e:'C',x:500,y:200},{id:4,e:'C',x:600,y:200},{id:5,e:'C',l:'Me',x:400,y:100},{id:6,e:'Cl',x:500,y:300}], bonds: [[1,2],[2,3],[3,4],[2,5],[3,6]] }
+                ]
+            },
+            {
+                name: '(b) 甲基环丙烷',
+                steps: [
+                    { text: "底物：甲基环丙烷。环上的 CH2 位氯代。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'C',x:400,y:200},{id:3,e:'C',x:350,y:120},{id:4,e:'C',l:'Me',x:350,y:50}], bonds: [[1,2],[2,3],[3,1],[3,4]] },
+                    { text: "产物：环上氯代会破坏对称面，产生手性中心 (C1, C3)。", atoms: [{id:1,e:'C',l:'C*',x:300,y:200},{id:2,e:'C',x:400,y:200},{id:3,e:'C',l:'C*',x:350,y:120},{id:4,e:'C',l:'Me',x:350,y:50},{id:5,e:'Cl',x:250,y:250}], bonds: [[1,2],[2,3],[3,1],[3,4],[1,5]] }
+                ]
+            },
+            {
+                name: '(c) 2,2-二甲基戊烷',
+                steps: [
+                    { text: "底物：新戊基结构 + 乙基。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'C',x:400,y:200},{id:3,e:'C',x:500,y:200},{id:4,e:'C',x:600,y:200},{id:5,e:'C',l:'Me',x:400,y:100},{id:6,e:'C',l:'Me',x:400,y:300}], bonds: [[1,2],[2,3],[3,4],[2,5],[2,6]] },
+                    { text: "C3 氯代：产生 3-氯-2,2-二甲基戊烷。C3 变为手性碳 (连接 H, Cl, Et, tBu)。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'C',x:400,y:200},{id:3,e:'C',l:'C*',x:500,y:200},{id:4,e:'C',x:600,y:200},{id:5,e:'C',l:'Me',x:400,y:100},{id:6,e:'C',l:'Me',x:400,y:300},{id:7,e:'Cl',x:500,y:300}], bonds: [[1,2],[2,3],[3,4],[2,5],[2,6],[3,7]] }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q3', title: 'Q3: 环戊烯的合成 (a-f)', tag: '合成路线',
+        tabs: [
+            {
+                name: '(a) 氯代环戊烷',
+                steps: [
+                    { text: "底物: 环戊烯。试剂: HCl。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'C',x:400,y:200},{id:3,e:'C',x:350,y:300},{id:4,e:'C',x:350,y:100},{id:5,e:'C',x:250,y:200},{id:6,e:'Cl',l:'H-Cl',x:500,y:200}], bonds: [[1,4],[1,3],[2,3],[2,4],[2,2,1]] },
+                    { text: "加成反应: H 加一端，Cl 加一端。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'C',x:400,y:200},{id:3,e:'C',x:350,y:300},{id:4,e:'C',x:350,y:100},{id:5,e:'C',x:250,y:200},{id:6,e:'Cl',x:500,y:200}], bonds: [[1,4],[1,3],[2,3],[2,4],[1,2],[2,6]] }
+                ]
+            },
+            {
+                name: '(b) 甲基环戊烷',
+                steps: [
+                    { text: "1. HBr 加成 -> 溴代环戊烷。", atoms: [{id:1,e:'C',l:'Ring',x:300,y:200},{id:2,e:'Br',x:400,y:200}], bonds: [[1,2]] },
+                    { text: "2. Gilman 偶联: + (CH3)2CuLi。", atoms: [{id:1,e:'C',l:'Ring',x:300,y:200},{id:3,e:'Cu',l:'(Me)2CuLi',x:450,y:200}], bonds: [[1,3]] },
+                    { text: "产物: 甲基环戊烷。", atoms: [{id:1,e:'C',l:'Ring',x:300,y:200},{id:4,e:'C',l:'Me',x:400,y:200}], bonds: [[1,4]] }
+                ]
+            },
+            {
+                name: '(c) 3-溴环戊烯',
+                steps: [
+                    { text: "烯丙基溴化: NBS + 光/热。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'C',x:400,y:200},{id:3,e:'C',x:350,y:300},{id:4,e:'C',x:350,y:100},{id:5,e:'Br',l:'NBS',x:500,y:100}], bonds: [[1,4],[1,3],[2,3],[2,4],[2,2,1]] },
+                    { text: "自由基取代: 保留双键，Br 上在邻位。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'C',x:400,y:200},{id:3,e:'C',x:350,y:300},{id:4,e:'C',x:350,y:100},{id:5,e:'Br',x:450,y:80}], bonds: [[1,4],[1,3],[2,3],[2,4],[2,2,1],[4,5]] }
+                ]
+            },
+            {
+                name: '(d) 环戊醇',
+                steps: [
+                    { text: "酸催化水合: H2O / H+。", atoms: [{id:1,e:'C',l:'C=C',x:300,y:200},{id:2,e:'O',l:'H2O',x:400,y:200}], bonds: [[1,1,1]] },
+                    { text: "产物: 环戊醇。", atoms: [{id:1,e:'C',l:'Ring',x:300,y:200},{id:2,e:'O',l:'OH',x:400,y:200}], bonds: [[1,2]] }
+                ]
+            },
+            {
+                name: '(e) 环戊基环戊烷',
+                steps: [
+                    { text: "偶联策略: 环戊基溴 + 环戊基铜锂。", atoms: [{id:1,e:'C',l:'Ring-Br',x:300,y:200},{id:2,e:'Cu',l:'(Ring)2CuLi',x:500,y:200}], bonds: [] },
+                    { text: "产物: 两个环通过单键相连。", atoms: [{id:1,e:'C',l:'Ring',x:350,y:200},{id:2,e:'C',l:'Ring',x:450,y:200}], bonds: [[1,2]] }
+                ]
+            },
+            {
+                name: '(f) 1,3-环戊二烯',
+                steps: [
+                    { text: "1. 烯丙基溴化 -> 3-溴环戊烯。", atoms: [{id:1,e:'C',l:'Ring=C-Br',x:300,y:200}], bonds: [] },
+                    { text: "2. 消除反应 (E2): 使用强碱 (tBuOK)。脱去 HBr 形成第二个双键。", atoms: [{id:1,e:'C',l:'Diene',x:300,y:200},{id:2,e:'Br',l:'Br⁻',x:400,y:200,o:0}], bonds: [] } // Visual representation
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q4', title: 'Q4: 产物预测 (a-g)', tag: '试剂反应',
+        tabs: [
+            {
+                name: '(a) SN1',
+                steps: [
+                    { text: "1-甲基环己醇 + HBr (3° 醇)。SN1。", atoms: [{id:1,e:'C',l:'Ring',x:300,y:200},{id:2,e:'O',l:'OH',x:400,y:200},{id:3,e:'C',l:'Me',x:300,y:100}], bonds: [[1,2],[1,3]] },
+                    { text: "产物：1-溴-1-甲基环己烷。", atoms: [{id:1,e:'C',l:'Ring',x:300,y:200},{id:2,e:'Br',x:400,y:200},{id:3,e:'C',l:'Me',x:300,y:100}], bonds: [[1,2],[1,3]] }
+                ]
+            },
+            {
+                name: '(b) SN2',
+                steps: [
+                    { text: "1-丁醇 + SOCl2。SN2。", atoms: [{id:1,e:'C',l:'Bu',x:300,y:200},{id:2,e:'O',l:'OH',x:400,y:200}], bonds: [[1,2]] },
+                    { text: "产物：1-氯丁烷。", atoms: [{id:1,e:'C',l:'Bu',x:300,y:200},{id:2,e:'Cl',x:400,y:200}], bonds: [[1,2]] }
+                ]
+            },
+            {
+                name: '(c) 双环 NBS',
+                steps: [
+                    { text: "萘烷衍生物 + NBS。自由基取代。", atoms: [{id:1,e:'C',l:'Ring',x:300,y:200}], bonds: [] },
+                    { text: "产物：苯甲/烯丙位溴代。", atoms: [{id:1,e:'C',l:'Ring-Br',x:300,y:200}], bonds: [] }
+                ]
+            },
+            {
+                name: '(d) PBr3',
+                steps: [
+                    { text: "环己醇 + PBr3。SN2 (反转，但在非手性碳不明显)。", atoms: [{id:1,e:'C',l:'Ring',x:300,y:200},{id:2,e:'O',l:'OH',x:400,y:200}], bonds: [[1,2]] },
+                    { text: "产物：溴环己烷。", atoms: [{id:1,e:'C',l:'Ring',x:300,y:200},{id:2,e:'Br',x:400,y:200}], bonds: [[1,2]] }
+                ]
+            },
+            {
+                name: '(e) SOCl2 (2°)',
+                steps: [
+                    { text: "2-戊醇 + SOCl2。SN2，构型翻转。", atoms: [{id:1,e:'C',l:'2° R-OH',x:300,y:200}], bonds: [] },
+                    { text: "产物：2-氯戊烷 (构型翻转)。", atoms: [{id:1,e:'C',l:'2° R-Cl',x:300,y:200}], bonds: [] }
+                ]
+            },
+            {
+                name: '(f) Gilman I',
+                steps: [
+                    { text: "1-溴丁烷 -> Li -> CuI -> (Bu)2CuLi。", atoms: [{id:1,e:'Cu',l:'(Bu)2CuLi',x:300,y:200}], bonds: [] },
+                    { text: "+ 1-碘戊烷 -> 壬烷 (Nonane)。", atoms: [{id:1,e:'C',l:'C4-C5',x:300,y:200}], bonds: [] }
+                ]
+            },
+            {
+                name: '(g) Gilman II',
+                steps: [
+                    { text: "溴代烷 + (Me)2CuLi。", atoms: [{id:1,e:'C',l:'R-Br',x:300,y:200},{id:2,e:'Cu',l:'(Me)2CuLi',x:500,y:200}], bonds: [] },
+                    { text: "产物：甲基取代溴。R-Me。", atoms: [{id:1,e:'C',l:'R-Me',x:300,y:200}], bonds: [] }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q5', title: 'Q5: 共振结构产物', tag: '烯丙基共振',
+        tabs: [
+            {
+                name: 'NBS 反应',
+                steps: [
+                    { text: "底物：2-戊烯。C4 为烯丙位。", atoms: [{id:1,e:'C',x:200,y:200},{id:2,e:'C',x:300,y:200},{id:3,e:'C',x:400,y:200},{id:4,e:'C',x:500,y:200},{id:5,e:'C',x:600,y:200}], bonds: [[1,2],[2,3,2],[3,4],[4,5]] },
+                    { text: "中间体：自由基在 C2-C4 间共振。", atoms: [{id:1,e:'C',x:200,y:200},{id:2,e:'C',x:300,y:200},{id:3,e:'C',x:400,y:200},{id:4,e:'C',l:'C•',x:500,y:200},{id:5,e:'C',x:600,y:200}], bonds: [[1,2],[2,3,2],[3,4],[4,5]] },
+                    { text: "产物：4-溴-2-戊烯 (主要) 和 2-溴-3-戊烯。", atoms: [{id:1,e:'C',x:200,y:200},{id:2,e:'C',x:300,y:200},{id:3,e:'C',x:400,y:200},{id:4,e:'C',x:500,y:200},{id:5,e:'C',x:600,y:200},{id:6,e:'Br',x:500,y:100},{id:7,e:'Br',x:300,y:300,o:0.5}], bonds: [[1,2],[2,3,2],[3,4],[4,5],[4,6]] }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q6', title: 'Q6: 双烯丙基自由基', tag: '稳定性',
+        tabs: [
+            {
+                name: '最稳定位点',
+                steps: [
+                    { text: "底物：1,4-己二烯。C3 位于两个双键之间。", atoms: [{id:1,e:'C',l:'C=C',x:200,y:200},{id:2,e:'C',l:'CH2',x:350,y:200},{id:3,e:'C',l:'C=C',x:500,y:200}], bonds: [[1,2],[2,3]] },
+                    { text: "C3 自由基可与两侧双键共振 (双烯丙基)。稳定性极高。", atoms: [{id:1,e:'C',l:'C=C',x:200,y:200},{id:2,e:'C',l:'•CH',x:350,y:200},{id:3,e:'C',l:'C=C',x:500,y:200}], bonds: [[1,2],[2,3]] }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q7', title: 'Q7: 苯甲位溴化', tag: '苯甲位',
+        tabs: [
+            {
+                name: '反应位点',
+                steps: [
+                    { text: "底物：1-苯基-2-丁烯。C1 既是苯甲位又是烯丙位。", atoms: [{id:1,e:'C',l:'Ph',x:200,y:200},{id:2,e:'C',l:'CH2',x:300,y:200},{id:3,e:'C',l:'CH=CH',x:450,y:200}], bonds: [[1,2],[2,3]] },
+                    { text: "NBS 溴化发生在 C1。生成 1-溴-1-苯基-2-丁烯。", atoms: [{id:1,e:'C',l:'Ph',x:200,y:200},{id:2,e:'C',l:'CH-Br',x:300,y:200},{id:3,e:'C',l:'CH=CH',x:450,y:200}], bonds: [[1,2],[2,3]] }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q8', title: 'Q8: 氧化还原判断 (a-c)', tag: '氧化数',
+        tabs: [
+            {
+                name: '(a) 氧化',
+                steps: [
+                    { text: "CH3CH2OH (醇) -> CH3CHO (醛)。\n失去 2个 H。氧化 (Oxidation)。", atoms: [{id:1,e:'C',l:'R-OH',x:300,y:200},{id:2,e:'C',l:'R=O',x:500,y:200}], bonds: [[1,2,3]] } // Arrow
+                ]
+            },
+            {
+                name: '(b) 还原',
+                steps: [
+                    { text: "炔烃 -> 烯烃/烷烃。\n增加 H，减少 π 键。还原 (Reduction)。", atoms: [{id:1,e:'C',l:'C≡C',x:300,y:200},{id:2,e:'C',l:'CH-CH',x:500,y:200}], bonds: [[1,2,3]] }
+                ]
+            },
+            {
+                name: '(c) 还原',
+                steps: [
+                    { text: "R-Br -> R-H。\nC-Br 键变为 C-H 键 (C电负性>H, <Br)。碳得到电子。还原 (Reduction)。", atoms: [{id:1,e:'C',l:'R-Br',x:300,y:200},{id:2,e:'C',l:'R-H',x:500,y:200}], bonds: [[1,2,3]] }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q9', title: 'Q9: 自由基稳定性 (a-c)', tag: '稳定性排序',
+        tabs: [
+            {
+                name: '(a) 烯丙 vs 伯',
+                steps: [
+                    { text: "烯丙基自由基 (共振) > 伯自由基。", atoms: [{id:1,e:'C',l:'Allyl•',x:300,y:200},{id:2,e:'C',l:'>',x:400,y:200},{id:3,e:'C',l:'1°•',x:500,y:200}], bonds: [] }
+                ]
+            },
+            {
+                name: '(b) 3° vs 2° vs 1°',
+                steps: [
+                    { text: "叔 (3°) > 仲 (2°) > 伯 (1°)。超共轭效应。", atoms: [{id:1,e:'C',l:'3°',x:200,y:200},{id:2,e:'C',l:'>',x:300,y:200},{id:3,e:'C',l:'2°',x:400,y:200},{id:4,e:'C',l:'>',x:500,y:200},{id:5,e:'C',l:'1°',x:600,y:200}], bonds: [] }
+                ]
+            },
+            {
+                name: '(c) 共振 vs 诱导',
+                steps: [
+                    { text: "双烯丙基 > 烯丙基 > 3° 烷基。", atoms: [{id:1,e:'C',l:'Double-Allyl',x:200,y:200},{id:2,e:'C',l:'>',x:350,y:200},{id:3,e:'C',l:'Allyl',x:500,y:200}], bonds: [] }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q10', title: 'Q10: 合成设计', tag: 'Gilman 偶联',
+        tabs: [
+            {
+                name: '环己烯 -> 丁基环己烷',
+                steps: [
+                    { text: "1. 环己烯 + HBr -> 溴环己烷。", atoms: [{id:1,e:'C',l:'Ring=',x:300,y:200},{id:2,e:'C',l:'Ring-Br',x:500,y:200}], bonds: [[1,2,3]] },
+                    { text: "2. 制备 (Bu)2CuLi (从 BuBr)。", atoms: [{id:1,e:'C',l:'BuBr',x:300,y:200},{id:2,e:'Cu',l:'Reagent',x:500,y:200}], bonds: [[1,2,3]] },
+                    { text: "3. 偶联: 溴环己烷 + Reagent -> 产物。", atoms: [{id:1,e:'C',l:'Ring-Br',x:300,y:200},{id:2,e:'C',l:'Ring-Bu',x:500,y:200}], bonds: [[1,2,3]] }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q11', title: 'Q11: 烯醇醚 HBr 加成', tag: '共振稳定',
+        tabs: [
+            {
+                name: '区域选择性',
+                steps: [
+                    { text: "底物：1-甲氧基环己烯。H+ 进攻双键生成碳正离子。", atoms: [{id:1,e:'C',l:'C(OMe)',x:300,y:200},{id:2,e:'C',l:'CH',x:400,y:200},{id:3,e:'O',l:'OMe',x:300,y:100},{id:4,e:'H',l:'H+',x:500,y:100}], bonds: [[1,2,2],[1,3]] },
+                    { text: "中间体：正电荷在 C1，被氧孤对电子共振稳定 (C+=O-Me)。", atoms: [{id:1,e:'C',l:'C+',x:300,y:200},{id:2,e:'C',l:'CH2',x:400,y:200},{id:3,e:'O',l:'OMe',x:300,y:100}], bonds: [[1,2],[1,3]] },
+                    { text: "产物：Br- 进攻 C1。", atoms: [{id:1,e:'C',x:300,y:200},{id:2,e:'C',l:'CH2',x:400,y:200},{id:3,e:'O',l:'OMe',x:300,y:100},{id:4,e:'Br',x:200,y:200}], bonds: [[1,2],[1,3],[1,4]] }
+                ]
+            }
+        ]
+    }
+];
+
+/* ================= 渲染逻辑 ================= */
+
+class Visualizer {
+    constructor(containerId, data) {
+        this.container = document.getElementById(containerId);
+        this.data = data;
+        this.currentTabIdx = 0;
+        this.currentStepIdx = 0;
+        this.render();
+    }
+
+    render() {
+        const html = `
+            <div class="problem-card">
+                <div class="card-header">
+                    <span class="card-title">${this.data.title}</span>
+                    <span class="card-tag">${this.data.tag}</span>
+                </div>
+                <div class="tabs">
+                    ${this.data.tabs.map((t, i) => `
+                        <button class="tab-btn ${i===0?'active':''}" onclick="instances['${this.data.id}'].switchTab(${i}, this)">
+                            ${t.name}
+                        </button>
+                    `).join('')}
+                </div>
+                <div class="viz-stage">
+                    <svg id="svg-${this.data.id}" viewBox="0 0 800 450"></svg>
+                </div>
+                <div class="explainer">
+                    <span class="step-badge" id="badge-${this.data.id}">Step 1</span>
+                    <div class="step-text" id="text-${this.data.id}"></div>
+                </div>
+                <div class="controls">
+                    <button class="btn btn-reset" onclick="instances['${this.data.id}'].reset()">↺ 重置</button>
+                    <button class="btn btn-next" onclick="instances['${this.data.id}'].next()">▶ 下一步</button>
+                </div>
+            </div>
+        `;
+        this.container.innerHTML = html;
+        this.updateScene();
+    }
+
+    switchTab(idx, btn) {
+        this.currentTabIdx = idx;
+        this.currentStepIdx = 0;
+        const parent = btn.parentElement;
+        [...parent.children].forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        this.updateScene();
+    }
+
+    next() {
+        const steps = this.data.tabs[this.currentTabIdx].steps;
+        if (this.currentStepIdx < steps.length - 1) {
+            this.currentStepIdx++;
+        } else {
+            this.currentStepIdx = 0; 
+        }
+        this.updateScene();
+    }
+
+    reset() {
+        this.currentStepIdx = 0;
+        this.updateScene();
+    }
+
+    updateScene() {
+        const step = this.data.tabs[this.currentTabIdx].steps[this.currentStepIdx];
+        const total = this.data.tabs[this.currentTabIdx].steps.length;
+        const svg = document.getElementById(`svg-${this.data.id}`);
+
+        document.getElementById(`badge-${this.data.id}`).innerText = `Step ${this.currentStepIdx + 1} / ${total}`;
+        document.getElementById(`text-${this.data.id}`).innerText = step.text;
+
+        // 绘制键
+        let bondGroup = svg.querySelector('.bond-layer');
+        if (!bondGroup) {
+            bondGroup = createSVG('g', {'class': 'bond-layer'});
+            svg.appendChild(bondGroup);
+        }
+        bondGroup.innerHTML = ''; 
+        
+        if(step.bonds) {
+            step.bonds.forEach(b => {
+                const a1 = step.atoms.find(a => a.id === b[0]);
+                const a2 = step.atoms.find(a => a.id === b[1]);
+                if(a1 && a2) {
+                    const line = createSVG('line', {
+                        x1: a1.x, y1: a1.y, x2: a2.x, y2: a2.y,
+                        class: `bond ${b.length>2 && b[2]===2 ? 'bond-double' : ''}`
+                    });
+                    if(b[2] === 3) { // Arrow visualization
+                        line.setAttribute('marker-end', 'url(#arrow)');
+                        line.style.stroke = '#7f8c8d';
+                        line.style.strokeWidth = '4px';
+                    }
+                    bondGroup.appendChild(line);
+                }
+            });
+        }
+
+        // 绘制原子
+        let atomGroup = svg.querySelector('.atom-layer');
+        if (!atomGroup) {
+            atomGroup = createSVG('g', {'class': 'atom-layer'});
+            svg.appendChild(atomGroup);
+        }
+
+        step.atoms.forEach(atom => {
+            let el = document.getElementById(`${this.data.id}-a-${atom.id}`);
+            if (!el) {
+                el = createSVG('g', {
+                    id: `${this.data.id}-a-${atom.id}`,
+                    class: 'atom-group'
+                });
+                
+                const circle = createSVG('circle', {r: ATOM_R, class: 'atom-circle'});
+                const text = createSVG('text', {class: 'atom-text'});
+                
+                el.appendChild(circle);
+                el.appendChild(text);
+                atomGroup.appendChild(el);
+            }
+
+            el.style.transform = `translate(${atom.x}px, ${atom.y}px)`;
+            el.style.opacity = (atom.o !== undefined) ? atom.o : 1;
+
+            const circle = el.querySelector('circle');
+            circle.style.fill = COLORS[atom.e] || '#999';
+            
+            const text = el.querySelector('text');
+            text.textContent = atom.l || atom.e;
+        });
+        
+        // 清理原子
+        [...atomGroup.children].forEach(el => {
+            const id = parseInt(el.id.split('-a-')[1]);
+            if(!step.atoms.find(a => a.id === id)) {
+                el.style.opacity = 0;
+            }
+        });
+    }
+}
+
+// 初始化
+const instances = {};
+const app = document.getElementById('app');
+
+QUESTIONS.forEach(q => {
+    const div = document.createElement('div');
+    div.id = `container-${q.id}`;
+    app.appendChild(div);
+    instances[q.id] = new Visualizer(div.id, q);
+});
+
+</script>
+</body>
+</html>

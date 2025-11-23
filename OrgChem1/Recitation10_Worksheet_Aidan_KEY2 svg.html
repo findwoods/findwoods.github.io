@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>有机化学 Recitation 9 交互式图解</title>
+    <style>
+        :root {
+            --atom-radius: 32px;
+            --anim-speed: 1.5s;
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --highlight-color: #e74c3c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1, h2 { text-align: center; color: var(--primary-color); }
+        
+        .intro-box {
+            background: #fff;
+            padding: 20px;
+            border-left: 5px solid var(--accent-color);
+            border-radius: 5px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* 卡片容器 */
+        .tool-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 50px;
+            overflow: hidden;
+            border: 1px solid #e1e1e1;
+        }
+
+        .card-header {
+            background: var(--primary-color);
+            color: #fff;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title { font-size: 1.3em; font-weight: bold; }
+        .card-tag { background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 4px; font-size: 0.8em; }
+
+        /* 示例切换栏 */
+        .example-tabs {
+            display: flex;
+            background: #ecf0f1;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: bold;
+            color: #7f8c8d;
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            background: #fff;
+            color: var(--accent-color);
+            border-bottom: 3px solid var(--accent-color);
+        }
+        .tab-btn:hover { background: #e0e0e0; }
+
+        /* 可视化区域 */
+        .viz-area {
+            position: relative;
+            height: 450px;
+            background: #ffffff;
+            background-image: radial-gradient(#f0f0f0 1px, transparent 1px);
+            background-size: 20px 20px; /* 网格背景 */
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* SVG 样式 */
+        svg { width: 100%; height: 100%; }
+
+        /* 原子样式 - 核心动画 */
+        .atom-group {
+            transition: transform var(--anim-speed) ease-in-out, opacity var(--anim-speed) ease;
+            cursor: pointer;
+        }
+        .atom-circle {
+            stroke: #333;
+            stroke-width: 2px;
+            fill: #fff;
+            transition: fill 0.5s;
+        }
+        .atom-label {
+            font-size: 20px; 
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+            fill: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        /* 电子(自由基)样式 */
+        .electron-dot {
+            fill: var(--highlight-color);
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        .has-electron .electron-dot { opacity: 1; }
+
+        /* 键样式 */
+        .bond-line {
+            stroke: #555;
+            stroke-width: 8px;
+            stroke-linecap: round;
+            transition: x1 var(--anim-speed) ease-in-out, 
+                        y1 var(--anim-speed) ease-in-out, 
+                        x2 var(--anim-speed) ease-in-out, 
+                        y2 var(--anim-speed) ease-in-out,
+                        opacity 0.5s;
+        }
+        .bond-double { stroke-width: 14px; stroke: #333; } 
+        .bond-breaking { stroke-dasharray: 5,5; opacity: 0.5; }
+
+        /* 控制区 */
+        .control-panel {
+            padding: 20px;
+            background: #f9f9f9;
+            border-top: 1px solid #eee;
+        }
+        .step-info {
+            margin-bottom: 15px;
+            min-height: 60px;
+        }
+        .step-title { font-weight: bold; color: #d35400; margin-bottom: 5px; display: block;}
+        .step-desc { font-size: 1.1em; line-height: 1.5; }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        .btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.1s, opacity 0.2s;
+            color: white;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-next { background: #27ae60; }
+        .btn-reset { background: #c0392b; }
+
+        /* 颜色定义类 */
+        .atom-C { fill: #34495e; }
+        .atom-H { fill: #95a5a6; } 
+        .atom-Br { fill: #9b59b6; } 
+        .atom-Cl { fill: #2ecc71; } 
+        .atom-I { fill: #8e44ad; } 
+        .atom-O { fill: #e74c3c; } 
+        .atom-S { fill: #f1c40f; }
+        .atom-P { fill: #d35400; }
+        .atom-Mg { fill: #e67e22; } 
+        .atom-Cu { fill: #d4ac0d; }
+        .atom-Li { fill: #16a085; }
+        .atom-D { fill: #7f8c8d; } /* Deuterium */
+    </style>
+</head>
+<body>
+
+    <h1>Recitation 9: 卤代烷与有机金属化合物</h1>
+    
+    <div class="intro-box">
+        <strong>学习指南：</strong>
+        本页面将PDF中的6个关键问题转化为可交互动画。
+        <br>涵盖：NBS自由基反应、共振结构、醇转卤代烃、格氏试剂制备与反应、以及合成路线设计。
+        <br>点击“下一步”观察电子转移、键的断裂与形成。
+    </div>
+
+    <div id="tools-container"></div>
+
+<script>
+/* ================= 全局配置与绘图引擎 ================= */
+
+const ATOM_R = 32; 
+
+// 元素颜色映射
+const ELEMENT_COLORS = {
+    'C': '#34495e', 'H': '#95a5a6', 'Br': '#9b59b6', 
+    'Cl': '#2ecc71', 'I': '#8e44ad', 'O': '#e74c3c', 
+    'S': '#f1c40f', 'P': '#d35400', 'Mg': '#e67e22',
+    'Cu': '#d4ac0d', 'Li': '#16a085', 'D': '#34495e' // D same as C/H color visually distinct slightly
+};
+
+// 工具数据 - 对应PDF的6个部分
+const TOOLS_DATA = [
+    {
+        id: 'q1-nbs',
+        title: '问题 1: NBS 烯丙位溴化',
+        tag: '自由基机理',
+        examples: [
+            {
+                name: '环己烯与NBS',
+                steps: [
+                    {
+                        title: '起始：引发步骤',
+                        desc: 'NBS 提供低浓度的溴自由基 (Br•)。反应底物为环己烯。注意烯丙位上的氢原子（H）。',
+                        atoms: [
+                            {id:1, el:'C', x:250, y:200}, {id:2, el:'C', x:320, y:120}, {id:3, el:'C', x:420, y:120}, 
+                            {id:4, el:'C', x:490, y:200, lbl:'Cα'}, {id:5, el:'C', x:420, y:280}, {id:6, el:'C', x:320, y:280},
+                            {id:7, el:'H', x:560, y:160, lbl:'H'}, 
+                            {id:8, el:'Br', x:650, y:100, lbl:'Br•', dot:true}
+                        ],
+                        bonds: [[1,2,2], [2,3], [3,4], [4,5], [5,6], [6,1], [4,7]]
+                    },
+                    {
+                        title: '增长步骤 1：夺氢',
+                        desc: 'Br• 夺取烯丙位氢原子，生成HBr和烯丙位自由基（碳上带有单电子）。',
+                        atoms: [
+                            {id:1, el:'C', x:250, y:200}, {id:2, el:'C', x:320, y:120}, {id:3, el:'C', x:420, y:120}, 
+                            {id:4, el:'C', x:490, y:200, lbl:'C•', dot:true}, {id:5, el:'C', x:420, y:280}, {id:6, el:'C', x:320, y:280},
+                            {id:7, el:'H', x:680, y:100}, 
+                            {id:8, el:'Br', x:730, y:100, lbl:'HBr'}
+                        ],
+                        bonds: [[1,2,2], [2,3], [3,4], [4,5], [5,6], [6,1], [8,7]]
+                    },
+                    {
+                        title: '共振稳定中间体',
+                        desc: '烯丙位自由基通过共振稳定。单电子可以在C4和C2之间离域（PDF要求展示共振结构）。',
+                        atoms: [
+                            {id:1, el:'C', x:250, y:200}, {id:2, el:'C', x:320, y:120, lbl:'C•', dot:true}, {id:3, el:'C', x:420, y:120}, 
+                            {id:4, el:'C', x:490, y:200}, {id:5, el:'C', x:420, y:280}, {id:6, el:'C', x:320, y:280},
+                            {id:7, el:'H', x:750, y:50, op:0}, {id:8, el:'Br', x:800, y:50, op:0}
+                        ],
+                        bonds: [[1,2], [2,3], [3,4,2], [4,5], [5,6], [6,1]] // Double bond moved to 3-4
+                    },
+                    {
+                        title: '增长步骤 2：夺卤',
+                        desc: '碳自由基攻击 Br2 (由NBS原位产生)，生成产物 3-溴环己烯，并再生 Br•。',
+                        atoms: [
+                            {id:1, el:'C', x:250, y:200}, {id:2, el:'C', x:320, y:120}, {id:3, el:'C', x:420, y:120}, 
+                            {id:4, el:'C', x:490, y:200}, {id:5, el:'C', x:420, y:280}, {id:6, el:'C', x:320, y:280},
+                            {id:9, el:'Br', x:560, y:200, lbl:'Br'}, // Attached
+                            {id:10, el:'Br', x:700, y:300, lbl:'Br•', dot:true} // Regenerated
+                        ],
+                        bonds: [[1,2,2], [2,3], [3,4], [4,5], [5,6], [6,1], [4,9]] // Double bond back at 1-2 for product 1
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q2-resonance',
+        title: '问题 2: 自由基共振结构',
+        tag: '电子离域',
+        examples: [
+            {
+                name: '环外双键自由基 (PDF左图)',
+                steps: [
+                    {
+                        title: '结构 A',
+                        desc: '自由基位于环上的碳原子。双键位于环外。',
+                        atoms: [
+                            {id:1, el:'C', x:200, y:200, lbl:'C1'}, 
+                            {id:2, el:'C', x:300, y:200, lbl:'C2'},
+                            {id:3, el:'C', x:350, y:286, lbl:'C3'},
+                            {id:4, el:'C', x:300, y:373, lbl:'C4'},
+                            {id:5, el:'C', x:200, y:373, lbl:'C5'},
+                            {id:6, el:'C', x:150, y:286, lbl:'C•', dot:true},
+                            {id:7, el:'C', x:350, y:113, lbl:'C7'}
+                        ],
+                        bonds: [[1,2], [2,3,2], [3,4], [4,5], [5,6], [6,1], [2,7]]
+                    },
+                    {
+                        title: '结构 B (共振)',
+                        desc: '单电子移动，形成新的双键，自由基转移到 C4。',
+                        atoms: [
+                            {id:1, el:'C', x:200, y:200, lbl:'C1'}, 
+                            {id:2, el:'C', x:300, y:200, lbl:'C2'},
+                            {id:3, el:'C', x:350, y:286, lbl:'C3'},
+                            {id:4, el:'C', x:300, y:373, lbl:'C•', dot:true},
+                            {id:5, el:'C', x:200, y:373, lbl:'C5'},
+                            {id:6, el:'C', x:150, y:286, lbl:'C6'},
+                            {id:7, el:'C', x:350, y:113, lbl:'C7'}
+                        ],
+                        bonds: [[1,2], [2,3], [3,4], [4,5,2], [5,6], [6,1,2], [2,7]]
+                    },
+                    {
+                        title: '结构 C (共振)',
+                        desc: '自由基离域到环外碳 C7 上。这是苯甲基型的稳定自由基。',
+                        atoms: [
+                            {id:1, el:'C', x:200, y:200, lbl:'C1'}, 
+                            {id:2, el:'C', x:300, y:200, lbl:'C2'},
+                            {id:3, el:'C', x:350, y:286, lbl:'C3'},
+                            {id:4, el:'C', x:300, y:373, lbl:'C4'},
+                            {id:5, el:'C', x:200, y:373, lbl:'C5'},
+                            {id:6, el:'C', x:150, y:286, lbl:'C6'},
+                            {id:7, el:'C', x:350, y:113, lbl:'C•', dot:true}
+                        ],
+                        bonds: [[1,2,2], [2,3], [3,4,2], [4,5], [5,6], [6,1], [2,7]] // 2-7 is single now
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q3-alcohol',
+        title: '问题 3: 醇转卤代烃',
+        tag: 'SN2/取代反应',
+        examples: [
+            {
+                name: 'A: 环戊基甲醇 + SOCl2',
+                steps: [
+                    {
+                        title: '反应物接近',
+                        desc: '环戊基甲醇 (R-CH2-OH) 与二氯亚砜 (SOCl2) 反应。',
+                        atoms: [
+                            {id:1, el:'C', x:200, y:200}, {id:2, el:'C', x:250, y:200}, // Ring start
+                            {id:3, el:'O', x:150, y:200, lbl:'OH'},
+                            {id:4, el:'S', x:400, y:200, lbl:'S'},
+                            {id:5, el:'O', x:400, y:100, lbl:'O'},
+                            {id:6, el:'Cl', x:450, y:250, lbl:'Cl'}, {id:7, el:'Cl', x:350, y:250, lbl:'Cl'}
+                        ],
+                        bonds: [[1,3], [1,2], [4,5,2], [4,6], [4,7]]
+                    },
+                    {
+                        title: '中间体形成',
+                        desc: '形成氯亚硫酸酯中间体，释放HCl。现在 -O-SO-Cl 变成了一个很好的离去基团。',
+                        atoms: [
+                            {id:1, el:'C', x:200, y:200}, {id:2, el:'C', x:250, y:200},
+                            {id:3, el:'O', x:280, y:200},
+                            {id:4, el:'S', x:350, y:200},
+                            {id:5, el:'O', x:350, y:120},
+                            {id:6, el:'Cl', x:400, y:250},
+                            {id:8, el:'Cl', x:100, y:200, lbl:'Cl-'} // Nucleophile
+                        ],
+                        bonds: [[1,3], [3,4], [4,5,2], [4,6], [1,2]]
+                    },
+                    {
+                        title: 'SN2 进攻',
+                        desc: 'Cl- 进攻亚甲基碳，取代离去基团。生成产物：(氯甲基)环戊烷 + SO2 + Cl-。',
+                        atoms: [
+                            {id:1, el:'C', x:200, y:200}, {id:2, el:'C', x:280, y:200},
+                            {id:8, el:'Cl', x:140, y:200}, // Attached
+                            {id:9, el:'O', x:500, y:100, lbl:'SO2'}, // Byproduct
+                            {id:10, el:'Cl', x:500, y:200, lbl:'Cl-'}
+                        ],
+                        bonds: [[1,8], [1,2]]
+                    }
+                ]
+            },
+            {
+                name: 'B: 丙醇 + PBr3',
+                steps: [
+                    {
+                        title: '活化',
+                        desc: '醇的氧原子进攻 PBr3，一个 Br- 离去。形成 HOPBr2 中间体，使OH变成好离去基团。',
+                        atoms: [
+                            {id:1, el:'C', x:300, y:200}, {id:2, el:'O', x:380, y:200}, 
+                            {id:3, el:'P', x:450, y:200}, {id:4, el:'Br', x:450, y:120}, {id:5, el:'Br', x:520, y:200},
+                            {id:6, el:'Br', x:200, y:300, lbl:'Br-'} // Nucleophile
+                        ],
+                        bonds: [[1,2], [2,3], [3,4], [3,5]]
+                    },
+                    {
+                        title: 'SN2 取代',
+                        desc: 'Br- 进攻一级碳，取代 HOPBr2 基团。',
+                        atoms: [
+                            {id:1, el:'C', x:300, y:200}, 
+                            {id:6, el:'Br', x:360, y:200}, // Product
+                            {id:7, el:'P', x:550, y:200, lbl:'P-byprod'}
+                        ],
+                        bonds: [[1,6]]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q4-grignard',
+        title: '问题 4: 格氏试剂',
+        tag: '有机金属/D2O',
+        examples: [
+            {
+                name: '1-碘丙烷 -> 1-氘代丙烷',
+                steps: [
+                    {
+                        title: '制备：氧化插入',
+                        desc: '1-碘丙烷与 Mg 在乙醚中反应。Mg 插入 C-I 键形成格氏试剂 (Propylmagnesium Iodide)。',
+                        atoms: [
+                            {id:1, el:'C', x:200, y:200}, {id:2, el:'C', x:280, y:200}, {id:3, el:'C', x:360, y:200},
+                            {id:4, el:'Mg', x:440, y:200, lbl:'Mg'},
+                            {id:5, el:'I', x:520, y:200, lbl:'I'}
+                        ],
+                        bonds: [[1,2], [2,3], [3,4], [4,5]]
+                    },
+                    {
+                        title: '反应：与 D2O 接触',
+                        desc: '加入重水 (D2O)。格氏试剂中的碳是强碱（类碳负离子），攻击 D2O 中的 D (酸性)。',
+                        atoms: [
+                            {id:1, el:'C', x:200, y:200}, {id:2, el:'C', x:280, y:200}, {id:3, el:'C', x:360, y:200, lbl:'C-'},
+                            {id:4, el:'Mg', x:440, y:300, lbl:'MgI+'},
+                            {id:6, el:'O', x:500, y:100, lbl:'D2O'},
+                            {id:7, el:'D', x:450, y:150, lbl:'D'} // Target
+                        ],
+                        bonds: [[1,2], [2,3], [6,7]]
+                    },
+                    {
+                        title: '产物生成',
+                        desc: '生成 1-氘代丙烷 (Propane-d1) 和 Mg(OD)I。这是制备氘代化合物的标准方法。',
+                        atoms: [
+                            {id:1, el:'C', x:200, y:200}, {id:2, el:'C', x:280, y:200}, {id:3, el:'C', x:360, y:200},
+                            {id:7, el:'D', x:420, y:200, lbl:'D'},
+                            {id:8, el:'Mg', x:600, y:200, lbl:'Mg(OD)I'}
+                        ],
+                        bonds: [[1,2], [2,3], [3,7]]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q5-synthesis',
+        title: '问题 5: 合成路线 (Gilman)',
+        tag: 'C-C键形成',
+        examples: [
+            {
+                name: '烯烃偶联',
+                steps: [
+                    {
+                        title: '步骤 1: 溴化',
+                        desc: '环己烯经 NBS 溴化生成 3-溴环己烯 (见工具1)。这是引入官能团的关键步骤。',
+                        atoms: [
+                            {id:1, el:'C', x:300, y:200}, {id:2, el:'Br', x:380, y:200}, // 3-bromocyclohexene simplified
+                            {id:3, el:'Li', x:100, y:200, lbl:'Li'}
+                        ],
+                        bonds: [[1,2]]
+                    },
+                    {
+                        title: '步骤 2: 制备 Gilman 试剂',
+                        desc: '卤代烃与 Li 反应生成 R-Li，再与 CuI 反应生成二烃基铜锂 (R2CuLi)。',
+                        atoms: [
+                            {id:1, el:'C', x:300, y:200, lbl:'R'}, 
+                            {id:4, el:'Cu', x:380, y:200, lbl:'Cu'},
+                            {id:5, el:'Li', x:460, y:200, lbl:'Li'}
+                        ],
+                        bonds: [[1,4], [4,5]] // Simplified representation
+                    },
+                    {
+                        title: '步骤 3: 偶联',
+                        desc: 'Gilman 试剂与异丁基溴发生偶联反应，形成新的 C-C 键。',
+                        atoms: [
+                            {id:1, el:'C', x:300, y:200, lbl:'Ring'}, 
+                            {id:6, el:'C', x:380, y:200, lbl:'C'}, {id:7, el:'C', x:440, y:200, lbl:'Isobu'},
+                            {id:8, el:'Cu', x:550, y:300, lbl:'Cu-Byprod'}
+                        ],
+                        bonds: [[1,6], [6,7]]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'q6-error',
+        title: '问题 6: 格氏试剂错误',
+        tag: '酸碱不兼容',
+        examples: [
+            {
+                name: '错误分析',
+                steps: [
+                    {
+                        title: '拟议反应',
+                        desc: '试图在含有羟基 (-OH) 的分子（溴代环戊醇）上制备格氏试剂。',
+                        atoms: [
+                            {id:1, el:'C', x:300, y:200}, // Ring center
+                            {id:2, el:'Br', x:220, y:200},
+                            {id:3, el:'C', x:380, y:200}, {id:4, el:'O', x:440, y:200}, {id:5, el:'H', x:480, y:200},
+                            {id:6, el:'Mg', x:150, y:200}
+                        ],
+                        bonds: [[1,2], [1,3], [3,4], [4,5]]
+                    },
+                    {
+                        title: '格氏试剂形成',
+                        desc: 'Mg 插入 C-Br 键形成 -MgBr。碳原子具有极强的碱性。',
+                        atoms: [
+                            {id:1, el:'C', x:300, y:200}, 
+                            {id:6, el:'Mg', x:240, y:200, lbl:'Mg'}, {id:2, el:'Br', x:180, y:200},
+                            {id:3, el:'C', x:380, y:200}, {id:4, el:'O', x:440, y:200}, {id:5, el:'H', x:480, y:200, lbl:'H+'}
+                        ],
+                        bonds: [[1,6], [6,2], [1,3], [3,4], [4,5]]
+                    },
+                    {
+                        title: '自毁反应 (质子化)',
+                        desc: '格氏试剂立即夺取分子内（或分子间）羟基上的质子 (H+)。导致格氏试剂分解，生成烷烃和镁盐。反应失败。',
+                        atoms: [
+                            {id:1, el:'C', x:300, y:200}, 
+                            {id:5, el:'H', x:240, y:200, lbl:'H'}, // Replaced Mg
+                            {id:3, el:'C', x:380, y:200}, {id:4, el:'O', x:440, y:200, lbl:'O-'}, 
+                            {id:6, el:'Mg', x:500, y:200, lbl:'MgBr+'} // Salt
+                        ],
+                        bonds: [[1,5], [1,3], [3,4]]
+                    }
+                ]
+            }
+        ]
+    }
+];
+
+/* ================= 逻辑控制类 ================= */
+
+class ChemistryTool {
+    constructor(data) {
+        this.data = data;
+        this.currentExampleIdx = 0;
+        this.currentStepIdx = 0;
+        this.render();
+    }
+
+    get currentExample() { return this.data.examples[this.currentExampleIdx]; }
+    get currentStep() { return this.currentExample.steps[this.currentStepIdx]; }
+
+    render() {
+        const container = document.createElement('div');
+        container.className = 'tool-card';
+        container.innerHTML = `
+            <div class="card-header">
+                <span class="card-title">${this.data.title}</span>
+                <span class="card-tag">${this.data.tag}</span>
+            </div>
+            <div class="example-tabs">
+                ${this.data.examples.map((ex, i) => `
+                    <button class="tab-btn ${i === 0 ? 'active' : ''}" onclick="tools['${this.data.id}'].switchExample(${i}, this)">
+                        ${ex.name}
+                    </button>
+                `).join('')}
+            </div>
+            <div class="viz-area">
+                <svg id="svg-${this.data.id}" viewBox="0 0 800 400"></svg>
+            </div>
+            <div class="control-panel">
+                <div class="step-info">
+                    <span class="step-title" id="title-${this.data.id}"></span>
+                    <div class="step-desc" id="desc-${this.data.id}"></div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-reset" onclick="tools['${this.data.id}'].reset()">↺ 重置</button>
+                    <button class="btn btn-next" onclick="tools['${this.data.id}'].nextStep()">▶ 下一步</button>
+                </div>
+            </div>
+        `;
+        document.getElementById('tools-container').appendChild(container);
+        
+        this.updateVisuals();
+    }
+
+    switchExample(idx, btnEl) {
+        this.currentExampleIdx = idx;
+        this.currentStepIdx = 0;
+        
+        const parent = btnEl.parentElement;
+        Array.from(parent.children).forEach(c => c.classList.remove('active'));
+        btnEl.classList.add('active');
+
+        this.updateVisuals();
+    }
+
+    reset() {
+        this.currentStepIdx = 0;
+        this.updateVisuals();
+    }
+
+    nextStep() {
+        if (this.currentStepIdx < this.currentExample.steps.length - 1) {
+            this.currentStepIdx++;
+            this.updateVisuals();
+        } else {
+            this.currentStepIdx = 0; // Loop
+            this.updateVisuals();
+        }
+    }
+
+    updateVisuals() {
+        const svg = document.getElementById(`svg-${this.data.id}`);
+        const stepData = this.currentStep;
+        const totalSteps = this.currentExample.steps.length;
+
+        // 1. 更新文字
+        document.getElementById(`title-${this.data.id}`).innerText = 
+            `步骤 ${this.currentStepIdx + 1}/${totalSteps}: ${stepData.title}`;
+        document.getElementById(`desc-${this.data.id}`).innerText = stepData.desc;
+
+        // 2. 渲染键 (Bonds)
+        let bondGroup = svg.querySelector('.bonds-layer');
+        if (!bondGroup) {
+            bondGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            bondGroup.setAttribute("class", "bonds-layer");
+            svg.appendChild(bondGroup);
+        }
+
+        const presentBondIds = new Set();
+
+        stepData.bonds.forEach(bond => {
+            const id1 = bond[0];
+            const id2 = bond[1];
+            const type = bond[2] || 1; 
+            const bondId = `bond-${Math.min(id1,id2)}-${Math.max(id1,id2)}`;
+            presentBondIds.add(bondId);
+
+            const atom1 = stepData.atoms.find(a => a.id === id1);
+            const atom2 = stepData.atoms.find(a => a.id === id2);
+
+            if (atom1 && atom2) {
+                let line = document.getElementById(`${this.data.id}-${bondId}`);
+                if (!line) {
+                    line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("id", `${this.data.id}-${bondId}`);
+                    line.setAttribute("class", "bond-line");
+                    bondGroup.appendChild(line);
+                }
+
+                line.setAttribute("x1", atom1.x);
+                line.setAttribute("y1", atom1.y);
+                line.setAttribute("x2", atom2.x);
+                line.setAttribute("y2", atom2.y);
+                
+                if (type === 2) {
+                    line.classList.add('bond-double');
+                } else {
+                    line.classList.remove('bond-double');
+                }
+                line.style.opacity = 1;
+            }
+        });
+
+        Array.from(bondGroup.children).forEach(line => {
+            const rawId = line.id.replace(`${this.data.id}-`, '');
+            if (!presentBondIds.has(rawId)) {
+                line.style.opacity = 0;
+            }
+        });
+
+        // 3. 渲染原子 (Atoms)
+        let atomLayer = svg.querySelector('.atoms-layer');
+        if (!atomLayer) {
+            atomLayer = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            atomLayer.setAttribute("class", "atoms-layer");
+            svg.appendChild(atomLayer);
+        }
+
+        const presentAtomIds = new Set();
+
+        stepData.atoms.forEach(atom => {
+            const domId = `${this.data.id}-atom-${atom.id}`;
+            presentAtomIds.add(domId);
+            let g = document.getElementById(domId);
+
+            if (!g) {
+                g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                g.setAttribute("id", domId);
+                g.setAttribute("class", "atom-group");
+                
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("r", ATOM_R);
+                circle.setAttribute("class", "atom-circle");
+                g.appendChild(circle);
+
+                // 电子点 (Dot)
+                const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                dot.setAttribute("r", 5);
+                dot.setAttribute("cx", ATOM_R * 0.7); // Top right
+                dot.setAttribute("cy", -ATOM_R * 0.7);
+                dot.setAttribute("class", "electron-dot");
+                g.appendChild(dot);
+
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("class", "atom-label");
+                g.appendChild(text);
+
+                atomLayer.appendChild(g);
+            }
+
+            g.style.transform = `translate(${atom.x}px, ${atom.y}px)`;
+            g.style.opacity = (atom.op === 0) ? 0 : 1;
+
+            const circle = g.querySelector('.atom-circle');
+            circle.style.fill = ELEMENT_COLORS[atom.el] || '#999';
+            
+            // 处理电子点
+            if (atom.dot) {
+                g.classList.add('has-electron');
+            } else {
+                g.classList.remove('has-electron');
+            }
+
+            const text = g.querySelector('.atom-label');
+            text.textContent = atom.lbl || atom.el;
+            text.style.fontSize = (text.textContent.length > 2) ? '16px' : '20px';
+        });
+
+        Array.from(atomLayer.children).forEach(g => {
+            if (!presentAtomIds.has(g.id)) {
+                g.style.opacity = 0;
+            }
+        });
+    }
+}
+
+// 初始化
+const tools = {};
+TOOLS_DATA.forEach(data => {
+    tools[data.id] = new ChemistryTool(data);
+});
+
+</script>
+</body>
+</html>

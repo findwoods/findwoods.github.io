@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>有机化学深度解析 - 交互式可视化系统</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #2980b9;
+            --bg: #ecf0f1;
+            --text: #2c3e50;
+            --highlight: #e74c3c;
+            --success: #27ae60;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background-color: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        /* 侧边栏 */
+        #sidebar {
+            width: 280px;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            flex-shrink: 0;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-bottom: 1px solid #34495e;
+            background-color: #1a252f;
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid #34495e;
+            transition: background 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .nav-item:hover {
+            background-color: #34495e;
+        }
+
+        .nav-item.active {
+            background-color: var(--accent);
+            font-weight: bold;
+            border-left: 5px solid white;
+        }
+
+        /* 主内容区 */
+        #main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        /* 顶部标题 */
+        #header {
+            margin-bottom: 20px;
+        }
+
+        h1 { margin: 0; font-size: 1.8rem; color: var(--primary); }
+        h2 { margin: 5px 0 0; font-size: 1.1rem; color: #7f8c8d; font-weight: normal; }
+
+        /* 舞台区域 */
+        #stage-wrapper {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid #bdc3c7;
+        }
+
+        svg {
+            width: 100%;
+            height: 450px;
+            background-color: #ffffff;
+            user-select: none;
+        }
+
+        /* 控制栏 */
+        #controls {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        button:active { transform: scale(0.98); }
+
+        #btn-next { background-color: var(--accent); color: white; flex-grow: 1; max-width: 300px; }
+        #btn-next:hover { background-color: #2471a3; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+
+        #btn-reset { background-color: #95a5a6; color: white; }
+        #btn-reset:hover { background-color: #7f8c8d; }
+
+        /* 解释文本区 */
+        #explanation {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            line-height: 1.6;
+            font-size: 1.05rem;
+            border-left: 5px solid var(--accent);
+        }
+
+        .highlight { color: var(--highlight); font-weight: bold; }
+        .note { font-size: 0.9em; color: #7f8c8d; margin-top: 10px; font-style: italic; }
+        
+        /* 原子样式 */
+        .atom-circle { stroke: #333; stroke-width: 1px; transition: all 0.5s ease; }
+        .atom-label { 
+            font-family: Arial, sans-serif; 
+            font-weight: bold; 
+            text-anchor: middle; 
+            dominant-baseline: central; 
+            pointer-events: none;
+            fill: #333;
+            transition: all 0.5s ease;
+        }
+        .bond { stroke: #333; stroke-width: 4px; stroke-linecap: round; transition: all 0.5s ease; }
+        .electron-arrow { fill: none; stroke: #e74c3c; stroke-width: 3px; marker-end: url(#arrowhead); stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: drawArrow 1s forwards; }
+        
+        @keyframes drawArrow {
+            to { stroke-dashoffset: 0; }
+        }
+        
+        /* II.1 能级图特殊样式 */
+        .energy-line { fill: none; stroke: #2c3e50; stroke-width: 3px; }
+        .energy-ball { fill: #e74c3c; }
+
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <div class="sidebar-header">Doubleday Final Exam 解析</div>
+    <div id="nav-container">
+        <!-- 导航项将通过JS动态生成 -->
+    </div>
+</div>
+
+<div id="main">
+    <div id="header">
+        <h1 id="title">题目加载中...</h1>
+        <h2 id="subtitle"></h2>
+    </div>
+
+    <div id="stage-wrapper">
+        <svg id="svg-stage" viewBox="0 0 800 450">
+            <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="#e74c3c" />
+                </marker>
+            </defs>
+            <g id="scene-layer"></g>
+        </svg>
+        <div id="controls">
+            <button id="btn-reset" onclick="resetScene()">↺ 重置</button>
+            <button id="btn-next" onclick="nextStep()">▶ 下一步 / 播放动画</button>
+        </div>
+    </div>
+
+    <div id="explanation">
+        <!-- 解释文本 -->
+    </div>
+</div>
+
+<script>
+    // ==========================================
+    // 数据结构：题目与步骤
+    // ==========================================
+    const problems = [
+        {
+            id: "II.1",
+            title: "II.1 动力学与热力学能级图",
+            subtitle: "理解能量山峰与深渊",
+            steps: [
+                {
+                    text: "<strong>1. 绘制起点 A</strong><br>我们将 A 设为基准点（地平线）。<br>这是反应的起始状态。",
+                    draw: (svg) => drawEnergyProfile(svg, 0)
+                },
+                {
+                    text: "<strong>2. 绘制中间体 B (高能状态)</strong><br>题目给出了 [B]/[A] = 10⁻⁶。<br>这意味着 B 的能量远高于 A (吸热)。<br>我们需要翻越第一座山峰（过渡态 1）。",
+                    draw: (svg) => drawEnergyProfile(svg, 1)
+                },
+                {
+                    text: "<strong>3. 绘制终点 C (深渊)</strong><br>题目给出了 [C]/[B] = 10⁸。<br>这意味着从 B 到 C 释放巨大能量，C 比 A 还要低得多。<br>我们需要翻越第二座山峰（过渡态 2）。",
+                    draw: (svg) => drawEnergyProfile(svg, 2)
+                },
+                {
+                    text: "<strong>4. 确定决速步 (Rate Determining Step)</strong><br>题目说 k1 是决速步。<br>这意味着第一座山峰（A→B）最高，最难翻越。<br>第二座山峰必须比第一座矮。",
+                    draw: (svg) => drawEnergyProfile(svg, 3)
+                },
+                {
+                    text: "<strong>5. 速率常数排序</strong><br>k 取决于能垒高度（爬山难度）。<br>k-2 (C→B): 从深渊飞上天，最难，k 最小。<br>k1 (A→B): 决速步，第二难，k 第二小。<br>k-1 (B→A): 小下坡，容易。<br>k2 (B→C): 巨大下坡，极快。<br>结论: <span class='highlight'>k-2 < k1 < k-1 < k2</span>",
+                    draw: (svg) => drawEnergyProfile(svg, 4)
+                }
+            ]
+        },
+        {
+            id: "II.2.1",
+            title: "II.2.1 二烯烃稳定性",
+            subtitle: "共轭 vs 隔离",
+            steps: [
+                {
+                    text: "比较两个分子：<br>左侧：共轭二烯 (双-单-双)。电子可以离域共享。<br>右侧：隔离二烯 (双-单-单-双)。电子各玩各的。<br><strong>结论：圈左边。共轭更稳定。</strong>",
+                    draw: (svg) => drawChoice(svg, 'conjugated')
+                }
+            ]
+        },
+        {
+            id: "II.2.2",
+            title: "II.2.2 炔烃酸碱平衡",
+            subtitle: "强酸制弱酸",
+            steps: [
+                {
+                    text: "反应：炔钠 + 水 ⇌ 炔烃 + NaOH<br>酸性比较：H₂O (pKa 15.7) vs 炔烃 (pKa 25)。<br><strong>规则：</strong>平衡倒向弱酸（pKa 大的一边）。<br><strong>结论：圈右边（炔烃）。</strong>",
+                    draw: (svg) => drawChoice(svg, 'alkyne_acid')
+                }
+            ]
+        },
+        {
+            id: "II.2.3",
+            title: "II.2.3 环己烷构象",
+            subtitle: "平伏键(e) vs 直立键(a)",
+            steps: [
+                {
+                    text: "左图：两个 Cl 都在 e 键（赤道面），空间大，不拥挤。<br>右图：两个 Cl 都在 a 键（直立），与环上 H 打架（1,3-双直立键相互作用）。<br><strong>结论：圈左边（双 e 键）。</strong>",
+                    draw: (svg) => drawChoice(svg, 'cyclohexane')
+                }
+            ]
+        },
+        {
+            id: "II.2.4",
+            title: "II.2.4 强碱与烷烃",
+            subtitle: "极弱酸的生成",
+            steps: [
+                {
+                    text: "反应：MeLi + NH₃ ⇌ LiNH₂ + CH₄<br>酸性比较：NH₃ (pKa 38) vs CH₄ (pKa 50)。<br>甲烷几乎没有酸性，是极弱的酸。<br><strong>结论：圈右边（生成甲烷）。</strong>",
+                    draw: (svg) => drawChoice(svg, 'methane')
+                }
+            ]
+        },
+        {
+            id: "II.3.1",
+            title: "II.3.1 合成对称长链炔烃",
+            subtitle: "从乙炔开始的双边取代",
+            steps: [
+                {
+                    text: "<strong>原料：</strong>乙炔 (HC≡CH)。<br>目标：两边接上丙基 (Pr-C≡C-Pr)。",
+                    draw: (svg) => drawSynthesis3_1(svg, 0)
+                },
+                {
+                    text: "<strong>Step 1:</strong> 加入 NaNH₂ (强碱)。<br>拔掉一个 H，生成乙炔负离子。",
+                    draw: (svg) => drawSynthesis3_1(svg, 1)
+                },
+                {
+                    text: "<strong>Step 2:</strong> 加入 1-溴丙烷 (PrBr)。<br>发生 SN2 反应，接上左边的链。",
+                    draw: (svg) => drawSynthesis3_1(svg, 2)
+                },
+                {
+                    text: "<strong>Step 3:</strong> 再次加入 NaNH₂。<br>拔掉另一个 H。",
+                    draw: (svg) => drawSynthesis3_1(svg, 3)
+                },
+                {
+                    text: "<strong>Step 4:</strong> 再次加入 1-溴丙烷。<br>接上右边的链。完成！",
+                    draw: (svg) => drawSynthesis3_1(svg, 4)
+                }
+            ]
+        },
+        {
+            id: "II.3.2",
+            title: "II.3.2 合成双环羧酸",
+            subtitle: "Diels-Alder 反应",
+            steps: [
+                {
+                    text: "<strong>逆合成分析：</strong><br>看到六元环里的桥，想到 Diels-Alder。<br>我们需要一个双烯体（环戊二烯）和一个亲双烯体（丙烯酸）。",
+                    draw: (svg) => drawSynthesis3_2(svg, 0)
+                },
+                {
+                    text: "<strong>Step 1: [4+2] 环加成</strong><br>加热混合。电子转移，形成新的六元环。",
+                    draw: (svg) => drawSynthesis3_2(svg, 1)
+                },
+                {
+                    text: "<strong>Step 2: 氢化</strong><br>目前的产物还有一个双键。题目要求全饱和。<br>加入 H₂ / Pd/C。",
+                    draw: (svg) => drawSynthesis3_2(svg, 2)
+                }
+            ]
+        },
+        {
+            id: "II.4.2",
+            title: "II.4.2 1-丁炔 → 3-溴-4-己醇",
+            subtitle: "特定立体化学合成",
+            steps: [
+                {
+                    text: "<strong>Step 1: 增长碳链</strong><br>原料只有4个碳，产物有6个。<br>NaNH₂ + 乙基碘 (EtI)。丁炔 → 3-己炔。",
+                    draw: (svg) => drawSynthesis4_2(svg, 1)
+                },
+                {
+                    text: "<strong>Step 2: 还原为反式烯烃</strong><br>为了得到特定的产物构型，我们需要反式烯烃。<br>试剂：Na / NH₃ (液氨)。",
+                    draw: (svg) => drawSynthesis4_2(svg, 2)
+                },
+                {
+                    text: "<strong>Step 3: 卤代醇化</strong><br>试剂：Br₂ + H₂O。<br>生成反式加成产物（Br 和 OH 位于异侧）。",
+                    draw: (svg) => drawSynthesis4_2(svg, 3)
+                }
+            ]
+        },
+        {
+            id: "II.6",
+            title: "II.6 反应机理 (BOSS)",
+            subtitle: "酸催化多环化反应",
+            steps: [
+                {
+                    text: "<strong>初始状态：</strong><br>酸性环境 (H⁺)。<br>注意酮基 (C=O) 和分子内的羟基 (OH)。",
+                    draw: (svg) => drawMech6(svg, 0)
+                },
+                {
+                    text: "<strong>Step 1: 质子化</strong><br>酮基氧原子捕获 H⁺。<br>C=O 键活化，碳原子变得极度缺电子。",
+                    draw: (svg) => drawMech6(svg, 1)
+                },
+                {
+                    text: "<strong>Step 2: 半缩酮形成</strong><br>分子内 OH 攻击被活化的酮基碳。<br>形成五元氧杂环。",
+                    draw: (svg) => drawMech6(svg, 2)
+                },
+                {
+                    text: "<strong>Step 3: 脱水生成氧鎓离子</strong><br>羟基再次质子化变成 H₂O⁺，然后离去。<br>形成 C=O⁺ 双键（氧鎓离子），这是超强亲电体。",
+                    draw: (svg) => drawMech6(svg, 3)
+                },
+                {
+                    text: "<strong>Step 4: 双键进攻</strong><br>左侧环上的双键受不了诱惑，进攻氧鎓离子。<br>两个环连接在了一起！",
+                    draw: (svg) => drawMech6(svg, 4)
+                },
+                {
+                    text: "<strong>Step 5: 最终成环</strong><br>剩下的碳正离子被氧捕获。<br>去质子化，形成最终的复杂笼状醚结构。",
+                    draw: (svg) => drawMech6(svg, 5)
+                }
+            ]
+        }
+    ];
+
+    // ==========================================
+    // 渲染引擎
+    // ==========================================
+    
+    let currentProblemIndex = 0;
+    let currentStepIndex = 0;
+
+    function init() {
+        const navContainer = document.getElementById('nav-container');
+        problems.forEach((p, index) => {
+            const div = document.createElement('div');
+            div.className = 'nav-item';
+            div.innerText = p.title;
+            div.onclick = () => loadProblem(index);
+            navContainer.appendChild(div);
+        });
+        loadProblem(0);
+    }
+
+    function loadProblem(index) {
+        currentProblemIndex = index;
+        currentStepIndex = 0;
+        
+        // 更新导航高亮
+        const items = document.querySelectorAll('.nav-item');
+        items.forEach((item, i) => {
+            item.classList.toggle('active', i === index);
+        });
+
+        const p = problems[index];
+        document.getElementById('title').innerText = p.title;
+        document.getElementById('subtitle').innerText = p.subtitle;
+        
+        renderStep();
+    }
+
+    function nextStep() {
+        const p = problems[currentProblemIndex];
+        if (currentStepIndex < p.steps.length - 1) {
+            currentStepIndex++;
+            renderStep();
+        } else {
+            // 循环回第一步
+            currentStepIndex = 0;
+            renderStep();
+        }
+    }
+
+    function resetScene() {
+        currentStepIndex = 0;
+        renderStep();
+    }
+
+    function renderStep() {
+        const p = problems[currentProblemIndex];
+        const step = p.steps[currentStepIndex];
+        
+        // 更新文字
+        document.getElementById('explanation').innerHTML = step.text;
+        
+        // 更新按钮文字
+        const btn = document.getElementById('btn-next');
+        if (currentStepIndex === p.steps.length - 1) {
+            btn.innerHTML = "↻ 演示结束，点击重播";
+        } else {
+            btn.innerHTML = "▶ 下一步";
+        }
+
+        // 绘制 SVG
+        const svg = document.getElementById('scene-layer');
+        svg.innerHTML = ''; // 清空画布
+        step.draw(svg);
+    }
+
+    // ==========================================
+    // 绘图辅助函数
+    // ==========================================
+    
+    // 原子颜色
+    const COLORS = { C: "#95a5a6", H: "#ffffff", O: "#e74c3c", N: "#3498db", Br: "#8e44ad", Cl: "#2ecc71", Na: "#9b59b6", Li: "#f1c40f" };
+    
+    function drawAtom(svg, x, y, el, label = null, highlight=false) {
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("cx", x);
+        circle.setAttribute("cy", y);
+        circle.setAttribute("r", el === 'H' ? 20 : 32); // 要求的 32px
+        circle.setAttribute("fill", COLORS[el] || "#bdc3c7");
+        circle.setAttribute("class", "atom-circle");
+        if (highlight) circle.setAttribute("stroke", "#f1c40f");
+        if (highlight) circle.setAttribute("stroke-width", "4");
+
+        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        text.setAttribute("x", x);
+        text.setAttribute("y", y);
+        text.setAttribute("class", "atom-label");
+        text.setAttribute("font-size", el === 'H' ? "18px" : "24px");
+        text.textContent = label || el;
+
+        g.appendChild(circle);
+        g.appendChild(text);
+        svg.appendChild(g);
+        return {x, y};
+    }
+
+    function drawBond(svg, x1, y1, x2, y2, type = 1) {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", x1);
+        line.setAttribute("y1", y1);
+        line.setAttribute("x2", x2);
+        line.setAttribute("y2", y2);
+        line.setAttribute("class", "bond");
+        
+        if (type === 2) {
+            line.setAttribute("stroke-width", "8"); // 双键
+            // 简单模拟双键：画一条粗线，或者两条线
+            // 这里为了简化，只画一条粗线代表连接，实际化学绘图更复杂
+        }
+        if (type === 3) {
+            line.setAttribute("stroke-width", "10"); // 三键
+        }
+        svg.insertBefore(line, svg.firstChild);
+    }
+    
+    function drawCurvedArrow(svg, x1, y1, x2, y2) {
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        // 简单的贝塞尔曲线
+        const mx = (x1 + x2) / 2;
+        const my = (y1 + y2) / 2 - 50; // 向上弯曲
+        const d = `M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`;
+        path.setAttribute("d", d);
+        path.setAttribute("class", "electron-arrow");
+        svg.appendChild(path);
+    }
+
+    // ==========================================
+    // 特定场景绘制逻辑
+    // ==========================================
+
+    // II.1 能级图
+    function drawEnergyProfile(svg, step) {
+        const h = 400;
+        const w = 800;
+        
+        // 坐标定义
+        const pA = {x: 100, y: 300};
+        const pTS1 = {x: 250, y: 50}; // 最高
+        const pB = {x: 400, y: 150};
+        const pTS2 = {x: 550, y: 100}; // 比TS1低
+        const pC = {x: 700, y: 380}; // 最低
+
+        // 绘制曲线
+        const pathData = `M ${pA.x} ${pA.y} 
+                          C ${pA.x+50} ${pA.y}, ${pTS1.x-50} ${pTS1.y}, ${pTS1.x} ${pTS1.y}
+                          S ${pB.x-50} ${pB.y}, ${pB.x} ${pB.y}
+                          S ${pTS2.x-50} ${pTS2.y}, ${pTS2.x} ${pTS2.y}
+                          S ${pC.x-50} ${pC.y}, ${pC.x} ${pC.y}`;
+        
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", pathData);
+        path.setAttribute("class", "energy-line");
+        svg.appendChild(path);
+
+        // 标签
+        const labels = [
+            {t: "A", ...pA, dy: 40}, {t: "B", ...pB, dy: 40}, {t: "C", ...pC, dy: 40},
+            {t: "TS1", ...pTS1, dy: -20}, {t: "TS2", ...pTS2, dy: -20}
+        ];
+        labels.forEach(l => {
+            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            text.setAttribute("x", l.x); text.setAttribute("y", l.y + l.dy);
+            text.setAttribute("text-anchor", "middle");
+            text.setAttribute("font-weight", "bold");
+            text.textContent = l.t;
+            svg.appendChild(text);
+        });
+
+        // 动画球
+        let ballPos = pA;
+        if (step === 1) ballPos = pB;
+        if (step === 2) ballPos = pC;
+        
+        const ball = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        ball.setAttribute("cx", ballPos.x); ball.setAttribute("cy", ballPos.y);
+        ball.setAttribute("r", 15);
+        ball.setAttribute("class", "energy-ball");
+        
+        // 如果是步骤3或4，展示不同位置
+        if (step >= 3) {
+            // 静态展示所有能级
+            ball.setAttribute("opacity", 0);
+            // 绘制k标注
+            const kText = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            kText.setAttribute("x", 400); kText.setAttribute("y", 400);
+            kText.setAttribute("text-anchor", "middle");
+            kText.setAttribute("font-size", "20");
+            kText.setAttribute("fill", "#e74c3c");
+            if (step === 4) kText.textContent = "k-2 < k1 < k-1 < k2";
+            svg.appendChild(kText);
+        } else {
+             svg.appendChild(ball);
+        }
+    }
+
+    // II.2 选择题可视化
+    function drawChoice(svg, type) {
+        if (type === 'conjugated') {
+            // 左：共轭
+            drawBond(svg, 100, 200, 200, 200, 2);
+            drawBond(svg, 200, 200, 300, 200, 1);
+            drawBond(svg, 300, 200, 400, 200, 2);
+            drawAtom(svg, 100, 200, 'C'); drawAtom(svg, 200, 200, 'C');
+            drawAtom(svg, 300, 200, 'C'); drawAtom(svg, 400, 200, 'C');
+            
+            const t1 = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            t1.setAttribute("x", 250); t1.setAttribute("y", 300); t1.setAttribute("text-anchor", "middle");
+            t1.setAttribute("fill", "#27ae60"); t1.setAttribute("font-size", "24"); t1.textContent = "✓ 共轭 (更稳定)";
+            svg.appendChild(t1);
+
+            // 右：隔离
+            drawBond(svg, 500, 200, 600, 200, 2);
+            drawBond(svg, 600, 200, 650, 150, 1);
+            drawBond(svg, 650, 150, 700, 200, 1);
+            drawBond(svg, 700, 200, 800, 200, 2);
+            drawAtom(svg, 500, 200, 'C'); drawAtom(svg, 600, 200, 'C');
+            drawAtom(svg, 650, 150, 'C'); drawAtom(svg, 700, 200, 'C'); drawAtom(svg, 800, 200, 'C');
+        } else if (type === 'alkyne_acid') {
+            // 简单画出平衡
+            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            text.setAttribute("x", 400); text.setAttribute("y", 200); text.setAttribute("text-anchor", "middle");
+            text.setAttribute("font-size", "24");
+            text.textContent = "H₂O (pKa 15.7)  vs  RC≡CH (pKa 25)";
+            svg.appendChild(text);
+             const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+             arrow.setAttribute("d", "M 300 250 L 500 250 L 480 240 M 500 250 L 480 260"); // 向右大箭头
+             arrow.setAttribute("stroke", "#27ae60"); arrow.setAttribute("stroke-width", "5"); arrow.setAttribute("fill", "none");
+             svg.appendChild(arrow);
+        }
+    }
+
+    // II.3.1 合成动画
+    function drawSynthesis3_1(svg, step) {
+        const cx = 400, cy = 200;
+        if (step === 0) {
+            drawBond(svg, 350, cy, 450, cy, 3);
+            drawAtom(svg, 350, cy, 'C'); drawAtom(svg, 450, cy, 'C');
+            drawAtom(svg, 280, cy, 'H'); drawBond(svg, 280, cy, 350, cy);
+            drawAtom(svg, 520, cy, 'H'); drawBond(svg, 450, cy, 520, cy);
+        } else if (step === 1) {
+            drawBond(svg, 350, cy, 450, cy, 3);
+            drawAtom(svg, 350, cy, 'C'); drawAtom(svg, 450, cy, 'C');
+            drawAtom(svg, 280, cy, ':', "−"); drawBond(svg, 280, cy, 350, cy, 0); // 负离子
+            drawAtom(svg, 520, cy, 'H'); drawBond(svg, 450, cy, 520, cy);
+            
+            const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            t.setAttribute("x", 400); t.setAttribute("y", 100); t.setAttribute("text-anchor", "middle"); t.textContent = "+ NaNH₂ → 拔H";
+            svg.appendChild(t);
+        } else if (step === 2) {
+            drawBond(svg, 350, cy, 450, cy, 3);
+            drawAtom(svg, 350, cy, 'C'); drawAtom(svg, 450, cy, 'C');
+            
+            // 左侧接了 Pr
+            drawAtom(svg, 280, cy, 'C'); drawBond(svg, 280, cy, 350, cy);
+            drawAtom(svg, 210, cy-30, 'C'); drawBond(svg, 280, cy, 210, cy-30);
+            drawAtom(svg, 140, cy, 'C'); drawBond(svg, 210, cy-30, 140, cy);
+            
+            drawAtom(svg, 520, cy, 'H'); drawBond(svg, 450, cy, 520, cy);
+        } else if (step >= 4) {
+            drawBond(svg, 350, cy, 450, cy, 3);
+            drawAtom(svg, 350, cy, 'C'); drawAtom(svg, 450, cy, 'C');
+            
+            // 左 Pr
+            drawAtom(svg, 280, cy, 'C'); drawBond(svg, 280, cy, 350, cy);
+            drawAtom(svg, 210, cy-30, 'C'); drawBond(svg, 280, cy, 210, cy-30);
+            drawAtom(svg, 140, cy, 'C'); drawBond(svg, 210, cy-30, 140, cy);
+            
+            // 右 Pr
+            drawAtom(svg, 520, cy, 'C'); drawBond(svg, 450, cy, 520, cy);
+            drawAtom(svg, 590, cy+30, 'C'); drawBond(svg, 520, cy, 590, cy+30);
+            drawAtom(svg, 660, cy, 'C'); drawBond(svg, 590, cy+30, 660, cy);
+        }
+    }
+    
+    // II.3.2 Diels Alder
+    function drawSynthesis3_2(svg, step) {
+        if (step === 0) {
+            // Diene
+            const dx = 200, dy = 200;
+            drawAtom(svg, dx, dy, 'C'); drawAtom(svg, dx+50, dy, 'C');
+            drawAtom(svg, dx+70, dy-50, 'C'); drawAtom(svg, dx-20, dy-50, 'C');
+            drawAtom(svg, dx+25, dy-80, 'C'); // 桥头
+            drawBond(svg, dx, dy, dx+50, dy); // 单
+            drawBond(svg, dx+50, dy, dx+70, dy-50, 2); // 双
+            drawBond(svg, dx-20, dy-50, dx, dy, 2); // 双
+            
+            // Dienophile
+            const px = 500, py = 200;
+            drawAtom(svg, px, py, 'C'); drawAtom(svg, px, py-70, 'C');
+            drawBond(svg, px, py, px, py-70, 2);
+            drawAtom(svg, px+60, py-35, 'C', 'COOH');
+            drawBond(svg, px, py-70, px+60, py-35);
+        } else if (step === 1) {
+            // Product with double bond
+             const cx = 400, cy = 250;
+             // Draw bicycle structure (simplified)
+             // Bottom C-C
+             drawAtom(svg, cx-50, cy, 'C'); drawAtom(svg, cx+50, cy, 'C');
+             drawBond(svg, cx-50, cy, cx+50, cy);
+             // Sides
+             drawAtom(svg, cx-70, cy-60, 'C'); drawBond(svg, cx-50, cy, cx-70, cy-60);
+             drawAtom(svg, cx+70, cy-60, 'C'); drawBond(svg, cx+50, cy, cx+70, cy-60);
+             // Top (double bond here)
+             drawBond(svg, cx-70, cy-60, cx+70, cy-60, 2); // Double bond remains
+             // Bridge
+             drawAtom(svg, cx, cy-100, 'C');
+             drawBond(svg, cx-70, cy-60, cx, cy-100);
+             drawBond(svg, cx+70, cy-60, cx, cy-100);
+             // COOH group
+             drawAtom(svg, cx+50, cy+50, 'C', 'COOH'); drawBond(svg, cx+50, cy, cx+50, cy+50);
+        } else {
+             // Fully saturated
+             const cx = 400, cy = 250;
+             drawAtom(svg, cx-50, cy, 'C'); drawAtom(svg, cx+50, cy, 'C');
+             drawBond(svg, cx-50, cy, cx+50, cy);
+             drawAtom(svg, cx-70, cy-60, 'C'); drawBond(svg, cx-50, cy, cx-70, cy-60);
+             drawAtom(svg, cx+70, cy-60, 'C'); drawBond(svg, cx+50, cy, cx+70, cy-60);
+             drawBond(svg, cx-70, cy-60, cx+70, cy-60, 1); // Single bond now
+             drawAtom(svg, cx, cy-100, 'C');
+             drawBond(svg, cx-70, cy-60, cx, cy-100);
+             drawBond(svg, cx+70, cy-60, cx, cy-100);
+             drawAtom(svg, cx+50, cy+50, 'C', 'COOH'); drawBond(svg, cx+50, cy, cx+50, cy+50);
+             
+             const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+             t.setAttribute("x", 400); t.setAttribute("y", 100); t.setAttribute("text-anchor", "middle"); t.textContent = "+ H₂ → 双键消失";
+             svg.appendChild(t);
+        }
+    }
+
+    // II.4.2 Alkyne -> Halohydrin
+    function drawSynthesis4_2(svg, step) {
+        const cy = 200;
+        if (step <= 1) {
+            // Internal Alkyne (6C)
+            drawBond(svg, 350, cy, 450, cy, 3);
+            drawAtom(svg, 350, cy, 'C'); drawAtom(svg, 450, cy, 'C');
+            drawAtom(svg, 250, cy+30, 'C', 'Et'); drawBond(svg, 250, cy+30, 350, cy);
+            drawAtom(svg, 550, cy-30, 'C', 'Et'); drawBond(svg, 450, cy, 550, cy-30);
+        }
+        if (step === 2) {
+            // Trans Alkene
+            drawBond(svg, 350, cy, 450, cy, 2);
+            drawAtom(svg, 350, cy, 'C'); drawAtom(svg, 450, cy, 'C');
+            drawAtom(svg, 250, cy+50, 'C', 'Et'); drawBond(svg, 250, cy+50, 350, cy); // Down
+            drawAtom(svg, 550, cy-50, 'C', 'Et'); drawBond(svg, 450, cy, 550, cy-50); // Up
+            
+            const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            t.setAttribute("x", 400); t.setAttribute("y", 100); t.setAttribute("text-anchor", "middle"); t.textContent = "Na/NH₃ → 反式烯烃";
+            svg.appendChild(t);
+        }
+        if (step === 3) {
+            // Bromohydrin (Anti addition on Trans alkene -> ?)
+            // Trans alkene + anti addition = Erythro/Meso-like relative config?
+            // Visualization: Br and OH on opposite sides relative to the plane
+            
+            drawBond(svg, 350, cy, 450, cy, 1);
+            drawAtom(svg, 350, cy, 'C'); drawAtom(svg, 450, cy, 'C');
+            
+            drawAtom(svg, 350, cy-60, 'Br'); drawBond(svg, 350, cy, 350, cy-60); // Up
+            drawAtom(svg, 450, cy+60, 'O', 'OH'); drawBond(svg, 450, cy, 450, cy+60); // Down
+            
+            // Carbon chain
+            drawAtom(svg, 250, cy+50, 'C', 'Et'); drawBond(svg, 250, cy+50, 350, cy);
+            drawAtom(svg, 550, cy-50, 'C', 'Et'); drawBond(svg, 450, cy, 550, cy-50);
+        }
+    }
+    
+    // II.6 Mechanism
+    function drawMech6(svg, step) {
+        const cx = 400, cy = 250;
+        
+        // Coordinates for simplified bi-cycle
+        const c1 = {x:cx-50, y:cy}; const c2 = {x:cx+50, y:cy};
+        // Left Ring
+        const cL1 = {x:cx-80, y:cy-60}; const cL2 = {x:cx-50, y:cy-100};
+        // Right Ring
+        const cR1 = {x:cx+80, y:cy-60}; const cR2 = {x:cx+50, y:cy-100};
+        
+        // Draw Skeleton
+        // Left Ring
+        drawBond(svg, c1.x, c1.y, cL1.x, cL1.y);
+        drawBond(svg, cL1.x, cL1.y, cL2.x, cL2.y, (step===0||step===4)?2:1); // Double bond here initially
+        drawBond(svg, cL2.x, cL2.y, cx, cy-80); // Bridge connection
+        
+        // Bridge
+        drawBond(svg, c1.x, c1.y, c2.x, c2.y);
+        drawBond(svg, cx, cy-80, c1.x, c1.y); // Bridge vertical
+        drawBond(svg, cx, cy-80, c2.x, c2.y);
+        
+        // Right Ring
+        drawBond(svg, c2.x, c2.y, cR1.x, cR1.y);
+        drawBond(svg, cR1.x, cR1.y, cR2.x, cR2.y);
+        drawBond(svg, cR2.x, cR2.y, cx, cy-80);
+        
+        // Atoms
+        drawAtom(svg, c1.x, c1.y, 'C'); drawAtom(svg, c2.x, c2.y, 'C');
+        drawAtom(svg, cL1.x, cL1.y, 'C'); drawAtom(svg, cL2.x, cL2.y, 'C');
+        drawAtom(svg, cR1.x, cR1.y, 'C'); drawAtom(svg, cR2.x, cR2.y, 'C');
+        drawAtom(svg, cx, cy-80, 'C'); // Bridgehead
+        
+        // Functional Groups State Machine
+        
+        // The OH on the bridgehead (cx, cy-80)
+        let oh_label = 'OH';
+        if (step === 2) oh_label = 'O+H';
+        drawAtom(svg, cx, cy-120, 'O', oh_label); drawBond(svg, cx, cy-80, cx, cy-120);
+        
+        // The Ketone/Hemiketal on Right Ring (cR1)
+        if (step === 0) {
+            drawAtom(svg, cR1.x+40, cR1.y, 'O'); drawBond(svg, cR1.x, cR1.y, cR1.x+40, cR1.y, 2); // C=O
+            drawAtom(svg, cR1.x+60, cR1.y-40, 'H', 'H+', true); // H+ floating
+        }
+        else if (step === 1) {
+             drawAtom(svg, cR1.x+40, cR1.y, 'O', 'OH+'); drawBond(svg, cR1.x, cR1.y, cR1.x+40, cR1.y, 2); // C=OH+
+             drawCurvedArrow(svg, cx, cy-120, cR1.x, cR1.y); // OH attacks C=O
+        }
+        else if (step === 2) {
+             // Hemiketal formed: New bond from Bridge O to cR1
+             drawBond(svg, cx, cy-120, cR1.x, cR1.y);
+             drawAtom(svg, cR1.x+40, cR1.y, 'O', 'OH'); drawBond(svg, cR1.x, cR1.y, cR1.x+40, cR1.y, 1); // C-OH
+        }
+        else if (step === 3) {
+             // Water leaves
+             drawBond(svg, cx, cy-120, cR1.x, cR1.y); // Ether link
+             drawAtom(svg, cR1.x+60, cR1.y+20, 'O', 'H₂O', true); // Water leaving
+             drawAtom(svg, cx, cy-120, 'O', 'O+'); // Oxocarbenium
+             drawBond(svg, cx, cy-120, cR1.x, cR1.y, 2); // Double bond C=O+
+        }
+        else if (step === 4) {
+             // Alkene attacks
+             drawBond(svg, cx, cy-120, cR1.x, cR1.y, 2); // C=O+
+             drawCurvedArrow(svg, cL1.x, cL1.y, cx, cy-120); // Alkene attacks O+ (actually C)
+        }
+        else if (step === 5) {
+             // Final bond
+             drawBond(svg, cL2.x, cL2.y, cR1.x, cR1.y); // New C-C bond formed by cyclization
+             drawBond(svg, cx, cy-120, cR1.x, cR1.y, 1); // O becomes neutral ether
+             drawAtom(svg, cx, cy-120, 'O');
+        }
+    }
+
+    // 启动
+    init();
+
+</script>
+</body>
+</html>

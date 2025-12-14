@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>共轭二烯：终极认知模型与工具箱</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #e67e22; /* 活力橙，代表能量 */
+            --secondary-color: #3498db;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+            --highlight-bg: #fff3e0;
+            --highlight-border: #ffb74d;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            display: flex;
+            height: 100vh;
+            color: var(--text-color);
+            overflow: hidden;
+        }
+
+        /* 侧边栏导航 */
+        #sidebar {
+            width: 300px;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+        }
+
+        .nav-header {
+            padding: 20px;
+            background-color: #1a252f;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-bottom: 1px solid #34495e;
+            text-align: center;
+        }
+
+        .nav-group-title {
+            padding: 10px 15px;
+            background-color: #34495e;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #bdc3c7;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .nav-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid #34495e;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-item:hover { background-color: #3e5871; padding-left: 25px; }
+        .nav-item.active { 
+            background-color: var(--accent-color); 
+            font-weight: bold; 
+            padding-left: 25px; 
+            border-left: 5px solid white;
+        }
+
+        /* 主内容区 */
+        #main-wrapper {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #content-container {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* 标题区 */
+        #header-panel { text-align: center; margin-bottom: 10px; }
+        h1 { margin: 0; color: var(--primary-color); font-size: 1.8rem; }
+        h2 { margin: 8px 0 0; color: #7f8c8d; font-size: 1.1rem; font-weight: normal; }
+
+        /* 动画舞台 */
+        #stage-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+            height: 500px;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        svg { width: 100%; height: 100%; display: block; }
+
+        /* 交互按钮 */
+        #action-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(230, 126, 34, 0.3);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        #action-btn:hover { background-color: #d35400; transform: translateY(-2px); }
+        #action-btn:active { transform: translateY(0); }
+
+        /* 信息卡片 */
+        #info-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            line-height: 1.6;
+            border-left: 5px solid var(--secondary-color);
+        }
+
+        .card-formula { border-color: #9b59b6; background-color: #fcf6ff; }
+        .card-core { border-color: #e74c3c; background-color: #fff5f5; }
+        
+        .card-title {
+            display: block;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: #7f8c8d;
+            margin-bottom: 8px;
+        }
+        
+        .card-content { font-size: 1.05rem; color: #2c3e50; }
+        .highlight { font-weight: bold; color: #d35400; background-color: #fff3e0; padding: 0 4px; border-radius: 2px; }
+
+        /* SVG 元素样式 */
+        .atom-circle { stroke: #34495e; stroke-width: 2px; fill: #ecf0f1; transition: all 0.5s ease; }
+        
+        /* 核心修改：原子文字统一为黑色 */
+        .atom-text { 
+            font-family: Arial, sans-serif; 
+            font-weight: 900; 
+            text-anchor: middle; 
+            dominant-baseline: central; 
+            pointer-events: none;
+            user-select: none;
+            fill: #000000; /* 强制黑色 */
+        }
+        
+        .orbital { fill: rgba(52, 152, 219, 0.4); stroke: none; transition: all 0.5s ease; }
+        .bond-single { stroke: #2c3e50; stroke-width: 5; stroke-linecap: round; }
+        .bond-double-bg { stroke: #2c3e50; stroke-width: 12; stroke-linecap: round; }
+        .bond-double-fg { stroke: #ffffff; stroke-width: 3; stroke-linecap: round; }
+        .arrow { fill: none; stroke: #e74c3c; stroke-width: 3; marker-end: url(#arrowhead); }
+
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <div class="nav-header">共轭二烯认知模型工具箱</div>
+    
+    <div class="nav-group-title">1. 核心认知与模型</div>
+    <div class="nav-item active" onclick="loadScene(0)">1. 电子离域化 (核心模型)</div>
+    <div class="nav-item" onclick="loadScene(1)">2. 通用解题步骤 (扫描)</div>
+
+    <div class="nav-group-title">2. 稳定性与能量工具</div>
+    <div class="nav-item" onclick="loadScene(2)">3. 工具1: 共轭识别与轨道</div>
+    <div class="nav-item" onclick="loadScene(3)">4. 工具2: 氢化热与共振能</div>
+
+    <div class="nav-group-title">3. 结构与合成工具</div>
+    <div class="nav-item" onclick="loadScene(4)">5. 工具3: 构象 (s-cis vs s-trans)</div>
+    <div class="nav-item" onclick="loadScene(5)">6. 工具4: 制备 (NBS + 消除)</div>
+
+    <div class="nav-group-title">4. 动力学与热力学 (亲电)</div>
+    <div class="nav-item" onclick="loadScene(6)">7. 工具5: 亲电加成机制 (共振)</div>
+    <div class="nav-item" onclick="loadScene(7)">8. 工具6: 动力学 vs 热力学</div>
+    <div class="nav-item" onclick="loadScene(8)">9. 工具7: 无环状溴鎓离子</div>
+
+    <div class="nav-group-title">5. Diels-Alder 反应</div>
+    <div class="nav-item" onclick="loadScene(9)">10. 工具5(DA): 反应机制</div>
+    <div class="nav-item" onclick="loadScene(10)">11. 工具6(DA): Endo 规则</div>
+    <div class="nav-item" onclick="loadScene(11)">12. 工具7/8(DA): 构象与区域选择</div>
+</div>
+
+<div id="main-wrapper">
+    <div id="content-container">
+        
+        <div id="header-panel">
+            <h1 id="scene-title">加载中...</h1>
+            <h2 id="scene-subtitle">...</h2>
+        </div>
+
+        <div id="stage-container">
+            <svg id="svg-stage" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#e74c3c" />
+                    </marker>
+                </defs>
+                <!-- 动态内容 -->
+            </svg>
+        </div>
+
+        <button id="action-btn" onclick="nextStepLoop()">
+            <span>▶ 下一步 / 循环演示 (Next Step)</span>
+        </button>
+
+        <div id="info-panel">
+            <!-- 动态说明 -->
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // === 全局常量 ===
+    const ATOM_R = 32; 
+    const FONT_SIZE = "24px";
+    const COLORS = {
+        C: "#bdc3c7",  // 略微调亮以适应黑色文字
+        H: "#ecf0f1", 
+        Br: "#a29bfe", // 调亮紫色以适应黑色文字
+        O: "#e74c3c",
+        N: "#3498db",
+        Orbital: "rgba(52, 152, 219, 0.4)",
+        Highlight: "#e67e22"
+    };
+
+    // === 场景数据 (严格依据提供的教材文本) ===
+    const scenes = [
+        // 0. 核心认知
+        {
+            title: "核心认知：电子离域化",
+            subtitle: "电子的高速公路 vs 孤立的短绳子",
+            steps: [
+                {
+                    text: "<strong>孤立双键：</strong> 电子被死死束缚在两个C原子之间。想象C1-C2和C3-C4是绝缘的，中间隔着一堵墙。能量较高。",
+                    draw: (svg) => drawCoreModel(svg, 'isolated')
+                },
+                {
+                    text: "<strong>共轭体系：</strong> 当中间是单键时，四个p轨道平行重叠。形成了跨越4个原子的<span class='highlight'>'电子高速公路'</span>。电子自由流动，能量降低，分子变稳。",
+                    draw: (svg) => drawCoreModel(svg, 'conjugated')
+                }
+            ]
+        },
+        // 1. 通用步骤
+        {
+            title: "通用解题步骤：扫描程序",
+            subtitle: "逻辑流：扫描 -> 共振 -> 判决 -> 筛选",
+            steps: [
+                {
+                    text: "<strong>第一步：结构扫描。</strong> 寻找 <span class='highlight'>C=C-C=C</span> 模式。确认中间只隔了一个单键，且所有碳均为 sp² 杂化。",
+                    draw: (svg) => drawGeneralStep(svg, 1)
+                },
+                {
+                    text: "<strong>第二步：中间体共振。</strong> 亲电试剂(H+)进攻末端。立即画出碳阳离子及其共振结构(电荷在C2/C4跳跃)。",
+                    draw: (svg) => drawGeneralStep(svg, 2)
+                },
+                {
+                    text: "<strong>第三步：温度判决。</strong> 低温 -> 动力学(快)。高温 -> 热力学(稳)。",
+                    draw: (svg) => drawGeneralStep(svg, 3)
+                }
+            ]
+        },
+        // 2. 工具1：共轭识别
+        {
+            title: "工具1：共轭识别与轨道",
+            subtitle: "sp²杂化 + 平行p轨道 + 连续重叠",
+            steps: [
+                {
+                    text: "<strong>1,3-丁二烯 (共轭)：</strong> 结构 C=C-C=C。中间单键具有部分双键性质。四个p轨道形成连续的π云。",
+                    draw: (svg) => drawTool1(svg, 'conjugated')
+                },
+                {
+                    text: "<strong>1,4-戊二烯 (非共轭)：</strong> 结构 C=C-C-C=C。中间隔了两个单键(sp³碳阻断)。轨道无法重叠，电子路断了。",
+                    draw: (svg) => drawTool1(svg, 'isolated')
+                }
+            ]
+        },
+        // 3. 工具2：氢化热
+        {
+            title: "工具2：氢化热与共振能",
+            subtitle: "量化稳定性的标尺",
+            steps: [
+                {
+                    text: "<strong>理论值 (孤立)：</strong> 假设两个双键互不干扰。预期放热 2 × -126 = <span class='highlight'>-252 kJ/mol</span>。能量高。",
+                    draw: (svg) => drawTool2(svg, 'theory')
+                },
+                {
+                    text: "<strong>实验值 (共轭)：</strong> 实际测量放热仅 <span class='highlight'>-223 kJ/mol</span>。系统“私藏”了能量。",
+                    draw: (svg) => drawTool2(svg, 'obs')
+                },
+                {
+                    text: "<strong>共振能：</strong> 差值 29-30 kJ/mol 就是共轭带来的稳定能。分子因为共轭而处于更低的能量谷底。",
+                    draw: (svg) => drawTool2(svg, 'diff')
+                }
+            ]
+        },
+        // 4. 工具3：构象
+        {
+            title: "工具3：构象分析 (s-cis vs s-trans)",
+            subtitle: "s代表关于单键(single bond)的旋转",
+            steps: [
+                {
+                    text: "<strong>s-trans (反式)：</strong> 像楼梯一样错开。位阻最小，能量最低。常温下占98%。",
+                    draw: (svg) => drawTool3(svg, 'trans')
+                },
+                {
+                    text: "<strong>s-cis (顺式)：</strong> 像钳子一样朝向同侧。内侧基团(H)发生<span class='highlight'>空间排斥 (Steric Clash)</span>。能量高约 10-12 kJ/mol。",
+                    draw: (svg) => drawTool3(svg, 'cis')
+                }
+            ]
+        },
+        // 5. 工具4：制备
+        {
+            title: "工具4：共轭二烯制备",
+            subtitle: "NBS自由基取代 + 消除",
+            steps: [
+                {
+                    text: "<strong>步骤1：NBS取代。</strong> 进攻双键隔壁的<span class='highlight'>烯丙基位 (Allylic)</span>。H 被换成 Br。因为烯丙基自由基稳定。",
+                    draw: (svg) => drawTool4(svg, 'step1')
+                },
+                {
+                    text: "<strong>步骤2：消除反应。</strong> 强碱(KOtBu)移除Br和隔壁H，形成第二个双键。得到共轭二烯。",
+                    draw: (svg) => drawTool4(svg, 'step2')
+                }
+            ]
+        },
+        // 6. 工具5：亲电加成机制
+        {
+            title: "工具5：亲电加成核心机制",
+            subtitle: "共振阳离子混合体",
+            steps: [
+                {
+                    text: "<strong>进攻：</strong> H+(来自HBr)总是进攻末端C1。生成C2阳离子(二级，稳定)。",
+                    draw: (svg) => drawTool5(svg, 'step1')
+                },
+                {
+                    text: "<strong>共振：</strong> 邻近双键电子支援。正电荷转移到C4。画出两个共振式 <span class='highlight'>[C2+ ↔ C4+]</span>。",
+                    draw: (svg) => drawTool5(svg, 'step2')
+                },
+                {
+                    text: "<strong>混合体：</strong> 真实正电荷同时分布在C2和C4。这就是为什么产物可以在两个位置生成。",
+                    draw: (svg) => drawTool5(svg, 'step3')
+                }
+            ]
+        },
+        // 7. 工具6：动力学 vs 热力学
+        {
+            title: "工具6：控制权判决",
+            subtitle: "速度(K) vs 稳定(T)",
+            steps: [
+                {
+                    text: "<strong>低温 (动力学)：</strong> 门槛低者胜。Br-离C2最近(邻近效应)，迅速生成 <span class='highlight'>1,2-产物</span>。掉进浅坑出不来。",
+                    draw: (svg) => drawTool6(svg, 'kinetic')
+                },
+                {
+                    text: "<strong>高温 (热力学)：</strong> 能量高，反应可逆。最终汇聚在能量最低的深坑——<span class='highlight'>1,4-产物</span> (双取代双键更稳定)。",
+                    draw: (svg) => drawTool6(svg, 'thermo')
+                }
+            ]
+        },
+        // 8. 工具7：无环状溴鎓
+        {
+            title: "工具7：特殊机制 (Br2)",
+            subtitle: "共振能战胜了环张力",
+            steps: [
+                {
+                    text: "<strong>对比：</strong> 普通烯烃形成三元环(溴鎓离子)。但共轭二烯<span class='highlight'>不形成环</span>！",
+                    draw: (svg) => drawTool7(svg, 'compare')
+                },
+                {
+                    text: "<strong>原因：</strong> 开放的烯丙基阳离子可以通过共振分散电荷，极其稳定。保持开放链，允许电荷离域。",
+                    draw: (svg) => drawTool7(svg, 'open')
+                }
+            ]
+        },
+        // 9. Diels-Alder 机制
+        {
+            title: "工具5(DA)：反应机制",
+            subtitle: "[4+2] 协同反应，完美的六步舞",
+            steps: [
+                {
+                    text: "<strong>准备：</strong> 二烯烃必须转为 <span class='highlight'>s-cis</span> (C形钳子)。亲二烯体靠近开口。",
+                    draw: (svg) => drawDA(svg, 'setup')
+                },
+                {
+                    text: "<strong>协同成键：</strong> 3对电子同时移动。C1攻头，尾攻C4，中间双键移位。无中间体。",
+                    draw: (svg) => drawDA(svg, 'transition')
+                },
+                {
+                    text: "<strong>产物：</strong> 生成六元环(环己烯)。原有双键消失，背面生成新双键。",
+                    draw: (svg) => drawDA(svg, 'product')
+                }
+            ]
+        },
+        // 10. Endo 规则
+        {
+            title: "工具6(DA)：Endo 规则",
+            subtitle: "吸电子基团喜欢躲在下面",
+            steps: [
+                {
+                    text: "<strong>Endo (内型)：</strong> 吸电子基团(如C=O)垫在二烯烃双键下方。次级轨道重叠稳定了过渡态。<span class='highlight'>主产物</span>。",
+                    draw: (svg) => drawEndo(svg, 'endo')
+                },
+                {
+                    text: "<strong>Exo (外型)：</strong> 基团指向外侧。虽然位阻小，但缺乏电子吸引。通常为次产物。",
+                    draw: (svg) => drawEndo(svg, 'exo')
+                }
+            ]
+        },
+        // 11. 构象门控与Regio
+        {
+            title: "工具7/8(DA)：门控与选择性",
+            subtitle: "s-cis门票与正负相吸",
+            steps: [
+                {
+                    text: "<strong>构象门控：</strong> 只有能转成 s-cis 的二烯才能反应。环戊二烯(锁死s-cis)反应极快。被锁在s-trans的绝不反应。",
+                    draw: (svg) => drawGateRegio(svg, 'gate')
+                },
+                {
+                    text: "<strong>区域选择：</strong> 寻找电荷匹配。δ- 找 δ+。通常生成 <span class='highlight'>1,4-产物 (对位)</span> 或 1,2-产物 (邻位)。绝非间位。",
+                    draw: (svg) => drawGateRegio(svg, 'regio')
+                }
+            ]
+        }
+    ];
+
+    // === 逻辑控制 ===
+    let currentSceneIdx = 0;
+    let currentStepIdx = 0;
+
+    window.onload = function() {
+        loadScene(0);
+    };
+
+    function loadScene(index) {
+        document.querySelectorAll('.nav-item').forEach((el, i) => {
+            el.classList.toggle('active', i === index);
+        });
+        currentSceneIdx = index;
+        currentStepIdx = 0;
+        updateContent();
+    }
+
+    function nextStepLoop() {
+        currentStepIdx++;
+        if (currentStepIdx >= scenes[currentSceneIdx].steps.length) {
+            currentStepIdx = 0;
+        }
+        updateContent();
+    }
+
+    function updateContent() {
+        const scene = scenes[currentSceneIdx];
+        const step = scene.steps[currentStepIdx];
+
+        document.getElementById('scene-title').innerText = scene.title;
+        document.getElementById('scene-subtitle').innerText = scene.subtitle;
+
+        // 说明文字
+        let html = `
+            <div class="card card-core">
+                <span class="card-title">当前步骤解析 (Step Analysis)</span>
+                <div class="card-content">${step.text}</div>
+            </div>
+        `;
+        document.getElementById('info-panel').innerHTML = html;
+
+        // 按钮文字
+        const btnText = document.querySelector('#action-btn span');
+        if (currentStepIdx === scene.steps.length - 1) {
+            btnText.innerHTML = "↻ 本节结束，点击循环 (Loop)";
+        } else {
+            btnText.innerHTML = "▶ 下一步 (Next Step)";
+        }
+
+        // 绘图
+        const svg = document.getElementById('svg-stage');
+        svg.innerHTML = `<defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" fill="#e74c3c" />
+            </marker>
+        </defs>`; 
+        step.draw(svg);
+    }
+
+    // === 绘图辅助函数 ===
+
+    function createAtom(x, y, label, id) {
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        
+        const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        c.setAttribute("cx", x); c.setAttribute("cy", y);
+        c.setAttribute("r", ATOM_R);
+        c.setAttribute("class", "atom-circle");
+        c.setAttribute("fill", COLORS[label] || COLORS.C);
+
+        const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        t.setAttribute("x", x); t.setAttribute("y", y);
+        t.setAttribute("class", "atom-text");
+        t.setAttribute("font-size", FONT_SIZE);
+        
+        // 文字颜色统一为 CSS 中定义的黑色
+        t.textContent = label + (id || "");
+
+        g.appendChild(c);
+        g.appendChild(t);
+        return g;
+    }
+
+    function createBond(x1, y1, x2, y2, type="single") {
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        if (type === 'double') {
+            const b1 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            b1.setAttribute("x1", x1); b1.setAttribute("y1", y1);
+            b1.setAttribute("x2", x2); b1.setAttribute("y2", y2);
+            b1.setAttribute("class", "bond-double-bg");
+            g.appendChild(b1);
+            
+            const b2 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            b2.setAttribute("x1", x1); b2.setAttribute("y1", y1);
+            b2.setAttribute("x2", x2); b2.setAttribute("y2", y2);
+            b2.setAttribute("class", "bond-double-fg");
+            g.appendChild(b2);
+        } else {
+            const b = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            b.setAttribute("x1", x1); b.setAttribute("y1", y1);
+            b.setAttribute("x2", x2); b.setAttribute("y2", y2);
+            b.setAttribute("class", "bond-single");
+            g.appendChild(b);
+        }
+        return g;
+    }
+
+    function createOrbital(x, y) {
+        const el = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+        el.setAttribute("cx", x); el.setAttribute("cy", y);
+        el.setAttribute("rx", 25); el.setAttribute("ry", 60);
+        el.setAttribute("class", "orbital");
+        return el;
+    }
+
+    function createLabel(x, y, txt, color) {
+        const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        t.setAttribute("x", x); t.setAttribute("y", y);
+        t.setAttribute("text-anchor", "middle");
+        t.setAttribute("font-size", "20px");
+        t.setAttribute("font-weight", "bold");
+        t.setAttribute("fill", color || "#333");
+        t.textContent = txt;
+        return t;
+    }
+
+    // === 具体场景绘图逻辑 ===
+
+    // Scene 0: Core Model
+    function drawCoreModel(svg, state) {
+        const cy = 250;
+        const spacing = 100;
+        const startX = 250;
+        
+        // Bonds
+        if (state === 'isolated') {
+            svg.appendChild(createBond(startX, cy, startX+spacing, cy, 'double'));
+            svg.appendChild(createBond(startX+spacing, cy, startX+2*spacing, cy, 'single'));
+            svg.appendChild(createBond(startX+2*spacing, cy, startX+3*spacing, cy, 'double'));
+        } else {
+            // Conjugated: all connected with partial double character visually
+            for(let i=0; i<3; i++) svg.appendChild(createBond(startX+i*spacing, cy, startX+(i+1)*spacing, 'single'));
+        }
+
+        // Orbitals
+        for(let i=0; i<4; i++) {
+            svg.appendChild(createOrbital(startX+i*spacing, cy));
+        }
+
+        // Delocalization Cloud
+        if (state === 'conjugated') {
+            const cloud = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            cloud.setAttribute("d", `M ${startX} ${cy-70} Q ${startX+150} ${cy-70} ${startX+300} ${cy-70} Q ${startX+300} ${cy-35} ${startX+300} ${cy} Q ${startX+150} ${cy} ${startX} ${cy} Z`);
+            cloud.setAttribute("fill", COLORS.Orbital);
+            svg.appendChild(cloud);
+            const cloud2 = cloud.cloneNode();
+            cloud2.setAttribute("transform", `scale(1,-1) translate(0,-${2*cy})`);
+            svg.appendChild(cloud2);
+            svg.appendChild(createLabel(400, 120, "π 电子高速公路", COLORS.N));
+        } else {
+            svg.appendChild(createLabel(400, 120, "绝缘墙", COLORS.O));
+            const wall = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            wall.setAttribute("x", 395); wall.setAttribute("y", 150);
+            wall.setAttribute("width", 10); wall.setAttribute("height", 200);
+            wall.setAttribute("fill", "#bdc3c7");
+            svg.appendChild(wall);
+        }
+
+        // Atoms
+        for(let i=0; i<4; i++) svg.appendChild(createAtom(startX+i*spacing, cy, 'C', i+1));
+    }
+
+    // Scene 1: General Steps
+    function drawGeneralStep(svg, step) {
+        const cy = 250;
+        if (step === 1) {
+            drawCoreModel(svg, 'conjugated');
+            svg.appendChild(createLabel(400, 350, "C=C-C=C √", "green"));
+        } else if (step === 2) {
+            // Resonance
+            const x = [200, 300, 400, 500];
+            // Left structure
+            svg.appendChild(createBond(x[0], cy, x[1], cy, 'single'));
+            svg.appendChild(createBond(x[1], cy, x[2], cy, 'single'));
+            svg.appendChild(createBond(x[2], cy, x[3], cy, 'double'));
+            [0,1,2,3].forEach(i=>svg.appendChild(createAtom(x[i], cy, 'C', i+1)));
+            svg.appendChild(createLabel(x[1], cy-50, "+", COLORS.O));
+            
+            // Arrow
+            const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            t.setAttribute("x", 550); t.setAttribute("y", cy+10); t.textContent = "↔";
+            t.setAttribute("font-size", "40px");
+            svg.appendChild(t);
+
+            // Right structure
+            const off = 400;
+            const x2 = x.map(v=>v+off);
+            svg.appendChild(createBond(x2[0], cy, x2[1], cy, 'single'));
+            svg.appendChild(createBond(x2[1], cy, x2[2], cy, 'double'));
+            svg.appendChild(createBond(x2[2], cy, x2[3], cy, 'single'));
+            [0,1,2,3].forEach(i=>svg.appendChild(createAtom(x2[i], cy, 'C', i+1)));
+            svg.appendChild(createLabel(x2[3], cy-50, "+", COLORS.O));
+
+             // Adjust viewbox for this wide scene or scale
+             svg.setAttribute("viewBox", "100 100 900 300");
+        } else {
+             // Temperature
+             svg.appendChild(createLabel(250, 200, "低温 -80°C", COLORS.N));
+             svg.appendChild(createLabel(250, 300, "动力学 (速度)", COLORS.N));
+             svg.appendChild(createLabel(550, 200, "高温 40°C", COLORS.O));
+             svg.appendChild(createLabel(550, 300, "热力学 (稳定)", COLORS.O));
+        }
+    }
+
+    // Scene 2: Tool 1 Recognition
+    function drawTool1(svg, type) {
+        const cy = 250;
+        const startX = 200;
+        const x = [startX, startX+100, startX+200, startX+300, startX+400];
+        
+        if (type === 'conjugated') {
+            svg.appendChild(createBond(x[0], cy, x[1], cy, 'double'));
+            svg.appendChild(createBond(x[1], cy, x[2], cy, 'single'));
+            svg.appendChild(createBond(x[2], cy, x[3], cy, 'double'));
+            for(let i=0; i<4; i++) {
+                svg.appendChild(createOrbital(x[i], cy));
+                svg.appendChild(createAtom(x[i], cy, 'C', i+1));
+            }
+        } else {
+            svg.appendChild(createBond(x[0], cy, x[1], cy, 'double'));
+            svg.appendChild(createBond(x[1], cy, x[2], cy, 'single'));
+            svg.appendChild(createBond(x[2], cy, x[3], cy, 'single'));
+            svg.appendChild(createBond(x[3], cy, x[4], cy, 'double'));
+            for(let i=0; i<5; i++) {
+                if(i!==2) svg.appendChild(createOrbital(x[i], cy));
+                svg.appendChild(createAtom(x[i], cy, 'C', i+1));
+            }
+             svg.appendChild(createLabel(x[2], cy+60, "sp³ (断路)", COLORS.O));
+        }
+    }
+
+    // Scene 3: Tool 2 Heat
+    function drawTool2(svg, state) {
+        const base = 400;
+        const cx = 400;
+        const w = 100;
+        
+        // Ground
+        svg.appendChild(createBond(200, base, 600, base));
+        svg.appendChild(createLabel(400, base+30, "烷烃 (基准)", "#333"));
+        
+        let h, col, txt, val;
+        if (state === 'theory') {
+            h = 300; col = COLORS.O; txt = "孤立双键"; val = "-252 kJ";
+        } else if (state === 'obs') {
+            h = 260; col = COLORS.Highlight; txt = "共轭二烯"; val = "-223 kJ";
+        } else {
+            h = 260; col = COLORS.Highlight; txt = "差值 = 稳定能"; val = "30 kJ";
+            // Draw ghost of theory
+            const r0 = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            r0.setAttribute("x", cx-w/2); r0.setAttribute("y", base-300);
+            r0.setAttribute("width", w); r0.setAttribute("height", 300);
+            r0.setAttribute("fill", "none"); r0.setAttribute("stroke", "#333"); r0.setAttribute("stroke-dasharray", "5,5");
+            svg.appendChild(r0);
+            
+            // Arrow
+            const arr = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            arr.setAttribute("x1", cx+60); arr.setAttribute("y1", base-300);
+            arr.setAttribute("x2", cx+60); arr.setAttribute("y2", base-260);
+            arr.setAttribute("stroke", "green"); arr.setAttribute("stroke-width", 3);
+            arr.setAttribute("marker-end", "url(#arrowhead)");
+            svg.appendChild(arr);
+        }
+        
+        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        rect.setAttribute("x", cx-w/2); rect.setAttribute("y", base-h);
+        rect.setAttribute("width", w); rect.setAttribute("height", h);
+        rect.setAttribute("fill", col);
+        svg.appendChild(rect);
+        
+        svg.appendChild(createLabel(cx, base-h-20, txt + " " + val, col));
+    }
+
+    // Scene 4: Conformation
+    function drawTool3(svg, type) {
+        const cx = 400, cy = 250;
+        if (type === 'trans') {
+            svg.appendChild(createBond(300, 300, 350, 250, 'double'));
+            svg.appendChild(createBond(350, 250, 450, 250, 'single'));
+            svg.appendChild(createBond(450, 250, 500, 200, 'double'));
+            svg.appendChild(createAtom(300, 300, 'C'));
+            svg.appendChild(createAtom(350, 250, 'C'));
+            svg.appendChild(createAtom(450, 250, 'C'));
+            svg.appendChild(createAtom(500, 200, 'C'));
+        } else {
+            svg.appendChild(createBond(300, 300, 350, 250, 'double'));
+            svg.appendChild(createBond(350, 250, 450, 250, 'single'));
+            svg.appendChild(createBond(450, 250, 500, 300, 'double'));
+            svg.appendChild(createAtom(300, 300, 'C'));
+            svg.appendChild(createAtom(350, 250, 'C'));
+            svg.appendChild(createAtom(450, 250, 'C'));
+            svg.appendChild(createAtom(500, 300, 'C'));
+            
+            // Clash
+            svg.appendChild(createAtom(350, 200, 'H'));
+            svg.appendChild(createAtom(450, 200, 'H'));
+            svg.appendChild(createBond(350,250, 350,200));
+            svg.appendChild(createBond(450,250, 450,200));
+            
+            const arc = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            arc.setAttribute("d", "M 360 200 Q 400 180 440 200");
+            arc.setAttribute("fill", "none"); arc.setAttribute("stroke", "red"); arc.setAttribute("stroke-width", 3);
+            svg.appendChild(arc);
+            svg.appendChild(createLabel(400, 170, "碰撞!", "red"));
+        }
+    }
+
+    // Scene 5: Tool 4 Prep
+    function drawTool4(svg, step) {
+        const cy = 250;
+        if (step === 'step1') {
+            svg.appendChild(createBond(300, cy, 400, cy, 'double')); // C=C
+            svg.appendChild(createBond(400, cy, 500, cy, 'single')); // C-C
+            svg.appendChild(createBond(500, cy, 500, cy-80, 'single')); // C-Br
+            
+            svg.appendChild(createAtom(300, cy, 'C'));
+            svg.appendChild(createAtom(400, cy, 'C'));
+            svg.appendChild(createAtom(500, cy, 'C'));
+            svg.appendChild(createAtom(500, cy-80, 'Br'));
+            
+            svg.appendChild(createLabel(400, cy+60, "3-溴-1-烯", "#333"));
+        } else {
+            svg.appendChild(createBond(300, cy, 400, cy, 'double'));
+            svg.appendChild(createBond(400, cy, 500, cy, 'single'));
+            svg.appendChild(createBond(500, cy, 600, cy, 'double')); // New double
+            
+            [300,400,500,600].forEach(x => svg.appendChild(createAtom(x, cy, 'C')));
+            svg.appendChild(createLabel(450, cy+60, "共轭二烯", "#333"));
+        }
+    }
+
+    // Scene 6: Tool 5 Mech
+    function drawTool5(svg, step) {
+        const cy = 250;
+        const x = [250, 350, 450, 550];
+        if (step === 'step1') {
+            svg.appendChild(createBond(x[0], cy, x[1], cy, 'double'));
+            svg.appendChild(createBond(x[1], cy, x[2], cy, 'single'));
+            svg.appendChild(createBond(x[2], cy, x[3], cy, 'double'));
+            svg.appendChild(createAtom(200, 200, 'H'));
+            svg.appendChild(createLabel(210, 190, "+", COLORS.O));
+            
+            const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            arrow.setAttribute("d", `M 280 ${cy-10} Q 250 200 220 200`);
+            arrow.setAttribute("class", "arrow");
+            svg.appendChild(arrow);
+        } else if (step === 'step2') {
+            // Resonance
+            svg.appendChild(createBond(x[0], cy, x[1], cy, 'single'));
+            svg.appendChild(createBond(x[1], cy, x[2], cy, 'single'));
+            svg.appendChild(createBond(x[2], cy, x[3], cy, 'double'));
+            svg.appendChild(createLabel(x[1], cy-40, "+", COLORS.O));
+            
+            svg.appendChild(createLabel(450, 350, "↔", "#333"));
+            
+            // Second struct
+            const cy2 = 400;
+            svg.appendChild(createBond(x[0], cy2, x[1], cy2, 'single'));
+            svg.appendChild(createBond(x[1], cy2, x[2], cy2, 'double'));
+            svg.appendChild(createBond(x[2], cy2, x[3], cy2, 'single'));
+            svg.appendChild(createLabel(x[3], cy2-40, "+", COLORS.O));
+            
+            [0,1,2,3].forEach(i => {
+                svg.appendChild(createAtom(x[i], cy, 'C', i+1));
+                svg.appendChild(createAtom(x[i], cy2, 'C', i+1));
+            });
+            return;
+        } else {
+            // Hybrid
+            svg.appendChild(createBond(x[0], cy, x[1], cy, 'single'));
+            svg.appendChild(createBond(x[1], cy, x[2], cy, 'single'));
+            svg.appendChild(createBond(x[2], cy, x[3], cy, 'single'));
+            
+            const dash = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            dash.setAttribute("d", `M ${x[1]} ${cy-20} L ${x[3]} ${cy-20}`);
+            dash.setAttribute("stroke", COLORS.N); dash.setAttribute("stroke-width", 4); dash.setAttribute("stroke-dasharray", "10,5");
+            svg.appendChild(dash);
+            
+            svg.appendChild(createLabel(x[1], cy-40, "δ+", COLORS.O));
+            svg.appendChild(createLabel(x[3], cy-40, "δ+", COLORS.O));
+        }
+        [0,1,2,3].forEach(i => svg.appendChild(createAtom(x[i], cy, 'C', i+1)));
+    }
+
+    // Scene 7: Kinetics vs Thermo
+    function drawTool6(svg, type) {
+        const p1 = "M 100 350 Q 200 200 300 300"; // Low hill, shallow valley
+        const p2 = "M 100 350 Q 300 50 500 400"; // High hill, deep valley
+        
+        const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path1.setAttribute("d", p1); path1.setAttribute("fill", "none"); path1.setAttribute("stroke", COLORS.N); path1.setAttribute("stroke-width", 4);
+        svg.appendChild(path1);
+        
+        const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path2.setAttribute("d", p2); path2.setAttribute("fill", "none"); path2.setAttribute("stroke", COLORS.O); path2.setAttribute("stroke-width", 4);
+        svg.appendChild(path2);
+
+        const ball = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        ball.setAttribute("r", 15); ball.setAttribute("fill", COLORS.Highlight);
+
+        if (type === 'kinetic') {
+            ball.setAttribute("cx", 300); ball.setAttribute("cy", 300);
+            svg.appendChild(createLabel(300, 340, "1,2-产物 (快)", COLORS.N));
+        } else {
+            ball.setAttribute("cx", 500); ball.setAttribute("cy", 400);
+            svg.appendChild(createLabel(500, 440, "1,4-产物 (稳)", COLORS.O));
+        }
+        svg.appendChild(ball);
+    }
+
+    // Scene 8: Tool 7 Br2
+    function drawTool7(svg, type) {
+        const cy = 250;
+        if (type === 'compare') {
+            // Triangle
+            svg.appendChild(createBond(300, cy, 400, cy, 'single'));
+            svg.appendChild(createBond(300, cy, 350, cy-80, 'single'));
+            svg.appendChild(createBond(400, cy, 350, cy-80, 'single'));
+            svg.appendChild(createAtom(300, cy, 'C'));
+            svg.appendChild(createAtom(400, cy, 'C'));
+            svg.appendChild(createAtom(350, cy-80, 'Br'));
+            
+            const x = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            x.setAttribute("x", 350); x.setAttribute("y", cy); x.setAttribute("text-anchor", "middle");
+            x.setAttribute("font-size", "100px"); x.setAttribute("fill", "red"); x.setAttribute("opacity", 0.3);
+            x.textContent = "×";
+            svg.appendChild(x);
+        } else {
+            // Open chain
+            const x = [300, 400, 500];
+            svg.appendChild(createBond(x[0], cy, x[1], cy, 'single'));
+            svg.appendChild(createBond(x[1], cy, x[2], cy, 'single'));
+            svg.appendChild(createBond(x[0], cy, x[0], cy-80, 'single')); // C-Br
+            
+            svg.appendChild(createAtom(x[0], cy-80, 'Br'));
+            [0,1,2].forEach(i => svg.appendChild(createAtom(x[i], cy, 'C')));
+            
+            const dash = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            dash.setAttribute("d", `M ${x[1]} ${cy-30} L ${x[2]} ${cy-30}`);
+            dash.setAttribute("stroke", COLORS.N); dash.setAttribute("stroke-width", 4); dash.setAttribute("stroke-dasharray", "5,5");
+            svg.appendChild(dash);
+            svg.appendChild(createLabel(450, cy-50, "δ+ 离域", COLORS.O));
+        }
+    }
+
+    // Scene 9: DA Mech
+    function drawDA(svg, stage) {
+        const cy = 250;
+        // Diene
+        const d = [[300,200], [350,250], [350,350], [300,400]];
+        // Phil
+        const p = [[450,250], [450,350]];
+
+        if (stage === 'setup') {
+            svg.appendChild(createBond(...d[0], ...d[1], 'double'));
+            svg.appendChild(createBond(...d[1], ...d[2], 'single'));
+            svg.appendChild(createBond(...d[2], ...d[3], 'double'));
+            svg.appendChild(createBond(...p[0], ...p[1], 'double'));
+        } else if (stage === 'transition') {
+            svg.appendChild(createBond(...d[0], ...d[1], 'single')); // Partial
+            svg.appendChild(createBond(...d[1], ...d[2], 'double')); // New double forming
+            svg.appendChild(createBond(...d[2], ...d[3], 'single'));
+            svg.appendChild(createBond(...p[0], ...p[1], 'single'));
+            
+            // New bonds dashed
+            const l1 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            l1.setAttribute("x1", d[0][0]); l1.setAttribute("y1", d[0][1]);
+            l1.setAttribute("x2", p[0][0]); l1.setAttribute("y2", p[0][1]);
+            l1.setAttribute("stroke", COLORS.N); l1.setAttribute("stroke-dasharray", "5,5"); l1.setAttribute("stroke-width", 3);
+            svg.appendChild(l1);
+            
+            const l2 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            l2.setAttribute("x1", d[3][0]); l2.setAttribute("y1", d[3][1]);
+            l2.setAttribute("x2", p[1][0]); l2.setAttribute("y2", p[1][1]);
+            l2.setAttribute("stroke", COLORS.N); l2.setAttribute("stroke-dasharray", "5,5"); l2.setAttribute("stroke-width", 3);
+            svg.appendChild(l2);
+        } else {
+            // Product Hex
+            const h = [[350,200], [450,200], [450,300], [350,300], [300,250], [300,250]];
+            // Proper Hexagon coordinates needed? Let's approximate based on prev
+            // C1(300,200)-C5(450,250)? No let's draw fresh Hexagon
+            const cx=400, cy=250, r=80;
+            // 6 pts
+            const pts = [];
+            for(let i=0; i<6; i++) {
+                const ang = (i*60 + 30)*Math.PI/180;
+                pts.push([cx + r*Math.cos(ang), cy + r*Math.sin(ang)]);
+            }
+            // pts[4]-pts[5] is back double bond usually in schematic
+            // Let's draw: C1-C2=C3-C4-C5-C6-C1
+            // C2=C3 is the new double bond.
+            
+            svg.appendChild(createBond(...pts[0], ...pts[1], 'single'));
+            svg.appendChild(createBond(...pts[1], ...pts[2], 'double')); // Back double
+            svg.appendChild(createBond(...pts[2], ...pts[3], 'single'));
+            svg.appendChild(createBond(...pts[3], ...pts[4], 'single'));
+            svg.appendChild(createBond(...pts[4], ...pts[5], 'single'));
+            svg.appendChild(createBond(...pts[5], ...pts[0], 'single'));
+            
+            pts.forEach(pt => svg.appendChild(createAtom(...pt, 'C')));
+            return;
+        }
+
+        d.forEach((pt,i) => svg.appendChild(createAtom(...pt, 'C', i+1)));
+        p.forEach((pt,i) => svg.appendChild(createAtom(...pt, 'C', i+5)));
+    }
+
+    // Scene 10: Endo
+    function drawEndo(svg, type) {
+        const cx = 400, cy = 250;
+        // Schematic view: Diene (Plate) + Phil (Under/Over)
+        
+        // Diene
+        svg.appendChild(createBond(300, 200, 500, 200, 'single'));
+        svg.appendChild(createLabel(400, 190, "二烯平面", COLORS.C));
+        
+        if (type === 'endo') {
+            svg.appendChild(createBond(350, 250, 450, 250, 'single')); // Phil
+            svg.appendChild(createLabel(400, 280, "吸电子基团 (下面)", COLORS.Highlight));
+            // Interaction lines
+            for(let i=350; i<=450; i+=20) {
+                const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                l.setAttribute("x1", i); l.setAttribute("y1", 200); l.setAttribute("x2", i); l.setAttribute("y2", 250);
+                l.setAttribute("stroke", COLORS.N); l.setAttribute("stroke-dasharray", "2,2");
+                svg.appendChild(l);
+            }
+        } else {
+            svg.appendChild(createBond(350, 150, 450, 150, 'single')); // Phil above
+            svg.appendChild(createLabel(400, 140, "吸电子基团 (外面/上面)", COLORS.C));
+        }
+    }
+
+    // Scene 11: Gate & Regio
+    function drawGateRegio(svg, type) {
+        const cy = 250;
+        if (type === 'gate') {
+            // s-cis locked (cyclopentadiene)
+            const pts = [[300,250], [350,200], [400,250], [380,300], [320,300]];
+            pts.forEach((p, i) => {
+                const next = pts[(i+1)%5];
+                svg.appendChild(createBond(...p, ...next, i<2?'double':'single'));
+                svg.appendChild(createAtom(...p, 'C'));
+            });
+            svg.appendChild(createLabel(350, 350, "锁死 s-cis (极快)", "green"));
+            
+            // s-trans locked
+            svg.appendChild(createBond(500, 200, 550, 250, 'double'));
+            svg.appendChild(createBond(550, 250, 600, 250, 'single'));
+            svg.appendChild(createBond(600, 250, 650, 200, 'double'));
+             // Ring constraint lines roughly
+            svg.appendChild(createBond(500, 200, 500, 300, 'single'));
+            svg.appendChild(createBond(650, 200, 650, 300, 'single'));
+             svg.appendChild(createLabel(575, 350, "锁死 s-trans (不反应)", "red"));
+
+        } else {
+            // Regio
+            // Diene: C-C-C=C with EDG
+            svg.appendChild(createAtom(250, 200, 'C'));
+            svg.appendChild(createAtom(250, 300, 'C'));
+            svg.appendChild(createLabel(250, 160, "δ-", COLORS.N));
+            
+            // Phil: C=C-EWG
+            svg.appendChild(createAtom(550, 200, 'C'));
+            svg.appendChild(createAtom(550, 300, 'C'));
+            svg.appendChild(createLabel(550, 160, "δ+", COLORS.O));
+            
+            // Arrow connecting
+            const a = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            a.setAttribute("d", "M 280 160 Q 400 100 520 160");
+            a.setAttribute("class", "arrow");
+            svg.appendChild(a);
+            
+            svg.appendChild(createLabel(400, 250, "对位/邻位连接", COLORS.Highlight));
+        }
+    }
+
+</script>
+</body>
+</html>

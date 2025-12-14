@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>有机化学可视化解题系统 (Doubleday Exam)</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #e74c3c;
+            --bg: #f8f9fa;
+            --panel-bg: #ffffff;
+            --text: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        /* 侧边栏 */
+        #sidebar {
+            width: 280px;
+            background-color: var(--primary);
+            color: white;
+            overflow-y: auto;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav-header {
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .nav-item:hover { background-color: rgba(255,255,255,0.1); padding-left: 25px; }
+        .nav-item.active { background-color: var(--accent); border-left: 5px solid white; }
+
+        /* 主区域 */
+        #main {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 0 20px;
+        }
+
+        header {
+            padding: 20px 0;
+            text-align: center;
+        }
+        
+        h1 { margin: 0; color: var(--primary); font-size: 1.8rem; }
+        h2 { margin: 5px 0; color: #7f8c8d; font-size: 1rem; font-weight: normal; }
+
+        /* 可视化舞台 */
+        #stage-wrapper {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin: 0 auto;
+            width: 100%;
+            max-width: 900px;
+            height: 450px;
+            position: relative;
+            border: 1px solid #ddd;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        svg { width: 100%; height: 100%; user-select: none; }
+
+        /* 控制区 */
+        #controls {
+            padding: 15px;
+            text-align: center;
+        }
+
+        button {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(231, 76, 60, 0.3);
+            transition: transform 0.1s;
+            font-weight: bold;
+        }
+
+        button:active { transform: scale(0.95); }
+        button:hover { background-color: #c0392b; }
+
+        /* 解析文本区 */
+        #explanation {
+            max-width: 900px;
+            margin: 0 auto 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            line-height: 1.8;
+        }
+
+        .exp-step {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f1f8ff;
+            border-left: 5px solid #3498db;
+            border-radius: 4px;
+        }
+        
+        .exp-title { font-weight: bold; color: #2980b9; margin-bottom: 5px; display: block; }
+        strong { color: var(--accent); }
+
+        /* SVG 元素样式 */
+        .atom-circle { stroke: #333; stroke-width: 2px; transition: all 0.5s ease; }
+        .atom-label { 
+            font-family: Arial, sans-serif; 
+            font-weight: bold; 
+            text-anchor: middle; 
+            dominant-baseline: central; 
+            pointer-events: none;
+            fill: #333;
+        }
+        .bond { stroke: #333; stroke-width: 4px; stroke-linecap: round; transition: all 0.5s ease; }
+        .bond.double { stroke-width: 10px; } /* 仅用于辅助，实际双键画两条线 */
+        .electron-arrow { fill: none; stroke: #e74c3c; stroke-width: 3px; marker-end: url(#arrowhead); stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: drawArrow 1s forwards; }
+        
+        @keyframes drawArrow { to { stroke-dashoffset: 0; } }
+
+        /* 标签样式 */
+        .tag-rs { font-size: 24px; font-weight: bold; fill: #8e44ad; }
+        .highlight-ring { fill: none; stroke: #f1c40f; stroke-width: 4px; stroke-dasharray: 8 4; animation: spin 10s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <div class="nav-header">有机化学解题工具箱</div>
+    <div class="nav-item active" onclick="loadScene(0)">III.1 立体化学 (R/S 判断)</div>
+    <div class="nav-item" onclick="loadScene(1)">III.2 命名与结构 (拼图)</div>
+    <div class="nav-item" onclick="loadScene(2)">III.3 核心机理 (共轭与能量)</div>
+    <div class="nav-item" onclick="loadScene(3)">III.4-1 SOCl2 脱水机理</div>
+    <div class="nav-item" onclick="loadScene(4)">III.4-2 甲酸重排 (扩环)</div>
+    <div class="nav-item" onclick="loadScene(5)">III.5 非经典碳正离子</div>
+    <div class="nav-item" onclick="loadScene(6)">III.6 合成设计 (逆向思维)</div>
+</div>
+
+<div id="main">
+    <header>
+        <h1 id="title">III.1 立体化学：给原子排座次</h1>
+        <h2 id="subtitle">找出谁是老大，画圈圈定方向</h2>
+    </header>
+
+    <div id="stage-wrapper">
+        <svg id="stage" viewBox="0 0 800 450">
+            <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="#e74c3c" />
+                </marker>
+            </defs>
+            <!-- 动态内容将被 JS 注入这里 -->
+        </svg>
+    </div>
+
+    <div id="controls">
+        <button id="btn-next" onclick="nextStep()">▶ 播放第一步 (Start)</button>
+    </div>
+
+    <div id="explanation">
+        <!-- 动态解析文本 -->
+    </div>
+</div>
+
+<script>
+    // === 基础数据结构与绘图引擎 ===
+    const COLORS = {
+        C: "#bdc3c7", H: "#ecf0f1", O: "#e74c3c", N: "#3498db", 
+        Cl: "#2ecc71", Br: "#9b59b6", S: "#f1c40f", Mg: "#e67e22",
+        Active: "#ffeb3b"
+    };
+
+    let currentSceneId = 0;
+    let currentStep = 0;
+
+    // 场景数据定义
+    const SCENES = [
+        {
+            // III.1
+            title: "III.1 立体化学：给原子排座次",
+            subtitle: "规则：原子量大的排前面，从1数到3，顺时针R，逆时针S",
+            steps: [
+                {
+                    text: "<strong>第一步：识别手性碳</strong><br>我们在分子中找到了三个关键的手性中心（连着4个不同基团的碳）。<br>让我们先看最上面连着甲基(Me)的那个碳。",
+                    draw: (svg) => {
+                        drawMoleculeStructure1(svg);
+                        highlightAtom(svg, 500, 100, "C1"); // Highlight top C
+                    }
+                },
+                {
+                    text: "<strong>第二步：排优先级 (C_top)</strong><br>1. <strong>N</strong> (氮, 最重) -> 冠军<br>2. <strong>C-桥</strong> (连着更多碳) -> 亚军<br>3. <strong>Me</strong> (甲基, 只有H) -> 季军<br>4. <strong>H</strong> (氢) -> 躲在后面",
+                    draw: (svg) => {
+                        drawMoleculeStructure1(svg);
+                        drawPriority(svg, 500, 100, [
+                            {x:450, y:100, label:'① N'},
+                            {x:500, y:160, label:'② Bridge'},
+                            {x:560, y:80, label:'③ Me'}
+                        ], "S (逆时针)");
+                        drawArrowCurve(svg, 460, 110, 500, 150);
+                        drawArrowCurve(svg, 500, 150, 550, 90);
+                    }
+                },
+                {
+                    text: "<strong>第三步：左侧连OH的碳 (C_OH)</strong><br>1. <strong>O</strong> (氧) -> 冠军<br>2. <strong>右侧桥</strong> (通向N) -> 亚军<br>3. <strong>下方路</strong> (通向双键, N>C) -> 季军<br>方向：1->2->3 为逆时针。",
+                    draw: (svg) => {
+                        drawMoleculeStructure1(svg);
+                        drawPriority(svg, 250, 180, [
+                            {x:200, y:150, label:'① OH'},
+                            {x:300, y:180, label:'② Bridge-N'},
+                            {x:250, y:250, label:'③ C=C'}
+                        ], "S (逆时针)");
+                        drawArrowCurve(svg, 210, 160, 290, 180);
+                        drawArrowCurve(svg, 290, 180, 250, 240);
+                    }
+                }
+            ]
+        },
+        {
+            // III.2
+            title: "III.2 命名与结构：积木拼图",
+            subtitle: "任务：数碳原子，找功能团，定立体构型(Z/E)",
+            steps: [
+                {
+                    text: "<strong>题目一：7-bromo-3-heptyne</strong><br>1. <strong>Hept</strong>: 画7个碳的链。<br>2. <strong>yne</strong>: 在第3号位画三键 (C≡C)。<br>3. <strong>bromo</strong>: 在第7号位挂一个Br。<br>注意编号：让三键数字最小 (3 < 4)，所以从右边开始数。",
+                    draw: (svg) => {
+                        // Draw Chain
+                        let path = "M 700 200 L 650 250 L 550 250 L 500 200 L 450 250 L 400 200 L 350 250";
+                        drawPath(svg, path, "#333", 4);
+                        // Triple bond
+                        drawLine(svg, 650, 240, 550, 240, 4); 
+                        drawLine(svg, 650, 260, 550, 260, 4);
+                        // Label Br
+                        drawAtom(svg, 350, 250, "C");
+                        drawLine(svg, 350, 250, 300, 280);
+                        drawAtom(svg, 300, 280, "Br");
+                        // Numbers
+                        drawLabel(svg, 700, 180, "1");
+                        drawLabel(svg, 650, 220, "2");
+                        drawLabel(svg, 550, 220, "3");
+                        drawLabel(svg, 350, 220, "7");
+                    }
+                },
+                {
+                    text: "<strong>题目二：(Z)-2-methyl-4-decene</strong><br>1. <strong>Dec</strong>: 10个碳。<br>2. <strong>4-ene</strong>: 4号位双键。<br>3. <strong>(Z)</strong>: 'Zusammen' (在一起)。主链进出的方向在双键同一侧（像个杯子，不像楼梯）。",
+                    draw: (svg) => {
+                        // Z-alkene shape
+                        // C1-C2(Me)-C3-C4=C5-C6-C7...
+                        const p = [
+                            {x:100, y:300}, {x:150, y:250}, {x:200, y:300}, // 1,2,3
+                            {x:250, y:200}, {x:350, y:200}, // 4=5 (Flat top for Z)
+                            {x:400, y:300}, {x:450, y:250}, {x:500, y:300}, {x:550, y:250}, {x:600, y:300} // 6,7,8,9,10
+                        ];
+                        
+                        let d = `M ${p[0].x} ${p[0].y}`;
+                        for(let i=1; i<p.length; i++) d += ` L ${p[i].x} ${p[i].y}`;
+                        drawPath(svg, d, "#333", 4);
+                        
+                        // Double bond
+                        drawLine(svg, 250, 210, 350, 210, 4);
+                        
+                        // Methyl on C2
+                        drawLine(svg, 150, 250, 150, 180);
+                        drawAtom(svg, 150, 180, "C");
+                        
+                        // Highlight Z
+                        drawLabel(svg, 300, 150, "Z (同侧/杯状)", "red");
+                        drawDashedLine(svg, 200, 300, 250, 200); // Entering
+                        drawDashedLine(svg, 350, 200, 400, 300); // Exiting
+                    }
+                }
+            ]
+        },
+        {
+            // III.3
+            title: "III.3 核心机理：能量与选择",
+            subtitle: "为什么 B 比 A 多？因为团队合作（共轭）更稳定。",
+            steps: [
+                {
+                    text: "<strong>1. 质子化 (Protonation)</strong><br>酸性环境中的 H+ 是个诱饵。原料中的 OH (氧) 忍不住去咬住了 H+。<br>结果：OH 变成了 OH2+ (带正电的水)。",
+                    draw: (svg) => {
+                        drawRingSystemIII3(svg, "OH2+");
+                        drawLabel(svg, 200, 100, "H+", "red");
+                        drawCurvedArrow(svg, 160, 140, 200, 110);
+                    }
+                },
+                {
+                    text: "<strong>2. 脱水 (Loss of Water)</strong><br>水分子是一个非常稳定的东西，它带着电子逃跑了。<br>结果：留下了一个**碳正离子 (C+)**。这很痛苦，缺电子。",
+                    draw: (svg) => {
+                        drawRingSystemIII3(svg, "C+");
+                        drawAtom(svg, 250, 80, "H2O");
+                        drawLabel(svg, 150, 140, "C+", "red");
+                    }
+                },
+                {
+                    text: "<strong>3. 抉择时刻 (Elimination)</strong><br>我们要去掉一个 H 来消除正电荷。<br><strong>路径 A</strong>: 去掉尾巴末端的 H -> 得到隔离双键 (A)。<br><strong>路径 B</strong>: 去掉环上的 H -> 得到**共轭双键** (B)。",
+                    draw: (svg) => {
+                        // Draw Intermediate
+                        drawRingSystemIII3(svg, "C+");
+                        
+                        // Path to A
+                        drawLabel(svg, 50, 250, "Path A: 隔离", "gray");
+                        drawMoleculeA(svg, 50, 300);
+                        
+                        // Path to B
+                        drawLabel(svg, 350, 250, "Path B: 共轭 (稳定!)", "red");
+                        drawMoleculeB(svg, 350, 300);
+                        
+                        // Arrow
+                        drawArrowLine(svg, 150, 180, 100, 280);
+                        drawArrowLine(svg, 170, 180, 350, 280);
+                    }
+                },
+                {
+                    text: "<strong>4. 结论</strong><br>因为 B 中也是双键-单键-双键 (共轭)，电子可以在更大的范围内奔跑，能量更低，更稳定。<br>所以 B (30%) > A (15%)。",
+                    draw: (svg) => {
+                         drawMoleculeB(svg, 250, 200, 1.5);
+                         drawLabel(svg, 250, 100, "共轭体系 (Conjugation)", "red");
+                         drawDashedBox(svg, 200, 180, 200, 150); // Box around diene
+                    }
+                }
+            ]
+        },
+        {
+            // III.4 SOCl2
+            title: "III.4-1 SOCl2 脱水反应",
+            subtitle: "把不愿走的 OH 变成炸药包，然后引爆",
+            steps: [
+                {
+                    text: "<strong>1. 活化 (Activation)</strong><br>OH 直接离去很难。SOCl2 把它变成了 -O-SO-Cl。<br>这就像给它装了一个弹射座椅。",
+                    draw: (svg) => {
+                        drawReactant4(svg);
+                        drawAtom(svg, 400, 100, "S");
+                        drawAtom(svg, 380, 70, "O");
+                        drawAtom(svg, 430, 70, "Cl");
+                        drawCurvedArrow(svg, 250, 150, 390, 100);
+                    }
+                },
+                {
+                    text: "<strong>2. 消除 (Elimination)</strong><br>Pyridine (吡啶, 碱) 过来拔掉邻近的 H。<br>电子倒下形成双键，同时弹射座椅 (-OSOCl) 飞出。<br>结果：生成烯烃。",
+                    draw: (svg) => {
+                        drawIntermediate4(svg); // O-SO-Cl attached
+                        drawAtom(svg, 150, 250, "Base(Pyr)");
+                        drawLabel(svg, 210, 220, "H");
+                        drawCurvedArrow(svg, 160, 240, 200, 220); // Base grabs H
+                        drawCurvedArrow(svg, 220, 210, 240, 180); // H bond to C=C
+                    }
+                }
+            ]
+        },
+        {
+            // III.4 Formic Acid
+            title: "III.4-2 瓦格纳-梅尔魏因重排",
+            subtitle: "房子太挤了(五元环)，拆东墙补西墙变成大房子(六元环)",
+            steps: [
+                {
+                    text: "<strong>1. Br 离去</strong><br>生成碳正离子。但是这个位置在五元环上，很挤。",
+                    draw: (svg) => {
+                        drawRing5(svg);
+                        drawAtom(svg, 350, 150, "C+");
+                        drawAtom(svg, 450, 100, "Br- (bye)");
+                    }
+                },
+                {
+                    text: "<strong>2. 扩环 (Expansion)</strong><br>旁边的碳键断开，搬家到 C+ 上。<br>五元环变成了六元环！正电荷转移到了更舒服的位置。",
+                    draw: (svg) => {
+                        drawRing6(svg, true); // Transition state
+                        drawCurvedArrow(svg, 300, 200, 350, 150); // Bond moving
+                        drawLabel(svg, 300, 300, "五环变六环 (更稳)");
+                    }
+                },
+                {
+                    text: "<strong>3. 捕获</strong><br>甲酸 (HCOOH) 里的氧攻击新的正电荷，最后形成酮。",
+                    draw: (svg) => {
+                        drawRing6(svg, false); // Final ketone form roughly
+                        drawAtom(svg, 350, 150, "O");
+                        drawLabel(svg, 350, 100, "Attack!");
+                    }
+                }
+            ]
+        },
+        {
+            // III.5
+            title: "III.5 非经典碳正离子",
+            subtitle: "神奇的“雨刷器”效应",
+            steps: [
+                {
+                    text: "<strong>1. 离去与援助</strong><br>Cl 离去时，背面的 C-C 键像雨刷器一样摆过来。<br>正电荷不是在一个碳上，而是被三个碳分担 (虚线三角形)。",
+                    draw: (svg) => {
+                        drawNorbornyl(svg, "ion");
+                        drawDashedTriangle(svg);
+                        drawLabel(svg, 400, 50, "非经典离子 (3C-2e)");
+                    }
+                },
+                {
+                    text: "<strong>2. 背侧攻击</strong><br>因为上方被“雨刷器”挡住了，水分子只能从下方 (Exo) 撞上去。<br>产物：OH 在外侧 (Exo)。",
+                    draw: (svg) => {
+                        drawNorbornyl(svg, "ion");
+                        drawAtom(svg, 400, 350, "H2O");
+                        drawArrowLine(svg, 400, 320, 400, 250); // Upward attack
+                        drawLabel(svg, 500, 300, "只能从下面攻!");
+                    }
+                }
+            ]
+        },
+        {
+            // III.6 Synthesis
+            title: "III.6 合成设计大师",
+            subtitle: "逆向思维：我们要什么工具？",
+            steps: [
+                {
+                    text: "<strong>任务A: 剪断双键变酮</strong><br>工具：<strong>1) O3 (臭氧); 2) Zn, H3O+</strong>。<br>臭氧像剪刀一样把 C=C 剪断，然后在切口处装上氧。",
+                    draw: (svg) => {
+                        drawLine(svg, 100, 200, 200, 200, 10); // C=C
+                        drawLabel(svg, 150, 150, "剪断!", "red");
+                        drawArrowLine(svg, 220, 200, 300, 200);
+                        drawAtom(svg, 320, 180, "O"); drawLine(svg, 320, 200, 320, 240);
+                        drawAtom(svg, 360, 180, "O"); drawLine(svg, 360, 200, 360, 240);
+                    }
+                },
+                {
+                    text: "<strong>任务B: 增碳与加氧</strong><br>1. HBr (加溴)<br>2. Et2CuLi (把溴换成乙基，变长)<br>3. Hg(OAc)2/H2O (把双键变醇)。",
+                    draw: (svg) => {
+                        drawLine(svg, 100, 200, 150, 200, 4);
+                        drawLabel(svg, 125, 180, "4C");
+                        drawArrowLine(svg, 160, 200, 250, 200);
+                        drawLabel(svg, 200, 180, "+2C");
+                        drawLine(svg, 260, 200, 360, 200, 4);
+                        drawAtom(svg, 340, 160, "OH");
+                    }
+                },
+                {
+                    text: "<strong>任务D: 建造三角环 (环氧化)</strong><br>工具：<strong>mCPBA</strong>。<br>它直接往双键上坐下一个氧原子，形成三元环。",
+                    draw: (svg) => {
+                         drawLine(svg, 200, 200, 300, 200, 10);
+                         drawArrowLine(svg, 320, 200, 400, 200);
+                         drawLabel(svg, 350, 170, "mCPBA");
+                         // Epoxide
+                         drawLine(svg, 450, 200, 550, 200, 4);
+                         drawAtom(svg, 500, 150, "O");
+                         drawLine(svg, 450, 200, 500, 150, 2);
+                         drawLine(svg, 550, 200, 500, 150, 2);
+                    }
+                }
+            ]
+        }
+    ];
+
+    // === 核心逻辑 ===
+
+    function loadScene(index) {
+        currentSceneId = index;
+        currentStep = 0;
+        
+        // Update Sidebar
+        document.querySelectorAll('.nav-item').forEach((el, i) => {
+            el.classList.toggle('active', i === index);
+        });
+
+        // Update Text
+        const scene = SCENES[index];
+        document.getElementById('title').innerText = scene.title;
+        document.getElementById('subtitle').innerText = scene.subtitle;
+        
+        // Reset Button
+        const btn = document.getElementById('btn-next');
+        btn.innerText = "▶ 播放第一步";
+        btn.onclick = nextStep;
+
+        // Clear Stage
+        document.getElementById('stage').innerHTML = '<defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#e74c3c" /></marker></defs>';
+        document.getElementById('explanation').innerHTML = '<div class="exp-step">请点击按钮开始演示...</div>';
+    }
+
+    function nextStep() {
+        const scene = SCENES[currentSceneId];
+        const step = scene.steps[currentStep];
+
+        // Update Text
+        const expDiv = document.getElementById('explanation');
+        expDiv.innerHTML = `<div class="exp-step">${step.text}</div>`;
+
+        // Draw
+        const svg = document.getElementById('stage');
+        svg.innerHTML = '<defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#e74c3c" /></marker></defs>'; // Clear but keep defs
+        step.draw(svg);
+
+        // Advance
+        currentStep++;
+        const btn = document.getElementById('btn-next');
+        if (currentStep >= scene.steps.length) {
+            currentStep = 0;
+            btn.innerText = "↺ 重置并循环";
+        } else {
+            btn.innerText = "▶ 下一步";
+        }
+    }
+
+    // === 绘图辅助函数 (SVG Helpers) ===
+    
+    function createSVGElement(type, attrs) {
+        const el = document.createElementNS("http://www.w3.org/2000/svg", type);
+        for (let k in attrs) el.setAttribute(k, attrs[k]);
+        return el;
+    }
+
+    function drawAtom(svg, x, y, label) {
+        let r = 25;
+        let fill = COLORS[label.replace(/[^a-zA-Z]/g, '')] || "#fff";
+        
+        if (label.includes("H")) r = 18;
+        
+        const circle = createSVGElement("circle", {cx:x, cy:y, r:r, fill:fill, class:"atom-circle"});
+        const text = createSVGElement("text", {x:x, y:y, class:"atom-label", "font-size": r*0.8});
+        text.textContent = label;
+        
+        svg.appendChild(circle);
+        svg.appendChild(text);
+    }
+
+    function drawLine(svg, x1, y1, x2, y2, w=4) {
+        svg.prepend(createSVGElement("line", {x1:x1, y1:y1, x2:x2, y2:y2, class:"bond", "stroke-width":w}));
+    }
+
+    function drawPath(svg, d, stroke="#333", w=4) {
+        svg.prepend(createSVGElement("path", {d:d, fill:"none", stroke:stroke, "stroke-width":w, "stroke-linecap":"round"}));
+    }
+
+    function drawCurvedArrow(svg, x1, y1, x2, y2) {
+        const mx = (x1+x2)/2;
+        const my = Math.min(y1, y2) - 50;
+        const d = `M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`;
+        svg.appendChild(createSVGElement("path", {d:d, class:"electron-arrow"}));
+    }
+    
+    function drawArrowLine(svg, x1, y1, x2, y2) {
+         svg.appendChild(createSVGElement("line", {x1:x1, y1:y1, x2:x2, y2:y2, stroke:"#333", "stroke-width":2, "marker-end":"url(#arrowhead)"}));
+    }
+
+    function drawLabel(svg, x, y, txt, col="#333") {
+        const t = createSVGElement("text", {x:x, y:y, fill:col, "font-weight":"bold", "font-size":"18px", "text-anchor":"middle"});
+        t.textContent = txt;
+        svg.appendChild(t);
+    }
+    
+    function drawDashedLine(svg, x1, y1, x2, y2) {
+        svg.appendChild(createSVGElement("line", {x1:x1, y1:y1, x2:x2, y2:y2, stroke:"#999", "stroke-width":2, "stroke-dasharray":"5,5"}));
+    }
+
+    // === 特定场景绘图函数 ===
+
+    // III.1
+    function drawMoleculeStructure1(svg) {
+        // Simplified representation of the cage
+        // Top C: 500, 100
+        // Left C-OH: 250, 180
+        // Bridge: 350, 150
+        
+        // Skeleton
+        const path = "M 250 180 L 350 150 L 500 100 L 550 150 L 350 250 L 250 180";
+        drawPath(svg, path);
+        
+        drawAtom(svg, 500, 100, "C"); // Top
+        drawAtom(svg, 250, 180, "C"); // OH-C
+        
+        // Substituents
+        drawAtom(svg, 450, 100, "N"); // N left of Top
+        drawAtom(svg, 560, 80, "Me"); // Me on Top
+        drawAtom(svg, 200, 150, "OH"); // OH on Left
+        
+        // Bridge visual
+        drawLine(svg, 350, 150, 500, 100, 2);
+    }
+
+    function highlightAtom(svg, x, y, txt) {
+        const c = createSVGElement("circle", {cx:x, cy:y, r:40, fill:"none", stroke:"#e74c3c", "stroke-width":3});
+        svg.appendChild(c);
+    }
+
+    function drawPriority(svg, cx, cy, points, result) {
+        points.forEach(p => drawLabel(svg, p.x, p.y, p.label, "#e74c3c"));
+        drawLabel(svg, cx, cy+60, result, "#8e44ad");
+    }
+
+    // III.3
+    function drawRingSystemIII3(svg, state) {
+        // Hexagon ring
+        const cx = 200, cy = 200;
+        const pts = [
+            {x:cx-40, y:cy-70}, {x:cx+40, y:cy-70},
+            {x:cx+80, y:cy}, {x:cx+40, y:cy+70},
+            {x:cx-40, y:cy+70}, {x:cx-80, y:cy}
+        ];
+        let d = `M ${pts[0].x} ${pts[0].y}`;
+        for(let i=1; i<pts.length; i++) d+=` L ${pts[i].x} ${pts[i].y}`;
+        d+=` Z`;
+        drawPath(svg, d);
+        
+        // Tail
+        drawLine(svg, pts[2].x, pts[2].y, pts[2].x+50, pts[2].y+50); // to C
+        
+        if (state === "OH2+") {
+            drawAtom(svg, pts[0].x, pts[0].y-40, "OH2+");
+            drawLine(svg, pts[0].x, pts[0].y, pts[0].x, pts[0].y-40);
+        } else if (state === "C+") {
+             drawLabel(svg, pts[0].x, pts[0].y-20, "+", "red");
+        }
+    }
+    
+    function drawMoleculeA(svg, x, y) {
+        // Isolated
+        drawLine(svg, x, y, x+40, y-40, 4);
+        drawLine(svg, x+40, y-40, x+80, y, 4);
+        drawLine(svg, x+80, y, x+120, y-40, 4);
+        // Double bond vertical at end
+        drawLine(svg, x+120, y-40, x+120, y-80, 8); // Double
+    }
+    
+    function drawMoleculeB(svg, x, y, scale=1) {
+        // Conjugated
+        // C=C-C=C
+        drawLine(svg, x, y, x+40*scale, y-40*scale, 8); // Double
+        drawLine(svg, x+40*scale, y-40*scale, x+80*scale, y, 4); // Single
+        drawLine(svg, x+80*scale, y, x+120*scale, y-40*scale, 8); // Double
+    }
+
+    // III.4 helpers
+    function drawReactant4(svg) {
+        drawAtom(svg, 250, 150, "C");
+        drawAtom(svg, 250, 100, "OH");
+        drawLine(svg, 250, 150, 250, 100);
+    }
+    
+    function drawIntermediate4(svg) {
+        drawAtom(svg, 250, 150, "C");
+        drawAtom(svg, 300, 100, "OSOCl");
+        drawLine(svg, 250, 150, 300, 100);
+        drawLine(svg, 250, 150, 200, 200);
+        drawAtom(svg, 200, 200, "CH");
+        drawLine(svg, 200, 200, 200, 230); // H
+    }
+
+    function drawRing5(svg) {
+        const pts = "M 300 200 L 350 150 L 400 200 L 370 270 L 330 270 Z";
+        drawPath(svg, pts);
+    }
+    
+    function drawRing6(svg, open) {
+        const pts = "M 300 200 L 350 150 L 450 150 L 500 200 L 450 270 L 350 270 Z";
+        drawPath(svg, pts, open?"#e67e22":"#333");
+    }
+
+    function drawNorbornyl(svg, type) {
+        // Simple "Tent" shape
+        // Base
+        drawLine(svg, 300, 250, 500, 250);
+        // Peak
+        drawLine(svg, 300, 250, 400, 100);
+        drawLine(svg, 500, 250, 400, 100);
+        
+        if (type === "ion") {
+            drawLabel(svg, 400, 150, "+", "red");
+        }
+    }
+    
+    function drawDashedTriangle(svg) {
+        const path = "M 350 180 L 450 180 L 400 120 Z";
+        svg.appendChild(createSVGElement("path", {d:path, fill:"rgba(231, 76, 60, 0.2)", stroke:"red", "stroke-dasharray":"5,5"}));
+    }
+    
+    function drawDashedBox(svg, x, y, w, h) {
+        const r = createSVGElement("rect", {x:x, y:y, width:w, height:h, fill:"none", stroke:"#e74c3c", "stroke-dasharray":"5,5", "stroke-width":2});
+        svg.appendChild(r);
+    }
+
+    // 初始化
+    loadScene(0);
+
+</script>
+</body>
+</html>

@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>题目I.2 - 碳谱与对称性推断</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --accent: #ec4899;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1a2e 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card h2::before {
+            content: '🔬';
+            font-size: 1.5rem;
+        }
+
+        .explanation {
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .formula {
+            font-family: 'Cambria Math', serif;
+            font-size: 1.2rem;
+            color: var(--accent);
+        }
+
+        .svg-container {
+            background: #0a0a1a;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .step-indicator {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .highlight {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .answer-box {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(99, 102, 241, 0.2));
+            border: 2px solid var(--accent);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .answer-box h3 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        svg text {
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .atom-label {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🧪 题目 I.2 - 碳谱与对称性推断</h1>
+
+        <!-- 题目概述 -->
+        <div class="card">
+            <h2>题目概述</h2>
+            <p>推断化合物 <span class="highlight">C</span> (分子式 <span class="formula">C₈H₁₂</span>)、<span
+                    class="highlight">D</span> 和 <span class="highlight">E</span> 的结构。</p>
+            <div class="explanation">
+                <strong>已知条件：</strong>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li>¹³C NMR: 只有2个峰 - 38.7 ppm (CH₂) 和 127.6 ppm (CH)</li>
+                    <li>C + 2 equiv H₂ → D (D的NMR只有1个峰)</li>
+                    <li>C + O₃/Zn → E (E的碳谱有2个峰: 36 ppm和202 ppm)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 工具1: 不饱和度计算 -->
+        <div class="card">
+            <h2>工具1: 不饱和度计算</h2>
+            <div class="explanation">
+                <strong>C₈H₁₂：</strong> 饱和应为C₈H₁₈，缺少6个H → 不饱和度 = <span class="highlight">3</span>
+            </div>
+            <div class="svg-container">
+                <svg id="svg-unsat2" width="700" height="250" viewBox="0 0 700 250">
+                    <defs>
+                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#6366f1;stop-opacity:0.3" />
+                            <stop offset="100%" style="stop-color:#ec4899;stop-opacity:0.3" />
+                        </linearGradient>
+                    </defs>
+
+                    <g id="unsat2-step1" opacity="0">
+                        <rect x="50" y="40" width="180" height="70" rx="10" fill="url(#grad1)" stroke="#6366f1"
+                            stroke-width="2" />
+                        <text x="140" y="70" text-anchor="middle" fill="#f1f5f9" font-size="14">饱和C₈烷烃</text>
+                        <text x="140" y="95" text-anchor="middle" fill="#ec4899" font-size="18"
+                            font-weight="bold">C₈H₁₈</text>
+                    </g>
+
+                    <g id="unsat2-step2" opacity="0">
+                        <path d="M240 75 L290 75" stroke="#8b5cf6" stroke-width="3" marker-end="url(#arrow1)" />
+                        <rect x="300" y="40" width="180" height="70" rx="10" fill="url(#grad1)" stroke="#10b981"
+                            stroke-width="2" />
+                        <text x="390" y="70" text-anchor="middle" fill="#f1f5f9" font-size="14">实际分子式</text>
+                        <text x="390" y="95" text-anchor="middle" fill="#10b981" font-size="18"
+                            font-weight="bold">C₈H₁₂</text>
+                    </g>
+
+                    <g id="unsat2-step3" opacity="0">
+                        <rect x="200" y="140" width="300" height="90" rx="15" fill="rgba(245, 158, 11, 0.2)"
+                            stroke="#f59e0b" stroke-width="3" />
+                        <text x="350" y="170" text-anchor="middle" fill="#f1f5f9" font-size="14">缺少 18-12 = 6个H</text>
+                        <text x="350" y="200" text-anchor="middle" fill="#f59e0b" font-size="22" font-weight="bold">不饱和度
+                            = 6÷2 = 3</text>
+                    </g>
+
+                    <defs>
+                        <marker id="arrow1" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#8b5cf6" />
+                        </marker>
+                    </defs>
+                </svg>
+                <div class="controls">
+                    <button class="btn" onclick="resetAnimation('unsat2')">🔄 重置</button>
+                    <button class="btn" onclick="nextStep('unsat2')">▶️ 下一步</button>
+                </div>
+                <div class="step-indicator" id="step-unsat2">步骤: 0/3</div>
+            </div>
+        </div>
+
+        <!-- 工具2: 加氢分析 -->
+        <div class="card">
+            <h2>工具2: 加氢反应分析 → 推导化合物D</h2>
+            <div class="explanation">
+                <strong>C + 2H₂ → D：</strong> 消耗2分子H₂ → 有<span class="highlight">2个双键</span><br>
+                <strong>D的NMR只有1个峰：</strong> 所有碳等价 → 高度对称的<span class="highlight">环辛烷</span>
+            </div>
+            <div class="svg-container">
+                <svg id="svg-hydro2" width="700" height="350" viewBox="0 0 700 350">
+                    <!-- 化合物C -->
+                    <g id="hydro2-step1" opacity="0">
+                        <rect x="30" y="50" width="150" height="100" rx="10" fill="rgba(99, 102, 241, 0.2)"
+                            stroke="#6366f1" stroke-width="2" />
+                        <text x="105" y="80" text-anchor="middle" fill="#f1f5f9" font-size="14">化合物 C</text>
+                        <text x="105" y="110" text-anchor="middle" fill="#ec4899" font-size="18"
+                            font-weight="bold">C₈H₁₂</text>
+                        <text x="105" y="135" text-anchor="middle" fill="#f59e0b" font-size="12">不饱和度=3</text>
+                    </g>
+
+                    <!-- 加氢箭头 -->
+                    <g id="hydro2-step2" opacity="0">
+                        <path d="M190 100 L270 100" stroke="#10b981" stroke-width="3" marker-end="url(#arrowG)" />
+                        <text x="230" y="85" text-anchor="middle" fill="#10b981" font-size="16"
+                            font-weight="bold">+2H₂</text>
+                        <text x="230" y="125" text-anchor="middle" fill="#94a3b8" font-size="12">Pd催化</text>
+                    </g>
+
+                    <!-- 化合物D -->
+                    <g id="hydro2-step3" opacity="0">
+                        <rect x="280" y="50" width="150" height="100" rx="10" fill="rgba(16, 185, 129, 0.2)"
+                            stroke="#10b981" stroke-width="2" />
+                        <text x="355" y="80" text-anchor="middle" fill="#f1f5f9" font-size="14">化合物 D</text>
+                        <text x="355" y="110" text-anchor="middle" fill="#10b981" font-size="18"
+                            font-weight="bold">C₈H₁₆</text>
+                        <text x="355" y="135" text-anchor="middle" fill="#f59e0b" font-size="12">不饱和度=1(环)</text>
+                    </g>
+
+                    <!-- D的结构：环辛烷 -->
+                    <g id="hydro2-step4" opacity="0">
+                        <text x="560" y="40" text-anchor="middle" fill="#f1f5f9" font-size="14" font-weight="bold">D =
+                            环辛烷</text>
+                        <!-- 八边形 -->
+                        <polygon points="560,60 610,85 630,140 610,195 560,220 510,195 490,140 510,85" fill="none"
+                            stroke="#10b981" stroke-width="3" />
+                        <!-- 碳原子 -->
+                        <circle cx="560" cy="60" r="20" fill="#1e293b" stroke="#6366f1" stroke-width="2" />
+                        <text x="560" y="66" text-anchor="middle" fill="#6366f1" font-size="14"
+                            font-weight="bold">C</text>
+                        <circle cx="610" cy="85" r="20" fill="#1e293b" stroke="#6366f1" stroke-width="2" />
+                        <text x="610" y="91" text-anchor="middle" fill="#6366f1" font-size="14"
+                            font-weight="bold">C</text>
+                        <circle cx="630" cy="140" r="20" fill="#1e293b" stroke="#6366f1" stroke-width="2" />
+                        <text x="630" y="146" text-anchor="middle" fill="#6366f1" font-size="14"
+                            font-weight="bold">C</text>
+                        <circle cx="610" cy="195" r="20" fill="#1e293b" stroke="#6366f1" stroke-width="2" />
+                        <text x="610" y="201" text-anchor="middle" fill="#6366f1" font-size="14"
+                            font-weight="bold">C</text>
+                        <circle cx="560" cy="220" r="20" fill="#1e293b" stroke="#6366f1" stroke-width="2" />
+                        <text x="560" y="226" text-anchor="middle" fill="#6366f1" font-size="14"
+                            font-weight="bold">C</text>
+                        <circle cx="510" cy="195" r="20" fill="#1e293b" stroke="#6366f1" stroke-width="2" />
+                        <text x="510" y="201" text-anchor="middle" fill="#6366f1" font-size="14"
+                            font-weight="bold">C</text>
+                        <circle cx="490" cy="140" r="20" fill="#1e293b" stroke="#6366f1" stroke-width="2" />
+                        <text x="490" y="146" text-anchor="middle" fill="#6366f1" font-size="14"
+                            font-weight="bold">C</text>
+                        <circle cx="510" cy="85" r="20" fill="#1e293b" stroke="#6366f1" stroke-width="2" />
+                        <text x="510" y="91" text-anchor="middle" fill="#6366f1" font-size="14"
+                            font-weight="bold">C</text>
+                    </g>
+
+                    <!-- 解释 -->
+                    <g id="hydro2-step5" opacity="0">
+                        <rect x="30" y="180" width="400" height="80" rx="10" fill="rgba(245, 158, 11, 0.15)"
+                            stroke="#f59e0b" />
+                        <text x="230" y="210" text-anchor="middle" fill="#f1f5f9" font-size="13">💡 D的NMR只有1个峰 =
+                            8个碳完全等价</text>
+                        <text x="230" y="235" text-anchor="middle" fill="#10b981" font-size="14" font-weight="bold">→
+                            完美对称的八元环 = Cyclooctane</text>
+                    </g>
+
+                    <!-- 结论推导C -->
+                    <g id="hydro2-step6" opacity="0">
+                        <rect x="30" y="275" width="640" height="60" rx="10" fill="rgba(236, 72, 153, 0.2)"
+                            stroke="#ec4899" stroke-width="2" />
+                        <text x="350" y="305" text-anchor="middle" fill="#f1f5f9" font-size="13">🔍 反推C: 环辛烷减去4个H(2个双键)
+                            = 环辛二烯</text>
+                        <text x="350" y="325" text-anchor="middle" fill="#ec4899" font-size="12">碳谱只有2种碳(CH和CH₂) →
+                            双键对称分布</text>
+                    </g>
+
+                    <defs>
+                        <marker id="arrowG" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#10b981" />
+                        </marker>
+                    </defs>
+                </svg>
+                <div class="controls">
+                    <button class="btn" onclick="resetAnimation('hydro2')">🔄 重置</button>
+                    <button class="btn" onclick="nextStep('hydro2')">▶️ 下一步</button>
+                </div>
+                <div class="step-indicator" id="step-hydro2">步骤: 0/6</div>
+            </div>
+        </div>
+
+        <!-- 工具3: 化合物C结构 -->
+        <div class="card">
+            <h2>工具3: 化合物C结构 - 1,5-环辛二烯</h2>
+            <div class="explanation">
+                <strong>结构要求：</strong> 八元环 + 2个双键，且只有2种碳环境<br>
+                <strong>答案：</strong> 1,5-Cyclooctadiene (1,5-环辛二烯)
+            </div>
+            <div class="svg-container">
+                <svg id="svg-structC" width="700" height="320" viewBox="0 0 700 320">
+                    <text x="350" y="30" text-anchor="middle" fill="#f1f5f9" font-size="18" font-weight="bold">1,5-环辛二烯
+                        (1,5-Cyclooctadiene)</text>
+
+                    <!-- 八边形骨架 -->
+                    <g id="structC-step1" opacity="0">
+                        <!-- 单键 -->
+                        <line x1="350" y1="70" x2="420" y2="100" stroke="#6366f1" stroke-width="3" />
+                        <line x1="420" y1="100" x2="440" y2="170" stroke="#6366f1" stroke-width="3" />
+                        <line x1="420" y1="210" x2="350" y2="240" stroke="#6366f1" stroke-width="3" />
+                        <line x1="350" y1="240" x2="280" y2="210" stroke="#6366f1" stroke-width="3" />
+                        <line x1="260" y1="170" x2="280" y2="100" stroke="#6366f1" stroke-width="3" />
+                        <!-- 双键1 (1-2位) -->
+                        <line x1="350" y1="70" x2="280" y2="100" stroke="#ec4899" stroke-width="4" />
+                        <line x1="345" y1="80" x2="285" y2="105" stroke="#ec4899" stroke-width="4" />
+                        <!-- 双键2 (5-6位) -->
+                        <line x1="440" y1="170" x2="420" y2="210" stroke="#ec4899" stroke-width="4" />
+                        <line x1="430" y1="172" x2="415" y2="205" stroke="#ec4899" stroke-width="4" />
+                    </g>
+
+                    <!-- 双键碳原子 (CH) -->
+                    <g id="structC-step2" opacity="0">
+                        <circle cx="350" cy="70" r="28" fill="#1e293b" stroke="#ec4899" stroke-width="3" />
+                        <text x="350" y="65" text-anchor="middle" fill="#ec4899" font-size="12"
+                            font-weight="bold">C</text>
+                        <text x="350" y="80" text-anchor="middle" fill="#94a3b8" font-size="9">127.6</text>
+
+                        <circle cx="280" cy="100" r="28" fill="#1e293b" stroke="#ec4899" stroke-width="3" />
+                        <text x="280" y="95" text-anchor="middle" fill="#ec4899" font-size="12"
+                            font-weight="bold">C</text>
+                        <text x="280" y="110" text-anchor="middle" fill="#94a3b8" font-size="9">127.6</text>
+
+                        <circle cx="440" cy="170" r="28" fill="#1e293b" stroke="#ec4899" stroke-width="3" />
+                        <text x="440" y="165" text-anchor="middle" fill="#ec4899" font-size="12"
+                            font-weight="bold">C</text>
+                        <text x="440" y="180" text-anchor="middle" fill="#94a3b8" font-size="9">127.6</text>
+
+                        <circle cx="420" cy="210" r="28" fill="#1e293b" stroke="#ec4899" stroke-width="3" />
+                        <text x="420" y="205" text-anchor="middle" fill="#ec4899" font-size="12"
+                            font-weight="bold">C</text>
+                        <text x="420" y="220" text-anchor="middle" fill="#94a3b8" font-size="9">127.6</text>
+                    </g>
+
+                    <!-- 单键碳原子 (CH2) -->
+                    <g id="structC-step3" opacity="0">
+                        <circle cx="420" cy="100" r="28" fill="#1e293b" stroke="#10b981" stroke-width="3" />
+                        <text x="420" y="95" text-anchor="middle" fill="#10b981" font-size="12"
+                            font-weight="bold">C</text>
+                        <text x="420" y="110" text-anchor="middle" fill="#94a3b8" font-size="9">38.7</text>
+
+                        <circle cx="350" cy="240" r="28" fill="#1e293b" stroke="#10b981" stroke-width="3" />
+                        <text x="350" y="235" text-anchor="middle" fill="#10b981" font-size="12"
+                            font-weight="bold">C</text>
+                        <text x="350" y="250" text-anchor="middle" fill="#94a3b8" font-size="9">38.7</text>
+
+                        <circle cx="280" cy="210" r="28" fill="#1e293b" stroke="#10b981" stroke-width="3" />
+                        <text x="280" y="205" text-anchor="middle" fill="#10b981" font-size="12"
+                            font-weight="bold">C</text>
+                        <text x="280" y="220" text-anchor="middle" fill="#94a3b8" font-size="9">38.7</text>
+
+                        <circle cx="260" cy="170" r="28" fill="#1e293b" stroke="#10b981" stroke-width="3" />
+                        <text x="260" y="165" text-anchor="middle" fill="#10b981" font-size="12"
+                            font-weight="bold">C</text>
+                        <text x="260" y="180" text-anchor="middle" fill="#94a3b8" font-size="9">38.7</text>
+                    </g>
+
+                    <!-- 图例 -->
+                    <g id="structC-step4" opacity="0">
+                        <rect x="520" y="80" width="160" height="120" rx="10" fill="rgba(99, 102, 241, 0.1)"
+                            stroke="#6366f1" />
+                        <text x="600" y="105" text-anchor="middle" fill="#f1f5f9" font-size="12"
+                            font-weight="bold">碳谱信号</text>
+                        <circle cx="545" cy="130" r="10" fill="#ec4899" />
+                        <text x="620" y="135" text-anchor="middle" fill="#ec4899" font-size="11">CH 127.6ppm</text>
+                        <circle cx="545" cy="165" r="10" fill="#10b981" />
+                        <text x="620" y="170" text-anchor="middle" fill="#10b981" font-size="11">CH₂ 38.7ppm</text>
+                    </g>
+
+                    <!-- 确认 -->
+                    <g id="structC-step5" opacity="0">
+                        <rect x="100" y="280" width="500" height="35" rx="8" fill="rgba(16, 185, 129, 0.2)"
+                            stroke="#10b981" />
+                        <text x="350" y="303" text-anchor="middle" fill="#10b981" font-size="14" font-weight="bold">✓ C
+                            = 1,5-环辛二烯，4个CH(双键碳) + 4个CH₂(单键碳)</text>
+                    </g>
+                </svg>
+                <div class="controls">
+                    <button class="btn" onclick="resetAnimation('structC')">🔄 重置</button>
+                    <button class="btn" onclick="nextStep('structC')">▶️ 下一步</button>
+                </div>
+                <div class="step-indicator" id="step-structC">步骤: 0/5</div>
+            </div>
+        </div>
+
+        <!-- 工具4: 臭氧氧化得到E -->
+        <div class="card">
+            <h2>工具4: 臭氧氧化 → 化合物E (丁二醛)</h2>
+            <div class="explanation">
+                <strong>反应：</strong> C + O₃/Zn → E<br>
+                <strong>原理：</strong> 切断两个双键，每个双键碳变成醛基(-CHO)<br>
+                <strong>E的碳谱：</strong> 36 ppm (CH₂) 和 202 ppm (CHO醛基碳)
+            </div>
+            <div class="svg-container">
+                <svg id="svg-ozoneE" width="700" height="380" viewBox="0 0 700 380">
+                    <!-- 反应物C简化图 -->
+                    <g id="ozoneE-step1" opacity="0">
+                        <text x="100" y="30" text-anchor="middle" fill="#f1f5f9" font-size="14">化合物C</text>
+                        <polygon points="100,50 140,70 150,110 140,150 100,170 60,150 50,110 60,70" fill="none"
+                            stroke="#6366f1" stroke-width="2" />
+                        <!-- 双键标记 -->
+                        <line x1="100" y1="50" x2="60" y2="70" stroke="#ec4899" stroke-width="4" />
+                        <line x1="150" y1="110" x2="140" y2="150" stroke="#ec4899" stroke-width="4" />
+                        <text x="70" y="45" fill="#ec4899" font-size="11">C=C</text>
+                        <text x="160" y="135" fill="#ec4899" font-size="11">C=C</text>
+                    </g>
+
+                    <!-- 臭氧攻击 -->
+                    <g id="ozoneE-step2" opacity="0">
+                        <text x="230" y="100" fill="#10b981" font-size="20" font-weight="bold">+ O₃</text>
+                        <path d="M270 110 L320 110" stroke="#10b981" stroke-width="3" marker-end="url(#arrowG2)" />
+                        <text x="295" y="135" fill="#94a3b8" font-size="12">Zn/H₃O⁺</text>
+                    </g>
+
+                    <!-- 切断示意 -->
+                    <g id="ozoneE-step3" opacity="0">
+                        <line x1="75" y1="55" x2="85" y2="75" stroke="#ef4444" stroke-width="4" stroke-dasharray="8,4">
+                            <animate attributeName="stroke-dashoffset" values="0;12" dur="0.5s"
+                                repeatCount="indefinite" />
+                        </line>
+                        <line x1="145" y1="125" x2="145" y2="145" stroke="#ef4444" stroke-width="4"
+                            stroke-dasharray="8,4">
+                            <animate attributeName="stroke-dashoffset" values="0;12" dur="0.5s"
+                                repeatCount="indefinite" />
+                        </line>
+                        <text x="100" y="200" text-anchor="middle" fill="#ef4444" font-size="14" font-weight="bold">✂️
+                            两处切断!</text>
+                    </g>
+
+                    <!-- 产物E结构 -->
+                    <g id="ozoneE-step4" opacity="0">
+                        <text x="500" y="30" text-anchor="middle" fill="#f1f5f9" font-size="14" font-weight="bold">化合物E:
+                            丁二醛 (Butanedial)</text>
+
+                        <!-- O=CH-CH2-CH2-CH=O -->
+                        <!-- 左端醛基 -->
+                        <circle cx="360" cy="100" r="22" fill="#1e293b" stroke="#ef4444" stroke-width="2" />
+                        <text x="360" y="106" text-anchor="middle" fill="#ef4444" font-size="16"
+                            font-weight="bold">O</text>
+                        <line x1="360" y1="122" x2="360" y2="145" stroke="#6366f1" stroke-width="3" />
+                        <line x1="365" y1="122" x2="365" y2="140" stroke="#6366f1" stroke-width="3" />
+
+                        <circle cx="360" cy="165" r="26" fill="#1e293b" stroke="#ec4899" stroke-width="2" />
+                        <text x="360" y="160" text-anchor="middle" fill="#ec4899" font-size="12"
+                            font-weight="bold">C</text>
+                        <text x="360" y="175" text-anchor="middle" fill="#94a3b8" font-size="9">202ppm</text>
+
+                        <!-- H on aldehyde -->
+                        <circle cx="330" cy="165" r="16" fill="#1e293b" stroke="#64748b" stroke-width="2" />
+                        <text x="330" y="170" text-anchor="middle" fill="#64748b" font-size="12"
+                            font-weight="bold">H</text>
+                    </g>
+
+                    <!-- 中间CH2 -->
+                    <g id="ozoneE-step5" opacity="0">
+                        <line x1="386" y1="165" x2="424" y2="165" stroke="#6366f1" stroke-width="3" />
+
+                        <circle cx="450" cy="165" r="26" fill="#1e293b" stroke="#10b981" stroke-width="2" />
+                        <text x="450" y="160" text-anchor="middle" fill="#10b981" font-size="11"
+                            font-weight="bold">CH₂</text>
+                        <text x="450" y="175" text-anchor="middle" fill="#94a3b8" font-size="9">36ppm</text>
+
+                        <line x1="476" y1="165" x2="514" y2="165" stroke="#6366f1" stroke-width="3" />
+
+                        <circle cx="540" cy="165" r="26" fill="#1e293b" stroke="#10b981" stroke-width="2" />
+                        <text x="540" y="160" text-anchor="middle" fill="#10b981" font-size="11"
+                            font-weight="bold">CH₂</text>
+                        <text x="540" y="175" text-anchor="middle" fill="#94a3b8" font-size="9">36ppm</text>
+
+                        <line x1="566" y1="165" x2="604" y2="165" stroke="#6366f1" stroke-width="3" />
+                    </g>
+
+                    <!-- 右端醛基 -->
+                    <g id="ozoneE-step6" opacity="0">
+                        <circle cx="630" cy="165" r="26" fill="#1e293b" stroke="#ec4899" stroke-width="2" />
+                        <text x="630" y="160" text-anchor="middle" fill="#ec4899" font-size="12"
+                            font-weight="bold">C</text>
+                        <text x="630" y="175" text-anchor="middle" fill="#94a3b8" font-size="9">202ppm</text>
+
+                        <line x1="630" y1="139" x2="630" y2="115" stroke="#6366f1" stroke-width="3" />
+                        <line x1="635" y1="139" x2="635" y2="120" stroke="#6366f1" stroke-width="3" />
+
+                        <circle cx="630" cy="100" r="22" fill="#1e293b" stroke="#ef4444" stroke-width="2" />
+                        <text x="630" y="106" text-anchor="middle" fill="#ef4444" font-size="16"
+                            font-weight="bold">O</text>
+
+                        <circle cx="660" cy="165" r="16" fill="#1e293b" stroke="#64748b" stroke-width="2" />
+                        <text x="660" y="170" text-anchor="middle" fill="#64748b" font-size="12"
+                            font-weight="bold">H</text>
+                    </g>
+
+                    <!-- 解释和公式 -->
+                    <g id="ozoneE-step7" opacity="0">
+                        <rect x="100" y="230" width="500" height="130" rx="10" fill="rgba(16, 185, 129, 0.15)"
+                            stroke="#10b981" />
+                        <text x="350" y="260" text-anchor="middle" fill="#f1f5f9" font-size="14" font-weight="bold">📊
+                            E的结构验证</text>
+                        <text x="350" y="290" text-anchor="middle" fill="#f1f5f9" font-size="13">化学式:
+                            O=CH-CH₂-CH₂-CH=O</text>
+                        <text x="350" y="315" text-anchor="middle" fill="#94a3b8" font-size="12">碳谱: 202 ppm (醛基碳) + 36
+                            ppm (亚甲基碳)</text>
+                        <text x="350" y="345" text-anchor="middle" fill="#10b981" font-size="14" font-weight="bold">✓ E
+                            = 丁二醛 (Butanedial)</text>
+                    </g>
+
+                    <defs>
+                        <marker id="arrowG2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#10b981" />
+                        </marker>
+                    </defs>
+                </svg>
+                <div class="controls">
+                    <button class="btn" onclick="resetAnimation('ozoneE')">🔄 重置</button>
+                    <button class="btn" onclick="nextStep('ozoneE')">▶️ 下一步</button>
+                </div>
+                <div class="step-indicator" id="step-ozoneE">步骤: 0/7</div>
+            </div>
+        </div>
+
+        <!-- 最终答案 -->
+        <div class="card">
+            <h2>🎯 最终答案</h2>
+            <div class="answer-box">
+                <h3>化合物 C</h3>
+                <p><strong>结构：</strong> 1,5-环辛二烯 (1,5-Cyclooctadiene)</p>
+                <p><strong>特征：</strong> 八元环 + 2个对称分布的双键，只有2种碳环境</p>
+            </div>
+            <div class="answer-box" style="margin-top: 1rem;">
+                <h3>化合物 D</h3>
+                <p><strong>结构：</strong> 环辛烷 (Cyclooctane)</p>
+                <p><strong>特征：</strong> 完美对称的八元环，NMR只有1个信号</p>
+            </div>
+            <div class="answer-box" style="margin-top: 1rem;">
+                <h3>化合物 E</h3>
+                <p><strong>结构：</strong> 丁二醛 (Butanedial)</p>
+                <p><strong>化学式：</strong> O=CH-CH₂-CH₂-CH=O</p>
+                <p><strong>来源：</strong> 由C经臭氧氧化切断两个双键生成</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const animationStates = {
+            unsat2: { current: 0, max: 3, elements: ['unsat2-step1', 'unsat2-step2', 'unsat2-step3'] },
+            hydro2: { current: 0, max: 6, elements: ['hydro2-step1', 'hydro2-step2', 'hydro2-step3', 'hydro2-step4', 'hydro2-step5', 'hydro2-step6'] },
+            structC: { current: 0, max: 5, elements: ['structC-step1', 'structC-step2', 'structC-step3', 'structC-step4', 'structC-step5'] },
+            ozoneE: { current: 0, max: 7, elements: ['ozoneE-step1', 'ozoneE-step2', 'ozoneE-step3', 'ozoneE-step4', 'ozoneE-step5', 'ozoneE-step6', 'ozoneE-step7'] }
+        };
+
+        function nextStep(animId) {
+            const state = animationStates[animId];
+            if (state.current < state.max) {
+                const element = document.getElementById(state.elements[state.current]);
+                if (element) {
+                    element.style.transition = 'opacity 0.5s ease-in-out';
+                    element.style.opacity = '1';
+                }
+                state.current++;
+                updateStepIndicator(animId);
+            } else {
+                resetAnimation(animId);
+            }
+        }
+
+        function resetAnimation(animId) {
+            const state = animationStates[animId];
+            state.elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.style.transition = 'opacity 0.3s ease-in-out';
+                    element.style.opacity = '0';
+                }
+            });
+            state.current = 0;
+            updateStepIndicator(animId);
+        }
+
+        function updateStepIndicator(animId) {
+            const state = animationStates[animId];
+            const indicator = document.getElementById(`step-${animId}`);
+            if (indicator) {
+                indicator.textContent = `步骤: ${state.current}/${state.max}`;
+            }
+        }
+
+        Object.keys(animationStates).forEach(updateStepIndicator);
+    </script>
+</body>
+
+</html>

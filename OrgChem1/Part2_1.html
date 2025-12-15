@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Part2 II.1 - 动力学与热力学能级图</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #7c3aed;
+            --accent: #db2777;
+            --bg-light: #f8fafc;
+            --bg-card: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0fdf4 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border);
+        }
+
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.4rem;
+        }
+
+        .card h2::before {
+            content: '📊';
+            font-size: 1.3rem;
+        }
+
+        .explanation {
+            background: linear-gradient(135deg, #eff6ff, #f0fdf4);
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .svg-container {
+            background: #fefefe;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        .step-indicator {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .highlight {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .answer-box {
+            background: linear-gradient(135deg, #fdf2f8, #eff6ff);
+            border: 2px solid var(--accent);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .answer-box h3 {
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>📊 Part2 II.1 - 动力学与热力学能级图</h1>
+
+        <div class="card">
+            <h2>题目概述</h2>
+            <p>分析连环反应 <span class="highlight">A ⇌ B ⇌ C</span> 的能量图，并排序速率常数。</p>
+            <div class="explanation">
+                <strong>已知条件：</strong><br>
+                • [B]/[A] = 10⁻⁶ → A比B稳定得多<br>
+                • [C]/[B] = 10⁸ → C比B稳定得多<br>
+                • k₁是决速步 → 第一座山最高
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>工具1: 能量图绘制</h2>
+            <div class="svg-container">
+                <svg id="svg-energy2" width="700" height="400" viewBox="0 0 700 400">
+                    <!-- 坐标轴 -->
+                    <line x1="70" y1="350" x2="650" y2="350" stroke="#94a3b8" stroke-width="2" />
+                    <line x1="70" y1="350" x2="70" y2="50" stroke="#94a3b8" stroke-width="2" />
+                    <text x="360" y="390" fill="#64748b" font-size="14" text-anchor="middle">反应坐标</text>
+                    <text x="35" y="200" fill="#64748b" font-size="14" text-anchor="middle"
+                        transform="rotate(-90, 35, 200)">自由能 G</text>
+
+                    <!-- A能级 -->
+                    <g id="energy2-step1" opacity="0">
+                        <line x1="100" y1="220" x2="180" y2="220" stroke="#16a34a" stroke-width="4" />
+                        <circle cx="140" cy="220" r="25" fill="#dcfce7" stroke="#16a34a" stroke-width="2" />
+                        <text x="140" y="226" text-anchor="middle" fill="#16a34a" font-size="16"
+                            font-weight="bold">A</text>
+                        <text x="140" y="260" text-anchor="middle" fill="#64748b" font-size="11">中等能级</text>
+                    </g>
+
+                    <!-- 过渡态1和B -->
+                    <g id="energy2-step2" opacity="0">
+                        <path d="M180 220 Q250 220, 280 80" stroke="#2563eb" stroke-width="3" fill="none" />
+                        <path d="M280 80 Q300 60, 320 80" stroke="#dc2626" stroke-width="4" fill="none" />
+                        <text x="300" y="50" fill="#dc2626" font-size="12" text-anchor="middle" font-weight="bold">TS₁
+                            (最高)</text>
+                        <path d="M320 80 Q350 100, 380 130" stroke="#2563eb" stroke-width="3" fill="none" />
+
+                        <line x1="380" y1="130" x2="440" y2="130" stroke="#f59e0b" stroke-width="4" />
+                        <circle cx="410" cy="130" r="25" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" />
+                        <text x="410" y="136" text-anchor="middle" fill="#f59e0b" font-size="16"
+                            font-weight="bold">B</text>
+                        <text x="410" y="170" text-anchor="middle" fill="#64748b" font-size="11">高能中间体</text>
+                    </g>
+
+                    <!-- 过渡态2和C -->
+                    <g id="energy2-step3" opacity="0">
+                        <path d="M440 130 Q470 130, 490 110" stroke="#2563eb" stroke-width="3" fill="none" />
+                        <path d="M490 110 Q505 100, 520 110" stroke="#db2777" stroke-width="4" fill="none" />
+                        <text x="505" y="90" fill="#db2777" font-size="12" text-anchor="middle"
+                            font-weight="bold">TS₂</text>
+                        <path d="M520 110 Q560 150, 600 300" stroke="#2563eb" stroke-width="3" fill="none" />
+
+                        <line x1="600" y1="300" x2="660" y2="300" stroke="#0891b2" stroke-width="4" />
+                        <circle cx="630" cy="300" r="25" fill="#cffafe" stroke="#0891b2" stroke-width="2" />
+                        <text x="630" y="306" text-anchor="middle" fill="#0891b2" font-size="16"
+                            font-weight="bold">C</text>
+                        <text x="630" y="340" text-anchor="middle" fill="#64748b" font-size="11">最稳定</text>
+                    </g>
+
+                    <!-- 能量标注 -->
+                    <g id="energy2-step4" opacity="0">
+                        <line x1="140" y1="220" x2="140" y2="70" stroke="#dc2626" stroke-width="1"
+                            stroke-dasharray="4,4" />
+                        <text x="120" y="145" fill="#dc2626" font-size="11">Ea₁大</text>
+
+                        <line x1="410" y1="130" x2="410" y2="100" stroke="#db2777" stroke-width="1"
+                            stroke-dasharray="4,4" />
+                        <text x="430" y="115" fill="#db2777" font-size="11">Ea₂小</text>
+
+                        <rect x="200" y="320" width="300" height="35" rx="8" fill="#fef3c7" stroke="#f59e0b" />
+                        <text x="350" y="343" text-anchor="middle" fill="#1e293b" font-size="12"
+                            font-weight="bold">高度排序: B (最高) > A (中间) > C (最低)</text>
+                    </g>
+                </svg>
+                <div class="controls">
+                    <button class="btn" onclick="resetAnimation('energy2')">🔄 重置</button>
+                    <button class="btn" onclick="nextStep('energy2')">▶️ 下一步</button>
+                </div>
+                <div class="step-indicator" id="step-energy2">步骤: 0/4</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>工具2: 速率常数排序</h2>
+            <div class="svg-container">
+                <svg id="svg-rate2" width="700" height="280" viewBox="0 0 700 280">
+                    <g id="rate2-step1" opacity="0">
+                        <text x="350" y="35" text-anchor="middle" fill="#1e293b" font-size="16" font-weight="bold">活化能越大
+                            → k越小 (越慢)</text>
+
+                        <rect x="50" y="60" width="140" height="70" rx="10" fill="#fee2e2" stroke="#dc2626"
+                            stroke-width="2" />
+                        <text x="120" y="90" text-anchor="middle" fill="#dc2626" font-size="13" font-weight="bold">k₋₂
+                            (C→B)</text>
+                        <text x="120" y="115" text-anchor="middle" fill="#dc2626" font-size="11">极慢 ⬇️⬇️</text>
+
+                        <rect x="200" y="60" width="140" height="70" rx="10" fill="#fef3c7" stroke="#f59e0b"
+                            stroke-width="2" />
+                        <text x="270" y="90" text-anchor="middle" fill="#f59e0b" font-size="13" font-weight="bold">k₁
+                            (A→B)</text>
+                        <text x="270" y="115" text-anchor="middle" fill="#f59e0b" font-size="11">慢 (决速步)</text>
+                    </g>
+
+                    <g id="rate2-step2" opacity="0">
+                        <rect x="350" y="60" width="140" height="70" rx="10" fill="#dbeafe" stroke="#2563eb"
+                            stroke-width="2" />
+                        <text x="420" y="90" text-anchor="middle" fill="#2563eb" font-size="13" font-weight="bold">k₋₁
+                            (B→A)</text>
+                        <text x="420" y="115" text-anchor="middle" fill="#2563eb" font-size="11">快</text>
+
+                        <rect x="500" y="60" width="140" height="70" rx="10" fill="#dcfce7" stroke="#16a34a"
+                            stroke-width="2" />
+                        <text x="570" y="90" text-anchor="middle" fill="#16a34a" font-size="13" font-weight="bold">k₂
+                            (B→C)</text>
+                        <text x="570" y="115" text-anchor="middle" fill="#16a34a" font-size="11">很快 ⬆️⬆️</text>
+                    </g>
+
+                    <g id="rate2-step3" opacity="0">
+                        <rect x="120" y="160" width="460" height="100" rx="15" fill="#f0fdf4" stroke="#16a34a"
+                            stroke-width="3" />
+                        <text x="350" y="195" text-anchor="middle" fill="#1e293b" font-size="16" font-weight="bold">📊
+                            最终排序</text>
+                        <text x="350" y="230" text-anchor="middle" fill="#16a34a" font-size="22" font-weight="bold">k₋₂
+                            < k₁ < k₋₁ < k₂</text>
+                    </g>
+                </svg>
+                <div class="controls">
+                    <button class="btn" onclick="resetAnimation('rate2')">🔄 重置</button>
+                    <button class="btn" onclick="nextStep('rate2')">▶️ 下一步</button>
+                </div>
+                <div class="step-indicator" id="step-rate2">步骤: 0/3</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🎯 最终答案</h2>
+            <div class="answer-box">
+                <h3>速率常数排序</h3>
+                <p><strong>从慢到快：</strong> k₋₂ < k₁ < k₋₁ < k₂</p>
+                        <p><strong>决速步：</strong> A → B (k₁)</p>
+                        <p><strong>热力学产物：</strong> C (能量最低)</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const animationStates = {
+            energy2: { current: 0, max: 4, elements: ['energy2-step1', 'energy2-step2', 'energy2-step3', 'energy2-step4'] },
+            rate2: { current: 0, max: 3, elements: ['rate2-step1', 'rate2-step2', 'rate2-step3'] }
+        };
+        function nextStep(animId) {
+            const state = animationStates[animId];
+            if (state.current < state.max) {
+                const el = document.getElementById(state.elements[state.current]);
+                if (el) { el.style.transition = 'opacity 0.5s'; el.style.opacity = '1'; }
+                state.current++;
+                document.getElementById(`step-${animId}`).textContent = `步骤: ${state.current}/${state.max}`;
+            } else { resetAnimation(animId); }
+        }
+        function resetAnimation(animId) {
+            const state = animationStates[animId];
+            state.elements.forEach(id => { const el = document.getElementById(id); if (el) { el.style.transition = 'opacity 0.3s'; el.style.opacity = '0'; } });
+            state.current = 0;
+            document.getElementById(`step-${animId}`).textContent = `步骤: 0/${state.max}`;
+        }
+    </script>
+</body>
+
+</html>

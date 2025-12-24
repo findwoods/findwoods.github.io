@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>谱交易量模型：日内交易活动中普遍的高频周期性</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .authors {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Abstract Section */
+        .abstract-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin: -60px auto 40px;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            border-left: 5px solid var(--accent-color);
+        }
+
+        .abstract-section h2 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .abstract-section h2::before {
+            content: '📄';
+        }
+
+        .abstract-content {
+            text-align: justify;
+            color: var(--text-light);
+        }
+
+        .keywords {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .keywords-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            display: inline;
+        }
+
+        .keyword-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, #e6f2ff 0%, #f0e7ff 100%);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin: 5px 5px 0 0;
+            color: var(--secondary-color);
+        }
+
+        .jel {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        /* Table of Contents */
+        .toc-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .toc-section h2 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toc-section h2::before {
+            content: '📑';
+        }
+
+        .toc-list {
+            list-style: none;
+        }
+
+        .toc-list > li {
+            margin-bottom: 8px;
+        }
+
+        .toc-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 15px;
+            background: var(--bg-color);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: var(--text-color);
+        }
+
+        .toc-item:hover {
+            background: linear-gradient(135deg, #e6f2ff 0%, #f0e7ff 100%);
+            transform: translateX(5px);
+        }
+
+        .toc-sub {
+            list-style: none;
+            margin-left: 25px;
+            margin-top: 5px;
+        }
+
+        .toc-sub li {
+            margin-bottom: 5px;
+        }
+
+        .toc-sub .toc-item {
+            font-size: 0.95rem;
+            padding: 8px 12px;
+        }
+
+        .toc-subsub {
+            list-style: none;
+            margin-left: 25px;
+            margin-top: 5px;
+        }
+
+        .toc-subsub li {
+            margin-bottom: 3px;
+        }
+
+        .toc-subsub .toc-item {
+            font-size: 0.9rem;
+            padding: 6px 10px;
+            background: transparent;
+        }
+
+        .page-num {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 20px;
+            color: var(--text-light);
+        }
+
+        /* Highlight boxes */
+        .highlight-box {
+            background: linear-gradient(135deg, #f6f9fc 0%, #f0f4f8 100%);
+            border-left: 4px solid var(--accent-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 25px 0;
+        }
+
+        /* Inline highlights */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* Appendix section styling */
+        .appendix-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 16px;
+            padding: 30px 40px;
+            margin-bottom: 30px;
+        }
+
+        .appendix-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+            
+            .abstract-section,
+            .toc-section,
+            .content-section {
+                padding: 25px;
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+
+            .toc-sub {
+                margin-left: 15px;
+            }
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* Citation style */
+        .citation {
+            font-style: italic;
+            color: var(--text-light);
+        }
+
+        /* Special term styling */
+        .spectral {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .periodicity {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .fourier {
+            color: #3182ce;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>
+                <span class="highlight">谱</span>交易量模型：<br>
+                日内交易活动中普遍的高频<span class="highlight">周期性</span>
+            </h1>
+            <p class="authors">Lintong Wu &nbsp;·&nbsp; Ruixun Zhang &nbsp;·&nbsp; Yuehao Dai</p>
+            <p class="date">2025 年 6 月 11 日</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Abstract -->
+        <section class="abstract-section">
+            <h2>摘要</h2>
+            <div class="abstract-content">
+                <p>
+                    我们开发了<span class="spectral">谱</span>交易量模型，利用<span class="fourier">傅里叶分析</span>系统地估计、解释和利用日内交易活动中的高频<span class="periodicity">周期性</span>。该框架通过三个步骤，即使在<strong>信噪比</strong>较低的情况下，也能一致地恢复特定<strong>频率</strong>的<span class="periodicity">周期性</span>。这揭示了近年来美国 (US) 和中国股市中持久且普遍的高频<span class="periodicity">周期性</span>，且主导<strong>频率</strong>解释了日内交易量总<strong>方差</strong>的很大一部分。我们提供的证据表明，这种现象可能反映了具有重复且定期交易指令的交易算法的行为。最后，我们证明揭示此类高频<span class="periodicity">周期性</span>可以改善日内交易量预测和 VWAP 执行质量，为算法交易的价格信息含量提供见解，并产生超额收益。
+                </p>
+            </div>
+            <div class="keywords">
+                <span class="keywords-title">关键词：</span>
+                <span class="keyword-tag">交易量</span>
+                <span class="keyword-tag">周期性</span>
+                <span class="keyword-tag">算法交易</span>
+                <span class="keyword-tag">VWAP 执行</span>
+                <span class="keyword-tag">价格信息含量</span>
+                <span class="keyword-tag">超额收益</span>
+            </div>
+            <p class="jel"><strong>JEL 分类：</strong>C32, C55, G12, G14</p>
+        </section>
+
+        <!-- Table of Contents -->
+        <section class="toc-section">
+            <h2>目录</h2>
+            <ul class="toc-list">
+                <li>
+                    <a href="#section1" class="toc-item">
+                        <span>1 引言</span>
+                        <span class="page-num">1</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#section2" class="toc-item">
+                        <span>2 数据和启发性示例</span>
+                        <span class="page-num">7</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#section3" class="toc-item">
+                        <span>3 交易量的谱模型</span>
+                        <span class="page-num">10</span>
+                    </a>
+                    <ul class="toc-sub">
+                        <li><a href="#section3-1" class="toc-item"><span>3.1 揭示周期性</span><span class="page-num">11</span></a></li>
+                        <li><a href="#section3-2" class="toc-item"><span>3.2 估计细节</span><span class="page-num">12</span></a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#section4" class="toc-item">
+                        <span>4 经验性估计周期性</span>
+                        <span class="page-num">14</span>
+                    </a>
+                    <ul class="toc-sub">
+                        <li><a href="#section4-1" class="toc-item"><span>4.1 个股</span><span class="page-num">14</span></a></li>
+                        <li><a href="#section4-2" class="toc-item"><span>4.2 全市场分析</span><span class="page-num">17</span></a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#section5" class="toc-item">
+                        <span>5 理解周期性交易行为</span>
+                        <span class="page-num">20</span>
+                    </a>
+                    <ul class="toc-sub">
+                        <li>
+                            <a href="#section5-1" class="toc-item"><span>5.1 交易量度量指标、截面和时间序列的变化</span><span class="page-num">20</span></a>
+                            <ul class="toc-subsub">
+                                <li><a href="#section5-1-1" class="toc-item"><span>5.1.1 不同的交易量度量指标</span><span class="page-num">20</span></a></li>
+                                <li><a href="#section5-1-2" class="toc-item"><span>5.1.2 与股票特征的相关性</span><span class="page-num">23</span></a></li>
+                                <li><a href="#section5-1-3" class="toc-item"><span>5.1.3 周期性的稳健性和时间序列模式</span><span class="page-num">26</span></a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#section5-2" class="toc-item"><span>5.2 常见策略的获利能力和交易的价格影响</span><span class="page-num">29</span></a>
+                            <ul class="toc-subsub">
+                                <li><a href="#section5-2-1" class="toc-item"><span>5.2.1 常见算法和执行策略的获利能力</span><span class="page-num">29</span></a></li>
+                                <li><a href="#section5-2-2" class="toc-item"><span>5.2.2 交易量激增期间的价格影响</span><span class="page-num">32</span></a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#section5-3" class="toc-item"><span>5.3 替代渠道</span><span class="page-num">35</span></a>
+                            <ul class="toc-subsub">
+                                <li><a href="#section5-3-1" class="toc-item"><span>5.3.1 散户交易控制</span><span class="page-num">35</span></a></li>
+                                <li><a href="#section5-3-2" class="toc-item"><span>5.3.2 新闻文章是定期发布的吗？</span><span class="page-num">37</span></a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#section5-4" class="toc-item"><span>5.4 总结</span><span class="page-num">39</span></a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#section6" class="toc-item">
+                        <span>6 应用</span>
+                        <span class="page-num">40</span>
+                    </a>
+                    <ul class="toc-sub">
+                        <li>
+                            <a href="#section6-1" class="toc-item"><span>6.1 交易量预测</span><span class="page-num">40</span></a>
+                            <ul class="toc-subsub">
+                                <li><a href="#section6-1-1" class="toc-item"><span>6.1.1 模型构建</span><span class="page-num">40</span></a></li>
+                                <li><a href="#section6-1-2" class="toc-item"><span>6.1.2 模型性能</span><span class="page-num">42</span></a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#section6-2" class="toc-item"><span>6.2 价格信息含量</span><span class="page-num">45</span></a>
+                            <ul class="toc-subsub">
+                                <li><a href="#section6-2-1" class="toc-item"><span>6.2.1 周期内及时性</span><span class="page-num">45</span></a></li>
+                                <li><a href="#section6-2-2" class="toc-item"><span>6.2.2 价格非同步性</span><span class="page-num">46</span></a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#section6-3" class="toc-item"><span>6.3 超额收益</span><span class="page-num">48</span></a></li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#section7" class="toc-item">
+                        <span>7 结论</span>
+                        <span class="page-num">52</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#appendix" class="toc-item">
+                        <span>在线附录</span>
+                        <span class="page-num">60</span>
+                    </a>
+                    <ul class="toc-sub">
+                        <li><a href="#appendix-a" class="toc-item"><span>A 证明</span><span class="page-num">60</span></a></li>
+                        <li><a href="#appendix-b" class="toc-item"><span>B 交易量描述性统计</span><span class="page-num">61</span></a></li>
+                        <li><a href="#appendix-c" class="toc-item"><span>C 模拟数据验证</span><span class="page-num">63</span></a></li>
+                        <li><a href="#appendix-d" class="toc-item"><span>D 个股估计的自协方差函数</span><span class="page-num">67</span></a></li>
+                        <li><a href="#appendix-e" class="toc-item"><span>E 小波方差估计器验证</span><span class="page-num">70</span></a></li>
+                        <li><a href="#appendix-g" class="toc-item"><span>G 交易量的其他度量指标</span><span class="page-num">74</span></a></li>
+                        <li><a href="#appendix-h" class="toc-item"><span>H Ravenpack 新闻数据处理细节</span><span class="page-num">80</span></a></li>
+                        <li><a href="#appendix-i" class="toc-item"><span>I 超额收益的附加结果</span><span class="page-num">82</span></a></li>
+                    </ul>
+                </li>
+            </ul>
+        </section>
+
+        <!-- Section 1: Introduction -->
+        <section id="section1" class="content-section">
+            <h2><span class="section-number">1</span>引言</h2>
+            
+            <p>
+                理解交易量长期以来一直是学术界和从业者的一个基本问题。交易量的特定模式提供了有关证券的有价值信息，包括未来价格变化的幅度 <span class="citation">(Karpoff, 1987, Wang, 1994)</span>、价格动量 <span class="citation">(Jain and Joh, 1988; Lee and Swaminathan, 2000)</span>、交易成本 <span class="citation">(Goyenko et al., 2024)</span>，以及股票收益率的序列和交叉相关性 <span class="citation">(Campbell, Grossman, and Wang, 1993, Andersen, 1996, Chordia and Swaminathan, 2000)</span>。
+            </p>
+
+            <p>
+                据记录，交易量包含周期性模式，这些模式在预测未来价格和交易量方面具有重要应用。<span class="citation">Hong 和 Yu (2009)</span> 发现，夏季较低交易量的季节性效应与较低的股票收益率相关。<span class="citation">Heston, Korajczyk, 和 Sadka (2010)</span> 发现，半小时时间间隔内的股票收益率和交易量在日<strong>频率</strong>上表现出<span class="periodicity">周期性</span>，这一现象被 <span class="citation">Bogousslavsky (2016)</span> 解释为非频繁的再平衡所致。<span class="citation">Chinco 和 Ye (2017)</span> 发现，由交易量短期波动主导的股票具有异常的超额收益。尽管它们很重要，但大多数已知的<span class="periodicity">周期性</span>都处于日、周或月<strong>频率</strong>。
+            </p>
+
+            <p>
+                在对高频逐笔交易数据的分析中，<span class="citation">Hasbrouck 和 Saar (2013)</span> 观察到，在 1 秒边界之后不久的几毫秒内，到达市场的信息量会出现巨大的峰值。<span class="citation">Broussard 和 Nikiforov (2014)</span> 在 36 只股票中发现了类似的模式，其交易量在整个交易日内以固定的时间间隔激增。
+            </p>
+
+            <p>
+                这些经验发现表明，在高频交易量中可能存在重要但鲜为人知的周期性模式。此外，它们引发了一些问题：这些模式是否在不同股票和市场中持续存在，如何可靠地揭示它们，它们为什么会发生，以及它们对于交易和资产收益是否重要。
+            </p>
+
+            <div class="highlight-box">
+                <p>
+                    在本文中，我们开发了一个框架来系统地回答这些问题。我们利用交易量的<span class="spectral">谱</span>表示和<span class="fourier">傅里叶分析</span>，对日内高频交易活动中的<span class="periodicity">周期性</span>进行建模、估计、解释和利用。我们展示了在美国 (US) 和中国股市的大量股票样本中，秒级和分钟级普遍存在高频<span class="periodicity">周期性</span>。我们提供的证据表明，这些模式反映了具有重复且定期交易指令的交易算法的行为。我们证明，考虑到这些周期性模式可以改善交易量预测并产生超额收益。
+                </p>
+            </div>
+
+            <p>
+                我们的数据集包含美国标准普尔 500 指数成份股（约 500 只股票）从 1993 年到 2023 年的有可用数据的逐笔交易数据，以及中国深圳证券交易所所有股票（超过 2000 只股票）从 2014 年到 2023 年的逐笔交易数据。我们对中国股市的分析不仅在不同市场验证了美国的研究结果，而且由于其日益增长的规模和在全球金融体系中不断增强的中心地位，其本身也提供了有用的见解 <span class="citation">(Billio et al., 2022)</span>。我们每三秒计算所有股票在所有交易日的三种不同版本的交易量，包括成交笔数、成交股数和金额成交量。这为每种版本的交易量带来了约 540 亿个样本。
+            </p>
+
+            <p>
+                我们使用<span class="spectral">谱</span>表示来模拟个股交易量的日内时间序列，其中包含一个趋势项、一个特异性<strong>噪声</strong>项以及不同<strong>频率</strong>下的多个<span class="spectral">谱</span>项。我们证明，即使在<strong>信噪比</strong>较低的情况下，也可以通过三个步骤一致地恢复特定<strong>频率</strong>的<span class="periodicity">周期性</span>。这包括消除日内趋势、估计去趋势序列的自协<strong>方差</strong>函数，以及利用逆离散<span class="fourier">傅里叶变换 (DFT)</span> 估计每个周期项的强度系数。我们利用模拟数据验证了该框架的有效性，并展示了其对周期性函数形式误设的稳健性。
+            </p>
+
+            <p>
+                利用该框架，我们揭示了美国和中国市场交易活动中重要的普遍<span class="periodicity">周期性</span>。我们将周期项的<strong>频率方差比 (fVR)</strong> 计算为该项解释的交易量<strong>方差</strong>比例，它是强度系数的函数。在美国市场，我们发现最强的<span class="periodicity">周期性</span>出现在 10 秒、15 秒、20 秒、30 秒、1 分钟和 5 分钟<strong>频率</strong>上，而中国市场在较低的<strong>频率</strong>上显示出最强的<span class="periodicity">周期性</span>，包括 30 秒、1 分钟、2.5 分钟、5 分钟和 10 分钟。平均而言，这些<strong>频率</strong>各自解释了去趋势日内交易量 2% 到 10% 的<strong>方差</strong>，而如果不存在<span class="periodicity">周期性</span>，基准值仅为 0.2%。
+            </p>
+
+            <p>
+                这些<span class="periodicity">周期性</span>自至少 2008 年以来一直存在于美国市场，自至少 2014 年以来一直存在于中国市场，随着时间的推移，由 1 分钟等较高<strong>频率</strong>的交易驱动，<span class="periodicity">周期性</span>强度不断增强。我们还证明，我们的模型可以用于揭示其他金融时间序列（如买卖价差和<strong>波动率</strong>）中的周期性模式。
+            </p>
+
+            <p>
+                为了理解这些<span class="periodicity">周期性</span>，我们进行了一系列分析，共同表明它们可能反映了具有重复且定期交易指令的交易算法的行为，包括它们获取和处理信息的方法。示例包括 VWAP 执行策略 <span class="citation">(Konishi, 2002, Frei and Westray, 2015)</span> 和日内反向策略 <span class="citation">(Grant, Wolf, and Yu, 2005; Khandani and Lo, 2011)</span>。这与 <span class="citation">Bogousslavsky (2016)</span> 的非频繁再平衡模型以及旨在降低交易成本的定期或集群式交易量的均衡模型（例如，阳光交易）一致 <span class="citation">(Pagano, 1989; Admati and Pfleiderer, 1991)</span>。它也可以被视为低频领域广为人知的基金流量模式的高频版本 <span class="citation">(Guercio and Tkac, 2002, Frazzini and Lamont, 2008, Campbell, Ramadorai, and Schwartz, 2009, Lou, 2012, Kamstra et al., 2017)</span>。
+            </p>
+
+            <p>
+                具体而言，我们首先通过探索交易量度量指标、截面和时间序列的变化，证明<span class="periodicity">周期性</span>强度与算法交易水平正相关。我们显示，与成交股数或金额成交量相比，以成交笔数衡量的交易量在高频<span class="periodicity">周期性</span>方面表现最强，这与算法交易倾向于将大订单拆分为较小数量的事实一致 <span class="citation">(O'Hara, Yao, and Ye, 2014)</span>。通过对多个股票-日级别特征的<span class="periodicity">周期性</span>强度进行回归分析，我们发现算法交易水平与<span class="periodicity">周期性</span>强度呈正相关。我们基于全样本（美国 1993-2023 年，中国 2014-2023 年）的分析表明，两个市场中<span class="periodicity">周期性</span>强度的时间序列模式与算法交易普及程度的演变高度一致。值得注意的是，在 2001 年之前的十进制化前期，没有观察到显著的<span class="periodicity">周期性</span>，在此之后，<span class="periodicity">周期性</span>开始出现，并自至少 2008 年起在美国保持稳健。
+            </p>
+
+            <p>
+                其次，我们直接将<span class="periodicity">周期性</span>强度与常见算法交易策略在获利能力和交易价格影响方面的水平联系起来。在控制了算法交易的其他代理变量后，<span class="periodicity">周期性</span>强度与 VWAP 执行策略和日内反向策略的获利能力呈正相关。我们还显示，与非整点时间的交易集群相比，整点时间的交易集群具有更高的平均价格影响，因此具有更高的信息含量，这为来自算法交易的行为提供了额外支持，因为它们往往是知情交易者。
+            </p>
+
+            <p>
+                第三，我们反驳了驱动观察到的定期交易量的两个替代渠道。在控制了多个散户交易代理变量后，包括移除由 BJZZ 算法识别的散户交易、移除零股交易、比较 Robinhood 停机日与正常交易日，以及 2020 年新冠疫情爆发期间的时间序列模式，<span class="periodicity">周期性</span>仍然强劲且稳健。此外，我们发现在使用 Ravenpack 数据集的已发布新闻文章中没有发现<span class="periodicity">周期性</span>，这表明它们不太可能是<span class="periodicity">周期性</span>的直接原因。
+            </p>
+
+            <p>
+                最后，我们在三个应用中展示了如何利用高频<span class="periodicity">周期性</span>。第一个是改善日内交易量预测。我们表明，结合了我们的<span class="spectral">谱</span>模型所揭示的周期项的模型，显著优于使用 U 型日内趋势的基准模型。对于大多数股票而言，成交量加权平均价格 (VWAP) 执行中的美元成本节约是正向的，与基准相比，美国中位数股票的节省幅度为 2-5%，中国为 3-7%，产生了可观的经济收益。
+            </p>
+
+            <p>
+                在我们的第二个应用中，受近期关于获取信息（价格信息含量）与将其融入资产价格（价格效率）之间张力的文献启发，我们表明交易量<span class="periodicity">周期性</span>较强的股票尽管价格效率较高，但价格信息含量较低。我们使用周期内及时性指标和遵循 <span class="citation">Weller (2018)</span> 的价格非同步性指标提供了前后一致的证据，这从不同的角度——日内<span class="periodicity">周期性</span>作为算法交易的代理变量——确认了 <span class="citation">Weller (2018)</span> 以及 <span class="citation">Gider, Schmickler, 和 Westheide (2019)</span> 的结果。
+            </p>
+
+            <p>
+                我们的最后一个应用利用了交易量具有强<span class="periodicity">周期性</span>的股票的超额收益。我们显示，在控制了 Fama-French、动量和流动性因子后，基于<span class="periodicity">周期性</span>强度截面排名构建的多空组合产生了具有统计显著性的 alpha。此外，具有最强<span class="periodicity">周期性</span>的股票每月都会频繁变化，这也表明此类超额收益反映了与短期交易相关的风险，而非基于公司特征的传统风险因子。
+            </p>
+
+            <div class="highlight-box">
+                <h3 style="color: var(--primary-color); margin-bottom: 15px;">相关文献</h3>
+                <p>
+                    我们从多个方面为文献做出贡献。我们的工作受到日益增多的在经济和金融时间序列分析中使用<span class="spectral">谱</span>模型的文献启发，包括资产定价和风险因子 <span class="citation">(Carr and Madan, 1999, Bogousslavsky, 2015; Dew-Becker and Giglio, 2016, Bandi et al., 2021, Faria and Verona, 2021)</span>、日内收益率<strong>波动率</strong> <span class="citation">(Andersen and Bollerslev, 1997, Andersen, Thyrsgaard, and Todorov, 2019. Andersen et al., 2024)</span>、分解交易利润 <span class="citation">(Hasbrouck and Sofianos, 1993; Chaudhuri and Lo, 2019)</span>、交易量 <span class="citation">(Chinco and Ye, 2017)</span>、经济周期 <span class="citation">(A'Hearn and Woitek, 2001)</span>、消费相关性 <span class="citation">(Pakko, 2004)</span>、动态相关性 <span class="citation">(Croux, Forni, and Reichlin, 2001, Rua, 2010)</span>，以及因果关系检验 <span class="citation">(Lemmens, Croux, and Dekimpe, 2008, Breitung and Candelon, 2006)</span>。
+                </p>
+            </div>
+
+            <p>
+                我们通过为交易量提供一个专门为高频逐笔数据设计的<span class="spectral">谱</span>分析框架来为这些文献做出贡献。我们的工作提供了一种在非平稳金融时间序列中提取周期性<strong>信号</strong>的方法，这不同于以往的研究，如希尔伯特-黄<strong>变换</strong> <span class="citation">(Huang et al., 2003)</span>、Wold 表示 <span class="citation">(Bandi et al., 2019, Ortu et al., 2020)</span> 和小波分析 <span class="citation">(Crowley, 2007, Chinco and Ye, 2017, Hasbrouck, 2018, Faria and Verona, 2021)</span>。我们的框架还可以应用于交易量以外的领域，以研究其他高频物理量，如买卖价差、<strong>波动率</strong>和订单寿命。
+            </p>
+
+            <p>
+                以往关于交易量周期性模式的研究要么侧重于日、周和月<strong>频率</strong> <span class="citation">(Wood, McInish, and Ord, 1985; Harris, 1986; Baxter and King, 1999. Hong and Yu, 2009; Heston, Korajczyk, and Sadka, 2010; Brownlees, Cipollini, and Gallo, 2011. Bogousslavsky, 2016)</span>，要么基于有限数量样本股票的高频数据 <span class="citation">(Broussard and Nikiforov, 2014, Muravyev and Picard, 2022)</span> 或单个市场 <span class="citation">(Hasbrouck and Saar, 2013. Chinco and Ye, 2017)</span>。
+            </p>
+
+            <p>
+                尽管高频周期性交易模式已出现在文献中 <span class="citation">(Broussard and Nikiforov, 2014; Muravyev and Picard, 2022)</span>，但我们的研究在几个方面提供了根本性的新见解。首先，我们为交易量提供了一个基于<span class="fourier">傅里叶分析</span>的严谨且通用的框架，这使我们能够系统地发现一系列具有集群交易量的<strong>频率</strong>，而 <span class="citation">Broussard 和 Nikiforov (2014)</span> 以及 <span class="citation">Muravyev 和 Picard (2022)</span> 使用虚拟变量回归来分别识别一组选定的但非全部的<span class="periodicity">周期性</span>。其次，我们基于美国市场 31 年的数据和中国市场 10 年的数据，对超过 2,500 只股票进行了经验分析，从而确立了观察到的<span class="periodicity">周期性</span>在不同股票和市场中的普遍性，以及有用的时间序列模式。第三，我们广泛分析了观察到的交易量高频<span class="periodicity">周期性</span>的潜在驱动因素，并证明它们与算法交易水平相关，这在现有文献中尚属空白。例如，<span class="citation">Broussard 和 Nikiforov (2014, 第 197 页)</span> 提出了类似的猜想，并呼吁"需要额外的努力来帮助解释这种普遍的模式"。最后，我们在交易量预测和执行算法、价格效率和价格信息含量以及超额收益背景下提供了三个新颖的应用，这极大地扩展了我们发现的更广泛的经济意义。
+            </p>
+
+            <p>
+                交易量中的高频周期性效应与多种交易行为理论模型相关，包括非频繁再平衡 <span class="citation">(Bogousslavsky, 2016)</span>、阳光交易 <span class="citation">(Admati and Pfleiderer, 1991)</span>，以及最小化交易成本的最优执行 <span class="citation">(Pagano, 1989; Bertsimas and Lo, 1998, Almgren and Chriss, 2001)</span>。它也类似于价格集群效应，即价格往往比其他数值更频繁地落在某些特定数值上，包括整数美元效应 <span class="citation">(Niederhoffer, 1965, Harris, 1991)</span> 和期权行权价上的股票钉住效应 <span class="citation">(Ni, Pearson, and Poteshman, 2005, Avellaneda, Kasyan, and Lipkin, 2012)</span>。我们的结果揭示了已执行交易在时间序列维度而非价格维度上的集群效应。
+            </p>
+
+            <p>
+                关于算法交易、高频交易和人工智能驱动的交易对市场流动性、收益率<strong>波动率</strong>、价格效率和价格信息含量的影响，已经存在大量的额外文献。我们的结果通过揭示算法交易的一个新颖效应——交易量的<span class="periodicity">周期性</span>，为这些文献增色。更广泛地说，高频价格和交易量数据已被用于资产定价和微观结构研究。我们的<span class="spectral">谱</span>交易量模型为分析任何具有潜在周期性模式的高频物理量提供了一个通用框架。
+            </p>
+
+            <div class="highlight-box">
+                <h3 style="color: var(--primary-color); margin-bottom: 15px;">本文结构</h3>
+                <p>
+                    第 2 节描述了我们的数据并提供了一个启发性示例。第 3 节开发了<span class="spectral">谱</span>交易量模型并在模拟数据上验证了该框架。第 4 节通过经验揭示了两个市场中普遍存在的<span class="periodicity">周期性</span>。第 5 节提供了理解周期性交易行为的附加分析。第 6 节分别展示了在日内交易量预测、价格信息含量和超额收益背景下的三个应用。第 7 节总结。
+                </p>
+            </div>
+        </section>
+
+        <!-- Appendix Section -->
+        <section class="appendix-section" id="appendix">
+            <h2 style="color: var(--primary-color); font-size: 1.5rem; margin-bottom: 25px; display: flex; align-items: center; gap: 10px;">
+                📎 在线附录
+            </h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+                <div id="appendix-a" style="background: white; padding: 15px 20px; border-radius: 10px;">
+                    <h3>A 证明</h3>
+                    <p style="color: var(--text-light); font-size: 0.9rem;">第 60 页</p>
+                </div>
+                <div id="appendix-b" style="background: white; padding: 15px 20px; border-radius: 10px;">
+                    <h3>B 交易量描述性统计</h3>
+                    <p style="color: var(--text-light); font-size: 0.9rem;">第 61 页</p>
+                </div>
+                <div id="appendix-c" style="background: white; padding: 15px 20px; border-radius: 10px;">
+                    <h3>C 模拟数据验证</h3>
+                    <p style="color: var(--text-light); font-size: 0.9rem;">第 63 页</p>
+                </div>
+                <div id="appendix-d" style="background: white; padding: 15px 20px; border-radius: 10px;">
+                    <h3>D 个股估计的自协方差函数</h3>
+                    <p style="color: var(--text-light); font-size: 0.9rem;">第 67 页</p>
+                </div>
+                <div id="appendix-e" style="background: white; padding: 15px 20px; border-radius: 10px;">
+                    <h3>E 小波方差估计器验证</h3>
+                    <p style="color: var(--text-light); font-size: 0.9rem;">第 70 页</p>
+                </div>
+                <div id="appendix-g" style="background: white; padding: 15px 20px; border-radius: 10px;">
+                    <h3>G 交易量的其他度量指标</h3>
+                    <p style="color: var(--text-light); font-size: 0.9rem;">第 74 页</p>
+                </div>
+                <div id="appendix-h" style="background: white; padding: 15px 20px; border-radius: 10px;">
+                    <h3>H Ravenpack 新闻数据处理细节</h3>
+                    <p style="color: var(--text-light); font-size: 0.9rem;">第 80 页</p>
+                </div>
+                <div id="appendix-i" style="background: white; padding: 15px 20px; border-radius: 10px;">
+                    <h3>I 超额收益的附加结果</h3>
+                    <p style="color: var(--text-light); font-size: 0.9rem;">第 82 页</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>谱交易量模型：日内交易活动中普遍的高频周期性</p>
+        <p style="margin-top: 8px; opacity: 0.7;">Wu, Zhang, & Dai · 2025</p>
+    </footer>
+</body>
+</html>

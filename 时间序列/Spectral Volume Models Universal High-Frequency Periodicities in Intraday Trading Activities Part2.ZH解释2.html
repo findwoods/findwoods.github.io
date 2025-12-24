@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>谱交易量模型 Part2 - 数据与动机实例解释</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap"
+        rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+            /* 五大区块主题色 */
+            --original-color: #8b5cf6;
+            --explain-color: #0ea5e9;
+            --formula-color: #6366f1;
+            --example-color: #10b981;
+            --warning-color: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Legend */
+        .legend-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin: -40px auto 30px;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .legend-bar {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .legend-bar.original {
+            background: var(--original-color);
+        }
+
+        .legend-bar.explain {
+            background: var(--explain-color);
+        }
+
+        .legend-bar.formula {
+            background: var(--formula-color);
+        }
+
+        .legend-bar.example {
+            background: var(--example-color);
+        }
+
+        .legend-bar.warning {
+            background: var(--warning-color);
+        }
+
+        /* TOC Section */
+        .toc-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .toc-section h2 {
+            color: var(--primary-color);
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toc-section h2::before {
+            content: '📑';
+        }
+
+        .toc-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 8px;
+        }
+
+        .toc-item {
+            display: block;
+            padding: 10px 15px;
+            background: var(--bg-color);
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .toc-item:hover {
+            background: linear-gradient(135deg, #e6f2ff 0%, #f0e7ff 100%);
+            transform: translateX(5px);
+        }
+
+        /* Content Section */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        /* ===============================
+           五大内容区块 - 统一风格不同主题色
+           =============================== */
+
+        /* 原文区 - 紫色 */
+        .original-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid var(--original-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .original-box .box-label {
+            color: var(--original-color);
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-box .box-content {
+            font-style: italic;
+            color: #6b21a8;
+        }
+
+        /* 逐步解释区 - 蓝色 */
+        .explain-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--explain-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .explain-box .box-label {
+            color: var(--explain-color);
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explain-box .box-content {
+            color: var(--text-light);
+        }
+
+        .explain-box ul,
+        .explain-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .explain-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 公式拆解区 - 靛蓝色 */
+        .formula-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--formula-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .formula-box .box-label {
+            color: var(--formula-color);
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .formula-box .box-content {
+            text-align: center;
+            overflow-x: auto;
+        }
+
+        /* 数值示例区 - 绿色 */
+        .example-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--example-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .example-box .box-label {
+            color: var(--example-color);
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-box .box-content {
+            color: var(--text-light);
+        }
+
+        .example-box ul,
+        .example-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .example-box li {
+            margin-bottom: 6px;
+        }
+
+        .example-box code {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* 易错点区 - 橙色 */
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .warning-box .box-label {
+            color: var(--warning-color);
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warning-box .box-content {
+            color: #92400e;
+        }
+
+        .warning-box ul,
+        .warning-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .warning-box li {
+            margin-bottom: 6px;
+        }
+
+        /* ===============================
+           通用样式
+           =============================== */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95rem;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 14px 16px;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        .data-table th {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-weight: 600;
+        }
+
+        .data-table tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .data-table tr:hover {
+            background: #e0f2fe;
+            transition: background 0.2s;
+        }
+
+        /* Summary Section */
+        .summary-section {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 16px;
+            padding: 35px;
+            margin-top: 30px;
+            border-left: 5px solid var(--accent-color);
+        }
+
+        .summary-section h2 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .summary-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 20px 0 12px;
+        }
+
+        .summary-section ul,
+        .summary-section ol {
+            margin-left: 20px;
+            color: var(--text-light);
+        }
+
+        .summary-section li {
+            margin-bottom: 8px;
+        }
+
+        .summary-section p {
+            color: var(--text-light);
+            margin-bottom: 12px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+
+            .content-section {
+                padding: 25px;
+            }
+
+            .legend-section {
+                gap: 12px;
+                padding: 15px;
+            }
+
+            .toc-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Smooth scrolling & Selection */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>📊 数据与动机实例</h1>
+            <p class="subtitle">谱交易量模型 · 第二章详细解释</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Legend -->
+        <div class="legend-section">
+            <div class="legend-item">
+                <div class="legend-bar original"></div>
+                <span>📜 原文</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-bar explain"></div>
+                <span>📖 逐步解释</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-bar formula"></div>
+                <span>∑ 公式拆解</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-bar example"></div>
+                <span>💡 数值示例</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-bar warning"></div>
+                <span>⚠️ 易错点</span>
+            </div>
+        </div>
+
+        <!-- TOC -->
+        <nav class="toc-section">
+            <h2>目录导航</h2>
+            <ul class="toc-list">
+                <li><a href="#s1" class="toc-item">1. 数据来源与构成</a></li>
+                <li><a href="#s2" class="toc-item">2. 数据预处理与聚合</a></li>
+                <li><a href="#s3" class="toc-item">3. 交易量指标的定义</a></li>
+                <li><a href="#s4" class="toc-item">4. 描述性统计</a></li>
+                <li><a href="#s5" class="toc-item">5. 其他特征与数据用途</a></li>
+                <li><a href="#s6" class="toc-item">6. 动机实例：U型模式</a></li>
+                <li><a href="#s7" class="toc-item">7. 图表分析：个体股票的噪声</a></li>
+                <li><a href="#s8" class="toc-item">8. 图表分析：横截面平均的威力</a></li>
+                <li><a href="#s9" class="toc-item">9. 总结与引出研究问题</a></li>
+            </ul>
+        </nav>
+
+        <!-- Section 1 -->
+        <section id="s1" class="content-section">
+            <h2><span class="section-number">1</span>数据来源与构成</h2>
+
+            <div class="original-box">
+                <div class="box-label">📜 原文</div>
+                <div class="box-content">
+                    我们的原始数据集包含美国和中国市场股票的逐笔交易与报价记录。我们收集了美国市场从 1993 年到 2023 年以及中国市场从 2014 年到 2023 年的数据。
+                </div>
+            </div>
+
+            <div class="explain-box">
+                <div class="box-label">📖 逐步解释</div>
+                <div class="box-content">
+                    <p><strong>逐笔交易与报价记录</strong>（Tick-by-tick data）是金融市场中粒度最精细的数据：</p>
+                    <ul>
+                        <li><strong>交易记录 (Trades)</strong>：记录每一笔实际发生的成交，包含时间戳、股票代码、成交价格、成交数量</li>
+                        <li><strong>报价记录 (Quotes)</strong>：记录尚未成交的订单簿状态，包含买一价/卖一价及对应数量</li>
+                    </ul>
+                </div>
+            </div>
+
+            <table class="data-table">
+                <tr>
+                    <th>市场</th>
+                    <th>数据来源</th>
+                    <th>时间跨度</th>
+                    <th>股票数量</th>
+                    <th>交易日</th>
+                </tr>
+                <tr>
+                    <td>美国</td>
+                    <td>NYSE TAQ数据库</td>
+                    <td>1993-2023</td>
+                    <td>492只 (S&P 500)</td>
+                    <td>757天</td>
+                </tr>
+                <tr>
+                    <td>中国</td>
+                    <td>深交所历史数据</td>
+                    <td>2014-2023</td>
+                    <td>2,081只</td>
+                    <td>730天</td>
+                </tr>
+            </table>
+
+            <div class="formula-box">
+                <div class="box-label">∑ 公式拆解</div>
+                <div class="box-content">
+                    \[\text{总股票数} = 492 + 2081 = 2573 \text{ 只}\]
+                </div>
+            </div>
+
+            <div class="example-box">
+                <div class="box-label">💡 数值示例</div>
+                <div class="box-content">
+                    <p><strong>一条TAQ报价记录：</strong></p>
+                    <p><code>Timestamp: 2021-10-28 09:30:00.123456, Stock: AAPL, Bid: $150.24 (500股), Ask: $150.25 (300股)</code>
+                    </p>
+                    <p>买卖价差 = $150.25 - $150.24 = <strong>$0.01</strong>（衡量市场流动性的重要指标）</p>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <div class="box-label">⚠️ 易错点与边界情况</div>
+                <div class="box-content">
+                    <ul>
+                        <li><strong>成份股变动</strong>：S&P 500 成份股会定期调整，492只可能经过筛选</li>
+                        <li><strong>数据清洗</strong>：原始数据需处理错误价格、测试信号、停牌等问题</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2 -->
+        <section id="s2" class="content-section">
+            <h2><span class="section-number">2</span>数据预处理与聚合</h2>
+
+            <div class="original-box">
+                <div class="box-label">📜 原文</div>
+                <div class="box-content">
+                    根据原始数据，我们每三秒计算一次所有股票在所有交易日内的日内交易量。
+                </div>
+            </div>
+
+            <div class="explain-box">
+                <div class="box-label">📖 逐步解释</div>
+                <div class="box-content">
+                    <p><strong>核心操作：数据聚合</strong></p>
+                    <p>将不规律的逐笔数据转换为规整的固定频率时间序列（<span class="term">采样/分箱</span>）</p>
+                </div>
+            </div>
+
+            <table class="data-table">
+                <tr>
+                    <th>市场</th>
+                    <th>交易时间</th>
+                    <th>总时长</th>
+                    <th>数据点/天</th>
+                </tr>
+                <tr>
+                    <td>美国</td>
+                    <td>9:30-16:00</td>
+                    <td>390分钟 = 23,400秒</td>
+                    <td>7,800个</td>
+                </tr>
+                <tr>
+                    <td>中国</td>
+                    <td>9:30-11:30, 13:00-14:57</td>
+                    <td>237分钟 = 14,220秒</td>
+                    <td>4,740个</td>
+                </tr>
+            </table>
+
+            <div class="formula-box">
+                <div class="box-label">∑ 公式拆解</div>
+                <div class="box-content">
+                    <p style="margin-bottom: 10px; text-align: left;"><strong>数据点数量推导：</strong></p>
+                    \[\text{美国数据点} = \frac{23400\text{秒}}{3\text{秒}} = 7800 \text{ 个}\]
+                    \[\text{中国数据点} = \frac{14220\text{秒}}{3\text{秒}} = 4740 \text{ 个}\]
+                    <p style="margin-top: 15px; text-align: left;"><strong>总样本规模估算：</strong></p>
+                    \[492 \times 757 \times 7800 + 2081 \times 730 \times 4740 \approx 10^{10} \text{ 个样本}\]
+                </div>
+            </div>
+
+            <div class="example-box">
+                <div class="box-label">💡 数值示例</div>
+                <div class="box-content">
+                    <p><strong>聚合过程示例：</strong></p>
+                    <p>原始交易记录：09:30:00.123成交100股, 09:30:01.456成交200股, 09:30:02.789成交50股</p>
+                    <p>聚合后 (09:30:00-09:30:03)：<strong>成交笔数 = 3</strong></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3 -->
+        <section id="s3" class="content-section">
+            <h2><span class="section-number">3</span>交易量指标的定义</h2>
+
+            <div class="original-box">
+                <div class="box-label">📜 原文</div>
+                <div class="box-content">
+                    在我们的分析中，我们计算了三个版本的交易量，包括成交笔数、成交股数以及以货币衡量的成交额。
+                </div>
+            </div>
+
+            <table class="data-table">
+                <tr>
+                    <th>指标</th>
+                    <th>定义</th>
+                    <th>反映内容</th>
+                </tr>
+                <tr>
+                    <td><strong>成交笔数</strong></td>
+                    <td>时间窗口内发生的独立交易次数</td>
+                    <td>市场参与的活跃程度/频率</td>
+                </tr>
+                <tr>
+                    <td><strong>成交股数</strong></td>
+                    <td>所有成交的股票总数量</td>
+                    <td>实际转手的股票规模</td>
+                </tr>
+                <tr>
+                    <td><strong>成交额</strong></td>
+                    <td>Σ(成交价格 × 成交股数)</td>
+                    <td>流经市场的资金量</td>
+                </tr>
+            </table>
+
+            <div class="example-box">
+                <div class="box-label">💡 数值示例</div>
+                <div class="box-content">
+                    <p><strong>计算示例：</strong></p>
+                    <p>交易A：100股 × $10.00 | 交易B：50,000股 × $10.01</p>
+                    <ul>
+                        <li>成交笔数 = <strong>2</strong></li>
+                        <li>成交股数 = 100 + 50,000 = <strong>50,100股</strong></li>
+                        <li>成交额 = $1,000 + $500,500 = <strong>$501,500</strong></li>
+                    </ul>
+                    <p>→ 作者选择"成交笔数"作为主要指标，关注"有多少人/算法在交易"</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4 -->
+        <section id="s4" class="content-section">
+            <h2><span class="section-number">4</span>描述性统计</h2>
+
+            <div class="original-box">
+                <div class="box-label">📜 原文</div>
+                <div class="box-content">
+                    平均而言，美国市场股票每三秒执行 4.38 笔交易，这比中国市场的笔数高出约 50%。
+                </div>
+            </div>
+
+            <div class="explain-box">
+                <div class="box-label">📖 逐步解释</div>
+                <div class="box-content">
+                    <p><strong>核心发现：</strong></p>
+                    <ul>
+                        <li><strong>美国市场</strong>：平均每3秒 4.38 笔交易</li>
+                        <li><strong>中国市场</strong>：约 2.92 笔交易 (4.38 ÷ 1.5)</li>
+                        <li>美国市场微观交易频率显著更高 → 与更发达的算法交易/高频交易相关</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <div class="box-label">⚠️ 易错点与边界情况</div>
+                <div class="box-content">
+                    <p><strong>数据的巨大差异性：</strong></p>
+                    <ul>
+                        <li><strong>跨股票差异</strong>：同一时刻，AAPL可能120笔，冷门股0笔</li>
+                        <li><strong>跨时间差异</strong>：AAPL开盘150笔，午间10笔，收盘前200笔</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5 -->
+        <section id="s5" class="content-section">
+            <h2><span class="section-number">5</span>其他特征与数据用途</h2>
+
+            <div class="explain-box">
+                <div class="box-label">📖 逐步解释</div>
+                <div class="box-content">
+                    <p><strong>计算的其他特征：</strong></p>
+                    <ul>
+                        <li><strong>价格效率</strong>：价格能多快地反映所有可得信息</li>
+                        <li><strong>波动率</strong>：价格在一段时间内的波动剧烈程度（已实现波动率）</li>
+                        <li><strong>交易活跃水平</strong>：日总交易量、换手率、买卖价差等</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="formula-box">
+                <div class="box-label">∑ 公式拆解</div>
+                <div class="box-content">
+                    <p style="margin-bottom: 10px; text-align: left;"><strong>已实现波动率计算公式：</strong></p>
+                    <p style="text-align: left;">1. 计算每个3秒的对数收益率：</p>
+                    \[r_t = \ln(P_t/P_{t-1})\]
+                    <p style="margin-top: 15px; text-align: left;">2. 将一天内所有收益率平方加总再开方：</p>
+                    \[\sigma = \sqrt{\sum r_t^2}\]
+                </div>
+            </div>
+
+            <div class="example-box">
+                <div class="box-label">💡 数值示例</div>
+                <div class="box-content">
+                    <p><strong>波动率计算示例：</strong></p>
+                    <p>假设连续3个3秒价格为：$100 → $100.50 → $100.20</p>
+                    <ul>
+                        <li>收益率1：\(\ln(100.50/100) ≈ 0.00499\)</li>
+                        <li>收益率2：\(\ln(100.20/100.50) ≈ -0.00299\)</li>
+                        <li>已实现波动率：\(\sqrt{0.00499^2 + (-0.00299)^2} ≈ 0.00582\)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 6 -->
+        <section id="s6" class="content-section">
+            <h2><span class="section-number">6</span>动机实例：U型模式</h2>
+
+            <div class="original-box">
+                <div class="box-label">📜 原文</div>
+                <div class="box-content">
+                    美国股市的日内交易量呈现 U 型模式。在中国股市，由于午休时间，日内交易量呈现两个 U 型。
+                </div>
+            </div>
+
+            <div class="explain-box">
+                <div class="box-label">📖 逐步解释</div>
+                <div class="box-content">
+                    <p><strong>U型模式解释：</strong></p>
+                    <ul>
+                        <li><strong>开盘时段</strong>：交易量大 → 隔夜信息需要消化</li>
+                        <li><strong>盘中时段</strong>：交易量下降 → 信息流动减慢</li>
+                        <li><strong>收盘时段</strong>：交易量再次放大 → 日内交易者平仓、基金调仓</li>
+                    </ul>
+                    <p><strong>中国双U型</strong>：午休将交易日分成两个独立时段，各呈U型特征</p>
+                </div>
+            </div>
+
+            <div class="example-box">
+                <div class="box-label">💡 数值示例</div>
+                <div class="box-content">
+                    <p><strong>代表性股票：</strong></p>
+                    <ul>
+                        <li><strong>AAPL (苹果)</strong>：全球市值最高公司之一，美国市场风向标</li>
+                        <li><strong>000001.SZSE (平安银行)</strong>：中国大型股份制银行，深交所核心蓝筹</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 7 -->
+        <section id="s7" class="content-section">
+            <h2><span class="section-number">7</span>图表分析：个体股票的噪声</h2>
+
+            <div class="original-box">
+                <div class="box-label">📜 原文</div>
+                <div class="box-content">
+                    图 1a 1b 显示了这两只股票在 2019-2021 年所有交易日平均后的日内交易量。除了清晰的 U 型日内模式外，时间序列至少在视觉上看起来充满了噪声。
+                </div>
+            </div>
+
+            <div class="explain-box">
+                <div class="box-label">📖 逐步解释</div>
+                <div class="box-content">
+                    <p><strong>核心观察：</strong></p>
+                    <ol>
+                        <li><strong>清晰的宏观模式</strong>：U型/双U型确实存在</li>
+                        <li><strong>微观的视觉噪声</strong>：即使经过700多天平均，曲线仍有大量"毛刺"</li>
+                    </ol>
+                    <p><span class="term">噪声</span> = 无法被简单模型解释的随机波动部分</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 8 -->
+        <section id="s8" class="content-section">
+            <h2><span class="section-number">8</span>图表分析：横截面平均的威力</h2>
+
+            <div class="original-box">
+                <div class="box-label">📜 原文</div>
+                <div class="box-content">
+                    当我们关注横截面平均交易量时，模式看起来非常不同。横截面平均作为一种降噪机制。在中国市场，每隔五分钟或十分钟就会出现明显的尖峰。
+                </div>
+            </div>
+
+            <div class="explain-box">
+                <div class="box-label">📖 逐步解释</div>
+                <div class="box-content">
+                    <p><strong>横截面平均的降噪原理：</strong></p>
+                    <p>基于<strong>大数定律</strong>：</p>
+                    <ul>
+                        <li>个股噪声（方向各异）→ 平均后相互抵消趋近于零</li>
+                        <li>系统性模式（所有股票共有）→ 平均后保留并加强</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="example-box">
+                <div class="box-label">💡 数值示例</div>
+                <div class="box-content">
+                    <p><strong>惊人发现：周期性尖峰</strong></p>
+                    <ul>
+                        <li><strong>中国市场</strong>：每5分钟/10分钟整数时刻出现<strong>非常明显</strong>的尖峰</li>
+                        <li><strong>美国市场</strong>：同样的模式存在，但不如中国市场明显</li>
+                    </ul>
+                    <p>→ 这种固定时间间隔重复出现的模式 = <span class="term">周期性 (Periodicity)</span></p>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <div class="box-label">⚠️ 易错点与边界情况</div>
+                <div class="box-content">
+                    <p><strong>可能的成因：</strong></p>
+                    <p>与<strong>算法交易</strong>相关：TWAP/VWAP策略常按整数分钟节奏执行订单</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 9 -->
+        <section id="s9" class="content-section">
+            <h2><span class="section-number">9</span>总结与引出研究问题</h2>
+
+            <div class="original-box">
+                <div class="box-label">📜 原文</div>
+                <div class="box-content">
+                    这个简单的例子清楚地表明，两个市场的交易活动中都存在重要的周期性。然而，由于低信噪比，在个股层面揭示这些周期性可能很困难。
+                </div>
+            </div>
+
+            <div class="formula-box">
+                <div class="box-label">∑ 公式拆解</div>
+                <div class="box-content">
+                    <p style="margin-bottom: 10px; text-align: left;"><strong>信噪比 (SNR) 定义：</strong></p>
+                    \[\text{SNR} = \frac{P_{\text{signal}}}{P_{\text{noise}}} =
+                    \left(\frac{A_{\text{signal}}}{A_{\text{noise}}} \right)^2\]
+                    <p style="margin-top: 15px; text-align: left; color: var(--text-light); font-size: 0.9rem;">
+                        其中 P = 功率，A = 幅度；信噪比越高，信号越容易被检测
+                    </p>
+                </div>
+            </div>
+
+            <div class="explain-box">
+                <div class="box-label">📖 逐步解释</div>
+                <div class="box-content">
+                    <p><strong>核心研究问题：</strong></p>
+                    <p><strong>矛盾</strong>：周期性在市场整体层面清晰可见，但在个股层面因<span class="term">低信噪比</span>几乎不可见</p>
+                    <p><strong>挑战</strong>：如何在低信噪比的个股数据中，有效地检测、建模和估计出这种微弱但系统性存在的周期性信号？</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Summary -->
+        <section class="summary-section">
+            <h2>📝 章节总结</h2>
+
+            <h3>存在目的</h3>
+            <ol>
+                <li><strong>建立可信度</strong>：详尽交代数据来源、处理方法和样本规模</li>
+                <li><strong>设定问题边界</strong>：明确研究对象是中美股市的日内高频交易数据</li>
+                <li><strong>提供直观动机</strong>：用图表展示核心问题</li>
+                <li><strong>承上启下</strong>：桥接引言和核心方法论</li>
+            </ol>
+
+            <h3>🧠 直觉心智模型</h3>
+            <p><strong>"从太空看地球"模型：</strong></p>
+            <ul>
+                <li><strong>个股层面</strong>：像民航客机夜间飞行，看到混乱散布的光点（噪声），难以分辨城市网格</li>
+                <li><strong>横截面平均</strong>：像国际空间站长曝光拍摄，随机灯光模糊，主干道网格（5分钟周期性）清晰显现</li>
+            </ul>
+            <p><strong>研究核心任务</strong>：开发一种"图像处理算法"，使得只观察一小片区域（一只股票），也能识别出隐藏的道路网格结构（系统性周期）</p>
+
+            <h3>🎯 直观想象</h3>
+            <p>想象十万人的体育场：</p>
+            <ul>
+                <li><strong>U型模式</strong>：开场/结束欢呼声大，中段安静</li>
+                <li><strong>个股噪声</strong>：盯着身边一个人，行为看起来随机</li>
+                <li><strong>周期性信号</strong>：每隔5分钟全场集体鼓掌 → 全场收音（横截面平均）能清晰捕捉到这个节奏</li>
+            </ul>
+            <p><strong>论文目标</strong>：找到方法，只观察一个人就能判断他是否在跟着5分钟节奏鼓掌</p>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>谱交易量模型 · 第二章：数据与动机实例</p>
+        <p style="margin-top: 8px; opacity: 0.7;">Wu, Zhang, & Dai · 2025</p>
+    </footer>
+</body>
+
+</html>

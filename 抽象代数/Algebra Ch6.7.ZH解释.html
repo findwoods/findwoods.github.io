@@ -1,0 +1,3119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行间公式索引</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- MathJax v4 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            output: {
+                displayOverflow: 'linebreak',
+                linebreaks: {
+                    inline: true,
+                    width: '100%',
+                    lineleading: 0.2
+                }
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            /* 五大区块主题色 */
+            --original-color: #8b5cf6;
+            --explain-color: #0ea5e9;
+            --formula-color: #6366f1;
+            --example-color: #10b981;
+            --warning-color: #f59e0b;
+            /* Q1修复：总结、存在目的、直觉心智模型、直观想象 统一使用 #36828C 青色主题 */
+            --summary-color: #36828C;     /* 青色主题 */
+            --purpose-color: #36828C;     /* 青色主题 */
+            --intuition-color: #36828C;   /* 青色主题 */
+            --imagination-color: #36828C; /* 青色主题 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .authors {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
+        .content-section h4 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h5 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 18px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h6 {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            margin: 15px 0 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        /* ===============================
+           五大内容区块 - 统一风格不同主题色
+           =============================== */
+
+        /* 原文区 - 紫色 */
+        .original-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid var(--original-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .original-box .box-label {
+            color: var(--original-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-box .box-content {
+            font-style: italic;
+            color: #6b21a8;
+        }
+
+        /* 📜 [原文]区块内容 - 使用统一的黑色 */
+        .original-content {
+            color: #2d3748; /* 统一的深灰黑色 */
+        }
+
+        .original-content * {
+            color: #2d3748; /* 所有子元素 */
+        }
+
+        .original-content .MathJax, .original-content .MathJax * {
+            color: #2d3748 !important; /* 行内公式 */
+        }
+
+        /* 通用 .box-content 换行规则 - 确保长文本（如代码调用）能自动换行 */
+        .box-content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .box-content strong, .box-content code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            display: inline;
+        }
+
+        /* 逐步解释区 - 蓝色 */
+        .explain-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--explain-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .explain-box .box-label {
+            color: var(--explain-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explain-box .box-content {
+            color: #1a365d; /* Dark Blue */
+        }
+
+        .explain-box .box-content * {
+            color: #1a365d; /* Dark Blue - 所有子元素 */
+        }
+
+        .explain-box .box-content .MathJax, .explain-box .box-content .MathJax * {
+            color: #1a365d !important; /* Dark Blue - 行内公式 */
+        }
+
+        .explain-box ul, .explain-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .explain-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 公式拆解区 - 靛蓝色 */
+        .formula-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--formula-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .formula-box .box-label {
+            color: var(--formula-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .formula-box .box-content {
+            color: var(--text-color); /* 统一使用默认黑色，与原文区块一致 */
+            overflow-x: auto;
+        }
+
+        .formula-box .box-content * {
+            color: var(--text-color); /* 所有子元素 */
+        }
+
+        .formula-box .box-content .MathJax, .formula-box .box-content .MathJax * {
+            color: var(--text-color) !important; /* 行内公式 */
+        }
+
+        /* 数值示例区 - 绿色 */
+        .example-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--example-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .example-box .box-label {
+            color: var(--example-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-box .box-content {
+            color: #166534; /* Dark Green from edstem5 .answer-en */
+        }
+
+        .example-box .box-content * {
+            color: #166534; /* Dark Green - 所有子元素 */
+        }
+
+        .example-box .box-content .MathJax, .example-box .box-content .MathJax * {
+            color: #166534 !important; /* Dark Green - 行内公式 */
+        }
+
+        .example-box ul, .example-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .example-box li {
+            margin-bottom: 6px;
+        }
+
+        .example-box code {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* 易错点区 - 橙色 */
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .warning-box .box-label {
+            color: var(--warning-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warning-box .box-content {
+            color: #92400e;
+        }
+
+        .warning-box .box-content * {
+            color: #92400e; /* 所有子元素 */
+        }
+
+        .warning-box .box-content .MathJax, .warning-box .box-content .MathJax * {
+            color: #92400e !important; /* 行内公式 */
+        }
+
+        .warning-box ul, .warning-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .warning-box li {
+            margin-bottom: 6px;
+        }
+
+        /* 总结区 - Q1修复：使用#36828C青色主题 */
+        .summary-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--summary-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .summary-box .box-label {
+            color: var(--summary-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .summary-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .summary-box .box-content .MathJax, .summary-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 存在目的区 - Q1修复：使用#36828C青色主题 */
+        .purpose-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--purpose-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .purpose-box .box-label {
+            color: var(--purpose-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .purpose-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .purpose-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .purpose-box .box-content .MathJax, .purpose-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直觉心智模型区 - Q1修复：使用#36828C青色主题 */
+        .intuition-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--intuition-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .intuition-box .box-label {
+            color: var(--intuition-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .intuition-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .intuition-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .intuition-box .box-content .MathJax, .intuition-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直观想象区 - Q1修复：使用#36828C青色主题 */
+        .imagination-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--imagination-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .imagination-box .box-label {
+            color: var(--imagination-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .imagination-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .imagination-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .imagination-box .box-content .MathJax, .imagination-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 高亮术语 */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* 代码块 */
+        code {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            margin: 15px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 表格样式 - 紧凑型，行高列宽适应文字最小值 */
+        table {
+            border-collapse: collapse;
+            width: auto;  /* 列宽适应内容 */
+            margin: 15px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;  /* 减小padding使行高更紧凑 */
+            text-align: left;
+            white-space: nowrap;  /* 防止不必要的换行，列宽适应文字 */
+            line-height: 1.4;  /* 紧凑的行高 */
+        }
+
+        th {
+            background: #e0f7fa;
+            color: #006064;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #e2e8f0;
+        }
+
+        /* 表格对齐 */
+        .align-left {
+            text-align: left;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        /* 图例区域 */
+        .legend-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .legend-bar {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .legend-bar.original { background: #8b5cf6; }
+        .legend-bar.explain { background: #0ea5e9; }
+        .legend-bar.formula { background: #6366f1; }
+        .legend-bar.example { background: #10b981; }
+        .legend-bar.warning { background: #f59e0b; }
+        .legend-bar.summary { background: #36828C; }
+        .legend-bar.purpose { background: #36828C; }
+        .legend-bar.intuition { background: #36828C; }
+        .legend-bar.imagination { background: #36828C; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive - 移动端适配 */
+        @media (max-width: 768px) {
+            /* 容器宽度适配 */
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 20px 12px;
+                box-sizing: border-box;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+                padding: 0 15px;
+            }
+            
+            .hero {
+                padding: 50px 15px;
+            }
+            
+            .hero h1 {
+                font-size: 1.6rem;
+                word-break: break-word;
+            }
+            
+            .authors {
+                font-size: 1rem;
+            }
+            
+            /* 内容区块适配 */
+            .content-section {
+                padding: 20px 15px;
+                margin-left: 5px;
+                margin-right: 5px;
+                border-radius: 12px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.4rem;
+                flex-wrap: wrap;
+            }
+            
+            .content-section h3 {
+                font-size: 1.2rem;
+            }
+            
+            .content-section h4 {
+                font-size: 1.1rem;
+            }
+            
+            .section-number {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            /* 各区块box适配 */
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 15px 12px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .original-box .box-label,
+            .explain-box .box-label,
+            .formula-box .box-label,
+            .example-box .box-label,
+            .warning-box .box-label,
+            .summary-box .box-label,
+            .purpose-box .box-label,
+            .intuition-box .box-label,
+            .imagination-box .box-label {
+                font-size: 1.1rem;
+            }
+            
+            /* 图例区域移动端适配 */
+            .legend-section {
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
+            
+            .legend-row {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            
+            .legend-item {
+                font-size: 0.8rem;
+                gap: 5px;
+            }
+            
+            .legend-bar {
+                width: 3px;
+                height: 16px;
+            }
+            
+            /* 列表适配 */
+            ul, ol {
+                margin-left: 15px;
+                padding-left: 5px;
+            }
+            
+            /* 表格移动端适配 */
+            table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.9rem;
+                min-width: 80px;
+            }
+            
+            /* 代码块适配 */
+            pre {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            
+            /* 数学公式适配 */
+            .math-block {
+                padding: 10px 8px;
+                margin: 15px 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* MathJax公式溢出处理 - 只处理块级公式，保持行内公式inline */
+            mjx-container[jax="CHTML"][display="true"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                display: block !important;
+            }
+            
+            /* 行内公式 - 超宽时自动换行 */
+            mjx-container:not([display="true"]) {
+                display: inline-block !important;
+                max-width: 100% !important;
+                overflow-wrap: break-word !important;
+                word-wrap: break-word !important;
+            }
+            
+            /* MathJax内部元素换行支持 */
+            mjx-math {
+                white-space: normal !important;
+            }
+            
+            mjx-mrow {
+                flex-wrap: wrap !important;
+            }
+            
+            /* Footer适配 */
+            .footer {
+                padding: 25px 15px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* 超小屏幕适配 (手机竖屏) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 8px;
+            }
+            
+            .hero {
+                padding: 40px 10px;
+            }
+            
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+            
+            .content-section {
+                padding: 15px 10px;
+                margin-left: 3px;
+                margin-right: 3px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 12px 10px;
+            }
+            
+            .legend-section {
+                padding: 12px 8px;
+            }
+            
+            .legend-row {
+                gap: 8px;
+            }
+            
+            .legend-item {
+                font-size: 0.75rem;
+            }
+            
+            ul, ol {
+                margin-left: 12px;
+            }
+        }
+        
+        /* 确保所有内容不溢出 */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* ========================================
+           TOC 目录样式
+           ======================================== */
+        
+        /* TOC 触发按钮 - 左上角小方块 */
+        .toc-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(54, 130, 140, 0.5);  /* 青色 50% 透明度 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .toc-toggle:hover {
+            background: rgba(54, 130, 140, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .toc-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* TOC 目录面板 */
+        .toc-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 95vw;  /* 手机浏览器宽度的 95% */
+            height: 80vh; /* 手机浏览器高度的 80% */
+            max-width: 450px;  /* 桌面端最大宽度 */
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0 0 16px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .toc-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* TOC 头部 - 标题在图标右侧 */
+        .toc-header {
+            padding: 15px 20px 15px 80px;  /* 左侧留出按钮空间 */
+            background: linear-gradient(135deg, #36828C 0%, #2a6a72 100%);
+            color: white;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .toc-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* TOC 内容区 */
+        .toc-content {
+            flex: 1;
+            overflow-y: auto;   /* 允许垂直滚动 */
+            overflow-x: hidden; /* 禁止水平滚动 */
+            padding: 15px 0;
+        }
+        
+        /* TOC 列表 */
+        .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc-item {
+            margin: 0;
+        }
+        
+        .toc-item a {
+            display: block;
+            padding: 4px 20px;  /* 更紧凑的行间距 */
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #2d3748;
+            text-decoration: none;
+            word-wrap: break-word;   /* 自动换行 */
+            overflow-wrap: break-word;
+            white-space: normal;     /* 允许换行 */
+            line-height: 1.3;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .toc-item a:hover {
+            background: #e8f4f5;
+            color: #36828C;
+            border-left-color: #36828C;
+        }
+        
+        /* 标题项样式 */
+        .toc-heading a {
+            font-weight: 600;
+            color: #1a365d;
+            background: #f7fafc;
+        }
+        
+        .toc-heading a:hover {
+            background: #e8f4f5;
+        }
+        
+        /* 当前活动的标题项样式 */
+        .toc-heading.active a {
+            background: #d0e8ea;
+            color: #36828C;
+            border-left-color: #36828C;
+            font-weight: 700;
+        }
+        
+        /* 当前活动的原文项样式 */
+        .toc-original.active a {
+            background: #36828C;
+            color: white;
+            box-shadow: 0 3px 8px rgba(54, 130, 140, 0.35);
+        }
+        
+        /* 原文项容器 - 横向排列自动换行 */
+        .toc-originals-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 8px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* 原文项样式 - 浅青色带阴影 */
+        .toc-original {
+            margin: 0;
+        }
+        
+        .toc-original a {
+            display: inline-block;
+            width: 64px;  /* 固定宽度确保每行显示数量一致 */
+            padding: 6px 4px;
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #36828C;  /* 青色主题色 */
+            text-decoration: none;
+            text-align: center;
+            background: #e8f4f5;
+            border-radius: 6px;
+            border-left: none;
+            box-shadow: 0 2px 4px rgba(54, 130, 140, 0.2);  /* 青色阴影 */
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .toc-original a:hover {
+            background: #e0f2f4;
+            color: #36828C;
+            box-shadow: 0 3px 6px rgba(54, 130, 140, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        /* TOC 遮罩层 */
+        .toc-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .toc-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 移动端 TOC 适配 */
+        @media (max-width: 768px) {
+            .toc-toggle {
+                top: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .toc-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .toc-panel {
+                width: 90vw;
+                height: 80vh;
+                max-width: none;
+            }
+            
+            .toc-header {
+                padding: 12px 15px 12px 65px;
+            }
+            
+            .toc-header h3 {
+                font-size: 16px;
+            }
+            
+            .toc-item a {
+                padding: 4px 15px;
+                font-size: 15.5px;
+            }
+            
+            .toc-originals-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            .toc-original a {
+                padding: 5px 10px;
+                font-size: 15.5px;
+            }
+        }
+
+        /* 特殊术语着色 */
+        .spectral {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .periodicity {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .fourier {
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        /* 列表样式增强 */
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 - 已移除重复定义，使用上方第602-633行的紧凑型样式 */
+
+        /* 分隔线 */
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 30px 0;
+        }
+
+        /* 数学公式样式 - Q7: 行间公式颜色用黑色 */
+        .math-block {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            color: #000000; /* Q7: 黑色文字 */
+        }
+
+        /* Q7: 确保MathJax渲染的公式为黑色 */
+        .math-block .MathJax {
+            color: #000000 !important;
+        }
+
+        mjx-container {
+            color: #000000 !important;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- TOC 目录按钮 -->
+    <button class="toc-toggle" id="tocToggle" aria-label="打开目录">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+        </svg>
+    </button>
+    
+    <!-- TOC 遮罩层 -->
+    <div class="toc-overlay" id="tocOverlay"></div>
+    
+    <!-- TOC 目录面板 -->
+    <nav class="toc-panel" id="tocPanel">
+        <div class="toc-header">
+            <h3>📑 目录</h3>
+        </div>
+        <div class="toc-content">
+            <ul class="toc-list">
+                <li class="toc-item toc-heading"><a href="#section-1">1. 抽象对称：群作用</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-1">原文1</a></span><span class="toc-original"><a href="#original-2">原文2</a></span><span class="toc-original"><a href="#original-3">原文3</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-2">2. 群作用的公理</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-4">原文4</a></span><span class="toc-original"><a href="#original-5">原文5</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-3">3. 群作用与置换表示</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-6">原文6</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-4">4. 轨道 (Orbit)</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-7">原文7</a></span><span class="toc-original"><a href="#original-8">原文8</a></span><span class="toc-original"><a href="#original-9">原文9</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-5">5. 稳定子 (Stabilizer)</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-10">原文10</a></span><span class="toc-original"><a href="#original-11">原文11</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-6">6. 稳定子与陪集</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-12">原文12</a></span><span class="toc-original"><a href="#original-13">原文13</a></span><span class="toc-original"><a href="#original-14">原文14</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-7">7. 行间公式索引</a></li>
+                <li class="toc-item toc-heading"><a href="#section-8">8. 行间公式索引</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>行间公式索引</h1>
+            <p class="authors"></p>
+            <p class="date"></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 图例区域 -->
+        <div class="legend-section">
+            <!-- 第一行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar original"></div>
+                    <span>📜 原文</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar explain"></div>
+                    <span>📖 逐步解释</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar formula"></div>
+                    <span>∑ 公式拆解</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar example"></div>
+                    <span>💡 数值示例</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar warning"></div>
+                    <span>⚠️ 易错点</span>
+                </div>
+            </div>
+            <!-- 第二行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar summary"></div>
+                    <span>📝 总结</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar purpose"></div>
+                    <span>🎯 存在目的</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar intuition"></div>
+                    <span>🧠 直觉心智模型</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar imagination"></div>
+                    <span>💭 直观想象</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="content-section" id="section-1">
+    <h2><span class="section-number">1</span>抽象对称：群作用</h2>
+    <h4>1.1 对称概念的泛化</h4><p id="original-1"><strong style="font-size: 1.3rem;">📜 [原文1]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>对称</strong>的概念可以应用于几何图形以外的事物。例如，<strong>复共轭</strong> $(a+b i) \rightsquigarrow(a-b i)$ 可以被视为<strong>复数</strong>的一种<strong>对称</strong>。由于<strong>复共轭</strong>与加法和乘法兼容，它被称为<strong>域</strong> $\mathbb{C}$ 的一个<strong>自同构</strong>。从几何上看，它是<strong>复平面</strong>关于<strong>实轴</strong>的<strong>双边对称</strong>，但它是一个<strong>自同构</strong>的陈述指的是其<strong>代数结构</strong>。<strong>域</strong> $F=\mathbb{Q}[\sqrt{2}]$，其元素是形如 $a+b \sqrt{2}$ 的实数，其中 $a$ 和 $b$ 是<strong>有理数</strong>，也有一个<strong>自同构</strong>，它将 $a+b \sqrt{2} \rightsquigarrow a-b \sqrt{2}$。这不是一个几何<strong>对称</strong>。<strong>抽象</strong>“<strong>双边</strong>”<strong>对称</strong>的另一个例子是由一个 3 阶的<strong>循环群</strong> $H$ 给出。它有一个<strong>自同构</strong>，交换了两个不同于<strong>单位元</strong>的元素。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话的核心思想是将我们熟悉的几何<strong>对称</strong>概念（比如图形的翻转、旋转）推广到更抽象的<strong>代数结构</strong>中。</p>
+<ol>
+  <li> <strong>起点：几何对称</strong>：我们通常认为<strong>对称</strong>是针对几何图形的。一个正方形绕中心旋转90度，看起来和原来一样，这就是一种<strong>对称</strong>操作。一个等腰三角形沿着中线对折，两边重合，这也是一种<strong>对称</strong>操作。这些操作的共同点是：对图形进行某种变换后，图形的某些核心性质（如形状、大小）保持不变。</li>
+  <li> <strong>推广到代数</strong>：作者提出，这种“保持结构不变的变换”思想可以应用到非几何的对象上，比如<strong>复数</strong>。</li>
+  <li> <strong>第一个例子：复共轭</strong>：
+<ul>
+  <li>一个<strong>复数</strong>可以写成 $z = a + bi$ 的形式，其中 $a$ 是<strong>实部</strong>，$b$ 是<strong>虚部</strong>，$i$ 是<strong>虚数单位</strong>（$i^2 = -1$）。</li>
+  <li><strong>复共轭</strong>操作就是将虚部变号，即 $a+bi$ 变成 $a-bi$。</li>
+  <li>为什么这是一种<strong>对称</strong>？因为它保持了<strong>复数</strong>的<strong>代数结构</strong>。这里的“<strong>代数结构</strong>”指的是加法和乘法运算。</li>
+  <li><strong>保持加法</strong>：两个<strong>复数</strong> $z_1 = a_1 + b_1i$ 和 $z_2 = a_2 + b_2i$。先相加再取<strong>共轭</strong>，和先取<strong>共轭</strong>再相加，结果是一样的。</li>
+  <li>$(z_1 + z_2)$ 的<strong>共轭</strong> = $((a_1+a_2) + (b_1+b_2)i)$ 的<strong>共轭</strong> = $(a_1+a_2) - (b_1+b_2)i$。</li>
+  <li>$z_1$ 的<strong>共轭</strong> + $z_2$ 的<strong>共轭</strong> = $(a_1 - b_1i) + (a_2 - b_2i)$ = $(a_1+a_2) - (b_1+b_2)i$。</li>
+  <li>两者相等。</li>
+  <li><strong>保持乘法</strong>：同样，先相乘再取<strong>共轭</strong>，和先取<strong>共轭</strong>再相乘，结果也一样。</li>
+  <li>这种保持<strong>代数运算</strong>的变换，在<strong>代数</strong>里有一个专门的术语，叫做“<strong>自同构</strong>”（automorphism）。“自”意味着是从一个集合到其自身的映射，“同构”意味着保持结构。所以<strong>复共轭</strong>是<strong>复数域</strong> $\mathbb{C}$ 的一个<strong>自同构</strong>。</li>
+  <li>它也有几何解释：在<strong>复平面</strong>上，<strong>实轴</strong>是横轴，<strong>虚轴</strong>是纵轴。一个点 $(a, b)$ 代表<strong>复数</strong> $a+bi$。取<strong>共轭</strong>变成 $a-bi$，对应的点是 $(a, -b)$。这正好是点 $(a, b)$ 关于<strong>实轴</strong>的镜像<strong>对称</strong>。</li>
+  <li>关键点：称其为<strong>自同构</strong>，强调的是它保持<strong>代数结构</strong>（加法、乘法）；称其为<strong>双边对称</strong>，强调的是它在<strong>复平面</strong>上的几何表现。</li>
+</ul></li>
+  <li> <strong>第二个例子：Q[√2]</strong>：
+<ul>
+  <li>考虑一个数<strong>域</strong> $F=\mathbb{Q}[\sqrt{2}]$，它的元素都是 $a+b\sqrt{2}$ 的形式，其中 $a$ 和 $b$ 是<strong>有理数</strong>（比如 $3 + \frac{1}{2}\sqrt{2}$）。</li>
+  <li>在这个<strong>域</strong>上，我们也可以定义一个变换：$a+b\sqrt{2}$ 变成 $a-b\sqrt{2}$。</li>
+  <li>这个变换同样保持加法和乘法，因此也是一个<strong>自同构</strong>。</li>
+  <li>但是，这个变换没有像<strong>复共轭</strong>那样直观的几何图像。$a+b\sqrt{2}$ 和 $a-b\sqrt{2}$ 都是<strong>实数</strong>，都在一条数轴上。我们无法像在<strong>复平面</strong>上那样画出一个“翻转”。所以这是一个纯粹的<strong>代数对称</strong>，而非几何<strong>对称</strong>。</li>
+</ul></li>
+  <li> <strong>第三个例子：循环群</strong>：
+<ul>
+  <li>一个 3 阶的<strong>循环群</strong> $H$，可以想象成 $\{e, g, g^2\}$，其中 $e$ 是<strong>单位元</strong>，$g^3 = e$。</li>
+  <li>我们可以定义一个映射，让 $e$ 不变，但是交换 $g$ 和 $g^2$。</li>
+  <li>这个映射也是一个<strong>自同构</strong>（它保持<strong>群</strong>的乘法运算）。例如，$\phi(g \cdot g) = \phi(g^2) = g$。而 $\phi(g) \cdot \phi(g) = g^2 \cdot g^2 = g^4 = g^3 \cdot g = e \cdot g = g$。两者相等。</li>
+  <li>这同样是一个<strong>抽象</strong>的<strong>对称</strong>，它交换了群里的两个非<strong>单位元</strong>素，保持了群的结构。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1 (复共轭)</strong>:</li>
+  <li>令 $z_1 = 2 + 3i$，$z_2 = 1 - 4i$。</li>
+  <li><strong>加法</strong>：</li>
+  <li>$z_1 + z_2 = (2+1) + (3-4)i = 3 - i$。</li>
+  <li>$(z_1 + z_2)$ 的<strong>共轭</strong>是 $3 + i$。</li>
+  <li>$z_1$ 的<strong>共轭</strong>是 $2 - 3i$，$z_2$ 的<strong>共轭</strong>是 $1 + 4i$。</li>
+  <li>( $z_1$ 的<strong>共轭</strong>) + ( $z_2$ 的<strong>共轭</strong>) = $(2 - 3i) + (1 + 4i) = (2+1) + (-3+4)i = 3 + i$。</li>
+  <li>结果相同，验证了<strong>复共轭</strong>保持加法。</li>
+  <li><strong>乘法</strong>：</li>
+  <li>$z_1 \cdot z_2 = (2+3i)(1-4i) = 2 - 8i + 3i - 12i^2 = 2 - 5i + 12 = 14 - 5i$。</li>
+  <li>$(z_1 \cdot z_2)$ 的<strong>共轭</strong>是 $14 + 5i$。</li>
+  <li>( $z_1$ 的<strong>共轭</strong>) $\cdot$ ( $z_2$ 的<strong>共轭</strong>) = $(2-3i)(1+4i) = 2 + 8i - 3i - 12i^2 = 2 + 5i + 12 = 14 + 5i$。</li>
+  <li>结果相同，验证了<strong>复共轭</strong>保持乘法。</li>
+</ul>
+<ul>
+  <li><strong>示例2 (Q[√2]的自同构)</strong>:</li>
+  <li>令 $x = 3 + 2\sqrt{2}$，$y = 1 - 5\sqrt{2}$。它们都在 $\mathbb{Q}[\sqrt{2}]$ 中。</li>
+  <li>令变换 $\sigma(a+b\sqrt{2}) = a-b\sqrt{2}$。所以 $\sigma(x) = 3 - 2\sqrt{2}$，$\sigma(y) = 1 + 5\sqrt{2}$。</li>
+  <li><strong>加法</strong>：</li>
+  <li>$x+y = (3+1) + (2-5)\sqrt{2} = 4 - 3\sqrt{2}$。</li>
+  <li>$\sigma(x+y) = 4 + 3\sqrt{2}$。</li>
+  <li>$\sigma(x) + \sigma(y) = (3 - 2\sqrt{2}) + (1 + 5\sqrt{2}) = (3+1) + (-2+5)\sqrt{2} = 4 + 3\sqrt{2}$。</li>
+  <li>结果相同。</li>
+  <li><strong>乘法</strong>：</li>
+  <li>$x \cdot y = (3 + 2\sqrt{2})(1 - 5\sqrt{2}) = 3 - 15\sqrt{2} + 2\sqrt{2} - 10(\sqrt{2})^2 = 3 - 13\sqrt{2} - 20 = -17 - 13\sqrt{2}$。</li>
+  <li>$\sigma(x \cdot y) = -17 + 13\sqrt{2}$。</li>
+  <li>$\sigma(x) \cdot \sigma(y) = (3 - 2\sqrt{2})(1 + 5\sqrt{2}) = 3 + 15\sqrt{2} - 2\sqrt{2} - 10(\sqrt{2})^2 = 3 + 13\sqrt{2} - 20 = -17 + 13\sqrt{2}$。</li>
+  <li>结果相同。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>并非所有变换都是自同构</strong>：一个变换必须保持<strong>代数结构</strong>（所有定义的运算）才叫<strong>自同构</strong>。例如，在 $\mathbb{Q}[\sqrt{2}]$ 中，定义一个映射 $f(a+b\sqrt{2}) = a + b\sqrt{3}$，这个映射就不保持乘法，所以它不是一个<strong>自同构</strong>。</li>
+  <li><strong>几何对称 vs 代数对称</strong>：要分清一个<strong>对称</strong>的讨论层面。<strong>复共轭</strong>既可以从几何（<strong>复平面</strong>翻转）理解，也可以从<strong>代数</strong>（保持加法乘法）理解。而 $\mathbb{Q}[\sqrt{2}]$ 的<strong>自同构</strong>则主要是<strong>代数</strong>层面的，很难找到直观的几何对应。</li>
+  <li><strong>自同构的对象</strong>：讨论<strong>自同构</strong>时，必须明确是在哪个<strong>代数结构</strong>上。<strong>复共轭</strong>是<strong>复数域</strong> $\mathbb{C}$ 的<strong>自同构</strong>，而不是<strong>实数域</strong> $\mathbb{R}$ 的<strong>自同构</strong>（在 $\mathbb{R}$ 上它是无意义的）。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段的核心是进行一个概念上的类比和推广。它将直观的、几何的<strong>对称</strong>概念——即经过某种操作后保持不变性——推广到了抽象的<strong>代数结构</strong>中。在<strong>代数</strong>领域，这种“保持结构的操作”被称为<strong>自同构</strong>。通过<strong>复共轭</strong>、$\mathbb{Q}[\sqrt{2}]$ 和<strong>循环群</strong>的例子，说明了这种<strong>抽象对称</strong>（<strong>自同构</strong>）可以是纯<strong>代数</strong>的，不一定有几何对应。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是为即将引入的更普遍的概念——<strong>群作用</strong>——铺平道路。通过展示“<strong>对称</strong>”这个词可以有比几何更广泛的含义，它引导读者思考：是否存在一个统一的框架来描述所有这些“<strong>对称</strong>”现象？无论是几何图形的旋转，还是<strong>复数</strong>的<strong>共轭</strong>，它们本质上都是一个<strong>群</strong>（如旋转群，或由<strong>单位元</strong>和<strong>共轭</strong>操作组成的群）在某个<strong>集合</strong>（如正方形的顶点，或<strong>复数</strong>集）上的“操作”。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你有一堆乐高积木，搭成了一个城堡。这个城堡就是你的“<strong>结构</strong>”。</p>
+<ol>
+  <li><strong>几何对称</strong>：你把整个城堡旋转了180度。从远处看，它还是那个城堡，样子没变。这就是几何上的<strong>对称</strong>。</li>
+  <li><strong>代数对称</strong>（<strong>自同构</strong>）：你没有移动整个城堡，而是把所有红色的积木换成蓝色的，所有蓝色的换成红色的。假设城堡的结构只依赖于积木的形状和连接方式，不依赖于颜色。那么，这个“红蓝互换”的操作，虽然改变了城堡的外观，但没有破坏其“结构”（积木间的连接关系）。这就是一个<strong>代数</strong>的<strong>对称</strong>，一个<strong>自同构</strong>。<strong>复共轭</strong>就像这种换颜色操作，它改变了<strong>复数</strong>的“虚部符号”，但没有改变它在加法和乘法运算中的“结构性角色”。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个由<strong>复数</strong>构成的<strong>复平面</strong>。<strong>实轴</strong>就像一面镜子。<strong>复共轭</strong>操作 $(a+bi) \rightsquigarrow (a-bi)$ 就是把平面上的每一个点都翻转到镜子的另一面。整个<strong>复平面</strong>被这面镜子完美地分成了对称的两半。这个翻转操作虽然移动了点的位置，但并没有破坏点与点之间的“<strong>代数</strong>关系”（加法和乘法）。</p>
+    </div>
+</div><h4>1.2 自同构与对称的同义性</h4><p id="original-2"><strong style="font-size: 1.3rem;">📜 [原文2]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>代数结构</strong> $X$ 的<strong>自同构</strong>集合，例如<strong>群</strong>或<strong>域</strong>，构成一个<strong>群</strong>，其<strong>复合</strong>法则为<strong>映射</strong>的<strong>复合</strong>。每个<strong>自同构</strong>都应被视为 $X$ 的一种<strong>对称</strong>，因为它是一种与 $X$ 的<strong>代数结构</strong>兼容的<strong>元素置换</strong>。但这种情况下的<strong>结构</strong>是<strong>代数</strong>的而不是几何的。</p>
+<p>因此，“<strong>自同构</strong>”和“<strong>对称</strong>”这两个词或多或少是同义的，只是“<strong>自同构</strong>”用于描述<strong>保留代数结构</strong>的<strong>集合置换</strong>，而“<strong>对称</strong>”通常（但并非总是）指<strong>保留几何结构</strong>的<strong>置换</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>自同构构成群</strong>：
+<ul>
+  <li>考虑一个<strong>代数结构</strong> $X$（比如一个<strong>群</strong> $G$）。它所有的<strong>自同构</strong>（保持其结构的双射）放在一起，形成一个集合，我们称之为 $Aut(X)$。</li>
+  <li>这个集合 $Aut(X)$ 本身也构成一个<strong>群</strong>。为什么？我们需要验证<strong>群</strong>的三个基本公理：</li>
+  <li><strong>封闭性</strong>：两个<strong>自同构</strong> $\phi_1$ 和 $\phi_2$ 的<strong>复合</strong>（先做 $\phi_2$ 再做 $\phi_1$，记作 $\phi_1 \circ \phi_2$）是不是还是一个<strong>自同构</strong>？是的。因为 $\phi_1$ 和 $\phi_2$ 都保持结构，那么连续做两次，结构依然被保持。它们都是双射，两个双射的<strong>复合</strong>也是双射。所以 $Aut(X)$ 在<strong>映射复合</strong>下是封闭的。</li>
+  <li><strong>单位元</strong>：存在一个<strong>单位元</strong>吗？是的，就是<strong>恒等映射</strong> $id(x)=x$。这个映射显然保持所有结构，所以它是一个<strong>自同构</strong>，是 $Aut(X)$ 中的<strong>单位元</strong>。</li>
+  <li><strong>逆元</strong>：每个<strong>自同构</strong> $\phi$ 都有<strong>逆元</strong>吗？是的。因为<strong>自同构</strong>是双射，所以它的<strong>逆映射</strong> $\phi^{-1}$ 存在。可以证明，如果 $\phi$ 保持结构，那么 $\phi^{-1}$ 也保持结构。所以 $\phi^{-1}$ 也是一个<strong>自同构</strong>。</li>
+  <li><strong>结合律</strong>：<strong>映射</strong>的<strong>复合</strong>运算天然满足<strong>结合律</strong>：$(\phi_1 \circ \phi_2) \circ \phi_3 = \phi_1 \circ (\phi_2 \circ \phi_3)$。</li>
+  <li>结论：一个<strong>代数结构</strong>的所有<strong>自同构</strong>，在<strong>映射复合</strong>运算下，构成一个<strong>群</strong>，称为<strong>自同构群</strong>。</li>
+</ul></li>
+  <li> <strong>自同构即对称</strong>：
+<ul>
+  <li>每个<strong>自同构</strong>都是对集合 $X$ 中元素的一种重新排列（<strong>置换</strong>）。</li>
+  <li>这种排列不是随意的，它必须“尊重” $X$ 的<strong>代数结构</strong>（比如群的乘法）。</li>
+  <li>因此，每个<strong>自同构</strong>都可以被看作是 $X$ 的一种<strong>对称</strong>，只不过是<strong>代数</strong>意义上的<strong>对称</strong>。</li>
+</ul></li>
+  <li> <strong>术语辨析</strong>：
+<ul>
+  <li>“<strong>自同构</strong>”和“<strong>对称</strong>”本质上是同一个概念：保持结构不变的变换。</li>
+  <li>在实际使用中，有约定俗成的偏好：</li>
+  <li>当变换的对象是<strong>代数结构</strong>（如<strong>群</strong>、<strong>环</strong>、<strong>域</strong>），我们倾向于用“<strong>自同构</strong>”这个词。</li>
+  <li>当变换的对象是几何对象（如多边形、<strong>晶体</strong>），我们倾向于用“<strong>对称</strong>”这个词。</li>
+  <li>这种区分不是绝对的，只是一个习惯。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1：3阶循环群的自同构群</strong></li>
+  <li>令 $G = \{e, a, a^2\}$ 且 $a^3 = e$。</li>
+  <li>它的<strong>自同构</strong>有哪些？<strong>自同构</strong>必须把<strong>单位元</strong>映到<strong>单位元</strong>，即 $\phi(e) = e$。</li>
+  <li>$\phi(a)$ 能是什么？$\phi(a)$ 必须是 $G$ 的一个<strong>生成元</strong>。$G$ 的<strong>生成元</strong>有 $a$ 和 $a^2$。</li>
+  <li><strong>情况1</strong>：$\phi_1(a) = a$。那么 $\phi_1(a^2) = \phi_1(a) \cdot \phi_1(a) = a \cdot a = a^2$。这个 $\phi_1$ 就是<strong>恒等映射</strong>。</li>
+  <li><strong>情况2</strong>：$\phi_2(a) = a^2$。那么 $\phi_2(a^2) = \phi_2(a) \cdot \phi_2(a) = a^2 \cdot a^2 = a^4 = a$。这个 $\phi_2$ 交换了 $a$ 和 $a^2$。</li>
+  <li>所以<strong>自同构群</strong> $Aut(G) = \{\phi_1, \phi_2\}$。</li>
+  <li>我们来验证这个<strong>自同构群</strong>的运算：</li>
+  <li>$\phi_1 \circ \phi_2$：对任一元素 $x \in G$， $(\phi_1 \circ \phi_2)(x) = \phi_1(\phi_2(x)) = \phi_2(x)$，所以 $\phi_1 \circ \phi_2 = \phi_2$。$\phi_1$ 是<strong>单位元</strong>。</li>
+  <li>$\phi_2 \circ \phi_2$：$(\phi_2 \circ \phi_2)(a) = \phi_2(\phi_2(a)) = \phi_2(a^2) = a$。所以 $\phi_2 \circ \phi_2 = \phi_1$。这意味着 $\phi_2$ 的<strong>逆元</strong>是它自己。</li>
+  <li>这个<strong>群</strong>的结构和二阶<strong>循环群</strong> $C_2$ 是<strong>同构</strong>的。</li>
+</ul>
+<ul>
+  <li><strong>示例2：正方形的对称群</strong></li>
+  <li>考虑一个正方形。它的<strong>对称</strong>操作（旋转和翻转）构成一个<strong>群</strong>，即<strong>二面体群</strong> $D_4$，有8个元素。</li>
+  <li>这些<strong>对称</strong>操作就是正方形这个“几何结构”的<strong>自同构</strong>。它们是正方形顶点集合的一种<strong>置换</strong>，并且保持了“相邻”和“对角”这样的几何关系。例如，旋转90度后，原来相邻的两个顶点依然是相邻的。</li>
+  <li>这个<strong>对称群</strong> $D_4$ 就是正方形的<strong>自同构群</strong>。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>同态 vs 同构 vs 自同构</strong>：</li>
+  <li><strong>同态</strong> (Homomorphism)：保持结构的映射，不要求是双射。例如，从整数加法群 $(\mathbb{Z}, +)$ 到偶数加法群 $(2\mathbb{Z}, +)$ 的映射 $f(n)=2n$ 是一个<strong>同态</strong>，但不是满射。</li>
+  <li><strong>同构</strong> (Isomorphism)：保持结构的双射（一一对应）。如果两个<strong>群</strong>之间存在一个<strong>同构</strong>，我们就说这两个<strong>群</strong>在<strong>代数</strong>上是“一样”的。</li>
+  <li><strong>自同构</strong> (Automorphism)：从一个结构到其自身的<strong>同构</strong>。它是<strong>同构</strong>的一个特例。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段明确指出，<strong>自同构</strong>的集合本身构成一个<strong>群</strong>（<strong>自同构群</strong>），并且从概念上将“<strong>自同构</strong>”与“<strong>对称</strong>”等同起来。两者都指代保持某种结构不变的变换。它们的区别主要在于使用语境：<strong>自同构</strong>更偏向<strong>代数</strong>，<strong>对称</strong>更偏向几何。这个统一的观点是理解<strong>群作用</strong>的关键。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是建立一个桥梁，将前一段零散的例子（<strong>复共轭</strong>，$\mathbb{Q}[\sqrt{2}]$）系统化，并正式提出“<strong>自同构群</strong>”的概念。这使得我们可以用<strong>群论</strong>的语言来研究<strong>对称</strong>性。同时，通过明确“<strong>自同构</strong>”和“<strong>对称</strong>”的联系和区别，为下一段引入一个更具包容性的概念“<strong>群作用</strong>”做好了概念上的准备。<strong>群作用</strong>将把<strong>自同构</strong>和<strong>对称</strong>都作为自己的特例。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>回到乐高城堡的例子。所有不破坏城堡“结构”的变换操作（比如旋转180度、红蓝积木互换）都可以收集起来。</p>
+<ol>
+  <li><strong>操作的集合</strong>：这个集合里有“旋转0度”（什么都不做）、“旋转180度”、“红蓝互换”等等操作。</li>
+  <li><strong>操作的复合</strong>：我们可以连续进行这些操作。比如，先“红蓝互换”，再“旋转180度”。结果还是一个不破坏结构的操作。</li>
+  <li><strong>操作的逆</strong>：“旋转180度”的逆操作还是“旋转180度”。“红蓝互换”的逆操作还是“红蓝互换”。</li>
+  <li>这个由所有“保结构操作”组成的集合，以及它们之间的“复合”规则，就构成了一个<strong>群</strong>——这就是城堡的“<strong>自同构群</strong>”或“<strong>对称群</strong>”。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个等边三角形。它的所有<strong>对称</strong>操作包括：旋转0度、120度、240度，以及沿着三条中线的翻转。这6个操作构成一个集合。你可以任意组合这些操作，比如先旋转120度，再沿着某条中线翻转，你会发现结果等同于沿着另一条中线的翻转。这些操作的集合以及它们的<strong>复合</strong>规则，形成了一个<strong>群</strong>（<strong>二面体群</strong> $D_3$）。这个<strong>群</strong>就是等边三角形的<strong>对称群</strong>，也是它的<strong>自同构群</strong>。</p>
+    </div>
+</div><h4>1.3 群作用的定义</h4><p id="original-3"><strong style="font-size: 1.3rem;">📜 [原文3]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>自同构</strong>和<strong>对称</strong>都是更一般的<strong>群作用</strong>概念的特例。<strong>群</strong> $G$ 在<strong>集合</strong> $S$ 上的<strong>作用</strong>是一种将 $G$ 的元素 $g$ 和 $S$ 的元素 $s$ 组合起来得到 $S$ 的另一个元素的规则。换句话说，它是一个<strong>映射</strong> $G \times S \rightarrow S$。目前我们用 $g * s$ 表示将此法则应用于元素 $g$ 和 $s$ 的结果。<strong>作用</strong>需要满足以下<strong>公理</strong>：</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是本节的核心定义。它提供了一个统一的数学框架来描述一个<strong>群</strong>如何“操作”一个<strong>集合</strong>。</p>
+<ol>
+  <li> <strong>核心思想</strong>：<strong>群作用</strong>是一个<strong>群</strong> $G$ 和一个<strong>集合</strong> $S$ 之间的互动。<strong>群</strong> $G$ 里的每个元素 $g$ 都会对<strong>集合</strong> $S$ 里的每个元素 $s$ 产生一个影响，把它变成 $S$ 里的另一个元素。</li>
+  <li> <strong>形式化定义</strong>：
+<ul>
+  <li>我们有一个<strong>群</strong> $G$（比如旋转群）和一个<strong>集合</strong> $S$（比如正方形的顶点集合）。</li>
+  <li>一个<strong>群作用</strong>就是一个函数（<strong>映射</strong>）。</li>
+  <li>这个函数的输入是“一对”元素：一个来自<strong>群</strong> $G$（比如一个旋转角度 $g$），一个来自<strong>集合</strong> $S$（比如一个顶点 $s$）。</li>
+  <li>这个函数的输出是<strong>集合</strong> $S$ 里的一个元素（比如旋转后顶点的新位置 $s'$）。</li>
+  <li>这个函数可以写成：$\phi: G \times S \rightarrow S$。其中 $G \times S$ 表示所有可能的 $(g, s)$ 对的集合。</li>
+  <li>我们通常不用函数符号 $\phi(g, s)$，而是用一种更像乘法的记号，比如 $g \cdot s$ 或 $g * s$ 或者直接写成 $gs$。这表示“<strong>群元</strong> $g$ 作用于<strong>集元</strong> $s$ 得到的结果”。</li>
+</ul></li>
+  <li> <strong>群作用的公理</strong>：这个“作用”不能是随意的，它必须满足两条非常自然和关键的规则（<strong>公理</strong>），这两条规则保证了“作用”的行为与<strong>群</strong>的结构相协调。我们将在下一部分详细解释这两条公理。</li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1：旋转群作用于平面上的点</strong></li>
+  <li><strong>群</strong> $G$：平面上的所有旋转（绕原点），这是一个<strong>群</strong>，记作 $SO(2)$。群元 $g$ 是一个旋转角度，比如“逆时针旋转90度”。</li>
+  <li><strong>集合</strong> $S$：平面上所有的点，即 $\mathbb{R}^2$。集元 $s$ 是一个点的坐标，比如 $(1, 0)$。</li>
+  <li><strong>作用</strong>：$g * s$ 就是将点 $s$ 按照 $g$ 指定的角度进行旋转。</li>
+  <li>例如，令 $g$ 为“逆时针旋转90度”，$s$ 为点 $(1, 0)$。那么 $g * s$ 就是点 $(0, 1)$。</li>
+  <li>这个过程完美符合定义：输入一个<strong>群元</strong>（旋转90度）和一个<strong>集元</strong>（点(1,0)），输出一个<strong>集元</strong>（点(0,1)）。</li>
+</ul>
+<ul>
+  <li><strong>示例2：置换群作用于数字</strong></li>
+  <li><strong>群</strong> $G$：<strong>对称群</strong> $S_3$，它是集合 $\{1, 2, 3\}$ 的所有<strong>置换</strong>（排列）构成的<strong>群</strong>。一个群元 $g$ 是一个<strong>置换</strong>，比如 $g = (1 2)$ 这个<strong>置换</strong>表示交换1和2。</li>
+  <li><strong>集合</strong> $S$：就是数字集合 $\{1, 2, 3\}$。一个集元 $s$ 是一个数字，比如 2。</li>
+  <li><strong>作用</strong>：$g * s$ 就是将<strong>置换</strong> $g$ 应用于数字 $s$。</li>
+  <li>例如，令 $g = (1 2)$，$s=2$。那么 $g$ 的作用是把 2 变成 1。所以 $g * s = 1$。</li>
+  <li>如果 $s=3$，$g=(1 2)$ 没有提到3，表示3不变。所以 $g*3 = 3$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>作用方向</strong>：我们这里定义的是<strong>左作用</strong> ($gs$)，因为<strong>群元</strong> $g$ 写在左边。同样也可以定义<strong>右作用</strong> ($sg$)，其公理会略有不同。通常我们默认讨论的是<strong>左作用</strong>。</li>
+  <li><strong>群和集合的关系</strong>：<strong>群</strong> $G$ 和<strong>集合</strong> $S$ 可以是完全不相关的。$G$ 可以是矩阵群，$S$ 可以是多项式集合。只要能定义一个满足公理的映射，就构成<strong>群作用</strong>。$S$ 不一定需要有<strong>代数结构</strong>，它可以只是一个单纯的<strong>集合</strong>。</li>
+  <li><strong>记号的混淆</strong>：$g * s$ 或 $gs$ 看起来像乘法，但它不是<strong>群</strong> $G$ 内部的乘法，也不是<strong>集合</strong> $S$ 内部的乘法（$S$ 可能根本没有乘法）。它是一个连接 $G$ 和 $S$ 的“外部”操作。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段给出了<strong>群作用</strong>这个中心概念的形式化定义。它是一个将<strong>群</strong> $G$ 与任意<strong>集合</strong> $S$ 联系起来的框架，描述了 $G$ 中的元素如何系统地“变换”或“移动” $S$ 中的元素。这个定义由一个映射 $G \times S \rightarrow S$ 和即将介绍的两条公理构成。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是提供一个统一的、抽象的数学工具，即<strong>群作用</strong>的定义，用来涵盖前面讨论过的所有“<strong>对称</strong>”现象。无论是几何<strong>对称</strong>还是<strong>代数</strong>的<strong>自同构</strong>，都可以被看作是某个<strong>群</strong>在某个<strong>集合</strong>上的<strong>作用</strong>。这个定义是<strong>群论</strong>应用到几何、组合、<strong>代数</strong>等其他领域的基石。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一个遥控器（<strong>群</strong> $G$）和一堆玩具（<strong>集合</strong> $S$）。</p>
+<ol>
+  <li>遥控器上的每个按钮都是一个<strong>群元</strong> $g$（比如“向前走”、“向左转”、“跳一下”）。</li>
+  <li>每个玩具都是一个<strong>集元</strong> $s$。</li>
+  <li><strong>群作用</strong>就是你按下遥控器上的一个按钮 $g$ 后，某个玩具 $s$ 会执行相应的动作，移动到一个新的位置或状态 $s'$。</li>
+  <li>$g * s = s'$ 就表示“对玩具 $s$ 按下按钮 $g$，它变成了 $s'$”。</li>
+  <li>这个模型非常宽泛，遥控器和玩具可以是任何东西，只要它们之间的互动遵循下面的两条规则。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个旋转木马。</p>
+<ol>
+  <li><strong>群</strong> $G$：可以看作是所有可能的旋转角度组成的<strong>群</strong>（在加法下）。比如“旋转30度”、“旋转-90度”等。</li>
+  <li><strong>集合</strong> $S$：是木马上的所有座位。</li>
+  <li><strong>群作用</strong>：你选择一个旋转角度 $g$（<strong>群元</strong>），再选择一个座位 $s$（<strong>集元</strong>），$g * s$ 的结果就是座位 $s$ 经过旋转 $g$ 之后到达的新位置。这个过程就是<strong>群</strong> $G$ 在<strong>集合</strong> $S$ 上的<strong>作用</strong>。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-2">
+    <h2><span class="section-number">2</span>群作用的公理</h2>
+    <h4>2.1 公理的定义与解释</h4><p id="original-4"><strong style="font-size: 1.3rem;">📜 [原文4]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>(a) 对于 $S$ 中的所有 $s$，都有 $1 * s=s$。（这里的 1 是 $G$ 的<strong>单位元</strong>。）</p>
+<p>(b) <strong>结合律</strong>：对于 $G$ 中的所有 $g$ 和 $g^{\prime}$ 以及 $S$ 中的所有 $s$，都有 $\left(g g^{\prime}\right) * s=g *\left(g^{\prime} * s\right)$。</p>
+<p>我们通常省略星号，将<strong>作用</strong>写成<strong>乘法形式</strong>，如 $g, s \rightsquigarrow g s$。在<strong>乘法表示</strong>中，<strong>公理</strong>是 $1 s=s$ 和 $\left(g g^{\prime}\right) s=g\left(g^{\prime} s\right)$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这两条公理是<strong>群作用</strong>的灵魂，它们确保了<strong>群</strong>的结构在作用到<strong>集合</strong>上时得到了正确的“翻译”。</p>
+<ol>
+  <li> <strong>公理 (a): 单位元的作用</strong>
+<ul>
+  <li><strong>原文</strong>：$1 * s = s$</li>
+  <li><strong>解释</strong>：这里的 $1$ 是<strong>群</strong> $G$ 的<strong>单位元</strong>（Identity element）。<strong>单位元</strong>在<strong>群</strong>中的意义是“不做任何操作”。比如，旋转群的<strong>单位元</strong>是旋转0度，<strong>置换群</strong>的<strong>单位元</strong>是<strong>恒等置换</strong>（所有元素保持原位）。</li>
+  <li>这条公理说的是，<strong>群</strong>里的“无操作”元素作用在<strong>集合</strong>的任何元素 $s$ 上，应该让 $s$ 保持不动。</li>
+  <li>这非常符合直觉。如果我对一个正方形“旋转0度”，那么它的每个顶点都应该在原来的位置。如果我用“不交换任何数字”的<strong>置换</strong>去作用于数字3，3当然还是3。</li>
+</ul></li>
+  <li> <strong>公理 (b): 作用的结合律</strong>
+<ul>
+  <li><strong>原文</strong>：$(g g') * s = g * (g' * s)$</li>
+  <li><strong>解释</strong>：这条公理描述了如何处理连续的作用。让我们拆解两边：</li>
+  <li><strong>左边 $(g g') * s$</strong>：这里的 $g g'$ 是在<strong>群</strong> $G$ 内部先进行乘法运算。比如 $g$ 是旋转90度，$g'$ 是旋转180度，那么 $g g'$ 就是旋转270度。然后，用这个“合并后”的操作（旋转270度）去作用于元素 $s$。</li>
+  <li><strong>右边 $g * (g' * s)$</strong>：这里是先执行<strong>群作用</strong>。首先，用 $g'$ 去作用于 $s$，得到一个新的元素 $s' = g' * s$。然后，再用 $g$ 去作用于这个新得到的结果 $s'$，即 $g * s'$。</li>
+  <li>这条公理说的是，<strong>“先在群里合并操作，再作用一次”</strong> 的效果，应该和 <strong>“按照顺序，依次作用两次”</strong> 的效果完全一样。</li>
+  <li>这保证了<strong>群</strong>的乘法结构和<strong>群作用</strong>的<strong>复合</strong>是兼容的。</li>
+</ul></li>
+  <li> <strong>乘法表示法</strong>：
+<ul>
+  <li>为了简洁，我们通常省略星号 <strong>*</strong>，直接写成 $gs$。</li>
+  <li>用这种记法，两条公理就变成了：</li>
+  <li>(a) $1s = s$</li>
+  <li>(b) $(gg')s = g(g's)$</li>
+  <li>这种写法看起来很像普通的乘法，但务必记住它们的含义：</li>
+  <li>$(gg')s$ 里的 $gg'$ 是<strong>群</strong>内乘法。</li>
+  <li>$g(g's)$ 里的 $g's$ 是<strong>群作用</strong>，它的结果是一个<strong>集合</strong>元素；然后 $g(...)$ 是另一次<strong>群作用</strong>。括号只是为了清晰地表示运算顺序。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1：旋转群作用于平面点</strong></li>
+  <li>$G = SO(2)$ (绕原点旋转群), $S = \mathbb{R}^2$ (平面点)。</li>
+  <li>$g$ = 逆时针旋转90度, $g'$ = 逆时针旋转180度。</li>
+  <li>$s$ = 点 $(1, 0)$。</li>
+  <li><strong>验证公理 (a)</strong>：</li>
+  <li><strong>群</strong>的<strong>单位元</strong> $1$ 是旋转0度。</li>
+  <li>$1 * s$ = 将点 $(1, 0)$ 旋转0度，结果还是 $(1, 0)$。所以 $1s=s$ 成立。</li>
+  <li><strong>验证公理 (b)</strong>：</li>
+  <li><strong>左边</strong>：$(g g') * s$</li>
+  <li>先算<strong>群</strong>内乘法：$g g'$ = 旋转90度 + 旋转180度 = 旋转270度。</li>
+  <li>用“旋转270度”作用于点 $(1, 0)$，得到点 $(0, -1)$。</li>
+  <li><strong>右边</strong>：$g * (g' * s)$</li>
+  <li>先算括号里的<strong>群作用</strong>：$g' * s$ = 用“旋转180度”作用于点 $(1, 0)$，得到点 $(-1, 0)$。</li>
+  <li>再用 $g$ 作用于新结果：$g * (-1, 0)$ = 用“旋转90度”作用于点 $(-1, 0)$，得到点 $(0, -1)$。</li>
+  <li>左边和右边的结果都是 $(0, -1)$，所以 $(gg')s = g(g's)$ 成立。</li>
+</ul>
+<ul>
+  <li><strong>示例2：置换群 $S_3$ 作用于 $\{1, 2, 3\}$</strong></li>
+  <li>$G = S_3 = \{e, (12), (13), (23), (123), (132)\}$。$S = \{1, 2, 3\}$。</li>
+  <li>$g = (12)$, $g' = (23)$。</li>
+  <li>$s = 1$。</li>
+  <li><strong>验证公理 (a)</strong>：</li>
+  <li><strong>群</strong>的<strong>单位元</strong>是 $e$ (恒等置换)。</li>
+  <li>$e * 1 = 1$ (1保持不变)，$e*2=2$，$e*3=3$。公理成立。</li>
+  <li><strong>验证公理 (b)</strong>：</li>
+  <li><strong>左边</strong>：$(g g') * s$</li>
+  <li>先算<strong>群</strong>内乘法 $g g'$（注意<strong>置换</strong>复合从右到左）：$g g' = (12)(23)$。我们看它如何作用于每个元素：$1 \xrightarrow{(23)} 1 \xrightarrow{(12)} 2$；$2 \xrightarrow{(23)} 3 \xrightarrow{(12)} 3$；$3 \xrightarrow{(23)} 2 \xrightarrow{(12)} 1$。所以 $(12)(23) = (123)$。</li>
+  <li>用 $(123)$ 作用于 $s=1$，得到 2。</li>
+  <li><strong>右边</strong>：$g * (g' * s)$</li>
+  <li>先算括号里的<strong>群作用</strong>：$g' * s = (23) * 1$。因为 $1$ 不在 $(23)$ 中，所以结果是 $1$。</li>
+  <li>再用 $g$ 作用于新结果：$g * 1 = (12) * 1$。结果是 $2$。</li>
+  <li>左边和右边的结果都是 $2$，所以 $(gg')s = g(g's)$ 成立。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>括号的重要性</strong>：在 $(gg')s = g(g's)$ 中，括号不是可有可无的，它们明确了运算的类型和顺序。左边的括号里是<strong>群</strong>内运算，右边的括号里是<strong>群作用</strong>。</li>
+  <li><strong>验证的必要性</strong>：不是任何一个 $G \times S \rightarrow S$ 的映射都是<strong>群作用</strong>。只有同时满足这两条公理的映射才行。如果一个不满足，它就只是一个普通的映射，不具备<strong>群作用</strong>的良好性质。</li>
+  <li><strong>左作用 vs 右作用</strong>：如果定义<strong>右作用</strong> $s*g$，那么结合律公理会写成 $s*(gg') = (s*g)*g'$。注意 $g$ 和 $g'$ 的作用顺序发生了变化，这对于非交换群很重要。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这两条公理是<strong>群作用</strong>定义的支柱。公理(a)确保了<strong>群</strong>的<strong>单位元</strong>表现得像一个“什么都不做”的操作。公理(b)确保了<strong>群</strong>的内部运算结构（乘法）能够和谐地、无歧义地转化为对<strong>集合</strong>元素的连续操作。它们共同保证了<strong>群</strong> $G$ 在<strong>集合</strong> $S$ 上的“行为”是良好且可预测的。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这两条公理的存在，是为了从所有可能的 $G \times S \rightarrow S$ 映射中，筛选出那些能够真正反映<strong>群</strong> $G$ 结构性质的“良好”映射。没有这两条公理，<strong>群作用</strong>的概念将变得混乱无序，无法推导出后续的重要结论（如轨道-稳定子定理）。它们是理论的基石。</p>
+<p><strong style="font-size: 1.2rem;">[直觉心-智模型]</strong></p>
+<p>回到遥控器和玩具的例子。</p>
+<ol>
+  <li><strong>公理(a)</strong>：遥控器上有一个“待机”按钮（<strong>单位元</strong> $1$）。按下这个按钮对任何玩具 $s$ 操作，玩具 $s$ 应该保持原样（$1s = s$）。</li>
+  <li><strong>公理(b)</strong>：遥控器上有按钮 $g'$ (比如“左转90度”) 和 $g$ (比如“前进1米”)。</li>
+  <li>右边 $g(g's)$：先对玩具 $s$ 按下“左转90度”，玩具转了过去；再对这个新状态的玩具按下“前进1米”，它向前走了1米。</li>
+  <li>左边 $(gg')s$：假设遥控器很高级，你可以编程一个新按钮，叫做 $gg'$，它的功能是“先左转90度再前进1米”。现在你直接对原始的玩具 $s$ 按下这个新按钮 $gg'$。</li>
+  <li>公理(b)要求，这两种方式最终达到的效果必须完全一样。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你在用 Photoshop 处理一张图片。</p>
+<ol>
+  <li><strong>集合</strong> $S$ 是图片所有可能的状态。</li>
+  <li><strong>群</strong> $G$ 是你可以执行的一系列操作，比如“旋转91度”、“水平翻转”。<strong>群</strong>的乘法就是操作的连续执行。</li>
+  <li><strong>公理(a)</strong>：“什么都不做”这个操作（<strong>单位元</strong>）作用在图片上，图片不变。</li>
+  <li><strong>公理(b)</strong>：“先旋转90度，再水平翻转”得到的结果，应该和“执行一个‘旋转90度并水平翻转’的宏命令”得到的结果完全一样。这个兼容性使得我们可以预测复杂操作序列的结果。</li>
+</ol>
+    </div>
+</div><h4>2.2 群作用的例子</h4><p id="original-5"><strong style="font-size: 1.3rem;">📜 [原文5]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>在许多地方都可以找到<strong>群</strong>作用于其上的<strong>集合</strong>的例子，而且大多数情况下，<strong>作用</strong>的<strong>公理</strong>显然成立。<strong>平面等距变换</strong>的<strong>群</strong> $M$ 作用于<strong>平面</strong>上的点集。它也作用于<strong>平面</strong>上的线集和<strong>平面</strong>上的<strong>三角形</strong>集。<strong>对称群</strong> $S_{n}$ 作用于<strong>指标</strong>集 $\{\mathbf{1}, \mathbf{2}, \ldots, \mathbf{n}\}$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本段通过一系列具体的例子，来展示<strong>群作用</strong>这个抽象概念是多么普遍和自然。</p>
+<ol>
+  <li> <strong>例子1：平面等距变换群 M</strong>
+<ul>
+  <li><strong>群</strong> $G$：是<strong>平面等距变换群</strong> $M$。这个<strong>群</strong>的元素是所有保持距离不变的平面变换，包括平移、旋转、反射。</li>
+  <li>这个<strong>群</strong>可以作用在不同的<strong>集合</strong>上：</li>
+  <li><strong>作用于点集</strong>：</li>
+  <li><strong>集合</strong> $S$：<strong>平面</strong>上的所有点。</li>
+  <li><strong>作用</strong>：一个<strong>等距变换</strong> $m \in M$ 作用于一个点 $p \in S$，结果就是点 $p$ 经过这个变换后得到的新点 $p'$。比如，平移变换将一个点移动到另一个位置。</li>
+  <li><strong>公理验证</strong>：<strong>单位元</strong>（不动）作用于点，点不动。先做变换 $m_1$ 再做 $m_2$，等同于做一个组合变换 $m_2 \circ m_1$。公理显然成立。</li>
+  <li><strong>作用于线集</strong>：</li>
+  <li><strong>集合</strong> $S$：<strong>平面</strong>上的所有直线。</li>
+  <li><strong>作用</strong>：一个<strong>等距变换</strong> $m$ 作用于一条直线 $L$，结果是直线 $L$ 上所有点经过变换 $m$ 后形成的新集合，这本身也是一条直线 $L'$。</li>
+  <li><strong>公理验证</strong>：同样，公理显然成立。</li>
+  <li><strong>作用于三角形集</strong>：</li>
+  <li><strong>集合</strong> $S$：<strong>平面</strong>上的所有<strong>三角形</strong>。</li>
+  <li><strong>作用</strong>：一个<strong>等距变换</strong> $m$ 作用于一个<strong>三角形</strong> $\Delta$，结果是<strong>三角形</strong> $\Delta$ 的三个顶点经过变换 $m$ 后形成的新<strong>三角形</strong> $\Delta'$。因为 $m$ 是<strong>等距变换</strong>，所以 $\Delta'$ 和 $\Delta$ 是<strong>全等</strong>的。</li>
+  <li><strong>公理验证</strong>：公理依然显然成立。</li>
+</ul></li>
+  <li> <strong>例子2：对称群 $S_n$</strong>
+<ul>
+  <li><strong>群</strong> $G$：<strong>对称群</strong> $S_n$。它的元素是作用于 $n$ 个对象的所有<strong>置换</strong>。</li>
+  <li><strong>集合</strong> $S$：是这 $n$ 个对象的<strong>标号</strong>（<strong>指标</strong>）集合，即 $\{\mathbf{1}, \mathbf{2}, \ldots, \mathbf{n}\}$。</li>
+  <li><strong>作用</strong>：一个<strong>置换</strong> $p \in S_n$ 作用于一个<strong>指标</strong> $k \in S$，结果就是 $p(k)$，即<strong>指标</strong> $k$ 被<strong>置换</strong> $p$ 映到的那个<strong>指标</strong>。</li>
+  <li><strong>公理验证</strong>：</li>
+  <li><strong>单位元</strong>（<strong>恒等置换</strong>）作用于任何<strong>指标</strong> $k$，结果还是 $k$。</li>
+  <li>先用<strong>置换</strong> $p_1$ 再用 $p_2$ 作用于 $k$，即 $p_2(p_1(k))$，这正好是<strong>置换</strong>的<strong>复合</strong> $(p_2 \circ p_1)(k)$ 的定义。公理成立。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1：平面等距变换群 M 作用于线集</strong></li>
+  <li>$G = M$。</li>
+  <li>$S$ = 平面上的所有直线。</li>
+  <li>令直线 $L$ 的方程为 $y=x$。</li>
+  <li>令<strong>群元</strong> $m$ 为“沿x轴正方向平移2个单位”。</li>
+  <li>$m$ 作用于 $L$ 是什么？原直线 $L$ 上的任意一点是 $(a, a)$。经过 $m$ 变换后，变成 $(a+2, a)$。设新点为 $(x', y')$，则 $x'=a+2, y'=a$。消去 $a$，得到 $y' = x'-2$。</li>
+  <li>所以，作用的结果是新直线 $L'$，其方程为 $y=x-2$。</li>
+</ul>
+<ul>
+  <li><strong>示例2：$S_4$ 作用于 $\{1, 2, 3, 4\}$</strong></li>
+  <li>$G = S_4$。</li>
+  <li>$S = \{1, 2, 3, 4\}$。</li>
+  <li>令<strong>群元</strong> $p = (124)$，这是一个<strong>循环置换</strong>。</li>
+  <li>$p$ 作用于 $1$ 的结果是 $2$。</li>
+  <li>$p$ 作用于 $2$ 的结果是 $4$。</li>
+  <li>$p$ 作用于 $4$ 的结果是 $1$。</li>
+  <li>$p$ 作用于 $3$ 的结果是 $3$ (因为3未在<strong>循环置换</strong>中出现)。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>作用对象的层次</strong>：要注意<strong>群作用</strong>的对象是什么。在<strong>平面等距变换</strong>的例子中，<strong>群</strong> $M$ 可以作用于点、线、<strong>三角形</strong>等不同层次的<strong>集合</strong>。选择不同的<strong>集合</strong> $S$ 会导致非常不同的分析结果（比如后面的<strong>轨道</strong>和<strong>稳定子</strong>）。</li>
+  <li><strong>自然作用</strong>：这些例子中的<strong>作用</strong>都非常“自然”，以至于我们会觉得公理的验证是理所当然的。但在更抽象的设置中，一个<strong>群作用</strong>可能是人为构造的，这时就必须仔细验证两条公理是否成立。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段通过几个经典且直观的例子（<strong>等距变换群</strong>作用于几何对象，<strong>对称群</strong>作用于<strong>指标</strong>），具体化了<strong>群作用</strong>的定义。这说明<strong>群作用</strong>不是一个凭空捏造的抽象怪物，而是对许多我们早已熟悉的数学现象的一个统一描述。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>在给出了抽象定义和公理之后，本段的目的是通过实例来建立直观。它告诉读者，你其实已经见过很多<strong>群作用</strong>了，只是以前没有用这个名字来称呼它们。这有助于降低学习的认知门槛，并将新概念与已有的知识联系起来。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>模型1：模具和黏土</strong></li>
+  <li><strong>群</strong> $G$ 是一套模具（比如星形、圆形、方形的饼干模具）。</li>
+  <li><strong>集合</strong> $S$ 是一大块黏土。</li>
+  <li><strong>群作用</strong>：你拿一个模具 $g$（比如星形模具）按在黏土 $S$ 上，就在黏土上留下了一个星形的印记。这个“按”的动作就是<strong>群作用</strong>。</li>
+  <li>这个模型不太好，因为结果不是集合S里的元素了。我们换一个。</li>
+</ol>
+<ol>
+  <li><strong>模型2：贴纸和地图</strong></li>
+  <li><strong>集合</strong> $S$ 是一张世界地图。</li>
+  <li><strong>群</strong> $G$ 是一系列指令，如“向东移动1000公里”、“旋转地图90度”。</li>
+  <li>你在地图上的“北京”这个位置 $s$ 贴了一张贴纸。</li>
+  <li>你执行一个指令 $g$（比如“向东移动1000公里”）。贴纸会跟着地图移动到一个新的位置 $s'$。这就是 $g$ 作用于 $s$ 的结果。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你在玩一个解魔方的机器人。</p>
+<ol>
+  <li><strong>集合</strong> $S$ 是魔方所有可能的状态（超过4300亿亿种）。</li>
+  <li><strong>群</strong> $G$ 是所有基本操作（如“顶层顺时针转90度”，“右侧面转180度”）以及它们的组合所构成的<strong>群</strong>。</li>
+  <li><strong>群作用</strong>：你选择一个初始状态 $s$，然后让机器人执行一个操作 $g$。魔方达到了一个新的状态 $s'$。这就是<strong>群</strong> $G$ 在<strong>集合</strong> $S$ 上的<strong>作用</strong>。公理在这里也显然成立：不做操作（<strong>单位元</strong>），魔方不变；先转R再转U，等同于执行一个“R后U”的组合操作。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-3">
+    <h2><span class="section-number">3</span>群作用与置换表示</h2>
+    <h4>3.1 群元到置换的映射</h4><p id="original-6"><strong style="font-size: 1.3rem;">📜 [原文6]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>这种法则被称为<strong>作用</strong>的原因是：如果我们将 $G$ 的元素 $g$ 固定，而让 $S$ 中的 $s$ 变化，那么由 $g$ 的<strong>左乘</strong>（或 $g$ 的<strong>作用</strong>）定义了一个从 $S$ 到自身的<strong>映射</strong>。我们用 $m_{g}$ 表示这个描述元素 $g$ 如何<strong>作用</strong>的<strong>映射</strong>：</p>
+<p><div class="math-block">$$
+\begin{equation*}
+m_{g}: S \rightarrow S \tag{6.7.2}
+\end{equation*}
+$$</div></p>
+<p>是由 $m_{g}(s)=g s$ 定义的<strong>映射</strong>。它是 $S$ 的一个<strong>置换</strong>，一个<strong>双射映射</strong>，因为它有<strong>逆函数</strong> $m_{g^{-1}}$：通过 $g^{-1}$ 的<strong>乘法</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话揭示了<strong>群作用</strong>的一个核心内涵：<strong>群作用</strong>为我们提供了一种将<strong>抽象群</strong>的元素“翻译”成具体<strong>置换</strong>的方法。</p>
+<ol>
+  <li> <strong>固定一个群元 g</strong>：
+<ul>
+  <li>在<strong>群作用</strong> $gs$ 中，我们有两个变量，$g \in G$ 和 $s \in S$。</li>
+  <li>现在我们换个角度看问题：暂时只选定一个<strong>群元</strong> $g$，不让它变。比如，选定 $g$ 为“逆时针旋转90度”。</li>
+</ul></li>
+  <li> <strong>得到一个 S 上的映射</strong>：
+<ul>
+  <li>当 $g$ 固定后，$gs$ 就变成了一个只依赖于 $s$ 的函数。这个函数把 $S$ 中的每个元素 $s$ 都映射到 $S$ 中的另一个元素 $gs$。</li>
+  <li>我们给这个由 $g$ 催生的映射起个名字，叫做 $m_g$。“m”可以理解为 multiplication（乘）或 mapping（映射）。</li>
+  <li>所以，$m_g$ 是一个从 $S$ 到 $S$ 的映射，其定义就是 $m_g(s) = gs$。</li>
+  <li>例如，如果 $g$ 是“旋转90度”，那么 $m_g$ 就是那个将整个平面旋转90度的函数。它把每个点 $s$ 都变成旋转90度后的点 $gs$。</li>
+</ul></li>
+  <li> <strong>这个映射是一个置换（双射）</strong>：
+<ul>
+  <li>$m_g$ 不仅仅是一个普通的映射，它总是一个<strong>双射</strong>（bijection），即既是<strong>单射</strong>（injective）又是<strong>满射</strong>（surjective）。在有限集上，<strong>双射</strong>和<strong>置换</strong>是同义词。为什么？</li>
+  <li>要证明一个函数是<strong>双射</strong>，最简单的方法是找到它的<strong>逆函数</strong>。</li>
+  <li>$m_g$ 的作用是“用 $g$ 左乘”。它的逆操作是什么？直觉上应该是“用 $g$ 的<strong>逆元</strong> $g^{-1}$ 左乘”。</li>
+  <li>让我们来验证一下：我们声称 $m_{g^{-1}}$ 是 $m_g$ 的<strong>逆函数</strong>。</li>
+  <li>$(m_{g^{-1}} \circ m_g)(s) = m_{g^{-1}}(m_g(s)) = m_{g^{-1}}(gs)$</li>
+  <li>根据 $m$ 的定义，这等于 $(g^{-1})(gs)$。</li>
+  <li>根据<strong>群作用</strong>的公理(b)，这等于 $(g^{-1}g)s$。</li>
+  <li>根据<strong>群</strong>的定义，$g^{-1}g = 1$ (群的<strong>单位元</strong>)。</li>
+  <li>所以结果是 $1s$。</li>
+  <li>根据<strong>群作用</strong>的公理(a)，$1s = s$。</li>
+  <li>所以 $(m_{g^{-1}} \circ m_g)(s) = s$，这意味着 $m_{g^{-1}} \circ m_g$ 是<strong>恒等映射</strong>。</li>
+  <li>同理可证 $(m_g \circ m_{g^{-1}})(s) = s$。</li>
+  <li>既然 $m_g$ 有一个<strong>逆函数</strong> $m_{g^{-1}}$，那么 $m_g$ 必须是一个<strong>双射</strong>，即一个 $S$ 上的<strong>置换</strong>。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>公式</strong>: $m_{g}: S \rightarrow S$ (6.7.2)</li>
+  <li><strong>$m_g$</strong>: 这是由<strong>群元</strong> $g \in G$ 决定的一个函数。下标 $g$ 表明这个函数与 $g$ 相关。</li>
+  <li><strong>$S \rightarrow S$</strong>: 表示这个函数 $m_g$ 的定义域（输入）是<strong>集合</strong> $S$，值域（输出）也是<strong>集合</strong> $S$。</li>
+  <li><strong>定义</strong>: $m_g(s) = gs$。这是 $m_g$ 的具体工作方式：把输入的 $s$ 通过<strong>群作用</strong>变成 $gs$。</li>
+  <li><strong>核心推导</strong>: 证明 $m_g$ 是一个<strong>置换</strong>。</li>
+  <li><strong>目标</strong>：证明 $m_g$ 的<strong>逆函数</strong>是 $m_{g^{-1}}$。</li>
+  <li><strong>步骤1</strong>：计算复合函数 $(m_g \circ m_{g^{-1}})(s)$。</li>
+  <li>$(m_g \circ m_{g^{-1}})(s) = m_g(m_{g^{-1}}(s))$  (按复合函数定义)</li>
+  <li>$= m_g(g^{-1}s)$  (按 $m_{g^{-1}}$ 定义)</li>
+  <li>$= g(g^{-1}s)$  (按 $m_g$ 定义)</li>
+  <li>$= (gg^{-1})s$  (按<strong>群作用</strong>公理b)</li>
+  <li>$= 1s$  (按<strong>群</strong>的<strong>逆元</strong>定义)</li>
+  <li>$= s$  (按<strong>群作用</strong>公理a)</li>
+  <li><strong>步骤2</strong>：计算复合函数 $(m_{g^{-1}} \circ m_g)(s)$，过程完全类似，也会得到 $s$。</li>
+  <li><strong>结论</strong>：因为 $m_g \circ m_{g^{-1}}$ 和 $m_{g^{-1}} \circ m_g$ 都是<strong>恒等映射</strong>，所以 $m_g$ 和 $m_{g^{-1}}$ 互为<strong>逆函数</strong>。一个函数有<strong>逆函数</strong>，当且仅当它是一个<strong>双射</strong>。因此，$m_g$ 是 $S$ 上的一个<strong>置换</strong>。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例：$S_3$ 作用于 $\{1, 2, 3\}$</strong></li>
+  <li>$G = S_3$, $S = \{1, 2, 3\}$。</li>
+  <li>选一个固定的<strong>群元</strong> $g = (123)$。</li>
+  <li>这个 $g$ 对应着一个 $S$ 上的映射 $m_g$。</li>
+  <li>$m_g$ 是什么？</li>
+  <li>$m_g(1) = g \cdot 1 = (123) \cdot 1 = 2$</li>
+  <li>$m_g(2) = g \cdot 2 = (123) \cdot 2 = 3$</li>
+  <li>$m_g(3) = g \cdot 3 = (123) \cdot 3 = 1$</li>
+  <li>所以 $m_g$ 这个映射就是<strong>置换</strong> $(1 \to 2, 2 \to 3, 3 \to 1)$，这恰好就是 $g$ 本身！在这个例子中，$m_g$ 和 $g$ 是同一个<strong>置换</strong>。</li>
+  <li>$g$ 的<strong>逆元</strong>是 $g^{-1} = (132)$。</li>
+  <li>$m_{g^{-1}}$ 是什么？</li>
+  <li>$m_{g^{-1}}(1) = (132) \cdot 1 = 3$</li>
+  <li>$m_{g^{-1}}(2) = (132) \cdot 2 = 1$</li>
+  <li>$m_{g^{-1}}(3) = (132) \cdot 3 = 2$</li>
+  <li>$m_{g^{-1}}$ 就是<strong>置换</strong> $(1 \to 3, 3 \to 2, 2 \to 1)$。</li>
+  <li>验证它们互为<strong>逆函数</strong>：</li>
+  <li>$(m_g \circ m_{g^{-1}})(1) = m_g(m_{g^{-1}}(1)) = m_g(3) = 1$。</li>
+  <li>$(m_g \circ m_{g^{-1}})(2) = m_g(m_{g^{-1}}(2)) = m_g(1) = 2$。</li>
+  <li>$(m_g \circ m_{g^{-1}})(3) = m_g(m_{g^{-1}}(3)) = m_g(2) = 3$。</li>
+  <li>所以 $m_g \circ m_{g^{-1}}$ 是<strong>恒等映射</strong>。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>抽象 vs 具体</strong>：要分清抽象的<strong>群元</strong> $g$ 和它所诱导的具体<strong>置换</strong> $m_g$。在 $S_n$ 作用于 $\{1, ..., n\}$ 的例子中，$g$ 和 $m_g$ 恰好是同一个东西，容易混淆。但在其他例子中，它们是不同的。比如旋转群 $SO(2)$ 作用于正方形的4个顶点，一个<strong>群元</strong> $g$ 是一个旋转角度（一个<strong>实数</strong>），而 $m_g$ 是对这4个顶点的一个具体<strong>置换</strong>。</li>
+  <li><strong>到置换群的同态</strong>：这个从 $g \mapsto m_g$ 的映射，本身是一个从<strong>群</strong> $G$ 到<strong>集合</strong> $S$ 的<strong>置换群</strong> $S_S$（或 $S_{|S|}$）的<strong>群同态</strong>。这被称为<strong>置换表示</strong>，是<strong>凯莱定理</strong>的推广。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段的核心思想是：任何一个<strong>群作用</strong> $G \times S \rightarrow S$ 都可以被看作是<strong>群</strong> $G$ 的每个元素 $g$ 在<strong>集合</strong> $S$ 上引发的一个<strong>置换</strong> $m_g$。我们通过证明 $m_g$ 的<strong>逆函数</strong>是 $m_{g^{-1}}$，严格地说明了 $m_g$ 确实是一个<strong>置换</strong>（<strong>双射</strong>）。这为将抽象的<strong>群论</strong>问题转化为更具体的<strong>置换群</strong>问题提供了桥梁。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是为了深化对<strong>群作用</strong>的理解，揭示其与<strong>置换群</strong>的内在联系。它告诉我们，一个<strong>群作用</strong>实际上就是把一个抽象<strong>群</strong> $G$ “表示”为作用在一个具体<strong>集合</strong> $S$ 上的一个<strong>置换群</strong>。这个观点（称为<strong>置换表示</strong>）非常强大，它允许我们使用关于<strong>置换</strong>的知识和工具来研究抽象<strong>群</strong>。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>假设你有一个万能遥控器 $G$，可以控制世界上任何品牌的电视机 $S$。</p>
+<ol>
+  <li><strong>群元</strong> $g$ 是遥控器上的一个抽象指令，比如“音量+”。这个指令本身不是数字，它只是一个命令。</li>
+  <li><strong>集元</strong> $s$ 是电视机当前的音量，比如 20。</li>
+  <li><strong>群作用</strong> $gs$ 就是音量变成 21。</li>
+  <li>现在，我们固定指令 $g$ = “音量+”。这个指令本身定义了一个函数 $m_g$，这个函数 $m_g$ 的作用就是把任何输入的音量数值 $s$ 都变成 $s+1$。即 $m_g(s) = s+1$。</li>
+  <li>这个函数 $m_g$ 是一个<strong>置换</strong>吗？是的，它是一一对应的。它的<strong>逆函数</strong>是 $m_{g^{-1}}$，其中 $g^{-1}$ 是指令“音量-”。$m_{g^{-1}}(s) = s-1$。</li>
+  <li>这里的关键是区分：抽象的指令“音量+”（即$g$）和它在音量数值集合上产生的具体函数“加一”（即$m_g$）。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一条无限长的刻度尺 $S=\mathbb{Z}$。<strong>整数加法群</strong> $G=\mathbb{Z}$ 可以在上面作用。</p>
+<ol>
+  <li><strong>群作用</strong>：$g \cdot s = g+s$ (普通的加法)。</li>
+  <li>选定一个<strong>群元</strong>，比如 $g=5$。</li>
+  <li>这个 $g=5$ 就定义了一个函数 $m_5: \mathbb{Z} \rightarrow \mathbb{Z}$。</li>
+  <li>$m_5$ 的功能是 $m_5(s) = 5+s$。它将整个刻度尺向左平移5个单位。</li>
+  <li>这个“平移5个单位”的操作 $m_5$ 是一个<strong>双射</strong>（<strong>置换</strong>），它的<strong>逆操作</strong>是“向右平移5个单位”，也就是由<strong>群</strong>的<strong>逆元</strong> $g^{-1}=-5$ 所定义的 $m_{-5}$。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-4">
+    <h2><span class="section-number">4</span>轨道 (Orbit)</h2>
+    <h4>4.1 轨道的定义</h4><p id="original-7"><strong style="font-size: 1.3rem;">📜 [原文7]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ul>
+  <li>给定<strong>群</strong> $G$ 在<strong>集合</strong> $S$ 上的<strong>作用</strong>， $S$ 的元素 $s$ 将通过<strong>群作用</strong>被发送到各种其他元素。我们将这些元素收集起来，得到一个<strong>子集</strong>，称为 $s$ 的<strong>轨道</strong> $O_{s}$：</li>
+</ul>
+<p><div class="math-block">$$
+\begin{equation*}
+O_{s}=\left\{s^{\prime} \in S \mid s^{\prime}=g s \text { for some } g \text { in } G\right\} . \tag{6.7.3}
+\end{equation*}
+$$</div></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p><strong>轨道</strong>是<strong>群作用</strong>中最重要的基本概念之一。它描述了一个元素在<strong>群</strong>的所有成员作用下，能够“旅行”到的所有地方。</p>
+<ol>
+  <li> <strong>出发点</strong>：从<strong>集合</strong> $S$ 中选定一个起始元素 $s$。</li>
+  <li> <strong>探索</strong>：让<strong>群</strong> $G$ 中所有的元素 $g$ 逐一作用于这个起始点 $s$。
+<ul>
+  <li>$g_1$ 作用于 $s$ 得到 $s_1 = g_1s$。</li>
+  <li>$g_2$ 作用于 $s$ 得到 $s_2 = g_2s$。</li>
+  <li>...</li>
+  <li><strong>单位元</strong> $1$ 作用于 $s$ 得到 $s$ 本身。</li>
+</ul></li>
+  <li> <strong>收集</strong>：把所有可能得到的结果 $s', s_1, s_2, ...$ 全部收集到一个<strong>集合</strong>里。</li>
+  <li> <strong>命名</strong>：这个收集起来的<strong>集合</strong>，就叫做元素 $s$ 的<strong>轨道</strong>，记作 $O_s$。</li>
+</ol>
+<p>换句话说，$s$ 的<strong>轨道</strong>就是从 $s$ 出发，通过<strong>群</strong> $G$ 的作用，能够到达的所有点的集合。</p>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>公式</strong>: $O_{s}=\left\{s^{\prime} \in S \mid s^{\prime}=g s \text { for some } g \text { in } G\right\}$ (6.7.3)</li>
+  <li><strong>$O_s$</strong>: 读作“s的轨道”，是一个<strong>集合</strong>。下标 $s$ 表明这是关于元素 $s$ 的<strong>轨道</strong>。</li>
+  <li><strong>$\{...\}$</strong>: 表示这是一个<strong>集合</strong>。</li>
+  <li><strong>$s' \in S$</strong>: 这个<strong>集合</strong>里的元素 $s'$ 都来自原来的大<strong>集合</strong> $S$。</li>
+  <li><strong>$\mid$</strong>: 读作“使得”(such that)，是<strong>集合</strong>定义中的分隔符。</li>
+  <li><strong>$s' = gs$</strong>: 这是元素 $s'$ 要满足的条件。它必须能够被写成某个<strong>群元</strong> $g$ 作用于 $s$ 的形式。</li>
+  <li><strong>for some $g$ in $G$</strong>: 这句话是关键。它表示我们不关心是哪个具体的 $g$ 得到的 $s'$，只要存在至少一个这样的 $g$ 就可以了。我们要遍历所有可能的 $g \in G$。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1：旋转群作用于正方形顶点</strong></li>
+  <li>$G = \{R_0, R_{90}, R_{180}, R_{270}\}$，绕中心的旋转群。</li>
+  <li>$S = \{v_1, v_2, v_3, v_4\}$，正方形的四个顶点（按逆时针顺序）。</li>
+  <li>让我们计算顶点 $v_1$ 的<strong>轨道</strong> $O_{v_1}$：</li>
+  <li>$R_0 \cdot v_1 = v_1$</li>
+  <li>$R_{90} \cdot v_1 = v_2$</li>
+  <li>$R_{180} \cdot v_1 = v_3$</li>
+  <li>$R_{270} \cdot v_1 = v_4$</li>
+  <li>把所有结果收集起来，得到 $O_{v_1} = \{v_1, v_2, v_3, v_4\}$。</li>
+  <li>在这个例子中，$v_1$ 的<strong>轨道</strong>就是整个顶点<strong>集合</strong> $S$。</li>
+</ul>
+<ul>
+  <li><strong>示例2：$S_3$ 作用于 $\{1, 2, 3, 4, 5\}$</strong></li>
+  <li>$G = S_3$，只<strong>置换</strong> $\{1, 2, 3\}$ 的<strong>对称群</strong>。</li>
+  <li>$S = \{1, 2, 3, 4, 5\}$。</li>
+  <li><strong>作用</strong>：$S_3$ 的元素作用于 $1, 2, 3$ 时正常<strong>置换</strong>，作用于 $4, 5$ 时让它们不动。</li>
+  <li>计算元素 1 的<strong>轨道</strong> $O_1$：</li>
+  <li>$e \cdot 1 = 1$</li>
+  <li>$(12) \cdot 1 = 2$</li>
+  <li>$(13) \cdot 1 = 3$</li>
+  <li>$(23) \cdot 1 = 1$</li>
+  <li>$(123) \cdot 1 = 2$</li>
+  <li>$(132) \cdot 1 = 3$</li>
+  <li>所有可能的结果是 $\{1, 2, 3\}$。所以 $O_1 = \{1, 2, 3\}$。</li>
+  <li>计算元素 4 的<strong>轨道</strong> $O_4$：</li>
+  <li>对于 $G=S_3$ 中任何一个<strong>置换</strong> $g$，它都不影响 4。所以 $g \cdot 4 = 4$ 对所有 $g$ 成立。</li>
+  <li>所有可能的结果只有一个，就是 4。所以 $O_4 = \{4\}$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>轨道是 S 的子集</strong>：<strong>轨道</strong> $O_s$ 是<strong>集合</strong> $S$ 的一个<strong>子集</strong>，不是<strong>群</strong> $G$ 的<strong>子集</strong>。</li>
+  <li><strong>起点决定轨道</strong>：从不同的元素出发，可能会得到相同或不同的<strong>轨道</strong>。在上面的正方形例子中，$O_{v_1}, O_{v_2}, O_{v_3}, O_{v_4}$ 都是同一个<strong>集合</strong> $\{v_1, v_2, v_3, v_4\}$。在第二个例子中，$O_1=O_2=O_3=\{1,2,3\}$，而 $O_4=\{4\}$，$O_5=\{5\}$ 是不同的<strong>轨道</strong>。</li>
+  <li><strong>轨道中的任何元素都可以作为代表</strong>：如果 $s'$ 在 $s$ 的<strong>轨道</strong>里，那么 $s'$ 的<strong>轨道</strong>和 $s$ 的<strong>轨道</strong>是完全一样的，即 $O_s = O_{s'}$。这是因为如果 $s' = gs$，那么任何能被 $s'$ 到达的点 $s'' = h s'$，也可以被 $s$ 到达：$s'' = h(gs) = (hg)s$。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>轨道</strong> $O_s$ 是从一个特定元素 $s$ 出发，在<strong>群</strong> $G$ 的所有可能作用下，能够画出的“轨迹图”。它形象地展示了<strong>群</strong> $G$ 如何移动 $s$ 以及与 $s$ “连通”的所有其他元素。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p><strong>轨道</strong>是分析<strong>群作用</strong>结构的第一步。通过将<strong>集合</strong> $S$ 分解为一系列互不相交的<strong>轨道</strong>，我们可以将一个复杂的<strong>群作用</strong>问题分解为在每个<strong>轨道</strong>上更简单的、独立的问题来研究。这个“分解”的思想是<strong>群论</strong>中一个反复出现的主题。</p>
+<p><strong style="font-size: 1.2rem;">[直觉心-智模型]</strong></p>
+<p>想象一个很大的房间（<strong>集合</strong> $S$），里面有很多小球。你有一个机器人（<strong>群</strong> $G$），这个机器人只能执行几种固定的动作（<strong>群元</strong> $g$），比如“向前1米”，“向左转90度后向前1米”。</p>
+<ol>
+  <li>你把机器人放在一个小球 $s$ 旁边。</li>
+  <li>你让机器人执行所有可能的操作序列（所有 $g \in G$）。</li>
+  <li>机器人每次都会把小球 $s$ 推到某个新的位置。</li>
+  <li>小球 $s$ 所有可能被推到的位置，以及它的初始位置，共同构成了小球 $s$ 的<strong>轨道</strong>。</li>
+  <li>如果房间里有些地方这个机器人永远也到不了，那么从那些地方的小球出发，就会形成另外的、独立的<strong>轨道</strong>。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象太阳系。</p>
+<ol>
+  <li><strong>集合</strong> $S$ 是三维空间中所有的点。</li>
+  <li><strong>群</strong> $G$ 是由地球绕太阳公转这个运动所生成的<strong>群</strong>（近似为一个旋转群）。</li>
+  <li>地球本身（作为一个点 $s$）的<strong>轨道</strong> $O_s$ 是什么？就是地球一年走过的那个椭圆轨迹。</li>
+  <li>如果你把视角放在火星上，那么火星的<strong>轨道</strong>就是另一个椭圆。这两个<strong>轨道</strong>是不相交的。</li>
+</ol>
+    </div>
+</div><h4>4.2 轨道的例子与性质</h4><p id="original-8"><strong style="font-size: 1.3rem;">📜 [原文8]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>当<strong>平面等距变换</strong>的<strong>群</strong> $M$ 作用于<strong>平面</strong>中的<strong>三角形</strong>集合 $S$ 时，给定<strong>三角形</strong> $\Delta$ 的<strong>轨道</strong> $O_{\Delta}$ 是所有与 $\Delta$ <strong>全等</strong>的<strong>三角形</strong>的集合。我们在证明<strong>有限群</strong>在<strong>平面</strong>上的<strong>作用</strong>存在<strong>固定点</strong>时（6.4.7）引入了另一个<strong>轨道</strong>。</p>
+<p><strong>群作用</strong>的<strong>轨道</strong>是<strong>等价关系</strong>的<strong>等价类</strong></p>
+<p><div class="math-block">$$
+\begin{equation*}
+s \sim s^{\prime} \text { if } s^{\prime}=g s, \text { for some } g \text { in } G . \tag{6.7.4}
+\end{equation*}
+$$</div></p>
+<p>因此，如果 $s \sim s^{\prime}$，即如果对于 $G$ 中的某个 $g$，有 $s^{\prime}=g s$，那么 $s$ 和 $s^{\prime}$ 的<strong>轨道</strong>是相同的。由于它们是<strong>等价类</strong>：</p>
+<p><strong>轨道划分集合</strong> $S$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>三角形的轨道就是全等类</strong>：
+<ul>
+  <li><strong>群</strong> $G$：<strong>平面等距变换群</strong> $M$。</li>
+  <li><strong>集合</strong> $S$：平面上所有<strong>三角形</strong>的<strong>集合</strong>。</li>
+  <li>取一个<strong>三角形</strong> $\Delta$。它的<strong>轨道</strong> $O_\Delta$ 是 $\{ m\Delta \mid m \in M \}$。</li>
+  <li><strong>等距变换</strong>的定义就是保持距离不变。所以，任何变换后的<strong>三角形</strong> $m\Delta$ 的三条边长都和原来 $\Delta$ 的三条边长完全一样。</li>
+  <li>根据中学几何，三条边长对应相等的两个<strong>三角形</strong>是<strong>全等</strong>的。</li>
+  <li>反过来，任何一个与 $\Delta$ <strong>全等</strong>的<strong>三角形</strong> $\Delta'$，我们总能找到一个<strong>等距变换</strong>（平移加旋转）$m$，使得 $m\Delta = \Delta'$。</li>
+  <li>结论：$\Delta$ 的<strong>轨道</strong>，不多不少，正好是<strong>平面</strong>上所有与 $\Delta$ <strong>全等</strong>的<strong>三角形</strong>组成的<strong>集合</strong>。</li>
+</ul></li>
+  <li> <strong>轨道是等价类的另一种看法</strong>：
+<ul>
+  <li>作者指出了一个非常深刻的性质：<strong>轨道</strong>实际上是一种<strong>等价关系</strong>所产生的<strong>等价类</strong>。</li>
+  <li>让我们定义一个关系 <strong>~</strong> 在<strong>集合</strong> $S$ 上：我们说 $s \sim s'$ （$s$ 与 $s'$ 等价），当且仅当存在一个<strong>群元</strong> $g \in G$ 使得 $s' = gs$。</li>
+  <li>要证明这是一种<strong>等价关系</strong>，需要验证三条性质：</li>
+  <li><strong>自反性</strong> ($s \sim s$)：对任何 $s$，是否存在 $g$ 使得 $s = gs$？是的，取 $g=1$（<strong>群</strong>的<strong>单位元</strong>）。根据公理(a)，$1s=s$。所以 $s \sim s$ 成立。</li>
+  <li><strong>对称性</strong> (若 $s \sim s'$, 则 $s' \sim s$)：如果 $s \sim s'$，意味着存在 $g$ 使得 $s' = gs$。我们想找一个 $h$ 使得 $s = hs'$。用 $g^{-1}$ 左乘 $s'=gs$ 的两边，得到 $g^{-1}s' = g^{-1}(gs) = (g^{-1}g)s = 1s = s$。所以我们找到了，这个 $h$ 就是 $g^{-1}$。因为 $g \in G$，所以 $g^{-1} \in G$。所以 $s' \sim s$ 成立。</li>
+  <li><strong>传递性</strong> (若 $s \sim s'$ 且 $s' \sim s''$, 则 $s \sim s''$)：如果 $s \sim s'$，则存在 $g$ 使得 $s' = gs$。如果 $s' \sim s''$，则存在 $h$ 使得 $s'' = hs'$。将前者代入后者，得到 $s'' = h(gs) = (hg)s$。因为 $h,g \in G$，所以它们的乘积 $hg$ 也在 $G$ 中。所以我们找到了一个<strong>群元</strong>（即 $hg$）作用于 $s$ 得到 $s''$。所以 $s \sim s''$ 成立。</li>
+  <li>既然 <strong>~</strong> 是一个<strong>等价关系</strong>，那么<strong>等价类</strong>是什么？根据定义，元素 $s$ 的<strong>等价类</strong>是所有与 $s$ 等价的元素 $s'$ 组成的<strong>集合</strong>。这正好就是<strong>轨道</strong> $O_s$ 的定义！</li>
+</ul></li>
+  <li> <strong>轨道划分集合 S</strong>：
+<ul>
+  <li>这是<strong>等价关系</strong>的一个基本定理：任何<strong>等价关系</strong>都会将原<strong>集合</strong>“切割”成若干个互不相交的<strong>子集</strong>（<strong>等价类</strong>），这些<strong>子集</strong>的并集就是原<strong>集合</strong>。</li>
+  <li>因为<strong>轨道</strong>就是<strong>等价类</strong>，所以这个定理直接适用：</li>
+  <li><strong>所有轨道</strong>的并集等于 $S$。（因为 $S$ 中每个元素 $s$ 至少在它自己的<strong>轨道</strong> $O_s$里）</li>
+  <li>任意两个不同的<strong>轨道</strong>要么完全相同，要么完全没有交集。不可能只重叠一部分。</li>
+  <li>这就是“<strong>轨道划分集合 S</strong>”的精确含义。它把复杂的<strong>集合</strong> $S$ 分解成了若干个独立的“小世界”（<strong>轨道</strong>）。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>公式</strong>: $s \sim s^{\prime} \text { if } s^{\prime}=g s, \text { for some } g \text { in } G$ (6.7.4)</li>
+  <li><strong>$\sim$</strong>: 一个二元关系符号，读作 "tilde" 或“等价于”。</li>
+  <li><strong>$s \sim s'$</strong>: 读作“s 等价于 s'”。</li>
+  <li><strong>if</strong>: 在定义中通常读作 "if and only if"（当且仅当）。</li>
+  <li><strong>推导</strong>：</li>
+  <li><strong>轨道是等价类</strong>：</li>
+  <li>$s$ 的<strong>等价类</strong> $[s] = \{s' \in S \mid s \sim s'\}$</li>
+  <li>根据 <strong>~</strong> 的定义，$[s] = \{s' \in S \mid s' = gs \text{ for some } g \in G\}$</li>
+  <li>这个定义与<strong>轨道</strong> $O_s$ 的定义 (6.7.3) 完全相同。所以 $[s] = O_s$。</li>
+  <li><strong>轨道划分S</strong>：</li>
+  <li>这是一个推论。因为<strong>等价类</strong>会划分一个<strong>集合</strong>，而<strong>轨道</strong>就是<strong>等价类</strong>，所以<strong>轨道</strong>划分了<strong>集合</strong> $S$。</li>
+  <li>数学表达为：$S = \bigcup_{i} O_i$，并且对于任意 $i \neq j$，$O_i \cap O_j = \emptyset$。（这里 $O_i$ 是所有不重复的<strong>轨道</strong>）</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例：$S_3$ 作用于 $\{1, 2, 3, 4, 5\}$</strong> (同4.1的例子)</li>
+  <li>$G = S_3$, $S = \{1, 2, 3, 4, 5\}$。</li>
+  <li>我们之前计算出 $O_1 = \{1, 2, 3\}$。</li>
+  <li>$O_4 = \{4\}$。</li>
+  <li>$O_5 = \{5\}$。</li>
+  <li>这些<strong>轨道</strong> $\{1, 2, 3\}$, $\{4\}$, $\{5\}$ 确实构成了对<strong>集合</strong> $S = \{1, 2, 3, 4, 5\}$ 的一个划分。</li>
+  <li>它们的并集是 $S$。</li>
+  <li>它们两两之间没有交集。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>划分不一定均匀</strong>：<strong>轨道</strong>的大小（元素个数）可能各不相同。在上面的例子中，一个<strong>轨道</strong>有3个元素，另外两个<strong>轨道</strong>都只有1个元素。</li>
+  <li><strong>“划分”的严格含义</strong>：“划分”是一个数学术语，它严格要求<strong>子集</strong>之间互不相交，且并集为全集。理解这一点对于应用<strong>轨道</strong>相关的计数原理（如<strong>伯恩赛德引理</strong>）至关重要。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段建立了<strong>轨道</strong>与<strong>等价类</strong>之间的等价关系。这不仅为<strong>轨道</strong>提供了一个更深刻的理论基础，而且直接导出了一个至关重要的结论：<strong>轨道</strong>将<strong>集合</strong> $S$ 分割成若干互不相交的<strong>子集</strong>。这个“划分”的性质是<strong>群作用</strong>理论中许多计数和分类问题的出发点。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是将<strong>轨道</strong>这个新概念，与学生可能已经学过的更基础的<strong>等价关系</strong>和<strong>集合划分</strong>概念联系起来。通过证明<strong>轨道</strong>就是<strong>等价类</strong>，作者能够直接引用<strong>等价关系</strong>的强大定理（即<strong>等价类划分集合</strong>），从而免费获得了“<strong>轨道划分集合</strong>”这个强有力的结论，而无需重新证明。这是一种高效的理论构建方式。</p>
+<p><strong style="font-size: 1.2rem;">[直觉心-智模型]</strong></p>
+<p>回到房间里小球和机器人的例子。</p>
+<ol>
+  <li><strong>等价关系</strong>：如果机器人可以把小球A推到小球B的位置，我们就说 A ~ B。</li>
+  <li><strong>自反性</strong>：机器人可以“不动”，所以 A ~ A。</li>
+  <li><strong>对称性</strong>：机器人能从A推到B，也一定能从B推回到A（因为机器人的每个动作都有逆动作）。所以 A ~ B 则 B ~ A。</li>
+  <li><strong>传递性</strong>：机器人能从A到B，又能从B到C，那么它肯定能从A到C（走组合路线）。所以 A ~ B 且 B ~ C 则 A ~ C。</li>
+  <li><strong>等价类/轨道</strong>：一个球的<strong>等价类</strong>就是机器人能把它推到的所有位置上的球。这正好就是它的<strong>轨道</strong>。</li>
+  <li><strong>划分</strong>：整个房间里的小球，被分成了若干个区域。在同一个区域内，任何两个球都是互相“可达”的。但不同区域的球之间，机器人无法建立联系。这些区域就是<strong>轨道</strong>，它们共同构成了整个房间。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一张由许多岛屿组成的地图 $S$。<strong>群</strong> $G$ 代表了所有的航线（船）。</p>
+<ol>
+  <li><strong>等价关系</strong>：如果从岛屿 A 可以坐船到岛屿 B，则 A ~ B。</li>
+  <li><strong>轨道</strong>：从岛屿 A 出发，所有能通过航线网络到达的岛屿集合，就是 A 的<strong>轨道</strong>。这可以看作是一个“航运联盟”或“交通圈”。</li>
+  <li><strong>划分</strong>：整个地图被划分成几个独立的航运联盟。联盟内部的岛屿可以互相访问，但不同联盟之间的岛屿是隔绝的。这些联盟就是<strong>轨道</strong>。</li>
+</ol>
+    </div>
+</div><h4>4.3 传递作用 (Transitive Action)</h4><p id="original-9"><strong style="font-size: 1.3rem;">📜 [原文9]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>群</strong>独立地作用于每个<strong>轨道</strong>。例如，<strong>平面</strong>的<strong>三角形</strong>集合被<strong>划分</strong>为<strong>全等类</strong>，并且<strong>等距变换</strong>分别<strong>置换</strong>每个<strong>全等类</strong>。</p>
+<p>如果 $S$ 只包含一个<strong>轨道</strong>，则 $G$ 的<strong>作用</strong>称为<strong>传递的</strong>。这意味着 $S$ 的每个元素都可以通过<strong>群</strong>的某个元素被带到其他每个元素。<strong>对称群</strong> $S_{n}$ <strong>传递地</strong>作用于<strong>指标</strong>集 $\{\mathbf{1}, \ldots, \mathbf{n}\}$。<strong>平面等距变换</strong>的<strong>群</strong> $M$ <strong>传递地</strong>作用于<strong>平面</strong>上的点集，并且它<strong>传递地</strong>作用于线集。它不<strong>传递地</strong>作用于<strong>三角形</strong>集。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>群在轨道上独立作用</strong>：
+<ul>
+  <li>因为<strong>轨道</strong>之间是互不相交的，所以一个<strong>群元</strong> $g$ 作用于某个<strong>轨道</strong> $O_1$ 里的元素 $s_1$，其结果 $gs_1$ 必定还在同一个<strong>轨道</strong> $O_1$ 里。它不可能跑到另一个<strong>轨道</strong> $O_2$ 去。</li>
+  <li>因此，我们可以把整个<strong>群作用</strong>看成是<strong>群</strong> $G$ 在每一个<strong>轨道</strong> $O_i$ 上分别进行作用，这些作用互不干扰。</li>
+  <li>例子：<strong>等距变换</strong> $M$ 作用于<strong>三角形</strong>集。它会把一个边长为(3,4,5)的直角<strong>三角形</strong>变成另一个边长为(3,4,5)的直角<strong>三角形</strong>，但绝不会把它变成一个等边<strong>三角形</strong>。也就是说，它只在“边长(3,4,5)的直角<strong>三角形</strong>”这个<strong>轨道</strong>（<strong>全等类</strong>）内部进行<strong>置换</strong>。</li>
+</ul></li>
+  <li> <strong>传递作用的定义</strong>：
+<ul>
+  <li>这是一个特殊但很重要的情況。当<strong>集合</strong> $S$ 被划分后，发现只有一个<strong>轨道</strong>，这个<strong>轨道</strong>就是 $S$ 本身。</li>
+  <li>这种情况就叫做<strong>传递作用</strong>。</li>
+  <li>从<strong>轨道</strong>的定义来看，这意味着从 $S$ 中任意一个元素 $s$ 出发，它的<strong>轨道</strong> $O_s$ 就等于整个<strong>集合</strong> $S$。</li>
+  <li>换句话说，对于 $S$ 中任意两个元素 $s_1$ 和 $s_2$，我们总能找到一个<strong>群元</strong> $g \in G$ 使得 $s_2 = gs_1$。</li>
+  <li>直观理解：<strong>集合</strong> $S$ 是一个“完全连通”的空间，<strong>群</strong> $G$ 的能力足够强，可以把任何一个点移动到任何另一个点。</li>
+</ul></li>
+  <li> <strong>传递作用的例子</strong>：
+<ul>
+  <li><strong>$S_n$ 作用于 $\{1, ..., n\}$</strong>：这是<strong>传递的</strong>。为什么？对于任意两个<strong>指标</strong> $i$ 和 $j$，我们总能找到一个<strong>置换</strong>来把 $i$ 变成 $j$。最简单的就是<strong>对换</strong> $(i j)$。这个<strong>对换</strong>就是 $S_n$ 里的一个元素。</li>
+  <li><strong>$M$ 作用于平面上的点集</strong>：这是<strong>传递的</strong>。对于任意两个点 $P$ 和 $Q$，我们总能找到一个<strong>等距变换</strong>（比如，一个平移）把 $P$ 移动到 $Q$。</li>
+  <li><strong>$M$ 作用于平面上的线集</strong>：这也是<strong>传递的</strong>。对于任意两条直线 $L_1$ 和 $L_2$，我们总能找到一个<strong>等距变换</strong>（平移+旋转）使得 $L_1$ 与 $L_2$ 重合。</li>
+  <li><strong>$M$ 作用于平面上的三角形集</strong>：这是<strong>不传递的</strong>。因为我们无法把一个边长(3,4,5)的<strong>三角形</strong>变成一个等边<strong>三角形</strong>。这个作用有无数个<strong>轨道</strong>（<strong>全等类</strong>）。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1 (传递作用)</strong>：</li>
+  <li>$G = D_4$ (正方形的<strong>对称群</strong>，8个元素)。</li>
+  <li>$S = \{v_1, v_2, v_3, v_4\}$ (四个顶点)。</li>
+  <li>这个作用是<strong>传递的</strong>吗？是。比如，要把 $v_1$ 变成 $v_3$。我们可以用旋转180度的操作 $R_{180}$，即 $R_{180} \cdot v_1 = v_3$。类似地，任何顶点都可以通过某个<strong>对称</strong>操作到达任何其他顶点。所以只有一个<strong>轨道</strong> $S$。</li>
+</ul>
+<ul>
+  <li><strong>示例2 (非传递作用)</strong>：</li>
+  <li>$G = D_4$。</li>
+  <li>$S = $ 正方形的4条边和2条对角线组成的集合，共6个元素。</li>
+  <li>这个作用是<strong>传递的</strong>吗？不是。</li>
+  <li><strong>轨道1</strong>：取一条边，比如上边。$D_4$ 中的操作可以把它变成左边、右边、下边，但永远无法把它变成一条对角线（因为长度不同）。所以四条边构成一个<strong>轨道</strong>。</li>
+  <li><strong>轨道2</strong>：取一条对角线。$D_4$ 中的操作可以把它变成另一条对角线，但无法变成边。所以两条对角线构成另一个<strong>轨道</strong>。</li>
+  <li>因为存在两个<strong>轨道</strong>，所以这个作用是<strong>不传递的</strong>。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>传递性依赖于 G 和 S</strong>：一个<strong>群作用</strong>是否<strong>传递</strong>，完全取决于<strong>群</strong> $G$ 和<strong>集合</strong> $S$ 的选择。同一个<strong>群</strong> $G=D_4$，作用于顶点集时是<strong>传递的</strong>，作用于边和对角线集合时就不是。</li>
+  <li><strong>最小的传递作用</strong>：如果一个作用是<strong>传递的</strong>，那么<strong>集合</strong> $S$ 在某种意义上是这个<strong>群</strong>能作用的“最小单元”。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段引入了<strong>传递作用</strong>的概念，它描述的是<strong>群作用</strong>最“彻底”的一种情况：整个<strong>集合</strong> $S$ 就是一个大<strong>轨道</strong>，其中所有元素都是相互“连通”的。通过与<strong>不传递</strong>的作用对比，进一步阐明了<strong>轨道</strong>是如何将一个<strong>集合</strong>分解为<strong>群</strong>作用下的独立“运动区域”的。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p><strong>传递作用</strong>是一个非常重要的分类。很多<strong>群论</strong>的应用和定理都是在<strong>传递作用</strong>的假设下展开的。例如，研究一个<strong>群</strong> $G$ 的结构时，我们常常研究它在某个<strong>集合</strong>上的<strong>传递作用</strong>。将<strong>作用</strong>区分为<strong>传递</strong>和<strong>不传递</strong>，是进行更深入分析的第一步。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>回到航运联盟的例子。</p>
+<ol>
+  <li><strong>传递作用</strong>：世界上只有一个航运联盟，从任何一个有港口的城市出发，理论上你都可以通过转船到达世界上任何其他一个港口。整个世界的港口集合构成一个<strong>传递</strong>的系统。</li>
+  <li><strong>不传递作用</strong>：由于政治或地理原因，世界被分成了几个独立的航运网络（比如“美洲区”、“亚欧非区”、“澳洲区”）。你可以从纽约到里约热内卢，但没有任何航线能把你从纽约直接或间接地带到上海。这时，港口集合就被分成了几个<strong>轨道</strong>，作用是<strong>不传递的</strong>。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个魔方。</p>
+<ol>
+  <li>$G$ 是所有操作构成的<strong>群</strong>，$S$ 是所有可能的状态。</li>
+  <li>从一个还原的魔方出发，你可以通过一系列操作，到达任何一个被打乱的状态。同样，从任何一个被打乱的状态，也都有解法可以回到还原状态。</li>
+  <li>这意味着，所有“可达”的魔方状态构成一个巨大的<strong>轨道</strong>。</li>
+  <li>一个有趣的问题是：这个<strong>轨道</strong>是所有理论上可能的颜色组合吗？答案是否定的。有些状态（比如只翻转一个角块的颜色，或只交换两个棱块的位置）是无法通过合法操作达到的。</li>
+  <li>所以，魔方操作<strong>群</strong>在“所有可能状态”这个<strong>集合</strong>上的作用是<strong>不传递的</strong>，它至少有两个<strong>轨道</strong>：“可达状态”和“不可达状态”。但在“所有可达状态”这个子集上，它的作用是<strong>传递的</strong>。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-5">
+    <h2><span class="section-number">5</span>稳定子 (Stabilizer)</h2>
+    <h4>5.1 稳定子的定义</h4><p id="original-10"><strong style="font-size: 1.3rem;">📜 [原文10]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ul>
+  <li>$S$ 的元素 $s$ 的<strong>稳定子</strong>是<strong>群元素</strong>的集合，这些元素使 $s$ 固定。它是 $G$ 的一个<strong>子群</strong>，我们通常用 $G_{s}$ 表示：</li>
+</ul>
+<p><div class="math-block">$$
+\begin{equation*}
+G_{s}=\{g \in G \mid g s=s\} . \tag{6.7.6}
+\end{equation*}
+$$</div></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p><strong>稳定子</strong>是与<strong>轨道</strong>对偶的另一个核心概念。如果说<strong>轨道</strong>是看一个<strong>点</strong>能“去哪里”，那么<strong>稳定子</strong>就是看哪些<strong>操作</strong>能让这个<strong>点</strong>“待在原地”。</p>
+<ol>
+  <li> <strong>出发点</strong>：从<strong>集合</strong> $S$ 中选定一个元素 $s$。</li>
+  <li> <strong>筛选</strong>：遍历<strong>群</strong> $G$ 中的所有元素 $g$，问一个问题：这个 $g$ 作用于 $s$ 之后，$s$ 是不是还在原来的位置？即 $gs=s$ 是否成立？</li>
+  <li> <strong>收集</strong>：把所有回答“是”的<strong>群元</strong> $g$ 收集到一个<strong>集合</strong>里。</li>
+  <li> <strong>命名</strong>：这个收集起来的<strong>群元</strong>的<strong>集合</strong>，就叫做元素 $s$ 的<strong>稳定子</strong>，记作 $G_s$。</li>
+</ol>
+<p><strong>稳定子是一个子群</strong>：</p>
+<p>作者直接断言 $G_s$ 是 $G$ 的一个<strong>子群</strong>。为什么？我们需要用<strong>子群判别法</strong>来验证：</p>
+<ul>
+  <li><strong>非空</strong>：$G_s$ 是不是空的？不是。因为<strong>群</strong>的<strong>单位元</strong> $1$ 满足 $1s=s$，所以 $1$ 永远在 $G_s$ 里。</li>
+  <li><strong>封闭性</strong>：如果 $g_1$ 和 $g_2$ 都在 $G_s$ 里，那么它们的乘积 $g_1g_2$ 在不在 $G_s$ 里？</li>
+  <li>$g_1 \in G_s$ 意味着 $g_1s = s$。</li>
+  <li>$g_2 \in G_s$ 意味着 $g_2s = s$。</li>
+  <li>我们来计算 $(g_1g_2)s$：</li>
+  <li>$(g_1g_2)s = g_1(g_2s)$ (根据<strong>群作用</strong>公理b)</li>
+  <li>$= g_1(s)$ (因为 $g_2$ 稳定 $s$)</li>
+  <li>$= s$ (因为 $g_1$ 稳定 $s$)</li>
+  <li>所以 $(g_1g_2)s = s$，这意味着 $g_1g_2$ 也在 $G_s$ 中。封闭性成立。</li>
+  <li><strong>逆元存在性</strong>：如果 $g \in G_s$，那么它的<strong>逆元</strong> $g^{-1}$ 在不在 $G_s$ 里？</li>
+  <li>$g \in G_s$ 意味着 $gs=s$。</li>
+  <li>我们想验证 $g^{-1}s$ 是否等于 $s$。</li>
+  <li>用 $g^{-1}$ 左乘 $gs=s$ 的两边：</li>
+  <li>$g^{-1}(gs) = g^{-1}s$</li>
+  <li>$(g^{-1}g)s = g^{-1}s$ (公理b)</li>
+  <li>$1s = g^{-1}s$ (群的<strong>逆元</strong>定义)</li>
+  <li>$s = g^{-1}s$ (公理a)</li>
+  <li>所以 $g^{-1}$ 确实也稳定 $s$，它也在 $G_s$ 中。</li>
+  <li><strong>结论</strong>：$G_s$ 满足<strong>子群</strong>的所有条件，所以它是一个<strong>子群</strong>。</li>
+</ul>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>公式</strong>: $G_{s}=\{g \in G \mid g s=s\}$ (6.7.6)</li>
+  <li><strong>$G_s$</strong>: 读作“s的稳定子”，是一个<strong>集合</strong>。下标 $s$ 表明这是关于元素 $s$ 的<strong>稳定子</strong>。它是<strong>群</strong> $G$ 的一个<strong>子集</strong>。</li>
+  <li><strong>$\{...\}$</strong>: 表示这是一个<strong>集合</strong>。</li>
+  <li><strong>$g \in G$</strong>: 这个<strong>集合</strong>里的元素 $g$ 都来自<strong>群</strong> $G$。</li>
+  <li><strong>$\mid$</strong>: 读作“使得”。</li>
+  <li><strong>$gs=s$</strong>: 这是<strong>群元</strong> $g$ 要满足的条件，即 $g$ 作用在 $s$ 上必须让 $s$ 保持不变。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1：正方形对称群作用于顶点</strong></li>
+  <li>$G = D_4 = \{R_0, R_{90}, R_{180}, R_{270}, H, V, D_1, D_2\}$ (旋转、水平/垂直/对角线翻转)。</li>
+  <li>$S = \{v_1, v_2, v_3, v_4\}$ (右上，左上，左下，右下)。</li>
+  <li>计算顶点 $v_1$ 的<strong>稳定子</strong> $G_{v_1}$：</li>
+  <li>$R_0 \cdot v_1 = v_1$。所以 $R_0 \in G_{v_1}$。</li>
+  <li>$R_{90} \cdot v_1 = v_2 \neq v_1$。</li>
+  <li>$R_{180} \cdot v_1 = v_3 \neq v_1$。</li>
+  <li>$R_{270} \cdot v_1 = v_4 \neq v_1$。</li>
+  <li>$H \cdot v_1 = v_4 \neq v_1$ (水平翻转)。</li>
+  <li>$V \cdot v_1 = v_2 \neq v_1$ (垂直翻转)。</li>
+  <li>$D_1 \cdot v_1 = v_1$ (沿穿过$v_1, v_3$的对角线翻转)。所以 $D_1 \in G_{v_1}$。</li>
+  <li>$D_2 \cdot v_1 = v_3 \neq v_1$ (沿另一条对角线翻转)。</li>
+  <li>所以，$G_{v_1} = \{R_0, D_1\}$。这是一个包含两个元素的<strong>子群</strong>。</li>
+</ul>
+<ul>
+  <li><strong>示例2：$S_4$ 作用于 $\{1, 2, 3, 4\}$</strong></li>
+  <li>$G = S_4$, $S = \{1, 2, 3, 4\}$。</li>
+  <li>计算元素 4 的<strong>稳定子</strong> $G_4$：</li>
+  <li>$G_4$ 是所有满足 $g(4)=4$ 的<strong>置换</strong> $g \in S_4$。</li>
+  <li>这正好是所有只在 $\{1, 2, 3\}$ 上进行<strong>置换</strong>，而不动 4 的那些<strong>置换</strong>。</li>
+  <li>这个<strong>子群</strong>本身就是 $\{1, 2, 3\}$ 的<strong>对称群</strong> $S_3$。</li>
+  <li>所以 $G_4$ 是一个与 $S_3$ <strong>同构</strong>的<strong>子群</strong>。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>稳定子是 G 的子集</strong>：<strong>稳定子</strong> $G_s$ 是<strong>群</strong> $G$ 的一个<strong>子群</strong>，而<strong>轨道</strong> $O_s$ 是<strong>集合</strong> $S$ 的一个<strong>子集</strong>。两者属于不同的“世界”，不要搞混。</li>
+  <li><strong>平凡稳定子</strong>：$G_s$ 至少包含<strong>单位元</strong> $1$，所以它永远不是空集。如果 $G_s = \{1\}$，即只有<strong>单位元</strong>能固定 $s$，我们称这个<strong>稳定子</strong>是<strong>平凡的</strong>。</li>
+  <li><strong>整个群作为稳定子</strong>：如果 $G_s = G$，说明<strong>群</strong>里所有元素都固定 $s$。这意味着 $s$ 在这个<strong>群作用</strong>下是一个<strong>固定点</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>稳定子</strong> $G_s$ 是<strong>群</strong> $G$ 中所有能使<strong>集合</strong>元素 $s$ 保持不变的<strong>群元</strong>构成的<strong>子群</strong>。它从“保持不动”的角度，揭示了<strong>群</strong> $G$ 与<strong>集合</strong> $S$ 中特定元素 $s$ 之间的对称关系。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p><strong>稳定子</strong>的概念与<strong>轨道</strong>相辅相成。<strong>轨道</strong>的大小描述了<strong>群</strong> $G$ 能把一个元素 $s$ 移动到多远、多广的范围；而<strong>稳定子</strong>的大小则描述了为了让 $s$ 保持不动，有多少种不同的<strong>对称</strong>操作。即将到来的<strong>轨道-稳定子定理</strong>将精确地揭示这两者大小之间的反比关系，这是<strong>群作用</strong>理论的基石。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>你（元素 $s$）站在一个大广场上，有一群人（<strong>群</strong> $G$）可以对你进行各种操作（<strong>群元</strong> $g$），比如把你向前推、向后拉、让你向左转等。</p>
+<ol>
+  <li><strong>轨道</strong>：是这群人能把你最终带到的所有位置。</li>
+  <li><strong>稳定子</strong>：是这群人中的一个“特殊小队”。这个小队的成员执行他们的操作后，你最终会回到原点。比如，一个人把你向前推了一米，另一个人又把你向后拉了一米，这个“推拉组合”就是一个<strong>稳定子</strong>里的操作。再比如，一个人让你“原地转圈”，这也是一个<strong>稳定子</strong>里的操作。</li>
+  <li>这个“特殊小队”（<strong>稳定子</strong>）本身也得是一个组织良好的<strong>群</strong>（<strong>子群</strong>）。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个足球（看作一个完美的球体 $S$）。$G$ 是空间中所有绕球心旋转的操作构成的<strong>群</strong> $SO(3)$。</p>
+<ol>
+  <li>你选定球上的一个点 $s$，比如商标的位置。</li>
+  <li>$s$ 的<strong>轨道</strong>是什么？是整个球面。因为你可以通过旋转，把商标转到球的任何一个位置。这是一个<strong>传递作用</strong>。</li>
+  <li>$s$ 的<strong>稳定子</strong> $G_s$ 是什么？是那些让商标位置保持不变的旋转。这对应着所有以穿过商标和球心的直线为轴的旋转。</li>
+  <li>这个<strong>稳定子</strong> $G_s$ 本身是一个<strong>群</strong>（与圆周旋转群 $SO(2)$ <strong>同构</strong>），它是 $SO(3)$ 的一个<strong>子群</strong>。</li>
+</ol>
+    </div>
+</div><h4>5.2 稳定子的例子与解释</h4><p id="original-11"><strong style="font-size: 1.3rem;">📜 [原文11]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>[^0]例如，在<strong>群</strong> $M$ 在<strong>平面</strong>上的点集上的<strong>作用</strong>中，<strong>原点</strong>的<strong>稳定子</strong>与<strong>正交算子</strong>的<strong>群</strong> $O_{2}$ <strong>同构</strong>。在<strong>对称群</strong> $S_{n}$ <strong>作用</strong>中，<strong>指标</strong> $\mathbf{n}$ 的<strong>稳定子</strong>与 $\{\mathbf{1}, \ldots, \mathbf{n - 1}\}$ 的<strong>置换</strong>的<strong>子群</strong> $S_{n-1}$ <strong>同构</strong>。或者，如果 $S$ 是<strong>平面</strong>中的<strong>三角形</strong>集合，特定<strong>等边三角形</strong> $\Delta$ 的<strong>稳定子</strong>是它的<strong>对称群</strong>，它是 $M$ 的一个<strong>子群</strong>，与<strong>二面体群</strong> $D_{3}$ <strong>同构</strong>。</p>
+<p>注意：明确以下区别很重要：当我们说<strong>等距变换</strong> $m$ <strong>稳定三角形</strong> $\Delta$ 时，我们并不意味着 $m$ 固定 $\Delta$ 的点。唯一固定<strong>三角形</strong>每个点的<strong>等距变换</strong>是<strong>单位元</strong>。我们的意思是，在<strong>置换三角形</strong>集合时，$m$ 将 $\Delta$ 带到自身。$\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本段通过三个核心例子，进一步阐明<strong>稳定子</strong>的含义。</p>
+<ol>
+  <li> <strong>例子1：原点的稳定子</strong>
+<ul>
+  <li><strong>群</strong> $G$：<strong>平面等距变换群</strong> $M$。</li>
+  <li><strong>集合</strong> $S$：<strong>平面</strong>上的所有点。</li>
+  <li><strong>元素</strong> $s$：<strong>原点</strong> $(0,0)$。</li>
+  <li><strong>稳定子</strong> $G_{(0,0)}$：是 $M$ 中所有使<strong>原点</strong>保持不变的<strong>等距变换</strong>。</li>
+  <li>哪些<strong>等距变换</strong>能固定<strong>原点</strong>？</li>
+  <li>平移：任何非零的平移都会移动<strong>原点</strong>，所以只有零平移（不动）可以。</li>
+  <li>旋转：所有绕<strong>原点</strong>的旋转都保持<strong>原点</strong>不变。</li>
+  <li>反射：所有通过<strong>原点</strong>的直线的反射都保持<strong>原点</strong>不变。</li>
+  <li>这些“保持<strong>原点</strong>不变的<strong>等距变换</strong>”构成的<strong>群</strong>，正是<strong>正交群</strong> $O_2$ 的定义。$O_2$ 包括了所有绕<strong>原点</strong>的旋转和反射。</li>
+  <li>结论：<strong>原点</strong>的<strong>稳定子</strong>就是<strong>正交群</strong> $O_2$。</li>
+</ul></li>
+  <li> <strong>例子2：指标n的稳定子</strong>
+<ul>
+  <li><strong>群</strong> $G$：<strong>对称群</strong> $S_n$。</li>
+  <li><strong>集合</strong> $S$：<strong>指标</strong>集 $\{\mathbf{1}, \ldots, \mathbf{n}\}$。</li>
+  <li><strong>元素</strong> $s$：<strong>指标</strong> $\mathbf{n}$。</li>
+  <li><strong>稳定子</strong> $G_{\mathbf{n}}$：是 $S_n$ 中所有使<strong>指标</strong> $\mathbf{n}$ 保持不变的<strong>置换</strong>。</li>
+  <li>这些<strong>置换</strong> $p$ 满足 $p(\mathbf{n}) = \mathbf{n}$。这意味着它们只能在剩下的 $\mathbf{n-1}$ 个<strong>指标</strong> $\{\mathbf{1}, \ldots, \mathbf{n-1}\}$ 内部进行排列。</li>
+  <li>所有在 $\{\mathbf{1}, \ldots, \mathbf{n-1}\}$ 上的排列，构成的<strong>群</strong>正是<strong>对称群</strong> $S_{n-1}$。</li>
+  <li>结论：<strong>指标</strong> $\mathbf{n}$ 的<strong>稳定子</strong> $G_{\mathbf{n}}$ 是 $S_n$ 的一个<strong>子群</strong>，并且这个<strong>子群</strong>与 $S_{n-1}$ <strong>同构</strong>。</li>
+</ul></li>
+  <li> <strong>例子3：等边三角形的稳定子</strong>
+<ul>
+  <li><strong>群</strong> $G$：<strong>平面等距变换群</strong> $M$。</li>
+  <li><strong>集合</strong> $S$：<strong>平面</strong>上所有<strong>三角形</strong>的<strong>集合</strong>。</li>
+  <li><strong>元素</strong> $s$：一个特定的<strong>等边三角形</strong> $\Delta$。</li>
+  <li><strong>稳定子</strong> $G_{\Delta}$：是 $M$ 中所有使<strong>三角形</strong> $\Delta$ 保持不变的<strong>等距变换</strong>，即 $m(\Delta) = \Delta$。</li>
+  <li>$m(\Delta) = \Delta$ 意味着变换后的<strong>三角形</strong>与原<strong>三角形</strong>占据完全相同的位置。（注意，这不要求<strong>三角形</strong>内部的点不动，见下文的“注意”）。</li>
+  <li>哪些<strong>等距变换</strong>能让一个<strong>等边三角形</strong>回到原来的位置？这正是<strong>等边三角形</strong>的<strong>对称操作</strong>：3次旋转（0，120，240度）和3次翻转。</li>
+  <li>这些操作构成的<strong>群</strong>，正是<strong>二面体群</strong> $D_3$。</li>
+  <li>结论：<strong>等边三角形</strong> $\Delta$ 的<strong>稳定子</strong> $G_\Delta$，就是它自身的<strong>对称群</strong>，这个<strong>群</strong>与 $D_3$ <strong>同构</strong>。</li>
+</ul></li>
+  <li> <strong>重要提醒 (注意)</strong>
+<ul>
+  <li>作者特意强调了一个关键区别。当 $S$ 是由复杂对象（如<strong>三角形</strong>）构成的<strong>集合</strong>时，“稳定”的含义。</li>
+  <li>“$m$ 稳定 $\Delta$” ($m \in G_\Delta$) 意味着 $m(\Delta) = \Delta$。这是在<strong>三角形</strong>的<strong>集合</strong> $S$ 中，元素 $\Delta$ 被 $m$ 映射回了自身。</li>
+  <li>这<strong>不等于</strong>对于 $\Delta$ 上的每一个点 $p$，都有 $m(p)=p$。</li>
+  <li>例如，将<strong>等边三角形</strong>旋转120度，这个操作属于<strong>稳定子</strong> $G_\Delta$，因为它使得旋转后的<strong>三角形</strong>与原来的<strong>三角形</strong>重合。但在这个过程中，<strong>三角形</strong>的每一个顶点都被移动到了下一个顶点的位置，没有一个顶点（除了中心）被固定。</li>
+  <li>唯一能固定<strong>三角形</strong>所有点的<strong>等距变换</strong>只有<strong>单位元</strong>（不动）。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1 (原点稳定子)</strong>：</li>
+  <li>$G = M$，$S = \mathbb{R}^2$，$s=(0,0)$。</li>
+  <li>变换 $m$：绕原点逆时针旋转30度。$m(0,0)=(0,0)$。所以 $m \in G_s$。</li>
+  <li>变换 $m'$：沿x轴平移1个单位。$m'(0,0)=(1,0) \neq (0,0)$。所以 $m' \notin G_s$。</li>
+  <li>变换 $m''$：关于直线 $y=x$ 反射。$m''(0,0)=(0,0)$。所以 $m'' \in G_s$。</li>
+</ul>
+<ul>
+  <li><strong>示例3 (等边三角形稳定子)</strong>：</li>
+  <li>$G=M$，$S=$ 三角形集，$s=\Delta$ (一个位于原点中心的等边三角形)。</li>
+  <li>$m_1$ = 绕原点旋转120度。$m_1$ 将 $\Delta$ 的顶点 $v_1 \to v_2, v_2 \to v_3, v_3 \to v_1$。变换后的顶点集合 $\{v_2, v_3, v_1\}$ 定义的三角形和原来的 $\{v_1, v_2, v_3\}$ 定义的三角形是同一个。所以 $m_1(\Delta) = \Delta$，故 $m_1 \in G_\Delta$。</li>
+  <li>$m_2$ = 沿x轴平移1个单位。$m_2(\Delta)$ 是一个新的三角形，位于原三角形右侧1单位处。$m_2(\Delta) \neq \Delta$。所以 $m_2 \notin G_\Delta$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>同构不等于相等</strong>：作者用了“<strong>同构</strong>”这个词，这是严谨的。$S_n$ 中指标 $\mathbf{n}$ 的<strong>稳定子</strong>是 $S_n$ 的一个具体<strong>子群</strong>，它由形如 $(...)(n)$ 的<strong>置换</strong>构成。$S_{n-1}$ 是另一个独立的<strong>群</strong>，它的元素是作用在 $\{1, ..., n-1\}$ 上的<strong>置换</strong>。这两个<strong>群</strong>在结构上是一样的（<strong>同构</strong>），但它们的元素在严格意义上是不同的对象。</li>
+  <li><strong>稳定子的大小反映对称性</strong>：一个元素 $s$ 的<strong>稳定子</strong> $G_s$ 越大，说明 $s$ 在<strong>群</strong> $G$ 的作用下“越对称”。比如，在 $M$ 作用下，一个<strong>等边三角形</strong>的<strong>稳定子</strong>是 $D_3$（6个元素），而一个不等边<strong>三角形</strong>的<strong>稳定子</strong>只有<strong>单位元</strong> $\{e\}$（1个元素）。这反映了<strong>等边三角形</strong>比不等边<strong>三角形</strong>更对称。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段通过三个典型的例子，生动地展示了<strong>稳定子</strong>的实际计算和几何/代数意义。<strong>原点</strong>的<strong>稳定子</strong>是<strong>正交群</strong>；<strong>指标</strong> $\mathbf{n}$ 的<strong>稳定子</strong>是 $S_{n-1}$；一个几何图形的<strong>稳定子</strong>就是它自身的<strong>对称群</strong>。最后，通过一个“注意”澄清了“稳定一个集合”和“逐点固定一个集合”这两个不同层次的概念。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是为了让读者对<strong>稳定子</strong>这个抽象概念有具体、牢固的理解。通过将<strong>稳定子</strong>与已知的数学对象（$O_2, S_{n-1}, D_3$）联系起来，读者可以更好地把握<strong>稳定子</strong>的结构和意义。这个“注意”部分则旨在消除一个非常容易出现的误解，这对于正确应用理论至关重要。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>你有一把造型奇特的钥匙 $s$ (比如一个六角星形)，和一大串各种各样的锁孔 $G$（这里把群G当锁孔不太好，换个模型）。</p>
+<p>让我们回到你站在广场上被一群人操作的模型。</p>
+<ol>
+  <li>你 $s$ 是一个士兵。</li>
+  <li>这群人 $G$ 是一群教官。每个教官 $g$ 都会给你一个指令。</li>
+  <li><strong>稳定子</strong> $G_s$：是那群让你“立正”的教官。</li>
+  <li>教官 A 喊“向左转！”，你动了，他不在 $G_s$ 里。</li>
+  <li>教官 B 喊“向后转！”，你动了，他不在 $G_s$ 里。</li>
+  <li>教官 C 喊“向左转四圈！”，你转完回到了原来的朝向。他就在 $G_s$ 里。</li>
+  <li>教官 D 喊“啥也别动！”，你没动。他也在 $G_s$ 里。</li>
+  <li><strong>三角形的例子</strong>：</li>
+  <li>你 $s$ 不是一个士兵了，而是一个三人组成的“品”字形战斗小组 $\Delta$。</li>
+  <li>教官 $g$ 是“全体逆时针转120度！”。</li>
+  <li>小组里的三个人 $v_1, v_2, v_3$ 都换了位置，但整个小组的队形 $\Delta$ 还在原地。</li>
+  <li>所以这个教官 $g$ <strong>稳定</strong>了小组 $\Delta$，他属于 $G_\Delta$。但他并没有<strong>固定</strong>小组里的任何一个士兵。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象地球 $s$ 在绕着太阳公转。</p>
+<ol>
+  <li><strong>群</strong> $G$ 是所有三维空间的<strong>等距变换</strong>（平移、旋转、反射）。</li>
+  <li>地球的<strong>稳定子</strong> $G_s$ 是什么？是那些让地球变换后还回到原位的空间变换。</li>
+  <li>这包括：</li>
+</ol>
+<ol>
+  <li> <strong>单位元</strong>（不动）。</li>
+  <li> 所有以地球中心为不动点的旋转。</li>
+  <li> 所有以包含地球中心的平面为镜面的反射。
+<ul>
+  <li>这个<strong>稳定子</strong> $G_s$ 是一个与<strong>正交群</strong> $O_3$ <strong>同构</strong>的<strong>群</strong>，它描述了地球作为一个球体的所有内在<strong>对称性</strong>。</li>
+</ul></li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-6">
+    <h2><span class="section-number">6</span>稳定子与陪集</h2>
+    <h4>6.1 稳定子与元素像的关系</h4><p id="original-12"><strong style="font-size: 1.3rem;">📜 [原文12]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>正如<strong>群同态</strong> $\varphi: G \rightarrow G^{\prime}$ 的<strong>核</strong> $K$ 告诉我们 $G$ 的两个元素 $x$ 和 $y$ 何时具有相同的像（即当 $x^{-1} y$ 在 $K$ 中时），$S$ 的元素 $s$ 的<strong>稳定子</strong> $G_{s}$ 告诉我们 $G$ 的两个元素 $x$ 和 $y$ 何时以相同的方式作用于 $s$。</p>
+<p><strong>命题 6.7.7</strong> 令 $S$ 为<strong>群</strong> $G$ 作用于其上的<strong>集合</strong>，令 $s$ 为 $S$ 的一个元素，并令 $H$ 为 $s$ 的<strong>稳定子</strong>。</p>
+<p>(a) 如果 $a$ 和 $b$ 是 $G$ 的元素，则 $a s=b s$ 当且仅当 $a^{-1} b$ 在 $H$ 中，这当且仅当 $b$ 在<strong>陪集</strong> $a H$ 中。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分将<strong>稳定子</strong>与<strong>陪集</strong>这个重要的<strong>群论</strong>概念联系起来，并揭示了<strong>稳定子</strong>的核心作用：它衡量了<strong>群作用</strong>的“冗余度”。</p>
+<ol>
+  <li> <strong>类比：同态的核 (Kernel)</strong>
+<ul>
+  <li>作者首先用一个类比来启发思考。回忆一下<strong>群同态</strong> $\varphi: G \rightarrow G'$。</li>
+  <li><strong>核</strong>的定义是 $Ker(\varphi) = \{g \in G \mid \varphi(g) = e'\}$，其中 $e'$ 是 $G'$ 的<strong>单位元</strong>。</li>
+  <li><strong>核</strong>有一个重要性质：$\varphi(x) = \varphi(y)$ 当且仅当 $x^{-1}y \in Ker(\varphi)$。</li>
+  <li>这意味着，<strong>核</strong>的大小衡量了<strong>同态</strong>的“压缩”程度。<strong>核</strong>里的所有元素都被映到了同一个点 $e'$。而一个<strong>陪集</strong> $xK$ 里的所有元素，则都被映到了同一个点 $\varphi(x)$。</li>
+  <li>现在，作者说<strong>稳定子</strong> $G_s$ 扮演着类似<strong>核</strong>的角色。</li>
+</ul></li>
+  <li> <strong>稳定子的作用</strong>
+<ul>
+  <li><strong>问题</strong>：在<strong>群作用</strong>中，什么时候两个不同的<strong>群元</strong> $a$ 和 $b$ 作用在同一个点 $s$ 上，会得到完全相同的结果？即，何时 $as = bs$？</li>
+  <li>这个问题很重要。如果 $as=bs$ 经常发生，说明<strong>群</strong> $G$ 中有很多“冗余”的操作。如果 $as=bs$ 只在 $a=b$ 时发生，说明<strong>群作用</strong>是“忠实”的。</li>
+  <li><strong>命题 6.7.7(a)</strong> 回答了这个问题。</li>
+</ul></li>
+  <li> <strong>证明命题 6.7.7(a)</strong>
+<ul>
+  <li><strong>第一部分：$as = bs \iff a^{-1}b \in H$</strong></li>
+  <li><strong>($\Rightarrow$)</strong> 假设 $as=bs$。我们想证明 $a^{-1}b$ 在 $H$ (即 $G_s$) 中。</li>
+  <li>要证明一个元素 $g$ 在 $H=G_s$ 中，就是要证明 $gs=s$。</li>
+  <li>我们来计算 $(a^{-1}b)s$：</li>
+  <li>左乘 $as=bs$ 的两边乘以 $a^{-1}$：</li>
+  <li>$a^{-1}(as) = a^{-1}(bs)$</li>
+  <li>$(a^{-1}a)s = (a^{-1}b)s$  (公理b)</li>
+  <li>$1s = (a^{-1}b)s$</li>
+  <li>$s = (a^{-1}b)s$  (公理a)</li>
+  <li>这正好说明元素 $(a^{-1}b)$ 满足了进入<strong>稳定子</strong> $H$ 的条件。所以 $a^{-1}b \in H$。</li>
+  <li><strong>($\Leftarrow$)</strong> 假设 $a^{-1}b \in H$。我们想证明 $as=bs$。</li>
+  <li>$a^{-1}b \in H$ 意味着 $(a^{-1}b)s = s$。</li>
+  <li>左乘这个等式的两边乘以 $a$：</li>
+  <li>$a((a^{-1}b)s) = as$</li>
+  <li>$(a a^{-1})bs = as$  (公理b的变体，或写作 $(a(a^{-1}b))s = as$ 再用公理b)</li>
+  <li>$(1b)s = as$</li>
+  <li>$bs = as$。证明完毕。</li>
+</ul></li>
+</ol>
+<ul>
+  <li><strong>第二部分：$a^{-1}b \in H \iff b \in aH$</strong></li>
+  <li>这是<strong>左陪集</strong> $aH$ 的基本定义和性质。</li>
+  <li>$b \in aH$ 的定义是：存在某个 $h \in H$，使得 $b=ah$。</li>
+  <li>如果 $b = ah$，那么左乘 $a^{-1}$ 得到 $a^{-1}b = a^{-1}(ah) = (a^{-1}a)h = 1h = h$。因为 $h \in H$，所以 $a^{-1}b \in H$。</li>
+  <li>反过来，如果 $a^{-1}b \in H$，令 $h = a^{-1}b$。那么 $h$ 是 $H$ 中的一个元素。左乘 $a$ 得到 $a(a^{-1}b) = ah$，即 $(aa^{-1})b = ah$，所以 $b=ah$。这表明 $b$ 是 $a$ 和 $H$ 中某个元素 $h$ 的乘积，所以根据定义，$b \in aH$。</li>
+</ul>
+<ol>
+  <li> <strong>结论解读</strong>：
+<ul>
+  <li>$as=bs$ 当且仅当 $b \in aH$。</li>
+  <li>$aH$ 是 $H$ 在 $G$ 中的一个<strong>左陪集</strong>。它是由 $a$ 乘以 $H$ 中所有元素得到的<strong>集合</strong>。</li>
+  <li>这个结论告诉我们，所有能把 $s$ 移动到同一个目标点 $as$ 的<strong>群元</strong>，不多不少，正好构成了<strong>稳定子</strong> $H$ 的一个<strong>左陪集</strong> $aH$。</li>
+  <li><strong>群作用</strong>的“冗余度”被<strong>稳定子</strong> $H$ 精确地刻画了。$H$ 越大，冗余度越高，就有越多的元素做同样的事情。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例：$D_4$ 作用于正方形顶点</strong></li>
+  <li>$G = D_4$, $S=\{v_1, v_2, v_3, v_4\}$。$s=v_1$。</li>
+  <li>我们之前算出<strong>稳定子</strong>是 $H = G_{v_1} = \{R_0, D_1\}$ (不动和沿对角线翻转)。</li>
+  <li>我们来看哪些元素能把 $v_1$ 变成 $v_2$。</li>
+  <li>我们知道 $a = R_{90}$ 可以，因为 $R_{90} v_1 = v_2$。</li>
+  <li>根据命题，所有能做成这件事的<strong>群元</strong> $b$ 必须在<strong>陪集</strong> $aH = R_{90}H$ 中。</li>
+  <li>$R_{90}H = \{ R_{90}R_0, R_{90}D_1 \} = \{R_{90}, V\}$ (其中 $V$ 是垂直翻转，可以自行验证 $R_{90}D_1 = V$)。</li>
+  <li>所以，理论上，应该只有 $R_{90}$ 和 $V$ 这两个操作能把 $v_1$ 变成 $v_2$。</li>
+  <li>我们来验证一下：</li>
+  <li>$R_{90} v_1 = v_2$ (正确)。</li>
+  <li>$V v_1 = v_2$ (将右上顶点 $v_1$ 做垂直翻转，确实到了左上顶点 $v_2$ 的位置。正确)。</li>
+  <li>命题成立。所有把 $v_1$ 映到 $v_2$ 的<strong>群元</strong>构成了<strong>陪集</strong> $R_{90}G_{v_1}$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>左陪集 vs 右陪集</strong>：这里推导出来的是<strong>左陪集</strong> $aH$。如果你从 $as=bs$ 出发，乘以 $b^{-1}$ 在右边，会得到 $ab^{-1}s = s$，即 $ab^{-1} \in H$，这又涉及到<strong>右陪集</strong>。要保持一致性。通常<strong>群作用</strong>的教材偏好使用<strong>左作用</strong>和<strong>左陪集</strong>。</li>
+  <li><strong>陪集不是子群</strong>：除非 $a$ 属于 $H$，否则<strong>陪集</strong> $aH$ 本身不是一个<strong>子群</strong>（因为它不包含<strong>单位元</strong>）。它只是 $G$ 的一个<strong>子集</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段通过命题 6.7.7(a) 建立了<strong>稳定子</strong>、<strong>陪集</strong>和<strong>群作用</strong>效果三者之间的核心联系。它指出，作用在同一点 $s$ 上产生相同结果的<strong>群元</strong>集合，恰好构成了<strong>稳定子</strong> $H=G_s$ 的一个<strong>左陪集</strong>。这为<strong>轨道-稳定子定理</strong>的证明铺平了道路，并深刻揭示了<strong>稳定子</strong>是衡量<strong>群作用</strong>冗余性的内在尺度。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是为了将<strong>群作用</strong>的性质与<strong>群论</strong>的核心工具——<strong>陪集</strong>——联系起来。这种联系是双向的：一方面，它让我们用<strong>陪集</strong>的理论来理解<strong>群作用</strong>；另一方面，它也为<strong>陪集</strong>这个抽象概念提供了一个非常具体和直观的解释（即“做同一件事的一组操作”）。这是<strong>轨道-稳定子定理</strong>证明的关键一步。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>你是一个大公司的CEO（元素 $s$），有很多经理（<strong>群</strong> $G$）向你汇报。每个经理 $g$ 都会提交一份计划书，对公司产生一个影响 $gs$。</p>
+<ol>
+  <li><strong>稳定子</strong> $H$：是那些提交了“维持现状”计划书的经理。他们的计划不会改变公司的当前状态。</li>
+  <li>经理 $a$ 提交了一份计划，它的效果是让公司利润增长10%，达到状态 $as$。</li>
+  <li>现在的问题是：还有哪些经理 $b$ 也提交了让利润增长10%的计划？</li>
+  <li>命题说，这些经理 $b$ 构成的<strong>集合</strong>，正好是经理 $a$ 和所有“维持现状派”经理 $H$ 组成的<strong>陪集</strong> $aH$。</li>
+  <li>可以理解为：任何一个能让利润增长10%的计划 $b$，都可以看作是“先执行 $a$ 的计划，再执行一个维持现状的计划 $h$”($b=ah$)，或者“先执行一个维持现状的计划 $h'$，再执行 $a$ 的计划”（这需要右陪集，我们这里用左陪集）。本质上，所有这些计划的核心都是 $a$ 的计划，其他的 $h$ 只是些无关紧要的“粉饰”。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>你站在迷宫的A点 ($s$)。有很多条指令（<strong>群</strong> $G$）可以让你移动。</p>
+<ol>
+  <li><strong>稳定子</strong> $H$：是那些让你在A点附近绕了一圈又回到A点的指令序列。</li>
+  <li>指令 $a$ 能把你从A点带到B点 ($as=B$)。</li>
+  <li>还有哪些指令 $b$ 也能把你从A带到B？</li>
+  <li>答案是：所有形如“先执行指令 $a$ 到达B点，然后再执行一个从B点出发最终回到B点的指令序列”的操作。</li>
+  <li>不过这个想象对应的是右陪集 $Ha$。让我们换成左陪集。</li>
+  <li>答案也可以是：所有形如“先执行一个从A点出发又回到A点的指令 $h$，然后再执行指令 $a$”的操作。即 $b=ah$。这些操作构成的就是<strong>陪集</strong> $aH$。</li>
+</ol>
+    </div>
+</div><h4>6.2 稳定子的共轭性</h4><p id="original-13"><strong style="font-size: 1.3rem;">📜 [原文13]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>(b) 假设 $as =s^{\prime}$。$s^{\prime}$ 的<strong>稳定子</strong> $H^{\prime}$ 是一个<strong>共轭子群</strong>：</p>
+<p><div class="math-block">$$
+H^{\prime}=a H a^{-1}=\left\{g \in G \mid g=a h a^{-1} \text { for some } h \text { in } H\right\} .
+$$</div></p>
+<p><strong>证明</strong>。(a) $a s=b s$ 当且仅当 $s=a^{-1} b s$。</p>
+<p>(b) 如果 $g$ 在 $a H a^{-1}$ 中，比如说 $g=a h a^{-1}$ 且 $h$ 在 $H$ 中，那么 $g s^{\prime}=\left(a h a^{-1}\right)(a s)=a h s=a s=s^{\prime}$，所以 $g$ <strong>稳定</strong> $s^{\prime}$。这表明 $a H a^{-1} \subset H^{\prime}$。由于 $s=a^{-1} s^{\prime}$，我们可以颠倒 $s$ 和 $s^{\prime}$ 的角色，得出 $a^{-1} H^{\prime} a \subset H$，这<strong>推出</strong> $H^{\prime} \subset a H a^{-1}$。因此 $H^{\prime}=a H a^{-1}$。$\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分讨论了在同一个<strong>轨道</strong>上的不同点的<strong>稳定子</strong>之间的关系。结论是：它们是互相<strong>共轭</strong>的。</p>
+<ol>
+  <li> <strong>问题设定</strong>：
+<ul>
+  <li>$s$ 和 $s'$ 是在同一个<strong>轨道</strong>里的两个点。</li>
+  <li>这意味着存在一个<strong>群元</strong> $a$ 使得 $s' = as$。</li>
+  <li>$s$ 的<strong>稳定子</strong>是 $H = G_s$。</li>
+  <li>$s'$ 的<strong>稳定子</strong>是 $H' = G_{s'}$。</li>
+  <li>$H$ 和 $H'$ 这两个<strong>子群</strong>之间有什么关系？</li>
+</ul></li>
+  <li> <strong>结论：共轭关系</strong>
+<ul>
+  <li>命题说：$H' = aHa^{-1}$。</li>
+  <li>$aHa^{-1}$ 是 $H$ 的一个<strong>共轭子群</strong>。它的定义是把 $H$ 中的每个元素 $h$ 都拿出来，用 $a$ 和 $a^{-1}$ 从两边“夹”一下，变成 $aha^{-1}$，然后把所有这些新元素收集起来。</li>
+  <li>可以证明，如果 $H$ 是一个<strong>子群</strong>，那么 $aHa^{-1}$ 也是一个<strong>子群</strong>，并且它和 $H$ 是<strong>同构</strong>的。</li>
+  <li>所以，同一个<strong>轨道</strong>上的所有点的<strong>稳定子</strong>，虽然可能是 $G$ 中不同的<strong>子群</strong>，但它们在<strong>代数</strong>结构上是完全一样的（都是<strong>同构</strong>的）。</li>
+</ul></li>
+  <li> <strong>证明命题 6.7.7(b)</strong>
+<ul>
+  <li>证明一个<strong>集合</strong>相等 $A=B$，标准的做法是证明 $A \subset B$ 和 $B \subset A$。</li>
+  <li><strong>第一步：证明 $aHa^{-1} \subset H'$</strong></li>
+  <li>取任意一个元素 $g \in aHa^{-1}$。根据定义，存在一个 $h \in H$ 使得 $g = aha^{-1}$。</li>
+  <li>我们的目标是证明 $g \in H'$，即证明 $g$ 稳定 $s'$，也就是 $gs' = s'$。</li>
+  <li>开始计算 $gs'$：</li>
+  <li>$gs' = (aha^{-1})s'$ (代入 $g$ 的表达式)</li>
+  <li>$= (aha^{-1})(as)$ (代入 $s'=as$)</li>
+  <li>$= a(h(a^{-1}a))s$ (反复使用公理b，改变结合方式)</li>
+  <li>$= a(h(1s))$</li>
+  <li>$= a(hs)$</li>
+  <li>因为 $h$ 属于 $s$ 的<strong>稳定子</strong> $H$，所以 $hs=s$。</li>
+  <li>所以 $gs' = a(s) = as$。</li>
+  <li>而 $as$ 就是 $s'$。</li>
+  <li>所以我们证明了 $gs' = s'$。这说明 $g$ 确实在 $s'$ 的<strong>稳定子</strong> $H'$ 中。</li>
+  <li>由于 $g$ 是任意选的，所以 $aHa^{-1} \subset H'$。</li>
+</ul></li>
+</ol>
+<ul>
+  <li><strong>第二步：证明 $H' \subset aHa^{-1}$</strong></li>
+  <li>作者用了一个巧妙的对称性论证。</li>
+  <li>我们有 $s'=as$，这可以改写成 $s = a^{-1}s'$。</li>
+  <li>现在，我们可以把 $s$ 和 $s'$ 的角色对调，把 $a$ 换成 $a^{-1}$。</li>
+  <li>套用我们刚刚在第一步得到的结论（把所有符号替换）：</li>
+  <li>用 $s$ 替换 $s'$，用 $s'$ 替换 $s$，用 $a^{-1}$ 替换 $a$。</li>
+  <li>原来的结论是：$s'$ 的稳定子 $H'$ 和 $s$ 的稳定子 $H$ 的关系是 $aHa^{-1} \subset H'$。</li>
+  <li>替换后我们得到：$s$ 的稳定子 $H$ 和 $s'$ 的稳定子 $H'$ 的关系是 $(a^{-1})H'(a^{-1})^{-1} \subset H$。</li>
+  <li>即 $a^{-1}H'a \subset H$。</li>
+  <li>现在我们得到了 $a^{-1}H'a \subset H$。为了得到 $H'$，我们用 $a$ 左乘，用 $a^{-1}$ 右乘不等式两边：</li>
+  <li>$a(a^{-1}H'a)a^{-1} \subset aHa^{-1}$</li>
+  <li>$(aa^{-1})H'(aa^{-1}) \subset aHa^{-1}$</li>
+  <li>$1H'1 \subset aHa^{-1}$</li>
+  <li>$H' \subset aHa^{-1}$。</li>
+</ul>
+<ul>
+  <li><strong>结论</strong>：因为 $aHa^{-1} \subset H'$ 和 $H' \subset aHa^{-1}$ 同时成立，所以 $H' = aHa^{-1}$。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例：$D_4$ 作用于正方形顶点</strong></li>
+  <li>$G = D_4$, $S=\{v_1, v_2, v_3, v_4\}$。</li>
+  <li>$s=v_1$ (右上), $s'=v_2$ (左上)。</li>
+  <li>连接它们的<strong>群元</strong>是 $a=R_{90}$，因为 $R_{90}v_1 = v_2$。</li>
+  <li>$v_1$ 的<strong>稳定子</strong>是 $H = G_{v_1} = \{R_0, D_1\}$ ($D_1$ 是过 $v_1,v_3$ 的对角线翻转)。</li>
+  <li>$v_2$ 的<strong>稳定子</strong>是 $H' = G_{v_2}$。让我们直接计算一下：</li>
+  <li>$R_0$ 肯定在里面。</li>
+  <li>哪个翻转能固定 $v_2$？是过 $v_2, v_4$ 的对角线翻转 $D_2$。</li>
+  <li>所以 $H' = G_{v_2} = \{R_0, D_2\}$。</li>
+  <li>现在我们来验证命题：$H' = aHa^{-1}$ 是否成立。</li>
+  <li>$a = R_{90}$, $a^{-1} = R_{270}$。</li>
+  <li>$aHa^{-1} = R_{90} \{R_0, D_1\} R_{270} = \{R_{90}R_0R_{270}, R_{90}D_1R_{270}\}$。</li>
+  <li>计算第一项：$R_{90}R_0R_{270} = R_{90}R_{270} = R_{360} = R_0$。</li>
+  <li>计算第二项：$R_{90}D_1R_{270}$。这需要具体的几何想象或矩阵计算。</li>
+  <li>$R_{270}$：把点 $(x,y)$ 变成 $(y, -x)$。</li>
+  <li>$D_1$ (关于 $y=-x$ 的翻转)：把点 $(x,y)$ 变成 $(-y, -x)$。</li>
+  <li>$R_{90}$：把点 $(x,y)$ 变成 $(-y, x)$。</li>
+  <li>$R_{90}D_1R_{270}(x,y) = R_{90}D_1(y, -x) = R_{90}(x, -y) = (y, x)$。</li>
+  <li>$(y,x)$ 对应于关于直线 $y=x$ 的翻转，这正是 $D_2$。</li>
+  <li>所以，我们算出了 $aHa^{-1} = \{R_0, D_2\}$。</li>
+  <li>这与我们直接计算的 $H' = \{R_0, D_2\}$ 完全吻合。命题成立。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>共轭不等于相等</strong>：$H'$ 和 $H$ 是<strong>共轭</strong>的，但它们通常不是同一个<strong>子群</strong>（除非 $a$ 在 $H$ 的<strong>正规化子</strong>里）。在上面的例子中，$\{R_0, D_1\}$ 和 $\{R_0, D_2\}$ 就是 $D_4$ 中两个不同的<strong>子群</strong>。</li>
+  <li><strong>同构</strong>：<strong>共轭</strong>是一个比<strong>同构</strong>更强的关系。所有<strong>共轭子群</strong>必然<strong>同构</strong>，但<strong>同构</strong>的<strong>子群</strong>不一定<strong>共轭</strong>。这个命题告诉我们<strong>轨道</strong>上各点的<strong>稳定子</strong>之间有很强的关联。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段的命题 6.7.7(b) 和它的证明，揭示了同一个<strong>轨道</strong>上不同点的<strong>稳定子</strong>之间的关系是“<strong>共轭</strong>”。如果 $s' = as$，那么 $s'$ 的<strong>稳定子</strong> $G_{s'}$ 就是 $s$ 的<strong>稳定子</strong> $G_s$ 经过 $a$ <strong>共轭</strong>变换后的结果，即 $G_{s'} = a G_s a^{-1}$。这说明<strong>轨道</strong>上所有点的<strong>稳定子</strong>虽然可能不同，但它们的<strong>代数</strong>结构是完全一样的（<strong>同构</strong>），并且它们在<strong>群</strong> $G$ 中的“位置”关系也是明确的。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个命题是<strong>轨道-稳定子定理</strong>的最后一块拼图。该定理将<strong>轨道</strong>的大小与<strong>稳定子</strong>的大小联系起来。为了让这个联系有意义，我们需要保证在同一个<strong>轨道</strong>上，<strong>稳定子</strong>的大小是不变的。这个命题通过证明所有<strong>轨道</strong>上的<strong>稳定子</strong>都是<strong>同构</strong>的（<strong>共轭</strong>是<strong>同构</strong>的特例），从而保证了它们的大小（阶）必然相等。这样，我们谈论“一个<strong>轨道</strong>的<strong>稳定子</strong>的大小”才是有意义的，而不用指明是<strong>轨道</strong>中哪个具体点的<strong>稳定子</strong>。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>你是一个可变形的机器人（<strong>群</strong> $G$），站在一个房间的A点（元素 $s$）。</p>
+<ol>
+  <li>$s$ 的<strong>稳定子</strong> $H$：是你的一套“原地体操”动作，做完后你还在A点，姿态也和开始一样。</li>
+  <li>你执行了一个动作 $a$（比如向前走一步），到达了B点（元素 $s'$）。</li>
+  <li>现在，你在B点，想做一套新的“原地体操” $H'$，让你做完后还在B点。</li>
+  <li>这套新的体操 $H'$ 是什么？命题说，你可以这样做：</li>
+</ol>
+<ol>
+  <li> 先执行 $a$ 的逆操作 $a^{-1}$ (退一步回到A点)。</li>
+  <li> 然后执行一套以前在A点做的旧体操 $h \in H$。</li>
+  <li> 最后再执行动作 $a$ (向前走一步回到B点)。
+<ul>
+  <li>这一整套操作 $aha^{-1}$ 就是你在B点的一套新体操。所有这样的新体操组合起来，就是 $H' = aHa^{-1}$。这个“换场地做操”的过程，就是<strong>共轭</strong>。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>回到足球和旋转群的例子。</p>
+<ol>
+  <li>$s$ 是北极点，它的<strong>稳定子</strong> $H=G_s$ 是所有绕着地轴（南北极连线）的旋转。</li>
+  <li>你用一个旋转 $a$（比如绕着赤道上某个轴转90度），把北极点 $s$ 转到了赤道上的某个点 $s'$。</li>
+  <li>$s'$ 的<strong>稳定子</strong> $H'=G_{s'}$ 是什么？是所有绕着穿过 $s'$ 的新“地轴”的旋转。</li>
+  <li>命题告诉我们，$H'$ 和 $H$ 是<strong>共轭</strong>关系。你可以把绕旧地轴的旋转 $h$，通过旋转 $a$ 变成绕新地轴的旋转。具体来说，新的旋转操作就是 $aha^{-1}$。</li>
+</ol>
+    </div>
+</div><h4>6.3 总结性评注</h4><p id="original-14"><strong style="font-size: 1.3rem;">📜 [原文14]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>注意：<strong>命题</strong>的第 (b) 部分解释了一个我们之前多次见过的现象：当 $a s=s^{\prime}$ 时，<strong>群元素</strong> $g$ <strong>固定</strong> $s$ 当且仅当 $a g a^{-1}$ <strong>固定</strong> $s^{\prime}$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是对命题 6.7.7(b) 背后直觉的一个总结性陈述。</p>
+<ol>
+  <li> <strong>现象回顾</strong>：作者指出，在之前的学习中，可能已经遇到过类似“坐标系变换”的思想。一个在旧坐标系下的简单操作，在变到新坐标系后，形式会变得复杂。</li>
+  <li> <strong>命题(b)的直观解读</strong>：
+<ul>
+  <li>我们有两个点 $s$ 和 $s'$，以及连接它们的变换 $a$ ($s'=as$)。</li>
+  <li>一个<strong>群元</strong> $g$ 能<strong>固定</strong> $s$，意味着 $gs=s$。</li>
+  <li>我们想知道，哪个<strong>群元</strong> $g'$ 能<strong>固定</strong> $s'$？</li>
+  <li>命题(b)的结论 $G_{s'} = a G_s a^{-1}$ 告诉我们，所有能<strong>固定</strong> $s'$ 的元素 $g'$ 都具有 $aga^{-1}$ 的形式，其中 $g$ 是一个能<strong>固定</strong> $s$ 的元素。</li>
+  <li>反过来，如果一个元素 $g$ 能<strong>固定</strong> $s$，那么 $aga^{-1}$ 这个元素就一定能<strong>固定</strong> $s'$。</li>
+  <li>所以，“$g$ <strong>固定</strong> $s$” 和 “$aga^{-1}$ <strong>固定</strong> $s'$” 是两个等价的陈述。</li>
+</ul></li>
+  <li> <strong>变换的观点</strong>：
+<ul>
+  <li>$a$ 可以看作一个“坐标变换”，把我们的参考点从 $s$ 换到了 $s'$。</li>
+  <li>一个在 $s$ 的参考系下的操作 $g$。</li>
+  <li>要想知道这个操作在 $s'$ 的参考系下对应哪个操作，需要通过 $a$ 来“翻译”。</li>
+  <li>翻译过程是：</li>
+</ul></li>
+  <li> 从 $s'$ 的世界，通过 $a^{-1}$ 回到 $s$ 的世界。</li>
+  <li> 在 $s$ 的世界里执行操作 $g$。</li>
+  <li> 通过 $a$ 再回到 $s'$ 的世界。
+<ul>
+  <li>整个过程就是 $aga^{-1}$。这正是<strong>共轭</strong>的结构。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>线性代数中的相似变换</strong></li>
+  <li>令 $v$ 是矩阵 $A$ 的一个特征向量，特征值为 $\lambda$，即 $Av = \lambda v$。</li>
+  <li>令 $P$ 是一个可逆矩阵（坐标变换）。令 $v' = Pv$，这是新坐标系下的向量。令 $A' = PAP^{-1}$，这是新坐标系下的矩阵。</li>
+  <li>在新坐标系下会发生什么？</li>
+  <li>$A'v' = (PAP^{-1})(Pv) = PAv = P(\lambda v) = \lambda (Pv) = \lambda v'$。</li>
+  <li>所以 $v'$ 也是新矩阵 $A'$ 的一个特征向量，特征值不变。</li>
+  <li>这里的 $A \to PAP^{-1}$ 就是一个<strong>共轭</strong>操作。它描述了同一个线性变换在不同基下的矩阵表示。这与<strong>稳定子</strong>的<strong>共轭</strong>关系在思想上是相通的。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这段评注画龙点睛，将命题6.7.7(b)的抽象数学证明，与一个在数学和物理中反复出现的、更具普遍性的直观思想——“坐标变换下的操作变换”（即<strong>共轭</strong>）——联系起来，加深了读者对<strong>共轭子群</strong>背后物理和几何意义的理解。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是进行一次升华和总结。它告诉读者，刚刚证明的那个关于<strong>稳定子</strong>的命题，不是一个孤立的<strong>群论</strong>技巧，而是数学中一个普遍思想（通过<strong>共轭</strong>来处理不同参考系下的变换）在<strong>群作用</strong>理论中的具体体现。这有助于知识的融会贯通。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>你有一台老式的手动挡汽车。</p>
+<ol>
+  <li>$s$ 是你坐在驾驶座上的状态。</li>
+  <li>$g$ 是一个操作：“踩离合，挂一档，松离合”。这个操作能让车起步。</li>
+  <li>现在你换了一辆右手舵的汽车，这是你的新状态 $s'$。从 $s$ 到 $s'$ 的变换是 $a$ (左右镜像)。</li>
+  <li>在右手舵的车上，如何完成“起步”这个同样的功能？</li>
+  <li>答案 $aga^{-1}$ 可以这样理解：</li>
+</ol>
+<ol>
+  <li> $a^{-1}$：在脑中把自己想象回左手舵的车里。</li>
+  <li> $g$：执行你熟悉的“踩离合、挂一档、松离合”的肌肉记忆。</li>
+  <li> $a$：把你脑中的操作再镜像翻译回当前右手舵的车上执行（比如左手换到右手，左脚换到右脚等）。
+<ul>
+  <li>所以，“$g$ 在 $s$ 上起作用” 等价于 “$aga^{-1}$ 在 $s'$ 上起作用”。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你在电脑上编辑一个文档。</p>
+<ol>
+  <li>$s$ 是你的英文输入法状态。</li>
+  <li>$g$ 是你打出字母 "A" 的按键操作。</li>
+  <li>$a$ 是一个切换输入法的操作，把你切换到了法文输入法状态 $s'$。</li>
+  <li>现在你想在法文输入法下打出 "A"。你需要按哪个键？可能还是同一个键，也可能不是。这个新的按键操作就是 $g'$。</li>
+  <li>$g'$ 和 $g$ 的关系是<strong>共轭</strong>的（虽然这个例子不完全精确）。$g'$ 可以被理解成 “切换回英文输入法 ($a^{-1}$)，按下A键 ($g$)，再切换回法文输入法 ($a$)”。在某些复杂的软件里，宏的录制和在不同上下文中的播放就类似这个过程。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-7">
+    <h2><span class="section-number">7</span>行间公式索引</h2>
+    <p>1.  $m_{g}: S \rightarrow S \tag{6.7.2}$</p><p>*   <strong>解释</strong>：这个公式定义了一个由<strong>群元</strong> $g$ 决定的，从<strong>集合</strong> $S$ 到自身的映射 $m_g$。</p><p>2.  $O_{s}=\left\{s^{\prime} \in S \mid s^{\prime}=g s \text { for some } g \text { in } G\right\} . \tag{6.7.3}$</p><p>*   <strong>解释</strong>：这个公式定义了元素 $s$ 的<strong>轨道</strong> $O_s$，即 $s$ 在<strong>群</strong> $G$ 所有元素作用下能够到达的所有点的<strong>集合</strong>。</p><p>3.  $s \sim s^{\prime} \text { if } s^{\prime}=g s, \text { for some } g \text { in } G . \tag{6.7.4}$</p><p>*   <strong>解释</strong>：这个公式定义了一个<strong>等价关系</strong>，如果两个元素可以通过<strong>群作用</strong>相互转化，那么它们就是等价的。</p><p>4.  $G_{s}=\{g \in G \mid g s=s\} . \tag{6.7.6}$</p><p>*   <strong>解释</strong>：这个公式定义了元素 $s$ 的<strong>稳定子</strong> $G_s$，即<strong>群</strong> $G$ 中所有能使 $s$ 保持不变的<strong>群元</strong>构成的<strong>集合</strong>（<strong>子群</strong>）。</p><p>5.  $H^{\prime}=a H a^{-1}=\left\{g \in G \mid g=a h a^{-1} \text { for some } h \text { in } H\right\} .$</p><p>*   <strong>解释</strong>：这个公式定义了<strong>子群</strong> $H$ 的<strong>共轭子群</strong> $aHa^{-1}$，它由 $H$ 中每个元素 $h$ 经过 $aha^{-1}$ 变换后的所有元素构成。</p>
+</section>
+
+<section class="content-section" id="section-8">
+    <h2><span class="section-number">8</span>行间公式索引</h2>
+    <p>1.  $$</p><p>\begin{equation*}</p><p>m_{g}: S \rightarrow S \tag{6.7.2}</p><p>\end{equation*}</p><p><div class="math-block">$$
+    *   **解释**：此公式定义了由**群** $G$ 中一个固定的元素 $g$ 所诱导的，一个从**集合** $S$ 到其自身的映射 $m_g$，该映射描述了 $g$ 如何作用于 $S$ 的所有元素。
+
+2.  
+$$</div></p><p>\begin{equation*}</p><p>O_{s}=\left\{s^{\prime} \in S \mid s^{\prime}=g s \text { for some } g \text { in } G\right\} . \tag{6.7.3}</p><p>\end{equation*}</p><p><div class="math-block">$$
+    *   **解释**：此公式定义了元素 $s$ 的**轨道** $O_s$，即从 $s$ 出发，通过**群** $G$ 中所有元素的作用所能到达的所有点的集合。
+
+3.  
+$$</div></p><p>\begin{equation*}</p><p>s \sim s^{\prime} \text { if } s^{\prime}=g s, \text { for some } g \text { in } G . \tag{6.7.4}</p><p>\end{equation*}</p><p><div class="math-block">$$
+    *   **解释**：此公式定义了一个**等价关系**，指出如果一个元素可以由**群**中某个元素作用于另一个元素得到，则这两个元素等价，而**轨道**正是该关系下的**等价类**。
+
+4.  
+$$</div></p><p>\begin{equation*}</p><p>G_{s}=\{g \in G \mid g s=s\} . \tag{6.7.6}</p><p>\end{equation*}</p><p><div class="math-block">$$
+    *   **解释**：此公式定义了元素 $s$ 的**稳定子** $G_s$，即**群** $G$ 中所有使元素 $s$ 保持不变的**群元**所构成的**子群**。
+
+5.  
+$$</div></p><p>H^{\prime}=a H a^{-1}=\left\{g \in G \mid g=a h a^{-1} \text { for some } h \text { in } H\right\} .</p><p><div class="math-block">$$
+    *   **解释**：此公式定义了**子群** $H$ 的**共轭子群** $aHa^{-1}$，它描述了在**轨道**上一点 $s$ 的**稳定子** $H$ 如何转变为另一点 $s'=as$ 的**稳定子** $H'$。
+
+
+$$</div></p>
+</section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>行间公式索引</p>
+    </footer>
+
+
+    <!-- 手机端点击翻页功能 -->
+    <script>
+        (function() {
+            // 点击翻页功能（在所有设备上启用）
+            
+            document.addEventListener('click', function(e) {
+                // 如果 TOC 目录面板处于打开状态，不触发翻页
+                var tocPanel = document.getElementById('tocPanel');
+                if (tocPanel && tocPanel.classList.contains('active')) {
+                    return;
+                }
+                
+                // 排除对链接、按钮、输入框等交互元素的点击
+                var target = e.target;
+                var tagName = target.tagName.toLowerCase();
+                if (tagName === 'a' || tagName === 'button' || tagName === 'input' || 
+                    tagName === 'textarea' || tagName === 'select' || 
+                    target.closest('a') || target.closest('button') ||
+                    target.closest('.toc-panel') || target.closest('.toc-toggle') ||
+                    target.closest('.toc-overlay')) {
+                    return;
+                }
+                
+                var clickY = e.clientY;
+                var windowHeight = window.innerHeight;
+                var scrollAmount = windowHeight * 0.85; // 滚动85%的屏幕高度
+                
+                if (clickY > windowHeight / 2) {
+                    // 点击下半部分：向下翻页
+                    window.scrollBy({
+                        top: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 点击上半部分：向上翻页
+                    window.scrollBy({
+                        top: -scrollAmount,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        })();
+    </script>
+
+    <!-- TOC 目录控制脚本 -->
+    <script>
+        (function() {
+            var tocToggle = document.getElementById('tocToggle');
+            var tocPanel = document.getElementById('tocPanel');
+            var tocOverlay = document.getElementById('tocOverlay');
+            
+            // 切换目录显示/隐藏
+            function toggleTOC() {
+                var isOpen = tocPanel.classList.contains('active');
+                if (isOpen) {
+                    closeTOC();
+                } else {
+                    openTOC();
+                }
+            }
+            
+            // 打开目录
+            function openTOC() {
+                tocPanel.classList.add('active');
+                tocOverlay.classList.add('active');
+                tocToggle.setAttribute('aria-label', '关闭目录');
+            }
+            
+            // 关闭目录
+            function closeTOC() {
+                tocPanel.classList.remove('active');
+                tocOverlay.classList.remove('active');
+                tocToggle.setAttribute('aria-label', '打开目录');
+            }
+            
+            // 点击按钮切换目录
+            tocToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTOC();
+            });
+            
+            // 点击遮罩层关闭目录
+            tocOverlay.addEventListener('click', function() {
+                closeTOC();
+            });
+            
+            // 点击目录项后关闭目录
+            var tocLinks = tocPanel.querySelectorAll('a');
+            tocLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    closeTOC();
+                });
+            });
+            
+            // ESC 键关闭目录
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && tocPanel.classList.contains('active')) {
+                    closeTOC();
+                }
+            });
+            
+            // 高亮当前可见的目录条目
+            function updateActiveItem() {
+                var scrollPos = window.scrollY + 150;  // 偏移量
+                var activeSection = null;
+                var activeOriginal = null;
+                
+                // 查找当前可见的 section
+                var sections = document.querySelectorAll('section[id^="section-"]');
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    if (section.offsetTop <= scrollPos) {
+                        activeSection = section.id;
+                    }
+                }
+                
+                // 查找当前可见的原文区块
+                var originals = document.querySelectorAll('[id^="original-"]');
+                for (var j = 0; j < originals.length; j++) {
+                    var original = originals[j];
+                    if (original.offsetTop <= scrollPos) {
+                        activeOriginal = original.id;
+                    }
+                }
+                
+                // 先移除所有 active 类
+                var allHeadings = tocPanel.querySelectorAll('.toc-heading');
+                for (var h = 0; h < allHeadings.length; h++) {
+                    allHeadings[h].classList.remove('active');
+                }
+                
+                var allOriginals = tocPanel.querySelectorAll('.toc-original');
+                for (var o = 0; o < allOriginals.length; o++) {
+                    allOriginals[o].classList.remove('active');
+                }
+                
+                // 只给当前活动的条目添加 active 类
+                if (activeSection) {
+                    var activeHeadingLink = tocPanel.querySelector('.toc-heading a[href="#' + activeSection + '"]');
+                    if (activeHeadingLink) {
+                        activeHeadingLink.parentElement.classList.add('active');
+                    }
+                }
+                
+                if (activeOriginal) {
+                    var activeOriginalLink = tocPanel.querySelector('.toc-original a[href="#' + activeOriginal + '"]');
+                    if (activeOriginalLink) {
+                        activeOriginalLink.parentElement.classList.add('active');
+                    }
+                }
+            }
+            
+            // 节流函数
+            var scrollTimeout;
+            function throttledUpdate() {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(function() {
+                    updateActiveItem();
+                    scrollTimeout = null;
+                }, 100);
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', throttledUpdate);
+            
+            // 打开目录时立即更新高亮
+            var originalOpenTOC = openTOC;
+            openTOC = function() {
+                originalOpenTOC();
+                updateActiveItem();
+            };
+            
+            // 初始化
+            updateActiveItem();
+        })();
+    </script>
+</body>
+</html>

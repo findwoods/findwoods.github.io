@@ -1,0 +1,3065 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1. 5.4 识别直积</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- MathJax v4 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            output: {
+                displayOverflow: 'linebreak',
+                linebreaks: {
+                    inline: true,
+                    width: '100%',
+                    lineleading: 0.2
+                }
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            /* 五大区块主题色 */
+            --original-color: #8b5cf6;
+            --explain-color: #0ea5e9;
+            --formula-color: #6366f1;
+            --example-color: #10b981;
+            --warning-color: #f59e0b;
+            /* Q1修复：总结、存在目的、直觉心智模型、直观想象 统一使用 #36828C 青色主题 */
+            --summary-color: #36828C;     /* 青色主题 */
+            --purpose-color: #36828C;     /* 青色主题 */
+            --intuition-color: #36828C;   /* 青色主题 */
+            --imagination-color: #36828C; /* 青色主题 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .authors {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
+        .content-section h4 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h5 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 18px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h6 {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            margin: 15px 0 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        /* ===============================
+           五大内容区块 - 统一风格不同主题色
+           =============================== */
+
+        /* 原文区 - 紫色 */
+        .original-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid var(--original-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .original-box .box-label {
+            color: var(--original-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-box .box-content {
+            font-style: italic;
+            color: #6b21a8;
+        }
+
+        /* 📜 [原文]区块内容 - 使用统一的黑色 */
+        .original-content {
+            color: #2d3748; /* 统一的深灰黑色 */
+        }
+
+        .original-content * {
+            color: #2d3748; /* 所有子元素 */
+        }
+
+        .original-content .MathJax, .original-content .MathJax * {
+            color: #2d3748 !important; /* 行内公式 */
+        }
+
+        /* 通用 .box-content 换行规则 - 确保长文本（如代码调用）能自动换行 */
+        .box-content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .box-content strong, .box-content code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            display: inline;
+        }
+
+        /* 逐步解释区 - 蓝色 */
+        .explain-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--explain-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .explain-box .box-label {
+            color: var(--explain-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explain-box .box-content {
+            color: #1a365d; /* Dark Blue */
+        }
+
+        .explain-box .box-content * {
+            color: #1a365d; /* Dark Blue - 所有子元素 */
+        }
+
+        .explain-box .box-content .MathJax, .explain-box .box-content .MathJax * {
+            color: #1a365d !important; /* Dark Blue - 行内公式 */
+        }
+
+        .explain-box ul, .explain-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .explain-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 公式拆解区 - 靛蓝色 */
+        .formula-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--formula-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .formula-box .box-label {
+            color: var(--formula-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .formula-box .box-content {
+            color: var(--text-color); /* 统一使用默认黑色，与原文区块一致 */
+            overflow-x: auto;
+        }
+
+        .formula-box .box-content * {
+            color: var(--text-color); /* 所有子元素 */
+        }
+
+        .formula-box .box-content .MathJax, .formula-box .box-content .MathJax * {
+            color: var(--text-color) !important; /* 行内公式 */
+        }
+
+        /* 数值示例区 - 绿色 */
+        .example-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--example-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .example-box .box-label {
+            color: var(--example-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-box .box-content {
+            color: #166534; /* Dark Green from edstem5 .answer-en */
+        }
+
+        .example-box .box-content * {
+            color: #166534; /* Dark Green - 所有子元素 */
+        }
+
+        .example-box .box-content .MathJax, .example-box .box-content .MathJax * {
+            color: #166534 !important; /* Dark Green - 行内公式 */
+        }
+
+        .example-box ul, .example-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .example-box li {
+            margin-bottom: 6px;
+        }
+
+        .example-box code {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* 易错点区 - 橙色 */
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .warning-box .box-label {
+            color: var(--warning-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warning-box .box-content {
+            color: #92400e;
+        }
+
+        .warning-box .box-content * {
+            color: #92400e; /* 所有子元素 */
+        }
+
+        .warning-box .box-content .MathJax, .warning-box .box-content .MathJax * {
+            color: #92400e !important; /* 行内公式 */
+        }
+
+        .warning-box ul, .warning-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .warning-box li {
+            margin-bottom: 6px;
+        }
+
+        /* 总结区 - Q1修复：使用#36828C青色主题 */
+        .summary-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--summary-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .summary-box .box-label {
+            color: var(--summary-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .summary-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .summary-box .box-content .MathJax, .summary-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 存在目的区 - Q1修复：使用#36828C青色主题 */
+        .purpose-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--purpose-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .purpose-box .box-label {
+            color: var(--purpose-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .purpose-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .purpose-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .purpose-box .box-content .MathJax, .purpose-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直觉心智模型区 - Q1修复：使用#36828C青色主题 */
+        .intuition-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--intuition-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .intuition-box .box-label {
+            color: var(--intuition-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .intuition-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .intuition-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .intuition-box .box-content .MathJax, .intuition-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直观想象区 - Q1修复：使用#36828C青色主题 */
+        .imagination-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--imagination-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .imagination-box .box-label {
+            color: var(--imagination-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .imagination-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .imagination-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .imagination-box .box-content .MathJax, .imagination-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 高亮术语 */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* 代码块 */
+        code {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            margin: 15px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 表格样式 - 紧凑型，行高列宽适应文字最小值 */
+        table {
+            border-collapse: collapse;
+            width: auto;  /* 列宽适应内容 */
+            margin: 15px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;  /* 减小padding使行高更紧凑 */
+            text-align: left;
+            white-space: nowrap;  /* 防止不必要的换行，列宽适应文字 */
+            line-height: 1.4;  /* 紧凑的行高 */
+        }
+
+        th {
+            background: #e0f7fa;
+            color: #006064;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #e2e8f0;
+        }
+
+        /* 表格对齐 */
+        .align-left {
+            text-align: left;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        /* 图例区域 */
+        .legend-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .legend-bar {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .legend-bar.original { background: #8b5cf6; }
+        .legend-bar.explain { background: #0ea5e9; }
+        .legend-bar.formula { background: #6366f1; }
+        .legend-bar.example { background: #10b981; }
+        .legend-bar.warning { background: #f59e0b; }
+        .legend-bar.summary { background: #36828C; }
+        .legend-bar.purpose { background: #36828C; }
+        .legend-bar.intuition { background: #36828C; }
+        .legend-bar.imagination { background: #36828C; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive - 移动端适配 */
+        @media (max-width: 768px) {
+            /* 容器宽度适配 */
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 20px 12px;
+                box-sizing: border-box;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+                padding: 0 15px;
+            }
+            
+            .hero {
+                padding: 50px 15px;
+            }
+            
+            .hero h1 {
+                font-size: 1.6rem;
+                word-break: break-word;
+            }
+            
+            .authors {
+                font-size: 1rem;
+            }
+            
+            /* 内容区块适配 */
+            .content-section {
+                padding: 20px 15px;
+                margin-left: 5px;
+                margin-right: 5px;
+                border-radius: 12px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.4rem;
+                flex-wrap: wrap;
+            }
+            
+            .content-section h3 {
+                font-size: 1.2rem;
+            }
+            
+            .content-section h4 {
+                font-size: 1.1rem;
+            }
+            
+            .section-number {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            /* 各区块box适配 */
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 15px 12px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .original-box .box-label,
+            .explain-box .box-label,
+            .formula-box .box-label,
+            .example-box .box-label,
+            .warning-box .box-label,
+            .summary-box .box-label,
+            .purpose-box .box-label,
+            .intuition-box .box-label,
+            .imagination-box .box-label {
+                font-size: 1.1rem;
+            }
+            
+            /* 图例区域移动端适配 */
+            .legend-section {
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
+            
+            .legend-row {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            
+            .legend-item {
+                font-size: 0.8rem;
+                gap: 5px;
+            }
+            
+            .legend-bar {
+                width: 3px;
+                height: 16px;
+            }
+            
+            /* 列表适配 */
+            ul, ol {
+                margin-left: 15px;
+                padding-left: 5px;
+            }
+            
+            /* 表格移动端适配 */
+            table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.9rem;
+                min-width: 80px;
+            }
+            
+            /* 代码块适配 */
+            pre {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            
+            /* 数学公式适配 */
+            .math-block {
+                padding: 10px 8px;
+                margin: 15px 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* MathJax公式溢出处理 - 只处理块级公式，保持行内公式inline */
+            mjx-container[jax="CHTML"][display="true"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                display: block !important;
+            }
+            
+            /* 行内公式 - 超宽时自动换行 */
+            mjx-container:not([display="true"]) {
+                display: inline-block !important;
+                max-width: 100% !important;
+                overflow-wrap: break-word !important;
+                word-wrap: break-word !important;
+            }
+            
+            /* MathJax内部元素换行支持 */
+            mjx-math {
+                white-space: normal !important;
+            }
+            
+            mjx-mrow {
+                flex-wrap: wrap !important;
+            }
+            
+            /* Footer适配 */
+            .footer {
+                padding: 25px 15px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* 超小屏幕适配 (手机竖屏) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 8px;
+            }
+            
+            .hero {
+                padding: 40px 10px;
+            }
+            
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+            
+            .content-section {
+                padding: 15px 10px;
+                margin-left: 3px;
+                margin-right: 3px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 12px 10px;
+            }
+            
+            .legend-section {
+                padding: 12px 8px;
+            }
+            
+            .legend-row {
+                gap: 8px;
+            }
+            
+            .legend-item {
+                font-size: 0.75rem;
+            }
+            
+            ul, ol {
+                margin-left: 12px;
+            }
+        }
+        
+        /* 确保所有内容不溢出 */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* ========================================
+           TOC 目录样式
+           ======================================== */
+        
+        /* TOC 触发按钮 - 左上角小方块 */
+        .toc-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(54, 130, 140, 0.5);  /* 青色 50% 透明度 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .toc-toggle:hover {
+            background: rgba(54, 130, 140, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .toc-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* TOC 目录面板 */
+        .toc-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 95vw;  /* 手机浏览器宽度的 95% */
+            height: 80vh; /* 手机浏览器高度的 80% */
+            max-width: 450px;  /* 桌面端最大宽度 */
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0 0 16px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .toc-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* TOC 头部 - 标题在图标右侧 */
+        .toc-header {
+            padding: 15px 20px 15px 80px;  /* 左侧留出按钮空间 */
+            background: linear-gradient(135deg, #36828C 0%, #2a6a72 100%);
+            color: white;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .toc-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* TOC 内容区 */
+        .toc-content {
+            flex: 1;
+            overflow-y: auto;   /* 允许垂直滚动 */
+            overflow-x: hidden; /* 禁止水平滚动 */
+            padding: 15px 0;
+        }
+        
+        /* TOC 列表 */
+        .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc-item {
+            margin: 0;
+        }
+        
+        .toc-item a {
+            display: block;
+            padding: 4px 20px;  /* 更紧凑的行间距 */
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #2d3748;
+            text-decoration: none;
+            word-wrap: break-word;   /* 自动换行 */
+            overflow-wrap: break-word;
+            white-space: normal;     /* 允许换行 */
+            line-height: 1.3;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .toc-item a:hover {
+            background: #e8f4f5;
+            color: #36828C;
+            border-left-color: #36828C;
+        }
+        
+        /* 标题项样式 */
+        .toc-heading a {
+            font-weight: 600;
+            color: #1a365d;
+            background: #f7fafc;
+        }
+        
+        .toc-heading a:hover {
+            background: #e8f4f5;
+        }
+        
+        /* 当前活动的标题项样式 */
+        .toc-heading.active a {
+            background: #d0e8ea;
+            color: #36828C;
+            border-left-color: #36828C;
+            font-weight: 700;
+        }
+        
+        /* 当前活动的原文项样式 */
+        .toc-original.active a {
+            background: #36828C;
+            color: white;
+            box-shadow: 0 3px 8px rgba(54, 130, 140, 0.35);
+        }
+        
+        /* 原文项容器 - 横向排列自动换行 */
+        .toc-originals-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 8px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* 原文项样式 - 浅青色带阴影 */
+        .toc-original {
+            margin: 0;
+        }
+        
+        .toc-original a {
+            display: inline-block;
+            width: 64px;  /* 固定宽度确保每行显示数量一致 */
+            padding: 6px 4px;
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #36828C;  /* 青色主题色 */
+            text-decoration: none;
+            text-align: center;
+            background: #e8f4f5;
+            border-radius: 6px;
+            border-left: none;
+            box-shadow: 0 2px 4px rgba(54, 130, 140, 0.2);  /* 青色阴影 */
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .toc-original a:hover {
+            background: #e0f2f4;
+            color: #36828C;
+            box-shadow: 0 3px 6px rgba(54, 130, 140, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        /* TOC 遮罩层 */
+        .toc-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .toc-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 移动端 TOC 适配 */
+        @media (max-width: 768px) {
+            .toc-toggle {
+                top: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .toc-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .toc-panel {
+                width: 90vw;
+                height: 80vh;
+                max-width: none;
+            }
+            
+            .toc-header {
+                padding: 12px 15px 12px 65px;
+            }
+            
+            .toc-header h3 {
+                font-size: 16px;
+            }
+            
+            .toc-item a {
+                padding: 4px 15px;
+                font-size: 15.5px;
+            }
+            
+            .toc-originals-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            .toc-original a {
+                padding: 5px 10px;
+                font-size: 15.5px;
+            }
+        }
+
+        /* 特殊术语着色 */
+        .spectral {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .periodicity {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .fourier {
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        /* 列表样式增强 */
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 - 已移除重复定义，使用上方第602-633行的紧凑型样式 */
+
+        /* 分隔线 */
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 30px 0;
+        }
+
+        /* 数学公式样式 - Q7: 行间公式颜色用黑色 */
+        .math-block {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            color: #000000; /* Q7: 黑色文字 */
+        }
+
+        /* Q7: 确保MathJax渲染的公式为黑色 */
+        .math-block .MathJax {
+            color: #000000 !important;
+        }
+
+        mjx-container {
+            color: #000000 !important;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- TOC 目录按钮 -->
+    <button class="toc-toggle" id="tocToggle" aria-label="打开目录">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+        </svg>
+    </button>
+    
+    <!-- TOC 遮罩层 -->
+    <div class="toc-overlay" id="tocOverlay"></div>
+    
+    <!-- TOC 目录面板 -->
+    <nav class="toc-panel" id="tocPanel">
+        <div class="toc-header">
+            <h3>📑 目录</h3>
+        </div>
+        <div class="toc-content">
+            <ul class="toc-list">
+                <li class="toc-item toc-heading"><a href="#section-1">1. 1. 5.4 识别直积</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-1">原文1</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-2">2. 2. 换位子与换位子子群的定义</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-2">原文2</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-3">3. 3. 换位子的性质</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-3">原文3</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-4">4. 4. 命题7的证明</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-4">原文4</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-5">5. 5. 换位子子群的构成</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-5">原文5</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-6">6. 6. 例子</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-6">原文6</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-7">7. 7. 唯一分解性质</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-7">原文7</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-8">8. 8. 内直积识别定理</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-8">原文8</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-9">9. 9. 定理9的证明</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-9">原文9</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-10">10. 10. 内外直积的定义</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-10">原文10</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-11">11. 11. 例子 (识别直积)</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-11">原文11</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-12">12. 12. 习题</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-12">原文12</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-13">13. 行间公式索引</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>1. 5.4 识别直积</h1>
+            <p class="authors"></p>
+            <p class="date"></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 图例区域 -->
+        <div class="legend-section">
+            <!-- 第一行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar original"></div>
+                    <span>📜 原文</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar explain"></div>
+                    <span>📖 逐步解释</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar formula"></div>
+                    <span>∑ 公式拆解</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar example"></div>
+                    <span>💡 数值示例</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar warning"></div>
+                    <span>⚠️ 易错点</span>
+                </div>
+            </div>
+            <!-- 第二行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar summary"></div>
+                    <span>📝 总结</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar purpose"></div>
+                    <span>🎯 存在目的</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar intuition"></div>
+                    <span>🧠 直觉心智模型</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar imagination"></div>
+                    <span>💭 直观想象</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="content-section" id="section-1">
+    <h2><span class="section-number">1</span>1. 5.4 识别直积</h2>
+    <p id="original-1"><strong style="font-size: 1.3rem;">📜 [原文1]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>到目前为止，我们已经看到<strong>直积</strong>可以用来从“较小”的<strong>群</strong>构造“较大”的<strong>群</strong>，也可以将<strong>有限生成 Abel 群</strong>分解为<strong>循环因子</strong>。甚至某些<strong>非 Abel 群</strong>，即使以其他形式给出，也可以分解为较小<strong>群</strong>的<strong>直积</strong>。本节的目的是指出一个<strong>判据</strong>，以识别何时一个<strong>群</strong>是其某些<strong>子群</strong>的<strong>直积</strong>，并用一些<strong>例子</strong>说明该<strong>判据</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本段是第 5.4 节的引言，它概述了本节即将探讨的核心主题。让我们逐句来理解。</p>
+<p>第一句：“到目前为止，我们已经看到<strong>直积</strong>可以用来从“较小”的<strong>群</strong>构造“较大”的<strong>群</strong>，也可以将<strong>有限生成 Abel 群</strong>分解为<strong>循环因子</strong>。”</p>
+<ul>
+  <li><strong>从“较小”的群构造“较大”的群</strong>：这指的是<strong>外直积</strong> (External Direct Product) 的概念。如果我们有两个群 $H$ 和 $K$，我们可以构造一个新的群 $H \times K$，这个新群的元素是形如 $(h, k)$ 的有序对，其中 $h \in H$，$k \in K$。新群的阶数是 $|H| \times |K|$，通常比 $H$ 和 $K$ 都大。这是一种“合成”或“建造”新群的方法。</li>
+  <li><strong>将有限生成 Abel 群分解为循环因子</strong>：这指的是<strong>有限生成阿贝尔群基本定理</strong>。该定理说明，任何一个有限生成的阿贝尔群都可以被唯一地（在同构意义下）分解成若干个循环群的直积。例如，一个复杂的阿贝尔群 $G$ 可能同构于 $Z_{p_1^{a_1}} \times Z_{p_2^{a_2}} \times \dots \times Z_{p_k^{a_k}}$。这是一种“分解”或“分析”现有群结构的方法，类似于将一个正整数分解为素数乘积。</li>
+</ul>
+<p>第二句：“甚至某些<strong>非 Abel 群</strong>，即使以其他形式给出，也可以分解为较小<strong>群</strong>的<strong>直积</strong>。”</p>
+<ul>
+  <li>这句话扩展了直积的应用范围。直积不仅仅适用于<strong>阿贝尔群</strong>（元素可交换的群），也可能适用于<strong>非阿贝尔群</strong>。一个非阿贝尔群 $G$ 有可能被发现与两个或多个更小的群（其中至少一个是非阿贝尔群）的直积 $H \times K$ 是<strong>同构</strong>的。这意味着 $G$ 的结构在本质上等同于 $H$ 和 $K$ 两个群结构的“并排”组合。</li>
+</ul>
+<p>第三句：“本节的目的是指出一个<strong>判据</strong>，以识别何时一个<strong>群</strong>是其某些<strong>子群</strong>的<strong>直积</strong>，并用一些<strong>例子</strong>说明该<strong>判据</strong>。”</p>
+<ul>
+  <li>这句话点明了本节的核心任务。前面提到的“分解”群，引出了一个关键问题：给定一个群 $G$，我们如何判断它能否被看作是其内部某些子群 $H$ 和 $K$ 的直积？这种情况下，我们讨论的是<strong>内直积</strong> (Internal Direct Product)。</li>
+  <li><strong>判据</strong> (Criterion)：本节将提供一个或一组明确的条件。如果我们有一个群 $G$ 和它的一些子群，只要这些子群满足了这些条件，我们就可以断定 $G$（或者 $G$ 的某个子群）同构于这些子群的直积。</li>
+  <li><strong>例子</strong>：通过具体的群（如二面体群 $D_{2n}$、对称群 $S_n$ 等）作为例子，来展示这个判据如何实际应用。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1：从“较小”构造“较大”</strong></li>
+  <li>设 $H = Z_2 = \{0, 1\}$ （模2加法群），$K = Z_3 = \{0, 1, 2\}$ （模3加法群）。</li>
+  <li>它们的直积是 $G = Z_2 \times Z_3$。</li>
+  <li>$G$ 的元素是所有的有序对：$\{(0,0), (0,1), (0,2), (1,0), (1,1), (1,2)\}$。</li>
+  <li>$G$ 的阶是 $|Z_2| \times |Z_3| = 2 \times 3 = 6$。</li>
+  <li>这个群 $G$ 同构于 $Z_6$，是一个比 $Z_2$ 和 $Z_3$ 都“大”的群。</li>
+</ul>
+<ul>
+  <li><strong>示例2：分解非阿贝尔群</strong></li>
+  <li>考虑一个阶为 12 的非阿贝尔群 $G$。</li>
+  <li>我们可能会发现它同构于 $D_6 \times Z_2$。这里 $D_6$ 是正三角形的对称群，阶为 6，非阿贝尔。$Z_2$ 是阶为 2 的循环群，是阿贝尔群。</li>
+  <li>这意味着 $G$ 的复杂结构可以被理解为 $D_6$ 的结构和 $Z_2$ 的结构“独立地”并存。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>内直积 vs 外直积</strong>：初学者容易混淆这两个概念。<strong>外直积</strong>是从已知的几个群“创造”一个新群，元素是元组。<strong>内直积</strong>是在一个已知的“大”群 $G$ 内部，寻找满足特定条件的子群 $H$ 和 $K$，使得它们的乘积 $HK$（$HK=\{hk \mid h \in H, k \in K\}$）在结构上等同于外直积 $H \times K$。本节的重点是后者，即如何“识别”出一个群内部的直积结构。</li>
+  <li><strong>子群的乘积 $HK$ 不一定是群</strong>：只有当 $H$ 或 $K$ 中至少有一个是正规子群时（更一般地，当 $HK=KH$ 时），$HK$ 才构成一个子群。本节将要介绍的判据会对 $H$ 和 $K$ 的性质做出更强的要求。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段是引子，告诉我们本节的目标是学习一个重要的工具——一个“识别定理”。这个定理能帮助我们判断一个给定的群 $G$ 是否可以被看作是其内部几个子群的“直积”。这极大地加深了我们对群结构的理解，使我们能将复杂的群分解为更简单、更熟悉的组成部分。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本节的存在，是为了将抽象的<strong>直积</strong>概念与具体的群结构分析联系起来。学习了如何构造外直积后，一个自然的问题就是反过来：如何在一个已有的群中发现这种直积结构？本节就是要回答这个问题，提供一个可操作的、强大的理论工具，用于群的分解和分类。这在研究群的结构、性质和分类时至关重要。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你有许多不同种类、不同颜色的乐高积木（代表“较小”的群）。</p>
+<ol>
+  <li><strong>外直积</strong>就像是，你拿一块红色积木和一块蓝色积木，用一种标准方式把它们并排粘在一起，形成一个新的组合积木（“较大”的群）。</li>
+  <li><strong>内直积的识别</strong>就像是，你拿到一个别人已经拼好的、看起来很复杂的乐高模型（一个“大”群 $G$）。你的任务是仔细观察，判断这个模型是否可以被无损地拆分成几块独立的、更简单的子模型（子群 $H$ 和 $K$），并且这些子模型之间几乎没有相互“干涉”，只是简单地拼合在一起。本节的判据就是教你如何进行这种“拆解分析”的规则。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个二维平面上的向量空间 $R^2$。它可以被看作是 x-轴（一个一维子空间 $H$）和 y-轴（一个一维子空间 $K$）的<strong>直和</strong>。任何平面上的点 $(x, y)$ 都可以唯一地表示为一个 x-轴上的向量 $(x, 0)$ 和一个 y-轴上的向量 $(0, y)$ 的和。这两个子空间除了原点 $(0,0)$ 之外没有其他公共点，并且它们共同张成了整个平面。群的内直积在概念上与此非常相似：一个大群 $G$ 的元素可以被唯一地“分解”成来自两个特定子群 $H$ 和 $K$ 的元素的“乘积”，这两个子群只在单位元处相交，并且它们的元素之间有一种特殊的“正交”关系（可交换）。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-2">
+    <h2><span class="section-number">2</span>2. 换位子与换位子子群的定义</h2>
+    <p id="original-2"><strong style="font-size: 1.3rem;">📜 [原文2]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>在此之前，我们先介绍一些关于<strong>换位子</strong>的<strong>标准记号</strong>和<strong>基本结果</strong>，这将<strong>简化表述</strong>，并将在第6章考虑<strong>幂零群</strong>时再次使用。</p>
+<p><strong>定义</strong>。设 $G$ 是一个<strong>群</strong>，设 $x, y \in G$，设 $A, B$ 是 $G$ 的<strong>非空子集</strong>。</p>
+<p>(1) 定义 $[x, y]=x^{-1} y^{-1} x y$，称为 $x$ 和 $y$ 的<strong>换位子</strong>。</p>
+<p>(2) 定义 $[A, B]=\langle[a, b] \mid a \in A, b \in B\rangle$，由来自 $A$ 和 $B$ 的<strong>元素</strong>的<strong>换位子生成</strong>的<strong>群</strong>。</p>
+<p>(3) 定义 $G^{\prime}=\langle[x, y] \mid x, y \in G\rangle$，由 $G$ 的<strong>元素</strong>的<strong>换位子生成</strong>的 $G$ 的<strong>子群</strong>，称为 $G$ 的<strong>换位子子群</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>在正式给出识别直积的定理之前，文本引入了一个重要的辅助工具：<strong>换位子</strong> (commutator)。换位子是衡量群中元素交换程度的标尺。</p>
+<p>第一句：“在此之前，我们先介绍一些关于<strong>换位子</strong>的<strong>标准记号</strong>和<strong>基本结果</strong>，这将<strong>简化表述</strong>，并将在第6章考虑<strong>幂零群</strong>时再次使用。”</p>
+<ul>
+  <li>这句话说明引入换位子的动机。首先，它是简化后续定理表述的语言工具。其次，它是一个非常基础且重要的概念，在后续更高级的群论主题（如<strong>幂零群</strong>和<strong>可解群</strong>）中会反复出现。</li>
+</ul>
+<p><strong>定义部分</strong></p>
+<p><strong>(1) 元素之间的换位子</strong></p>
+<ul>
+  <li><strong>原文</strong>：“定义 $[x, y]=x^{-1} y^{-1} x y$，称为 $x$ 和 $y$ 的<strong>换位子</strong>。”</li>
+  <li><strong>解释</strong>：对于群 $G$ 中的任意两个元素 $x$ 和 $y$，它们的<strong>换位子</strong>被定义为一个特定的乘积组合：$[x, y] = x^{-1} y^{-1} x y$。</li>
+  <li><strong>核心思想</strong>：这个表达式有什么特殊之处？让我们来看一下：</li>
+  <li>如果 $x$ 和 $y$ 是可交换的，即 $xy = yx$。</li>
+  <li>那么我们可以推导：$x^{-1}y^{-1}xy = x^{-1}(y^{-1}y)x = x^{-1}(e)x = x^{-1}x = e$（其中 $e$ 是单位元）。</li>
+  <li>反过来，如果 $[x, y] = e$，即 $x^{-1}y^{-1}xy = e$。</li>
+  <li>两边左乘 $yx$，得到 $(yx)(x^{-1}y^{-1}xy) = (yx)e$，即 $y(xx^{-1})y^{-1}xy = yx$，简化为 $yey^{-1}xy = yx$，即 $yy^{-1}xy = yx$，最终得到 $xy = yx$。</li>
+  <li><strong>结论</strong>：$[x, y] = e$ 当且仅当 $x$ 和 $y$ 可交换。</li>
+  <li>因此，换位子 $[x, y]$ 的值“偏离”单位元 $e$ 的程度，就反映了 $x$ 和 $y$ “不可交换”的程度。如果一个群是<strong>阿贝尔群</strong>，那么其中任意两个元素的换位子都是单位元 $e$。</li>
+</ul>
+<p><strong>(2) 子集之间的换位子子群</strong></p>
+<ul>
+  <li><strong>原文</strong>：“定义 $[A, B]=\langle[a, b] \mid a \in A, b \in B\rangle$，由来自 $A$ 和 $B$ 的<strong>元素</strong>的<strong>换位子生成</strong>的<strong>群</strong>。”</li>
+  <li><strong>解释</strong>：这扩展了换位子的概念，从单个元素对扩展到两个子集 $A$ 和 $B$。</li>
+  <li><strong>步骤</strong>：</li>
+</ul>
+<ol>
+  <li>首先，我们考虑所有可能的元素对 $(a, b)$，其中 $a$ 来自子集 $A$，$b$ 来自子集 $B$。</li>
+  <li>对每一对 $(a, b)$，我们计算它们的换位子 $[a, b] = a^{-1}b^{-1}ab$。</li>
+  <li>我们就得到了一个换位子的集合：$S = \{[a, b] \mid a \in A, b \in B\}$。</li>
+  <li>$[A, B]$ 被定义为由这个集合 $S$ 中所有元素<strong>生成</strong>的子群。
+<ul>
+  <li><strong>生成子群</strong> ($\langle \dots \rangle$)：由一个集合 $S$ 生成的子群，是包含 $S$ 的最小的子群。它的元素是 $S$ 中元素及其逆元的任意有限乘积。例如，$s_1, s_2 \in S$，那么 $s_1s_2$，$s_1^{-1}$，$s_2s_1s_2^{-1}$ 等都在 $\langle S \rangle$ 中。仅仅是换位子本身的集合不一定构成一个群（比如两个换位子的乘积不一定是另一个换位子），所以需要“生成”操作来确保闭合性，从而形成一个合法的子群。</li>
+</ul></li>
+</ol>
+<p><strong>(3) 群的换位子子群</strong></p>
+<ul>
+  <li><strong>原文</strong>：“定义 $G^{\prime}=\langle[x, y] \mid x, y \in G\rangle$，由 $G$ 的<strong>元素</strong>的<strong>换位子生成</strong>的 $G$ 的<strong>子群</strong>，称为 $G$ 的<strong>换位子子群</strong>。”</li>
+  <li><strong>解释</strong>：这是第 (2) 部分的一个特例，其中子集 $A$ 和 $B$ 都取为整个群 $G$。</li>
+  <li>$G'$（也记作 $[G, G]$）是由群 $G$ 中所有可能的换位子 $[x, y]$（其中 $x, y \in G$）生成的子群。</li>
+  <li>$G'$ 包含了衡量群 $G$ “整体非交换性”的全部信息。如果 $G'$ 是一个平凡子群（即 $G'=\{e\}$），那么 $G$ 中所有元素都相互交换，所以 $G$ 是一个<strong>阿贝尔群</strong>。反之，如果 $G$ 是阿贝尔群，显然 $G'=\{e\}$。</li>
+  <li>$G'$ 本身是一个非常重要的子群，我们将在下一段命题中看到它的许多关键性质。它有时也被称为<strong>导群</strong> (derived subgroup)。</li>
+</ul>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>公式</strong>：$[x, y] = x^{-1} y^{-1} x y$</li>
+  <li>$x, y$：群 $G$ 中的两个元素。</li>
+  <li>$x^{-1}, y^{-1}$：分别是 $x$ 和 $y$ 在群 $G$ 中的逆元。</li>
+  <li>表达式的计算顺序是从左到右进行的乘法（群运算）。</li>
+  <li>这个定义是现代抽象代数中的标准定义。有些领域或旧教材可能会使用 $xyx^{-1}y^{-1}$，这恰好是前者的逆。</li>
+</ul>
+<ul>
+  <li><strong>符号</strong>：$\langle S \rangle$</li>
+  <li>$S$：一个元素的集合。</li>
+  <li>$\langle S \rangle$：表示由集合 $S$ 中所有元素<strong>生成</strong>的子群。这是包含 $S$ 的最小子群，由 $S$ 中元素及其逆元的有限乘积构成。</li>
+</ul>
+<ul>
+  <li><strong>符号</strong>：$G'$</li>
+  <li>$G$：一个群。</li>
+  <li>$G'$：$G$ 的<strong>换位子子群</strong> (commutator subgroup) 或<strong>导群</strong> (derived subgroup)。这是一个标准记号，定义为 $G' = [G, G] = \langle [x, y] \mid x, y \in G \rangle$。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1：阿贝尔群中的换位子</strong></li>
+  <li>设 $G = Z_4 = \{0, 1, 2, 3\}$，运算是模4加法。这是一个阿贝尔群。</li>
+  <li>我们来计算两个元素，比如 $x=2, y=3$ 的换位子。在加法群中，定义变为 $[x, y] = -x -y +x +y$。</li>
+  <li>$[2, 3] = (-2) + (-3) + 2 + 3$。在 $Z_4$ 中，$-2$ 是 $2$，$-3$ 是 $1$。</li>
+  <li>所以 $[2, 3] = 2 + 1 + 2 + 3 = 8 \equiv 0 \pmod 4$。单位元是 $0$。</li>
+  <li>因为 $Z_4$ 是阿贝尔群，任何两个元素的换位子都是 $0$。因此 $Z_4' = \langle 0 \rangle = \{0\}$，是平凡子群。</li>
+</ul>
+<ul>
+  <li><strong>示例2：非阿贝尔群中的换位子</strong></li>
+  <li>设 $G = S_3 = \{e, (12), (13), (23), (123), (132)\}$，对称群。这是一个非阿贝尔群。</li>
+  <li>让我们计算 $x=(12)$ 和 $y=(13)$ 的换位子。</li>
+  <li>$x^{-1} = (12)$ (对换的逆是自身)，$y^{-1} = (13)$。</li>
+  <li>$[(12), (13)] = (12)^{-1}(13)^{-1}(12)(13) = (12)(13)(12)(13)$。</li>
+  <li>计算复合：</li>
+  <li>$(12)(13)$：1-&gt;2, 2-&gt;1, 3-&gt;3; 1-&gt;3, 3-&gt;1, 2-&gt;2. 复合起来：1-&gt;2-&gt;2, 2-&gt;1-&gt;3, 3-&gt;3-&gt;1. 结果是 $(123)$。</li>
+  <li>$(12)(13)$：1-&gt;3-&gt;2, 2-&gt;2-&gt;1, 3-&gt;1-&gt;3. 结果是 $(132)$。 (注：这里原文用的 $x^{-1}y^{-1}xy$，我们按定义计算)</li>
+  <li>正确计算 $[(12), (13)] = (12)(13)(12)(13)$。</li>
+  <li>我们先算 $(12)(13) = (132)$。</li>
+  <li>再算 $(12)(13) = (123)$ (这是右复合)。</li>
+  <li>若按 $f \circ g$ 是 $g$ 先作用，则 $(12)(13)$ 是 1-&gt;3, 3-&gt;1; 1-&gt;2, 2-&gt;1。复合是 1-&gt;3-&gt;3, 2-&gt;1-&gt;2, 3-&gt;1-&gt;2。即 (132)。</li>
+  <li>Let's re-calculate step-by-step: $(12)(13)(12)(13)$</li>
+  <li>作用于 1: $1 \xrightarrow{(13)} 3 \xrightarrow{(12)} 3 \xrightarrow{(13)} 1 \xrightarrow{(12)} 2$. 所以 1-&gt;2.</li>
+  <li>作用于 2: $2 \xrightarrow{(13)} 2 \xrightarrow{(12)} 1 \xrightarrow{(13)} 3 \xrightarrow{(12)} 3$. 所以 2-&gt;3.</li>
+  <li>作用于 3: $3 \xrightarrow{(13)} 1 \xrightarrow{(12)} 2 \xrightarrow{(13)} 2 \xrightarrow{(12)} 1$. 所以 3-&gt;1.</li>
+  <li>结果是 $(123)$。</li>
+  <li>所以 $[(12), (13)] = (123)$。这是一个非单位元。</li>
+  <li>类似地，我们可以计算其他换位子，例如 $[(12), (123)] = (12)^{-1}(123)^{-1}(12)(123) = (12)(132)(12)(123) = (132)$。</li>
+  <li>事实上，$S_3$ 的换位子子群 $S_3'$ 是由所有这些换位子生成的。可以证明 $S_3'$ 就是交错群 $A_3 = \{e, (123), (132)\}$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>换位子的集合不一定是子群</strong>：一个常见的错误是认为 $\{[x, y] \mid x, y \in G\}$ 这个集合自身就构成一个群。实际上不一定。例如，在某些群中，两个换位子的乘积可能无法表示为单个换位子。因此，定义中必须使用“生成” $\langle \dots \rangle$ 的概念，来确保结果是一个闭合的子群。</li>
+  <li><strong>乘法顺序</strong>：换位子 $[x, y]$ 的定义 $x^{-1}y^{-1}xy$ 是标准定义，但必须严格遵守这个顺序。不同的顺序会得到不同的结果（例如，可能是逆元）。</li>
+  <li><strong>加法群的记号</strong>：在阿贝尔群（尤其是用加法表示的群）中，换位子 $[x, y]$ 的形式是 $-x -y + x + y$。由于加法是可交换的，结果总是单位元 $0$。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段定义了三个核心概念：</p>
+<ol>
+  <li> <strong>元素换位子 $[x, y]$</strong>：衡量两个元素 $x, y$ 不可交换程度的量。</li>
+  <li> <strong>子集换位子子群 $[A, B]$</strong>：由两个子集 $A, B$ 间所有元素换位子生成的子群。</li>
+  <li> <strong>换位子子群 $G'$</strong>：衡量整个群 $G$ 不可交换程度的子群，由 $G$ 中所有换位子生成。</li>
+</ol>
+<p>这些概念是理解群的阿贝尔化、正规子群以及后续更深层次群结构理论的基础。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>引入换位子是为了量化“交换性”这个概念。对于阿贝尔群，交换性是其全部特征。对于非阿贝尔群，我们想知道它“有多不阿贝尔”。换位子子群 $G'$ 就是这个问题的答案。$G'$ 越“小”，$G$ 就越“接近”阿贝尔群。$G'$ 的性质（将在下一段阐述）与群的同态、商群和正规子群紧密相连，是分析群结构不可或缺的工具，尤其是在引出本节核心定理“识别直积”时，它将扮演关键角色。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一个公司里的员工（群的元素）。公司规定了一些操作流程（群运算）。</p>
+<ol>
+  <li>如果两个员工 A 和 B 的工作完全独立，那么 A 先做再 B 做（$ab$），和 B 先做再 A 做（$ba$）的结果是一样的。这时我们说他们是“可交换的”。</li>
+  <li>如果他们的工作有交叉，那么顺序就很重要，$ab \neq ba$。<strong>换位子 $[a, b]$</strong> 就好比是为了“纠正”这个顺序差异而需要做的额外操作。即 $ab = ba \cdot [a,b]$。可以看作是 B 完成工作后，为了让结果等同于 A 先工作，需要 A 付出的一个“调整”或“补偿”操作。</li>
+  <li><strong>换位子子群 $G'$</strong> 就是公司里所有可能因顺序问题产生的“调整/补偿操作”所构成的集合。如果这个集合只有一个元素（什么都不用做，即单位元），说明这家公司所有流程都是完美并行的（阿贝尔群）。如果这个集合很庞大，说明公司内部工作流程耦合度很高，非常“非交换”。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你在一个铺满格子的房间里，只能沿着东西方向或南北方向移动。</p>
+<ol>
+  <li>设向东移动一步为 $x$，向北移动一步为 $y$。</li>
+  <li>先东后北 ($xy$) 和先北后东 ($yx$) 到达的是同一个点。这是因为移动是可交换的，$[x, y] = e$。</li>
+  <li>现在想象你是在一个球面上移动。从北极点出发，先沿 0 度经线向南走 1000 公里 (操作 $y$)，再沿赤道向东走 1000 公里 (操作 $x$)；与先沿赤道向东走 1000 公里，再向南走 1000 公里，最终到达的点是不同的。</li>
+  <li><strong>换位子 $[x, y]$</strong> 就代表了这两种路径终点之间的那个“位移差异”。在球面上，这个差异不是零。</li>
+  <li><strong>换位子子群 $G'$</strong> 就可以想象成，由所有这种因路径顺序不同而产生的“终点位移差异”所构成的集合。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-3">
+    <h2><span class="section-number">3</span>3. 换位子的性质</h2>
+    <p id="original-3"><strong style="font-size: 1.3rem;">📜 [原文3]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>$x$ 和 $y$ 的<strong>换位子</strong>是 1 当且仅当 $x$ 和 $y$ 可交换，这解释了<strong>术语</strong>。以下<strong>命题</strong>展示了<strong>换位子</strong>如何<strong>度量</strong> $G$ 中 $x y$ 和 $y x$ 之间的“<strong>差异</strong>”。</p>
+<p><strong>命题</strong> 7。设 $G$ 是一个<strong>群</strong>，设 $x, y \in G$，设 $H \leq G$。则</p>
+<p>(1) $x y=y x[x, y]$（特别地，$x y=y x$ 当且仅当 $[x, y]=1$）。</p>
+<p>(2) $H \unlhd G$ 当且仅当 $[H, G] \leq H$。</p>
+<p>(3) 对于 $G$ 的任何<strong>自同构</strong> $\sigma$，$\sigma[x, y]=[\sigma(x), \sigma(y)]$，$G^{\prime}$ char $G$，且 $G / G^{\prime}$ 是<strong>Abel 群</strong>。</p>
+<p>(4) $G / G^{\prime}$ 是 $G$ 的最大<strong>Abel 商群</strong>，其意义在于，如果 $H \unlhd G$ 且 $G / H$ 是<strong>Abel 群</strong>，则 $G^{\prime} \leq H$。反之，如果 $G^{\prime} \leq H$，则 $H \unlhd G$ 且 $G / H$ 是<strong>Abel 群</strong>。</p>
+<p>(5) 如果 $\varphi: G \rightarrow A$ 是从 $G$ 到<strong>Abel 群</strong> $A$ 的任何<strong>同态</strong>，则 $\varphi$ 通过 $G^{\prime}$ <strong>分解</strong>，即 $G^{\prime} \leq \operatorname{ker} \varphi$ 且以下<strong>图</strong>可交换：</p>
+<p><img src="https://cdn.mathpix.com/cropped/7b50211c-5435-41fb-8566-deb985c28584-18.jpg?height=174&width=299&top_left_y=1699&top_left_x=720" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本段提出了一个包含五个重要性质的命题，深刻揭示了换位子及换位子子群在群论中的核心地位。</p>
+<p><strong>引言部分</strong></p>
+<ul>
+  <li><strong>原文</strong>：“$x$ 和 $y$ 的<strong>换位子</strong>是 1 当且仅当 $x$ 和 $y$ 可交换，这解释了<strong>术语</strong>。以下<strong>命题</strong>展示了<strong>换位子</strong>如何<strong>度量</strong> $G$ 中 $x y$ 和 $y x$ 之间的“<strong>差异</strong>”。”</li>
+  <li><strong>解释</strong>：再次强调了换位子的核心作用：它是衡量可交换性的标尺。“1” 在这里是乘法群中单位元的通用写法，有时也写为 $e$。换位子这个术语的来源就是因为它与 "commute"（交换）有关。接下来的命题将从不同角度深化这个思想。</li>
+</ul>
+<p><strong>命题 7 详解</strong></p>
+<p><strong>(1) 换位子是 $xy$ 和 $yx$ 的“桥梁”</strong></p>
+<ul>
+  <li><strong>原文</strong>：“$x y=y x[x, y]$（特别地，$x y=y x$ 当且仅当 $[x, y]=1$）。”</li>
+  <li><strong>逐步解释</strong>：这个等式给出了 $xy$ 和 $yx$ 的精确关系。</li>
+  <li>从换位子的定义 $[x, y] = x^{-1}y^{-1}xy$ 出发。</li>
+  <li>我们想从这个定义中解出 $xy$。</li>
+  <li>在等式两边同时左乘 $yx$：</li>
+</ul>
+<p>$yx[x, y] = yx(x^{-1}y^{-1}xy)$</p>
+<ul>
+  <li>运用结合律：$yx[x, y] = y(xx^{-1})y^{-1}xy = y(e)y^{-1}xy = (yy^{-1})xy = exy = xy$。</li>
+  <li>于是，我们证明了 $xy = yx[x, y]$。</li>
+  <li><strong>意义</strong>：这个式子表明，$xy$ 可以看作是先交换顺序变成 $yx$，然后再“补偿”一个换位子 $[x, y]$。这个换位子就是两者之间的“差异”或“修正因子”。</li>
+  <li><strong>特别地</strong>：如果 $xy=yx$，那么 $yx = yx[x,y]$，两边消去 $yx$，得到 $[x, y] = 1$。反之，如果 $[x, y]=1$，那么 $xy = yx \cdot 1 = yx$。这再次确认了换位子与可交换性的等价关系。</li>
+</ul>
+<p><strong>(2) 正规子群的换位子判据</strong></p>
+<ul>
+  <li><strong>原文</strong>：“$H \unlhd G$ 当且仅当 $[H, G] \leq H$。”</li>
+  <li><strong>逐步解释</strong>：这是一个极其有用的判断一个子群是否为<strong>正规子群</strong>的充要条件。</li>
+  <li><strong>回顾正规子群定义</strong>：$H$ 是 $G$ 的正规子群（$H \unlhd G$），当且仅当对于任意 $g \in G$ 和任意 $h \in H$，都有 $g^{-1}hg \in H$。这个 $g^{-1}hg$ 称为 $h$ 的共轭。</li>
+  <li><strong>证明 $H \unlhd G \implies [H, G] \leq H$</strong>：</li>
+  <li>假设 $H \unlhd G$。我们要证明 $[H, G] \leq H$。</li>
+  <li>$[H, G]$ 是由形如 $[h, g]$（$h \in H, g \in G$）的元素生成的子群。我们只需证明所有这些生成元都在 $H$ 中。</li>
+  <li>考虑一个生成元 $[h, g] = h^{-1}g^{-1}hg$。</li>
+  <li>因为 $H \unlhd G$，所以 $g^{-1}hg \in H$。</li>
+  <li>因为 $H$ 是一个子群，它对乘法和求逆封闭。既然 $h \in H$，那么 $h^{-1} \in H$。</li>
+  <li>$H$ 中有两个元素：$h^{-1}$ 和 $(g^{-1}hg)$。它们的乘积也必须在 $H$ 中。</li>
+  <li>因此，$h^{-1}(g^{-1}hg) = [h, g]$ 属于 $H$。</li>
+  <li>所有生成元都在 $H$ 中，所以它们生成的子群 $[H, G]$ 也包含在 $H$ 中，即 $[H, G] \leq H$。</li>
+  <li><strong>证明 $[H, G] \leq H \implies H \unlhd G$</strong>：</li>
+  <li>假设 $[H, G] \leq H$。我们要证明 $H \unlhd G$。</li>
+  <li>这意味着对于任意 $h \in H, g \in G$，换位子 $[h, g] = h^{-1}g^{-1}hg$ 属于 $H$。</li>
+  <li>我们需要证明 $g^{-1}hg \in H$。</li>
+  <li>从 $[h, g] \in H$ 出发，两边左乘 $h$，得到 $h(h^{-1}g^{-1}hg) \in H$（因为 $h \in H$ 且 $H$ 是子群）。</li>
+  <li>计算得 $g^{-1}hg \in H$。</li>
+  <li>这正是正规子群的定义，所以 $H \unlhd G$。</li>
+  <li><strong>意义</strong>：这个判据将正规性（一个关于共轭运算不变性的几何概念）转化为了一个关于换位子子群的代数包含关系，非常简洁和强大。</li>
+</ul>
+<p><strong>(3) 换位子子群的特殊性质</strong></p>
+<ul>
+  <li><strong>原文</strong>：“对于 $G$ 的任何<strong>自同构</strong> $\sigma$，$\sigma[x, y]=[\sigma(x), \sigma(y)]$，$G^{\prime}$ char $G$，且 $G / G^{\prime}$ 是<strong>Abel 群</strong>。”</li>
+  <li><strong>逐步解释</strong>：这一条包含三个结论。</li>
+  <li><strong>结论一：自同构保持换位子结构</strong> $\sigma[x, y]=[\sigma(x), \sigma(y)]$</li>
+  <li><strong>自同构</strong> ($\sigma \in \text{Aut}(G)$) 是一个从群 $G$ 到自身的同构映射，即保持群运算的 bijective 函数：$\sigma(ab) = \sigma(a)\sigma(b)$。</li>
+  <li><strong>证明</strong>：</li>
+</ul>
+<p>$\sigma([x, y]) = \sigma(x^{-1}y^{-1}xy)$</p>
+<p>因为 $\sigma$ 是同态，所以 $\sigma(a^{-1}) = (\sigma(a))^{-1}$。</p>
+<p>$= \sigma(x^{-1})\sigma(y^{-1})\sigma(x)\sigma(y)$</p>
+<p>$= (\sigma(x))^{-1}(\sigma(y))^{-1}\sigma(x)\sigma(y)$</p>
+<p>根据换位子的定义，这正是 $[\sigma(x), \sigma(y)]$。</p>
+<ul>
+  <li><strong>结论二：换位子子群是特征子群</strong> $G^{\prime} \text{ char } G$</li>
+  <li><strong>特征子群</strong> (Characteristic Subgroup) 定义：一个子群 $K \leq G$ 是特征子群，如果对于 $G$ 的任何自同构 $\sigma$，都有 $\sigma(K) = K$。即 $K$ 在所有自同构下保持不变。</li>
+  <li><strong>证明</strong>：$G'$ 是由所有换位子 $[x, y]$ 生成的。</li>
+  <li>对任意一个生成元 $[x, y] \in G'$，我们刚证明了 $\sigma([x, y]) = [\sigma(x), \sigma(y)]$。由于 $\sigma$ 是满射，$\sigma(x)$ 和 $\sigma(y)$ 可以取遍 $G$ 中所有元素，所以 $[\sigma(x), \sigma(y)]$ 也是 $G'$ 的一个生成元。</li>
+  <li>这意味着 $\sigma$ 把 $G'$ 的生成集映射到了自身。因此，由这些生成元构成的整个子群也被映射到自身，即 $\sigma(G') = G'$。</li>
+  <li>所以 $G'$ 是 $G$ 的一个特征子群。</li>
+  <li><strong>重要推论</strong>：特征子群一定是正规子群。因为共轭运算 $i_g(x) = gxg^{-1}$ 是一种特殊的自同构（内自同构），所以特征子群在所有共轭下不变，满足正规子群的条件。因此 $G' \unlhd G$。</li>
+  <li><strong>结论三：商群 $G/G'$ 是阿贝尔群</strong></li>
+  <li><strong>商群</strong> $G/G'$ 的元素是 $G'$ 的陪集，形如 $xG'$。运算是 $(xG')(yG') = (xy)G'$。</li>
+  <li><strong>证明</strong>：我们要证明对于任意两个陪集 $xG'$ 和 $yG'$，它们是可交换的，即 $(xG')(yG') = (yG')(xG')$。</li>
+  <li>$(xG')(yG') = (xy)G'$</li>
+  <li>$(yG')(xG') = (yx)G'$</li>
+  <li>我们需要证明 $(xy)G' = (yx)G'$。根据陪集的性质，这等价于 $(yx)^{-1}(xy) \in G'$。</li>
+  <li>$(yx)^{-1}(xy) = x^{-1}y^{-1}xy = [x, y]$。</li>
+  <li>根据 $G'$ 的定义，任何换位子 $[x, y]$ 都在 $G'$ 中。</li>
+  <li>因此 $(xy)G' = (yx)G'$ 成立。$G/G'$ 是阿贝尔群。</li>
+  <li><strong>意义</strong>：$G/G'$ 被称为 $G$ 的<strong>阿贝尔化</strong> (abelianization)。它是在“杀死”$G$ 中所有非交换性（通过将所有换位子视为单位元）后得到的“最接近”$G$ 的阿贝尔群。</li>
+</ul>
+<p><strong>(4) $G/G'$ 是“最大”的阿贝尔商群</strong></p>
+<ul>
+  <li><strong>原文</strong>：“$G / G^{\prime}$ 是 $G$ 的最大<strong>Abel 商群</strong>，其意义在于，如果 $H \unlhd G$ 且 $G / H$ 是<strong>Abel 群</strong>，则 $G^{\prime} \leq H$。反之，如果 $G^{\prime} \leq H$，则 $H \unlhd G$ 且 $G / H$ 是<strong>Abel 群</strong>。”</li>
+  <li><strong>逐步解释</strong>：这揭示了 $G'$ 的一个普适性质 (universal property)。</li>
+  <li><strong>证明 $G/H$ 是阿贝尔群 $\implies G' \leq H$</strong>：</li>
+  <li>假设 $H \unlhd G$ 且 $G/H$ 是阿贝尔群。</li>
+  <li>这意味着对于任意 $x, y \in G$，在商群 $G/H$ 中有 $(xH)(yH) = (yH)(xH)$。</li>
+  <li>即 $(xy)H = (yx)H$。</li>
+  <li>这等价于 $(yx)^{-1}(xy) \in H$。</li>
+  <li>$(yx)^{-1}(xy) = x^{-1}y^{-1}xy = [x, y]$。</li>
+  <li>所以，对于任意 $x, y \in G$，都有 $[x, y] \in H$。</li>
+  <li>这意味着所有换位子都在 $H$ 中。而 $G'$ 是由所有换位子生成的最小子群，因此 $G'$ 必然被包含在 $H$ 中，即 $G' \leq H$。</li>
+  <li><strong>证明 $G' \leq H \implies H \unlhd G$ 且 $G/H$ 是阿贝尔群</strong>：</li>
+  <li>假设 $G' \leq H$。</li>
+  <li><strong>证明 $H \unlhd G$</strong>：我们知道 $G'$ char $G$，所以 $G' \unlhd G$。根据格同构定理（第三同构定理的应用），$G$ 中包含 $G'$ 的子群 $H$ 与 $G/G'$ 中的子群 $H/G'$ 一一对应。由于 $G/G'$ 是阿贝尔群，它的所有子群都是正规的，所以 $H/G' \unlhd G/G'$。这对应回 $G$ 中就是 $H \unlhd G$。</li>
+  <li><strong>证明 $G/H$ 是阿贝尔群</strong>：根据第三同构定理，$G/H \cong (G/G') / (H/G')$。一个阿贝尔群 ($G/G'$) 的商群（$(G/G')/(H/G')$）必然是阿贝尔群。因此 $G/H$ 是阿贝尔群。</li>
+  <li><strong>意义</strong>：“最大”的意义在于，任何一个能产生阿贝尔商群的正规子群 $H$，都必须“吞掉”整个换位子子群 $G'$。$G'$ 是所有这类正规子群中最小的一个。因此，对应的商群 $G/G'$ 就是“最大”的那个，因为分母最小。</li>
+</ul>
+<p><strong>(5) 同态的分解性质</strong></p>
+<ul>
+  <li><strong>原文</strong>：“如果 $\varphi: G \rightarrow A$ 是从 $G$ 到<strong>Abel 群</strong> $A$ 的任何<strong>同态</strong>，则 $\varphi$ 通过 $G^{\prime}$ <strong>分解</strong>，即 $G^{\prime} \leq \operatorname{ker} \varphi$ 且以下<strong>图</strong>可交换”</li>
+  <li><strong>逐步解释</strong>：这是性质 (4) 的同态语言版本，也是一个非常重要的普适性质。</li>
+  <li><strong>同态</strong> $\varphi: G \rightarrow A$，其中 $A$ 是阿贝尔群。</li>
+  <li>考虑 $G$ 中任意一个换位子 $[x, y]$。我们看看它被 $\varphi$ 映射到哪里：</li>
+</ul>
+<p>$\varphi([x, y]) = \varphi(x^{-1}y^{-1}xy)$</p>
+<p>$= \varphi(x^{-1})\varphi(y^{-1})\varphi(x)\varphi(y)$</p>
+<p>$= (\varphi(x))^{-1}(\varphi(y))^{-1}\varphi(x)\varphi(y)$</p>
+<p>$= [\varphi(x), \varphi(y)]$。</p>
+<ul>
+  <li>因为 $\varphi(x)$ 和 $\varphi(y)$ 都是阿贝尔群 $A$ 中的元素，所以它们是可交换的。</li>
+  <li>因此，它们在 $A$ 中的换位子 $[\varphi(x), \varphi(y)]$ 是 $A$ 的单位元 $e_A$。</li>
+  <li>这意味着 $\varphi([x, y]) = e_A$。</li>
+  <li>这对 $G$ 中所有的换位子都成立。所以，所有的换位子都在 $\varphi$ 的<strong>核</strong> ($\operatorname{ker} \varphi$) 中。</li>
+  <li>由于 $G'$ 是由所有换位子生成的，并且核是一个子群，所以整个 $G'$ 都被包含在核里面，即 $G' \leq \operatorname{ker} \varphi$。</li>
+  <li><strong>交换图</strong>的意义：</li>
+  <li>图中有三个群 $G, G/G', A$ 和三个映射 $\pi, \varphi, \bar{\varphi}$。</li>
+  <li>$\pi: G \rightarrow G/G'$ 是自然投射，$g \mapsto gG'$。</li>
+  <li>$\varphi: G \rightarrow A$ 是给定的同态。</li>
+  <li>因为 $G' \leq \operatorname{ker} \varphi$，根据同态基本定理的推论，存在一个<strong>唯一</strong>的同态 $\bar{\varphi}: G/G' \rightarrow A$ 使得 $\varphi = \bar{\varphi} \circ \pi$。</li>
+  <li>这就是“$\varphi$ 通过 $G'$ 分解”的精确含义。任何到阿贝尔群的同态，都可以被看作是先进行“阿贝尔化”（$G \rightarrow G/G'$），然后再从这个阿贝尔化的群映出。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例 (2) - 正规子群判据</strong>:</li>
+  <li>设 $G=S_3, H=A_3=\{e, (123), (132)\}$。$A_3$ 是 $S_3$ 的正规子群。</li>
+  <li>我们来验证 $[A_3, S_3] \leq A_3$。</li>
+  <li>我们需要计算形如 $[h, g]$ 的换位子，其中 $h \in A_3, g \in S_3$。</li>
+  <li>如果 $h=e$，$[e, g] = e \in A_3$。</li>
+  <li>如果 $h=(123), g=(12)$，我们算过 $[(123), (12)] = (123)^{-1}(12)^{-1}(123)(12) = (132)(12)(123)(12) = (123) \in A_3$。</li>
+  <li>可以验证，所有 $[h, g]$ 的结果都在 $A_3$ 中。因此，它们生成的子群 $[A_3, S_3]$ 也必然 $\leq A_3$。</li>
+  <li>这与 $A_3 \unlhd S_3$ 的事实相符。</li>
+</ul>
+<ul>
+  <li><strong>示例 (4) - 最大阿贝尔商群</strong>:</li>
+  <li>设 $G=D_8$ (阶为8的二面体群)，$D_8 = \langle r, s \mid r^4=s^2=1, srs=r^{-1} \rangle$。</li>
+  <li>我们算得 $D_8' = \langle [r, s] \rangle = \langle r^{-2} \rangle = \langle r^2 \rangle = \{e, r^2\}$。$|D_8'|=2$。</li>
+  <li>商群 $D_8/D_8'$ 阶为 $8/2 = 4$。这是一个阿贝尔群（克莱因四元群 $V_4$）。</li>
+  <li>现在找 $D_8$ 其他的正规子群，看它们的商群。</li>
+  <li>$H_1 = \langle r \rangle = \{e, r, r^2, r^3\}$。它正规因为指数为2。$D_8/H_1$ 阶为 2，是阿贝尔群。根据命题(4)，必有 $D_8' \leq H_1$。确实，$\{e, r^2\} \leq \{e, r, r^2, r^3\}$。</li>
+  <li>$H_2 = Z(D_8) = \{e, r^2\}$。它是中心，所以正规。$D_8/H_2$ 阶为 4，是阿贝尔群 ($V_4$)。根据命题(4)，必有 $D_8' \leq H_2$。确实，$D_8' = H_2$。</li>
+  <li>$H_3 = \{e, s, r^2, sr^2\}$。它正规。$D_8/H_3$ 阶为2，是阿贝尔群。根据命题(4)，必有 $D_8' \leq H_3$。确实，$\{e, r^2\} \leq \{e, s, r^2, sr^2\}$。</li>
+  <li>可以看到，任何产生阿贝尔商群的正规子群 $H$ 都包含了 $D_8'$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>特征子群与正规子群</strong>：所有特征子群都是正规子群，但反之不成立。例如，在克莱因四元群 $V_4 = \{e, a, b, c\}$ 中，任何阶为2的子群（如 $\{e, a\}$）都是正规的，但它不是特征子群，因为存在一个自同构可以将 $a$ 映射到 $b$。而 $G'$ 是特征子群，这是一个更强的性质。</li>
+  <li><strong>“最大”的误解</strong>：说 $G/G'$ 是“最大”阿贝尔商群，不是指它的阶最大（可能有其他阿贝尔商群和它同阶），而是指它的“源头”——分母 $G'$ 是最小的。在所有让商群阿贝尔的正规子群 $H$ 中，$G'$ 是被它们共同包含的那个最小的。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>命题7是换位子理论的基石，它建立了以下关键联系：</p>
+<ol>
+  <li> 换位子是交换顺序的“修正项”。</li>
+  <li> 正规性可以用换位子子群的包含关系来刻画。</li>
+  <li> 换位子子群 $G'$ 是一个特征子群，它定义了群的阿贝尔化 $G/G'$。</li>
+  <li> $G/G'$ 在所有阿贝尔商群中具有普适性，是“最大”的一个。</li>
+  <li> 任何到阿贝尔群的同态都会“自动”将 $G'$ 映射为单位元。</li>
+</ol>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本命题的目的是系统性地揭示换位子子群的代数功能。它不仅仅是一个定义，而是一个在群论中扮演多重角色的核心对象。这些性质，特别是(2)、(3)和(4)，在证明更复杂的定理（包括本节稍后要讲的识别直积的定理）时，提供了强有力的、高度抽象的工具，使得证明过程可以摆脱繁琐的元素级别计算，而在子群和商群的结构层面上进行。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>性质(2)</strong>：想象一个国家 $G$ 和一个省份 $H$。说 $H$ 是“正规”的，意味着从国家任何地方 $g$ 来的“政策影响”（共轭）都不会把 $H$ 内部的事务 $h$ 变成省外事务。性质(2) $[H, G] \leq H$ 的直觉是：省内事务 $h$ 和国家任何政策 $g$ 之间的“摩擦”或“不兼容性” $[h, g]$，其结果必须被省内自己消化吸收，不能溢出到省外。</li>
+  <li><strong>性质(4)</strong>：想象你要对一个公司 $G$ 进行改革，目标是让改革后的新公司 $G/H$ 变得“完全民主”（阿贝尔群）。性质(4)告诉你，任何成功的改革方案 $H$（$H$ 必须是正规部门），都必须至少处理掉公司内部所有“办公室政治”的根源（换位子子群 $G'$）。$G'$ 是实现民主化必须清除的最小“利益集团”。而 $G/G'$ 就是最彻底的、只清除必要部分的改革方案。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>性质(5)与交换图</strong>：想象一个复杂的物体 $G$（非阿贝尔群）。你有一个特殊的滤镜 $A$（阿贝尔群），任何通过 $\varphi$ 投射到 $A$ 上的影像都是简化的、没有“扭曲”的（阿贝尔的）。</li>
+  <li>这个性质告诉你，这个投射过程 $\varphi$ 实际上可以分两步走：</li>
+</ol>
+<ol>
+  <li>首先，用一个标准的“矫正器” $G'$ 对物体 $G$ 进行处理，得到一个“标准化的、无扭曲”的像 $G/G'$ (阿贝尔化)。</li>
+  <li>然后，从这个标准像 $G/G'$ 出发，通过一个更简单的映射 $\bar{\varphi}$，就能得到最终在 $A$ 上的影像。
+<ul>
+  <li>交换图保证了“直接投射”和“先矫正再投射”的结果是完全一样的。这说明 $G/G'$ 捕捉了 $G$ 所有“可以被阿贝尔群看到”的本质信息。</li>
+  <li><img src="https://cdn.mathpix.com/cropped/7b50211c-5435-41fb-8566-deb985c28584-18.jpg?height=174&width=299&top_left_y=1699&top_left_x=720" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></li>
+</ul></li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-4">
+    <h2><span class="section-number">4</span>4. 命题7的证明</h2>
+    <p id="original-4"><strong style="font-size: 1.3rem;">📜 [原文4]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>证明</strong>：(1) 这直接<strong>源</strong>自 $[x, y]$ 的<strong>定义</strong>。</p>
+<p>(2) 根据<strong>定义</strong>，$H \unlhd G$ 当且仅当对于所有 $g \in G$ 和所有 $h \in H$，$g^{-1} h g \in H$。对于 $h \in H$， $g^{-1} h g \in H$ 当且仅当 $h^{-1} g^{-1} h g \in H$，因此 $H \unlhd G$ 当且仅当对于所有 $h \in H$ 和所有 $g \in G$，$[h, g] \in H$。因此 $H \unlhd G$ 当且仅当 $[H, G] \leq H$，这正是 (2)。</p>
+<p>(3) 设 $\sigma \in \operatorname{Aut}(G)$ 是 $G$ 的一个<strong>自同构</strong>，设 $x, y \in G$。则</p>
+<p><div class="math-block">$$
+\begin{aligned}
+\sigma([x, y]) &amp; =\sigma\left(x^{-1} y^{-1} x y\right) \\
+&amp; =\sigma(x)^{-1} \sigma(y)^{-1} \sigma(x) \sigma(y) \\
+&amp; =[\sigma(x), \sigma(y)]
+\end{aligned}
+$$</div></p>
+<p>因此，对于 $G^{\prime}$ 的每个<strong>换位子</strong> $[x, y]$，$\sigma([x, y])$ 再次是一个<strong>换位子</strong>。由于 $\sigma$ 存在<strong>双边逆</strong>，因此它将<strong>换位子集合双射</strong>地<strong>映射</strong>到自身。由于<strong>换位子</strong>是 $G^{\prime}$ 的一个<strong>生成集</strong>，$\sigma\left(G^{\prime}\right)=G^{\prime}$，即 $G^{\prime}$ char $G$。</p>
+<p>为了看出 $G / G^{\prime}$ 是<strong>Abel 群</strong>，设 $x G^{\prime}$ 和 $y G^{\prime}$ 是 $G / G^{\prime}$ 的任意<strong>元素</strong>。根据 $G / G^{\prime}$ 中<strong>群运算</strong>的<strong>定义</strong>以及 $[x, y] \in G^{\prime}$，我们有</p>
+<p><div class="math-block">$$
+\begin{aligned}
+\left(x G^{\prime}\right)\left(y G^{\prime}\right) &amp; =(x y) G^{\prime} \\
+&amp; =(y x[x, y]) G^{\prime} \\
+&amp; =(y x) G^{\prime}=\left(y G^{\prime}\right)\left(x G^{\prime}\right),
+\end{aligned}
+$$</div></p>
+<p>这就完成了 (3) 的<strong>证明</strong>。</p>
+<p>(4) 假设 $H \unlhd G$ 且 $G / H$ 是<strong>Abel 群</strong>。则对于所有 $x, y \in G$，我们有 $(x H)(y H)=(y H)(x H)$，因此</p>
+<p><div class="math-block">$$
+\begin{aligned}
+1 H &amp; =(x H)^{-1}(y H)^{-1}(x H)(y H) \\
+&amp; =x^{-1} y^{-1} x y H \\
+&amp; =[x, y] H .
+\end{aligned}
+$$</div></p>
+<p>因此，对于所有 $x, y \in G$，$[x, y] \in H$，因此 $G^{\prime} \leq H$。</p>
+<p>反之，如果 $G^{\prime} \leq H$，那么由于 (3) 中 $G / G^{\prime}$ 是<strong>Abel 群</strong>，所以 $G / G^{\prime}$ 的每个<strong>子群</strong>都是<strong>正规的</strong>。特别地，$H / G^{\prime} \unlhd G / G^{\prime}$。根据<strong>格同构定理</strong>，$H \unlhd G$。根据<strong>第三同构定理</strong></p>
+<p><div class="math-block">$$
+G / H \cong\left(G / G^{\prime}\right) /\left(H / G^{\prime}\right)
+$$</div></p>
+<p>因此 $G / H$ 是<strong>Abel 群</strong>（因为它<strong>同构</strong>于<strong>Abel 群</strong> $G / G^{\prime}$ 的一个<strong>商群</strong>）。这<strong>证明</strong>了 (4)。</p>
+<p>(5) 这是以<strong>同态</strong>的形式表述的 (4)。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本段给出了命题7中五个性质的详细证明过程。</p>
+<p><strong>证明 (1)</strong></p>
+<ul>
+  <li><strong>原文</strong>：“这直接<strong>源</strong>自 $[x, y]$ 的<strong>定义</strong>。”</li>
+  <li><strong>解释</strong>：如前一节的分析，从定义 $[x, y] = x^{-1}y^{-1}xy$ 出发，在等式两边左乘 $yx$，利用结合律和逆元的性质 $a a^{-1}=e$，即可直接推导出 $xy = yx[x, y]$。这是一个直接的代数变形，故原文一笔带过。</li>
+</ul>
+<p><strong>证明 (2)</strong></p>
+<ul>
+  <li><strong>原文</strong>：“根据<strong>定义</strong>，$H \unlhd G$ 当且仅当对于所有 $g \in G$ 和所有 $h \in H$，$g^{-1} h g \in H$。对于 $h \in H$， $g^{-1} h g \in H$ 当且仅当 $h^{-1} g^{-1} h g \in H$，因此 $H \unlhd G$ 当且仅当对于所有 $h \in H$ 和所有 $g \in G$，$[h, g] \in H$。因此 $H \unlhd G$ 当且仅当 $[H, G] \leq H$，这正是 (2)。”</li>
+  <li><strong>解释</strong>：这是一个非常精炼的逻辑链条。</li>
+</ul>
+<ol>
+  <li><strong>第一步 (定义)</strong>：$H \unlhd G \iff \forall g \in G, \forall h \in H, g^{-1}hg \in H$。这是正规子群的定义。</li>
+  <li><strong>第二步 (等价变形)</strong>：因为 $H$ 是一个子群，它对逆元和乘法封闭。所以，如果 $h \in H$，那么 $h^{-1} \in H$。
+<ul>
+  <li>如果 $g^{-1}hg \in H$，那么 $h^{-1} \cdot (g^{-1}hg)$ 也一定在 $H$ 中。这个乘积就是 $[h, g]$。</li>
+  <li>反过来，如果 $[h, g] = h^{-1}g^{-1}hg \in H$，那么 $h \cdot (h^{-1}g^{-1}hg)$ 也一定在 $H$ 中。这个乘积就是 $g^{-1}hg$。</li>
+  <li>所以，$g^{-1}hg \in H$ 这个条件，完全等价于 $[h, g] \in H$ 这个条件。</li>
+</ul></li>
+  <li><strong>第三步 (推广到子群)</strong>：$H \unlhd G$ 的条件是“对于所有的 $g, h$”，都有 $[h, g] \in H$。这等价于说，所有形如 $[h, g]$ 的换位子构成的集合，都被包含在 $H$ 中。</li>
+  <li><strong>第四步 (生成子群)</strong>：如果所有的生成元（即所有的换位子 $[h, g]$）都在 $H$ 中，那么由它们生成的子群 $[H, G]$ 也必然被包含在 $H$ 中，即 $[H, G] \leq H$。反之，如果 $[H, G] \leq H$，那么其所有生成元 $[h, g]$ 自然也都在 $H$ 中。
+<ul>
+  <li>这就完成了 $H \unlhd G \iff [H, G] \leq H$ 的证明。</li>
+</ul></li>
+</ol>
+<p><strong>证明 (3)</strong></p>
+<p>这部分的证明分为三个小部分。</p>
+<ul>
+  <li><strong>第一部分：$\sigma([x, y]) = [\sigma(x), \sigma(y)]$</strong></li>
+  <li>这个证明是一个直接计算，利用了同态的性质 $\sigma(ab) = \sigma(a)\sigma(b)$ 和 $\sigma(a^{-1}) = (\sigma(a))^{-1}$。</li>
+  <li>$\sigma([x, y]) = \sigma(x^{-1}y^{-1}xy) = \sigma(x^{-1})\sigma(y^{-1})\sigma(x)\sigma(y) = (\sigma(x))^{-1}(\sigma(y))^{-1}\sigma(x)\sigma(y) = [\sigma(x), \sigma(y)]$。</li>
+</ul>
+<ul>
+  <li><strong>第二部分：$G'$ char $G$</strong></li>
+  <li><strong>原文</strong>：“因此，对于 $G^{\prime}$ 的每个<strong>换位子</strong> $[x, y]$，$\sigma([x, y])$ 再次是一个<strong>换位子</strong>。由于 $\sigma$ 存在<strong>双边逆</strong>，因此它将<strong>换位子集合双射</strong>地<strong>映射</strong>到自身。由于<strong>换位子</strong>是 $G^{\prime}$ 的一个<strong>生成集</strong>，$\sigma\left(G^{\prime}\right)=G^{\prime}$，即 $G^{\prime}$ char $G$。”</li>
+  <li><strong>解释</strong>：</li>
+</ul>
+<ol>
+  <li>我们已经知道 $\sigma$ 把一个换位子 $[x,y]$ 变成另一个换位子 $[\sigma(x), \sigma(y)]$。</li>
+  <li>因为 $\sigma$ 是一个<strong>自同构</strong>，它是一个双射（既是单射又是满射）。这意味着对于 $G$ 中任意一对元素 $u, v$，总能找到唯一的 $x, y$ 使得 $\sigma(x)=u, \sigma(y)=v$。所以，任何一个换位子 $[u,v]$ 都可以被表示为某个 $[x,y]$ 在 $\sigma$ 下的像。</li>
+  <li>这说明 $\sigma$ 建立了“所有换位子的集合”到其自身的一个<strong>双射</strong>（bijection）。</li>
+  <li>$G'$ 是由这个换位子集合<strong>生成</strong>的。如果一个映射保持了生成集（将其双射到自身），那么它也必然保持由该集合生成的整个子群。即 $\sigma(G')=G'$。</li>
+  <li>根据特征子群的定义，这就证明了 $G'$ 是 $G$ 的特征子群。</li>
+</ol>
+<ul>
+  <li><strong>第三部分：$G/G'$ 是阿贝尔群</strong></li>
+  <li><strong>原文</strong>：“为了看出 $G / G^{\prime}$ 是<strong>Abel 群</strong>，设 $x G^{\prime}$ 和 $y G^{\prime}$ 是 $G / G^{\prime}$ 的任意<strong>元素</strong>。根据 $G / G^{\prime}$ 中<strong>群运算</strong>的<strong>定义</strong>以及 $[x, y] \in G^{\prime}$，我们有...”</li>
+  <li><strong>解释</strong>：</li>
+</ul>
+<ol>
+  <li>目标是证明 $(xG')(yG') = (yG')(xG')$。</li>
+  <li>左边根据商群乘法定义，是 $(xy)G'$。</li>
+  <li>利用命题 7(1) 的结论，$xy = yx[x,y]$。</li>
+  <li>所以 $(xy)G' = (yx[x,y])G'$。</li>
+  <li>根据陪集乘法法则，$(abc)H = (aH)(bH)(cH)$，这里我们可以看作 $(yx \cdot [x,y])G' = (yx)G' \cdot ([x,y])G'$。</li>
+  <li>因为 $[x,y]$ 本身就是 $G'$ 的一个元素，所以陪集 $[x,y]G'$ 就是单位陪集 $G'$ 本身 (因为 $g \in H \iff gH=H$)。</li>
+  <li>因此，$(yx[x,y])G' = (yx)G' \cdot G' = (yx)G'$。</li>
+  <li>最后，根据商群乘法定义，$(yx)G' = (yG')(xG')$。</li>
+  <li>综上，我们证明了 $(xG')(yG') = (yG')(xG')$，故 $G/G'$ 是阿贝尔群。</li>
+</ol>
+<p><strong>证明 (4)</strong></p>
+<ul>
+  <li><strong>第一部分：$G/H$ 阿贝尔 $\implies G' \leq H$</strong></li>
+  <li><strong>原文</strong>：“假设 $H \unlhd G$ 且 $G / H$ 是<strong>Abel 群</strong>。则对于所有 $x, y \in G$，我们有 $(x H)(y H)=(y H)(x H)$，因此...$[x, y] \in H$。”</li>
+  <li><strong>解释</strong>：</li>
+</ul>
+<ol>
+  <li>$G/H$ 阿贝尔意味着陪集乘法可交换：$(xH)(yH) = (yH)(xH)$。</li>
+  <li>即 $(xy)H = (yx)H$。</li>
+  <li>两个陪集相等 $aH=bH$ 的充要条件是 $b^{-1}a \in H$。</li>
+  <li>这里，$a=xy, b=yx$。所以 $(yx)^{-1}(xy) \in H$。</li>
+  <li>$(yx)^{-1}(xy) = x^{-1}y^{-1}xy = [x, y]$。</li>
+  <li>这说明，对任意 $x, y \in G$，换位子 $[x,y]$ 都必须是 $H$ 的一个元素。</li>
+  <li>既然所有换位子都在 $H$ 中，那么由它们生成的子群 $G'$ 也必然在 $H$ 中，即 $G' \leq H$。</li>
+</ol>
+<ul>
+  <li><strong>第二部分：$G' \leq H \implies H \unlhd G$ 且 $G/H$ 阿贝尔</strong></li>
+  <li><strong>原文</strong>：“反之，如果 $G^{\prime} \leq H$，那么由于 (3) 中 $G / G^{\prime}$ 是**</li>
+</ul>
+<p>Abel 群<strong>，所以 $G / G^{\prime}$ 的每个</strong>子群<strong>都是</strong>正规的<strong>。特别地，$H / G^{\prime} \unlhd G / G^{\prime}$。根据</strong>格同构定理<strong>，$H \unlhd G$。根据</strong>第三同构定理**...</p>
+<ul>
+  <li><strong>解释</strong>：</li>
+</ul>
+<ol>
+  <li> <strong>前提</strong>：我们假设 $G' \leq H$。$G'$ 是 $G$ 的一个子群，$H$ 是另一个包含 $G'$ 的子群。</li>
+  <li> <strong>应用(3)的结论</strong>：我们已经从(3)中证明了 $G/G'$ 是一个阿贝尔群。</li>
+  <li> <strong>阿贝尔群的性质</strong>：阿贝尔群有一个非常好的性质，即它的任何子群都是正规子群。</li>
+  <li> <strong>格同构定理 (Lattice Isomorphism Theorem)</strong>：该定理在 $G$ 的包含 $G'$ 的子群集合与 $G/G'$ 的子群集合之间建立了一个一一对应关系。这个关系保持包含关系和正规性。</li>
+  <li> <strong>推导 $H \unlhd G$</strong>：
+<ul>
+  <li>根据格同构定理，$G$ 中包含 $G'$ 的子群 $H$ 对应于商群 $G/G'$ 中的子群 $H/G'$。</li>
+  <li>因为 $H/G'$ 是阿贝尔群 $G/G'$ 的一个子群，所以 $H/G'$ 必定是正规的，即 $H/G' \unlhd G/G'$。</li>
+  <li>由于这个对应关系保持正规性，那么 $G$ 中对应的子群 $H$ 也必须是正规的，即 $H \unlhd G$。</li>
+</ul></li>
+  <li> <strong>第三同构定理 (Third Isomorphism Theorem)</strong>：该定理指出，如果 $N \unlhd G$ 和 $H \unlhd G$ 且 $N \leq H$，那么 $G/H \cong (G/N)/(H/N)$。</li>
+  <li> <strong>推导 $G/H$ 是阿贝尔群</strong>：
+<ul>
+  <li>我们让 $N = G'$。我们已经有 $G' \unlhd G$，$H \unlhd G$，以及 $G' \leq H$。所有条件都满足。</li>
+  <li>应用第三同构定理，得到 $G/H \cong (G/G') / (H/G')$。</li>
+  <li>我们知道 $G/G'$ 是一个阿贝尔群。一个阿贝尔群的商群仍然是阿贝尔群。（因为如果 $A$ 是阿贝尔群，$B \leq A$，那么对于商群 $A/B$ 中的任意元素 $aB, cB$，有 $(aB)(cB) = (ac)B = (ca)B = (cB)(aB)$。）</li>
+  <li>因此，$(G/G')/(H/G')$ 是一个阿贝尔群。</li>
+  <li>Поскольку $G/H$ 同构于一个阿贝尔群，所以 $G/H$ 本身也必须是阿贝尔群。</li>
+</ul></li>
+</ol>
+<p><strong>证明 (5)</strong></p>
+<ul>
+  <li><strong>原文</strong>：“这是以<strong>同态</strong>的形式表述的 (4)。”</li>
+  <li><strong>解释</strong>：这个证明将 (4) 的结论用同态的语言重新包装。</li>
+</ul>
+<ol>
+  <li>我们有一个同态 $\varphi: G \rightarrow A$，其中 $A$ 是一个阿贝尔群。</li>
+  <li>根据<strong>第一同构定理</strong>，$G/\operatorname{ker}\varphi \cong \operatorname{Im}(\varphi)$。</li>
+  <li>$\operatorname{Im}(\varphi)$ 是阿贝尔群 $A$ 的一个子群，所以 $\operatorname{Im}(\varphi)$ 本身也是一个阿贝尔群。</li>
+  <li>因此，商群 $G/\operatorname{ker}\varphi$ 同构于一个阿贝尔群，它自身也必须是阿贝尔群。</li>
+  <li>现在我们可以应用 (4) 的结论了。令 $H = \operatorname{ker}\varphi$。我们现在有 $H \unlhd G$ 并且 $G/H$ 是阿贝尔群。</li>
+  <li>根据 (4) 的第一部分，这直接推导出 $G' \leq H$。</li>
+  <li>将 $H = \operatorname{ker}\varphi$ 代回，我们得到 $G' \leq \operatorname{ker}\varphi$。</li>
+  <li>这意味着对于 $G'$ 中的任何元素 $g'$，都有 $\varphi(g') = e_A$（$A$ 的单位元）。这正是同态分解性质的核心。交换图的存在性是同态基本定理的一个直接推论，它指出，当 $G' \leq \operatorname{ker}\varphi$ 时，就存在一个唯一的同态 $\bar{\varphi}: G/G' \to A$ 使得 $\varphi$ 可以“分解”为先进行自然投射 $\pi: G \to G/G'$，然后再应用 $\bar{\varphi}$。</li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>公式1</strong>：</li>
+</ul>
+<p><div class="math-block">$$
+\begin{aligned}
+\sigma([x, y]) &amp; =\sigma\left(x^{-1} y^{-1} x y\right) \\
+&amp; =\sigma(x)^{-1} \sigma(y)^{-1} \sigma(x) \sigma(y) \\
+&amp; =[\sigma(x), \sigma(y)]
+\end{aligned}
+$$</div></p>
+<ul>
+  <li><strong>拆解</strong>：</li>
+  <li>第一行是代入换位子的定义。</li>
+  <li>第二行是反复应用同态的性质：$\sigma(ab)=\sigma(a)\sigma(b)$ 和 $\sigma(a^{-1})=(\sigma(a))^{-1}$。</li>
+  <li>第三行是根据换位子的定义，将第二行的结果重新写成换位子的形式。</li>
+  <li><strong>推导</strong>：证明了自同构保持换位子的代数形式。</li>
+</ul>
+<ul>
+  <li><strong>公式2</strong>：</li>
+</ul>
+<p><div class="math-block">$$
+\begin{aligned}
+\left(x G^{\prime}\right)\left(y G^{\prime}\right) &amp; =(x y) G^{\prime} \\
+&amp; =(y x[x, y]) G^{\prime} \\
+&amp; =(y x) G^{\prime}=\left(y G^{\prime}\right)\left(x G^{\prime}\right),
+\end{aligned}
+$$</div></p>
+<ul>
+  <li><strong>拆解</strong>：</li>
+  <li>第一行是商群中乘法的定义。</li>
+  <li>第二行是应用了命题7(1) 的结论 $xy = yx[x, y]$。</li>
+  <li>第三行是关键步骤。$(yx[x, y])G'$ 等于 $(yx)G'$，因为 $[x,y]$ 是 $G'$ 中的一个元素。对于任何子群 $H$ 和任何 $h \in H$，都有 $gH = (gh)H$。这里 $H=G'$, $h=[x,y]$。所以 $(yx \cdot [x,y])G' = (yx)G'$。最后一步再次使用了商群乘法的定义。</li>
+  <li><strong>推导</strong>：证明了商群 $G/G'$ 中的任意两个元素都是可交换的。</li>
+</ul>
+<ul>
+  <li><strong>公式3</strong>：</li>
+</ul>
+<p><div class="math-block">$$
+\begin{aligned}
+1 H &amp; =(x H)^{-1}(y H)^{-1}(x H)(y H) \\
+&amp; =x^{-1} y^{-1} x y H \\
+&amp; =[x, y] H .
+\end{aligned}
+$$</div></p>
+<ul>
+  <li><strong>拆解</strong>：</li>
+  <li>第一行：因为商群 $G/H$ 是阿贝尔的，所以它的任意两个元素 $xH, yH$ 的换位子是单位元 $1H$。</li>
+  <li>第二行：应用商群运算规则 $(aH)(bH) = (ab)H$ 和 $(aH)^{-1} = (a^{-1})H$ 来合并所有项。</li>
+  <li>第三行：根据定义，$x^{-1}y^{-1}xy$ 就是换位子 $[x,y]$。</li>
+  <li><strong>推导</strong>：从 $G/H$ 阿贝尔的假设，推导出 $[x,y]H = 1H$，这等价于 $[x,y] \in H$。</li>
+</ul>
+<ul>
+  <li><strong>公式4</strong>：</li>
+</ul>
+<p><div class="math-block">$$
+G / H \cong\left(G / G^{\prime}\right) /\left(H / G^{\prime}\right)
+$$</div></p>
+<ul>
+  <li><strong>拆解</strong>：</li>
+  <li>这是<strong>第三同构定理</strong>的直接应用。</li>
+  <li>$G, H, G'$ 都是群，$G' \leq H \leq G$ 并且 $G'$ 和 $H$ 都在 $G$ 中正规。</li>
+  <li>$G/H$ 是 $G$ 对 $H$ 的商群。</li>
+  <li>$G/G'$ 是 $G$ 的阿贝尔化。</li>
+  <li>$H/G'$ 是 $H$ 对 $G'$ 的商群，也是 $G/G'$ 的一个正规子群。</li>
+  <li>$(G/G')/(H/G')$ 是一个“商群的商群”。</li>
+  <li><strong>推导</strong>：这个同构关系是证明 $G/H$ 是阿贝尔群的关键。它把对 $G/H$ 性质的讨论，转化为了对一个阿贝尔群 $(G/G')$ 的商群性质的讨论，从而大大简化了问题。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段通过严谨的代数推导，逐一证明了命题7中的所有结论。证明过程清晰地展示了各个概念之间的逻辑联系，并巧妙地运用了同态基本定理、格同构定理和第三同构定理等群论基本工具，体现了抽象代数中从具体元素操作上升到结构层面论证的威力。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-5">
+    <h2><span class="section-number">5</span>5. 换位子子群的构成</h2>
+    <p id="original-5"><strong style="font-size: 1.3rem;">📜 [原文5]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>通过 $G$ 的<strong>换位子子群</strong>进行<strong>商</strong>，将所有<strong>换位子</strong>收缩为<strong>单位元</strong>，使得<strong>商群</strong>中的所有<strong>元素</strong>都可交换。如 (4) 所示，其强大的<strong>逆命题</strong>也成立： $G$ 对 $H$ 的<strong>商群</strong>是<strong>Abel 群</strong>当且仅当<strong>换位子子群</strong>包含在 $H$ 中（即当且仅当 $G^{\prime}$ 在<strong>商群</strong> $G / H$ 中<strong>映射</strong>到<strong>单位元</strong>）。</p>
+<p>我们将在下一节展示一个<strong>群</strong>（<strong>阶</strong>为 96），该<strong>群</strong>具有一个性质，即其<strong>换位子子群</strong>中的一个<strong>元素</strong>不能表示为任何 $x$ 和 $y$ 的单个<strong>换位子</strong> $[x, y]$。因此 $G^{\prime}$ 不一定仅由（单个）<strong>换位子集合构成</strong>（而是由这些<strong>元素生成</strong>的<strong>群</strong>）。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本段是对前面命题7的总结，并提出了一个关于换位子子群构成的重要提醒。</p>
+<p>第一段：</p>
+<ul>
+  <li><strong>原文</strong>：“通过 $G$ 的<strong>换位子子群</strong>进行<strong>商</strong>，将所有<strong>换位子</strong>收缩为<strong>单位元</strong>，使得<strong>商群</strong>中的所有<strong>元素</strong>都可交换。”</li>
+  <li><strong>解释</strong>：“进行商”指的是构造商群 $G/G'$。在这个商群中，原来的换位子子群 $G'$ 成为了新的单位元。任何属于 $G'$ 的元素 $g'$，其对应的陪集 $g'G'$ 就是单位陪集 $G'$。由于所有的换位子 $[x,y]$ 都在 $G'$ 中，所以它们在商群 $G/G'$ 中都“变成”了单位元。这正是导致 $G/G'$ 中元素可交换的根本原因。</li>
+  <li><strong>原文</strong>：“如 (4) 所示，其强大的<strong>逆命题</strong>也成立： $G$ 对 $H$ 的<strong>商群</strong>是<strong>Abel 群</strong>当且仅当<strong>换位子子群</strong>包含在 $H$ 中...”</li>
+  <li><strong>解释</strong>：这是对命题7(4)的重申和强调。它指出了 $G'$ 的“万能”特性：$G'$ 是检验一个正规子群 $H$ 能否产生阿贝尔商群的“试金石”。只要 $H$ “吞下”了 $G'$，商群 $G/H$ 就必然是阿贝尔的。</li>
+</ul>
+<p>第二段：</p>
+<ul>
+  <li><strong>原文</strong>：“我们将在下一节展示一个<strong>群</strong>（<strong>阶</strong>为 96），该<strong>群</strong>具有一个性质，即其<strong>换位子子群</strong>中的一个<strong>元素</strong>不能表示为任何 $x$ 和 $y$ 的单个<strong>换位子</strong> $[x, y]$。因此 $G^{\prime}$ 不一定仅由（单个）<strong>换位子集合构成</strong>（而是由这些<strong>元素生成</strong>的<strong>群</strong>）。”</li>
+  <li><strong>解释</strong>：这是一个非常重要的澄清，旨在纠正一个常见的误解。</li>
+  <li><strong>误解</strong>：$G' = \{[x, y] \mid x, y \in G\}$，即换位子子群就是所有换位子元素的集合。</li>
+  <li><strong>事实</strong>：$G' = \langle [x, y] \mid x, y \in G \rangle$，即换位子子群是由所有换位子元素<strong>生成</strong>的子群。</li>
+  <li><strong>区别</strong>：生成子群的元素是生成元（这里是单个换位子）及其逆元的有限乘积。例如，$[x_1, y_1] \cdot [x_2, y_2]$ 肯定在 $G'$ 中，但它本身不一定能写成某个 $[x_3, y_3]$ 的形式。</li>
+  <li><strong>例子预告</strong>：文本预告，将在第6章（原文下一节应为笔误）提供一个具体的反例：一个阶为96的群。在这个群中，存在一个元素 $z \in G'$，但你找不到任何 $x, y \in G$ 使得 $z = [x, y]$。这个 $z$ 只能通过两个或更多个换位子的乘积来得到。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>换位子的集合 vs 换位子子群</strong>：这是本段强调的核心易错点。务必记住 $G'$ 是由换位子<strong>生成</strong>的，它包含了换位子的乘积、逆元等。只有当两个换位子的乘积总能表示成一个换位子时（这种情况很少见），这两个概念才会重合。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段总结了换位子子群 $G'$ 的核心功能——作为产生阿贝尔商群的“最小障碍”，并澄清了 $G'$ 的内部构成：它是由换位子生成的群，其元素不一定都是单个的换位子。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的存在有两个目的：一是通过总结，强化读者对命题7核心思想的理解；二是通过预告反例，主动澄清一个非常容易产生的概念混淆，确保读者对 $G' = \langle \dots \rangle$ 中“生成”二字的含义有准确和深刻的认识。这对于后续严谨的数学论证至关重要。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一个“问题”清单（所有换位子的集合）。</p>
+<ol>
+  <li><strong>换位子子群 $G'$</strong> 不是这个清单本身，而是为了解决清单上所有问题而需要动用的所有“资源”的总和。</li>
+  <li>解决一个问题 $[x_1, y_1]$ 可能需要资源 $r_1$。解决另一个问题 $[x_2, y_2]$ 可能需要资源 $r_2$。</li>
+  <li>有时候，你需要同时动用 $r_1$ 和 $r_2$（即它们的组合 $r_1 r_2$）去处理一个更复杂的情况。这个组合资源 $r_1 r_2$ 本身，可能无法对应到清单上任何一个单一的问题。</li>
+  <li>$G'$ 就是所有这些单一资源和组合资源构成的“资源库”。它比原始的“问题清单”要大。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-6">
+    <h2><span class="section-number">6</span>6. 例子</h2>
+    <p id="original-6"><strong style="font-size: 1.3rem;">📜 [原文6]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>例子</h3><p>(1) 一个<strong>群</strong> $G$ 是<strong>Abel 群</strong>当且仅当 $G^{\prime}=1$。</p><p>(2) 有时，我们可以在不实际显式计算<strong>换位子</strong>的情况下计算一个<strong>群</strong>的<strong>换位子子群</strong>。例如，如果 $G=D_{8}$，那么由于 $Z\left(D_{8}\right)=\left(r^{2}\right) \unlhd D_{8}$ 且 $D_{8} / Z\left(D_{8}\right)$ 是<strong>Abel 群</strong>（<strong>克莱因四元群</strong>），<strong>换位子子群</strong> $D_{8}^{\prime}$ 是 $Z\left(D_{8}\right)$ 的一个<strong>子群</strong>。由于 $D_{8}$ 本身不是<strong>Abel 群</strong>，其<strong>换位子子群</strong>是<strong>非平凡的</strong>。唯一的可能性是 $D_{8}^{\prime}=Z\left(D_{8}\right)$。通过类似的<strong>论证</strong>，$Q_{8}^{\prime}=Z\left(Q_{8}\right)=(-1)$。更一般地，如果 $G$ 是<strong>阶</strong>为 $p^{3}$ 的任何<strong>非 Abel 群</strong>，其中 $p$ 是一个<strong>素数</strong>，$G^{\prime}=Z(G)$ 且 $\left|G^{\prime}\right|=p$（<strong>习题</strong> 7）。</p><p>(3) 设 $D_{2 n}=\left\langle r, s \mid r^{n}=s^{2}=1, s^{-1} r s=r^{-1}\right\rangle$。由于 $[r, s]=r^{-2}$，我们有 $\left\langle r^{-2}\right\rangle=\left\langle r^{2}\right\rangle \leq D_{2 n}^{\prime}$。此外，$\left\langle r^{2}\right\rangle \unlhd D_{2 n}$ 且 $D_{2 n} /\left\langle r^{2}\right\rangle$ 中 $r$ 和 $s$ 的<strong>像生成</strong>此<strong>商群</strong>。它们是<strong>阶</strong> $\leq 2$ 的<strong>可交换</strong><strong>元素</strong>，因此<strong>商群</strong>是<strong>Abel 群</strong>且 $D_{2 n}^{\prime} \leq\left\langle r^{2}\right\rangle$。因此 $D_{2 n}^{\prime}=\left\langle r^{2}\right\rangle$。最后，请注意，如果 $n(=|r|)$ 是<strong>奇数</strong>，$\left\langle r^{2}\right\rangle=\langle r\rangle$，而如果 $n$ 是<strong>偶数</strong>，$\left\langle r^{2}\right\rangle$ 在 $\langle r\rangle$ 中<strong>指数</strong>为 2。因此， $D_{2 n}^{\prime}$ 在 $D_{2 n}$ 中的<strong>指数</strong>分别为 $n$ 是<strong>奇数</strong>或<strong>偶数</strong>时为 2 或 4。</p><p>(4) 由于由 $g \in G$ 进行<strong>共轭</strong>是 $G$ 的一个<strong>自同构</strong>，根据<strong>命题</strong> (3)，对于所有 $a, b \in G$，$\left[a^{g}, b^{g}\right]=[a, b]^{g}$，即<strong>换位子</strong>的<strong>共轭</strong>也是<strong>换位子</strong>。例如，一旦我们将 $S_{n}$ 中一个<strong>循环型</strong>的<strong>元素</strong>表示为<strong>换位子</strong>，那么相同<strong>循环型</strong>的每个<strong>元素</strong>也都是<strong>换位子</strong>（参见<strong>第 4.3 节</strong>）。例如，$S_{5}$ 中的每个 5-<strong>循环</strong>都是一个<strong>换位子</strong>，如下所示：将<strong>五边形</strong>的<strong>顶点标记</strong>为 $1, \ldots, 5$，我们看到 $D_{10} \leq S_{5}$（实际上是 $A_{5}$ 的一个<strong>子群</strong>）。根据前面的<strong>例子</strong>，<strong>阶</strong>为 5 的<strong>元素</strong>是 $D_{10}$ 中的一个<strong>换位子</strong>，因此也是 $S_{5}$ 中的一个<strong>换位子</strong>。明确地，$(14253)=[(12345),(25)(43)]$。</p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本节通过四个具体的例子，展示了如何应用前面介绍的关于换位子子群的理论来确定各种群的换位子子群。</p>
+<p><strong>例子 (1)</strong></p>
+<ul>
+  <li><strong>原文</strong>：“一个<strong>群</strong> $G$ 是<strong>Abel 群</strong>当且仅当 $G^{\prime}=1$。”</li>
+  <li><strong>解释</strong>：这是换位子子群最基本的性质。</li>
+  <li><strong>(Abel $\Rightarrow G'=1$)</strong>：如果 $G$ 是阿贝尔群，那么对任意 $x, y \in G$，都有 $xy=yx$，这意味着 $[x, y]=x^{-1}y^{-1}xy = e$ (或 1)。$G'$ 的所有生成元都是单位元，所以 $G' = \langle 1 \rangle = \{1\}$。</li>
+  <li><strong>($G'=1 \Rightarrow$ Abel)</strong>：如果 $G'=\{1\}$，那么对于任意 $x, y \in G$，它们的换位子 $[x, y]$ 必须是 $G'$ 的元素，所以 $[x, y]=1$。这意味着 $xy=yx$。这对所有元素都成立，因此 $G$ 是阿贝尔群。</li>
+</ul>
+<p><strong>例子 (2)</strong></p>
+<ul>
+  <li><strong>原文</strong>：“有时，我们可以在不实际显式计算<strong>换位子</strong>的情况下计算一个<strong>群</strong>的<strong>换位子子群</strong>。例如，如果 $G=D_{8}$，...”</li>
+  <li><strong>解释</strong>：这个例子展示了一个非常巧妙的计算 $G'$ 的技巧，即利用命题7(4)的“夹逼”思想。</li>
+  <li><strong>对 $D_8$ 的分析</strong>：</li>
+</ul>
+<ol>
+  <li> <strong>寻找一个阿贝尔商群</strong>：$D_8$ 的中心 $Z(D_8)$ 是 $\{e, r^2\}$，它是一个正规子群。商群 $D_8/Z(D_8)$ 的阶是 $8/2 = 4$。任何阶为4的群都是阿贝尔群，所以 $D_8/Z(D_8)$ 是阿贝尔群。</li>
+  <li> <strong>应用命题7(4) - 上界</strong>：因为 $D_8/Z(D_8)$ 是阿贝尔群，命题7(4) 告诉我们 $D_8' \leq Z(D_8)$。这给 $D_8'$ 的大小设定了一个上限。$D_8'$ 只能是 $\{e\}$ 或者 $\{e, r^2\}$。</li>
+  <li> <strong>应用例子(1) - 下界</strong>：$D_8$ 不是阿贝尔群（例如 $rs \neq sr$），所以根据例子(1)，$D_8'$ 不能是平凡子群 $\{e\}$。</li>
+  <li> <strong>结论</strong>：结合上界和下界，唯一的可能性就是 $D_8' = Z(D_8) = \langle r^2 \rangle$。
+<ul>
+  <li><strong>对 $Q_8$ (四元数群) 的分析</strong>：完全相同的逻辑。$Z(Q_8) = \{\pm 1\}$。$Q_8/Z(Q_8)$ 阶为4，是阿贝尔群。所以 $Q_8' \leq Z(Q_8)$。$Q_8$ 非阿贝尔，所以 $Q_8' \neq \{1\}$。因此 $Q_8' = Z(Q_8) = \langle -1 \rangle$。</li>
+  <li><strong>推广到阶为 $p^3$ 的群</strong>：这是一个普遍结论。对于阶为 $p^3$ 的非阿贝尔群 $G$，$|Z(G)|=p$ 且 $G/Z(G)$ 是阶为 $p^2$ 的阿贝尔群。因此 $G' \leq Z(G)$。又因 $G$ 非阿贝尔，$G' \neq \{1\}$。由于 $Z(G)$ 是阶为 $p$ 的循环群，它唯一的非平凡子群就是自身。所以 $G' = Z(G)$。</li>
+</ul></li>
+</ol>
+<p><strong>例子 (3)</strong></p>
+<ul>
+  <li><strong>原文</strong>：“设 $D_{2 n}=\left\langle r, s \mid r^{n}=s^{2}=1, s^{-1} r s=r^{-1}\right\rangle$。...”</li>
+  <li><strong>解释</strong>：这个例子再次使用“夹逼”法来确定一般二面体群 $D_{2n}$ 的换位子子群。</li>
+</ul>
+<ol>
+  <li> <strong>确定下界</strong>：我们先直接计算一个具体的换位子。</li>
+</ol>
+<p>$[s, r] = s^{-1}r^{-1}sr$。因为 $s^{-1}=s$，$srs=r^{-1} \implies rs=s r^{-1}$。</p>
+<p>$[s, r] = sr^{-1}sr = (sr^{-1})sr = (rs)sr = r(s^2)r = r(e)r = r^2$。</p>
+<p>(原文给的是 $[r,s]=r^{-2}$，我们来验证一下：$[r,s]=r^{-1}s^{-1}rs = r^{-1}s(rs) = r^{-1}s(sr^{-1}) = r^{-1}s^2r^{-1} = r^{-1}er^{-1}=r^{-2}$。两个结果生成同一个子群。)</p>
+<p>既然 $r^2$ 是一个换位子，那么它必须在 $D_{2n}'$ 中。因此，由 $r^2$ 生成的子群 $\langle r^2 \rangle$ 也必须是 $D_{2n}'$ 的子群，即 $\langle r^2 \rangle \leq D_{2n}'$。</p>
+<ol>
+  <li> <strong>确定上界</strong>：我们构造一个商群。考虑子群 $H = \langle r^2 \rangle$。
+<ul>
+  <li>它是正规的吗？共轭 $r$：$r(r^2)r^{-1}=r^2 \in H$。共轭 $s$：$s(r^2)s^{-1} = srsrs^{-1} = r^{-1}sr^{-1}s^{-1} = (r^{-1})^2 = r^{-2} \in H$。所以 $\langle r^2 \rangle \unlhd D_{2n}$。</li>
+  <li>商群 $D_{2n}/\langle r^2 \rangle$ 是怎样的？这个商群由 $r\langle r^2 \rangle$ 和 $s\langle r^2 \rangle$ 生成。</li>
+  <li>$(r\langle r^2 \rangle)^2 = r^2\langle r^2 \rangle = \langle r^2 \rangle$ (单位元)，所以 $r$ 的像的阶是2。</li>
+  <li>$(s\langle r^2 \rangle)^2 = s^2\langle r^2 \rangle = e\langle r^2 \rangle = \langle r^2 \rangle$ (单位元)，所以 $s$ 的像的阶是2。</li>
+  <li>它们可交换吗？$(s\langle r^2 \rangle)(r\langle r^2 \rangle) = sr\langle r^2 \rangle$。$(r\langle r^2 \rangle)(s\langle r^2 \rangle) = rs\langle r^2 \rangle = sr^{-1}\langle r^2 \rangle$。因为 $r^{-1} = r \cdot r^{-2}$，而 $r^{-2} \in \langle r^2 \rangle$，所以 $r^{-1}\langle r^2 \rangle = r\langle r^2 \rangle$。因此 $sr^{-1}\langle r^2 \rangle = sr\langle r^2 \rangle$。它们是可交换的。</li>
+  <li>既然商群的生成元可交换，整个商群就是阿贝尔群。</li>
+  <li>根据命题7(4)，这推出 $D_{2n}' \leq \langle r^2 \rangle$。</li>
+</ul></li>
+  <li> <strong>结论</strong>：结合下界 $\langle r^2 \rangle \leq D_{2n}'$ 和上界 $D_{2n}' \leq \langle r^2 \rangle$，我们得到 $D_{2n}' = \langle r^2 \rangle$。
+<ul>
+  <li><strong>关于指数的讨论</strong>：</li>
+  <li>$|D_{2n}'| = |\langle r^2 \rangle|$。$r$ 的阶是 $n$。$\langle r^2 \rangle$ 的阶是 $n/\text{gcd}(n,2)$。</li>
+  <li>如果 $n$ 是奇数，$\text{gcd}(n,2)=1$，所以 $|\langle r^2 \rangle|=n$。此时 $\langle r^2 \rangle = \langle r \rangle$。$D_{2n}'$ 的指数是 $|D_{2n}|/|D_{2n}'| = (2n)/n = 2$。</li>
+  <li>如果 $n$ 是偶数，$\text{gcd}(n,2)=2$，所以 $|\langle r^2 \rangle|=n/2$。$D_{2n}'$ 的指数是 $(2n)/(n/2) = 4$。</li>
+</ul></li>
+</ol>
+<p><strong>例子 (4)</strong></p>
+<ul>
+  <li><strong>原文</strong>：“由于由 $g \in G$ 进行<strong>共轭</strong>是 $G$ 的一个<strong>自同构</strong>，根据<strong>命题</strong> (3)，... $\left[a^{g}, b^{g}\right]=[a, b]^{g}$ ...”</li>
+  <li><strong>解释</strong>：</li>
+  <li>命题7(3)说 $\sigma([a,b]) = [\sigma(a), \sigma(b)]$。</li>
+  <li>共轭运算 $i_g(x) = gxg^{-1}$ 是一种自同构。将 $\sigma = i_g$ 代入，得到 $i_g([a,b]) = [i_g(a), i_g(b)]$，即 $[a,b]^g = [a^g, b^g]$。</li>
+  <li><strong>重要推论</strong>：一个元素 $c$ 是换位子，当且仅当它的任何共轭 $c^g$ 也是换位子。</li>
+  <li><strong>在 $S_n$ 中的应用</strong>：在 $S_n$ 中，两个置换共轭当且仅当它们有相同的<strong>循环型</strong>。所以，如果我们证明某一个特定循环型的置换（比如一个5-循环）是换位子，那么所有具有相同循环型的置换（所有5-循环）都必然是换位子。</li>
+  <li><strong>对 $S_5$ 中 5-循环的分析</strong>：</li>
+  <li>目标是证明一个5-循环是换位子。</li>
+  <li><strong>思路</strong>：找一个包含5-循环的、我们熟悉其换位子结构的子群。</li>
+  <li><strong>$D_{10}$</strong>：正五边形的对称群 $D_{10}$ 是 $S_5$ 的一个子群。$D_{10} = \langle r, s \rangle$，$r=(12345), s=(25)(34)$。</li>
+  <li><strong>应用例子(3)</strong>：对于 $D_{10}$，$n=5$ 是奇数。所以 $D_{10}' = \langle r^2 \rangle = \langle r \rangle = \{e, r, r^2, r^3, r^4\}$。这意味着 $D_{10}$ 中所有阶为5的元素（即所有5-循环）都是 $D_{10}$ 的换位子子群中的元素。</li>
+  <li><strong>问题</strong>：这只说明它们在 $D_{10}'$ 中，不代表它们是<strong>单个</strong>换位子。但原文更进一步，给出了一个具体的构造。</li>
+  <li><strong>显式计算</strong>：$(14253)=[(12345),(25)(43)]$</li>
+  <li>设 $x=(12345), y=(25)(43)$。</li>
+  <li>$[x, y] = x^{-1}y^{-1}xy = (15432)(25)(43)(12345)(25)(43)$。</li>
+  <li>我们来计算这个乘积：</li>
+  <li>作用于1: $1 \xrightarrow{y} 1 \xrightarrow{x} 2 \xrightarrow{y} 5 \xrightarrow{x^{-1}} 4$. 1-&gt;4.</li>
+  <li>作用于4: $4 \xrightarrow{y} 3 \xrightarrow{x} 4 \xrightarrow{y} 3 \xrightarrow{x^{-1}} 2$. 4-&gt;2.</li>
+  <li>作用于2: $2 \xrightarrow{y} 5 \xrightarrow{x} 1 \xrightarrow{y} 1 \xrightarrow{x^{-1}} 5$. 2-&gt;5.</li>
+  <li>作用于5: $5 \xrightarrow{y} 2 \xrightarrow{x} 3 \xrightarrow{y} 4 \xrightarrow{x^{-1}} 3$. 5-&gt;3.</li>
+  <li>作用于3: $3 \xrightarrow{y} 4 \xrightarrow{x} 5 \xrightarrow{y} 2 \xrightarrow{x^{-1}} 1$. 3-&gt;1.</li>
+  <li>结果是 $(14253)$。计算正确。</li>
+  <li><strong>结论</strong>：既然特定的5-循环 $(14253)$ 是一个换位子，那么根据共轭性质，所有 $S_5$ 中的5-循环都是换位子。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>例子(2) $D_8$</strong>: $D_8=\langle r,s \mid r^4=s^2=1, srs=r^{-1}\rangle$. 中心 $Z(D_8)=\{e,r^2\}$. 商群 $D_8/Z(D_8)=\{Z(D_8), rZ(D_8), sZ(D_8), srZ(D_8)\}$. 这是一个克莱因四元群，是阿贝尔群。所以 $D_8' \le Z(D_8)=\{e,r^2\}$. 因为 $rs=sr^3 \ne sr$, $D_8$非阿贝尔, $D_8' \ne \{e\}$. 所以 $D_8'=\{e,r^2\}$.</li>
+  <li><strong>例子(3) $D_6$ ($n=3$)</strong>: $D_6$ (即 $\left.S_3\right)$ 中, $n=3$ 是奇数。$D_6' = \langle r^2 \rangle = \langle (123)^2 \rangle = \langle (132) \rangle = \{e, (123), (132)\} = A_3$。这与我们直接计算 $S_3$ 的换位子子群得到的结果一致。指数为 $6/3=2$。</li>
+  <li><strong>例子(3) $D_8$ ($n=4$)</strong>: $D_8$ 中, $n=4$ 是偶数。$D_8' = \langle r^2 \rangle = \{e, r^2\}$。这与例子(2)的结果一致。指数为 $8/2=4$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>技巧的适用性</strong>：例子(2)中的“夹逼法”非常强大，但前提是你需要能方便地找到一个正规子群 $H$，使得 $G/H$ 是阿贝尔群。中心 $Z(G)$ 永远是一个（虽然可能平凡）的选择，因为 $G/Z(G)$ 同构于内自同构群 $\text{Inn}(G)$。</li>
+  <li><strong>换位子 vs 换位子子群的元素</strong>：例子(4)的论证需要小心。它首先证明了一个5-循环是 $D_{10}'$ 中的元素，然后通过一个<strong>显式构造</strong>才证明了它是一个<strong>单个换位子</strong>。不能从 " $c \in G'$ " 直接推出 " $c$ 是一个换位子 "。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-7">
+    <h2><span class="section-number">7</span>7. 唯一分解性质</h2>
+    <p id="original-7"><strong style="font-size: 1.3rem;">📜 [原文7]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>下一个<strong>结果</strong>实际上<strong>源</strong>自<strong>命题</strong> 3.13 的<strong>证明</strong>，但我们将其明确地独立出来以供<strong>参考</strong>：</p>
+<p><strong>命题</strong> 8。设 $H$ 和 $K$ 是<strong>群</strong> $G$ 的<strong>子群</strong>。将<strong>集合</strong> $H K$ 中的每个<strong>元素</strong>写成 $h k$ 形式的不同<strong>方式</strong>的<strong>数目</strong>，其中 $h \in H$ 且 $k \in K$，是 $|H \cap K|$。特别地，如果 $H \cap K=1$，则 $H K$ 中的每个<strong>元素</strong>可以唯一地写成<strong>乘积</strong> $h k$ 的形式，其中 $h \in H$ 且 $k \in K$。</p>
+</div><h3>证明：习题。</h3><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本段提出了一个关于子群乘积集 $HK$ 中元素表示唯一性的重要命题。这是构建内直积理论的关键一步。</p>
+<p><strong>命题 8 详解</strong></p>
+<ul>
+  <li><strong>背景</strong>：我们考虑由两个子群 $H, K$ 的元素乘积构成的集合 $HK = \{hk \mid h \in H, k \in K\}$。注意，在一般情况下，$HK$ 不一定是一个子群。</li>
+  <li><strong>核心问题</strong>：$HK$ 中的一个元素 $g$，有多少种不同的方式可以被写成 $h \in H$ 和 $k \in K$ 的乘积 $hk$？</li>
+  <li><strong>结论</strong>：不同的表示方式的数量，不多不少，正好是这两个子群交集 $H \cap K$ 的阶（即元素个数）。</li>
+</ul>
+<p><strong>证明思路 (由于原文是习题，这里给出证明)</strong></p>
+<ol>
+  <li> <strong>假设一个元素有两种表示法</strong>：</li>
+</ol>
+<p>设 $g \in HK$ 有两种表示方式：$g = h_1k_1$ 和 $g = h_2k_2$，其中 $h_1, h_2 \in H$，$k_1, k_2 \in K$。</p>
+<ol>
+  <li> <strong>建立与交集的关系</strong>：</li>
+</ol>
+<p>由 $h_1k_1 = h_2k_2$，我们可以进行代数变形：</p>
+<p>两边左乘 $h_2^{-1}$：$h_2^{-1}h_1k_1 = k_2$</p>
+<p>两边右乘 $k_1^{-1}$：$h_2^{-1}h_1 = k_2k_1^{-1}$</p>
+<ol>
+  <li> <strong>分析等式两端</strong>：
+<ul>
+  <li>等式左边 $h_2^{-1}h_1$ 是两个 $H$ 中元素的乘积，所以它必然属于 $H$。</li>
+  <li>等式右边 $k_2k_1^{-1}$ 是两个 $K$ 中元素的乘积，所以它必然属于 $K$。</li>
+  <li>既然左右两边相等，那么这个共同的元素必须既在 $H$ 中，又在 $K$ 中。换句话说，它必须在交集 $H \cap K$ 中。</li>
+  <li>我们令这个元素为 $x = h_2^{-1}h_1 = k_2k_1^{-1}$，则 $x \in H \cap K$。</li>
+</ul></li>
+  <li> <strong>从交集元素反推表示法</strong>：</li>
+</ol>
+<p>从 $h_2^{-1}h_1 = x$，我们得到 $h_1 = h_2x$。</p>
+<p>从 $k_2k_1^{-1} = x$，我们得到 $k_2 = xk_1$，两边取逆元得到 $k_1 = x^{-1}k_2$。这里似乎原文推导更直接，我们换个方式：$k_2 = xk_1 \implies k_1 = x^{-1}k_2$ 是错误的。应该是 $k_2k_1^{-1} = x \implies k_2 = xk_1$。</p>
+<p>让我们回到 $h_1k_1 = h_2k_2$ 和 $h_2^{-1}h_1 = k_2k_1^{-1} = x \in H \cap K$。</p>
+<ul>
+  <li>$h_1 = h_2x$</li>
+  <li>$k_2 = xk_1$</li>
+  <li>所以，任何一种其他的表示 $(h_1, k_1)$ 都可以由 $(h_2, k_2)$ 和一个交集中的元素 $x$ 得到，即 $h_1 = h_2x, k_1 = x^{-1}k_2$ (这里 $h_1k_1 = h_2x x^{-1}k_2 = h_2k_2$)。</li>
+</ul>
+<ol>
+  <li> <strong>建立一一对应</strong>：
+<ul>
+  <li>给定一种表示 $g=hk$。</li>
+  <li>我们可以构造出 $|H \cap K|$ 种不同的表示。对任意一个 $x \in H \cap K$，令 $h' = hx$ 且 $k' = x^{-1}k$。</li>
+  <li>那么 $h' \in H$ (因为 $h, x \in H$)，$k' \in K$ (因为 $x^{-1}, k \in K$)。</li>
+  <li>并且 $h'k' = (hx)(x^{-1}k) = h(xx^{-1})k = hk = g$。</li>
+  <li>这种新的表示 $(h', k')$ 是不同的，除非 $x=1$。如果 $h_1=h_2x$ 且 $k_1=x^{-1}k_2$, 并且 $h_1=h_2y, k_1=y^{-1}k_2$, 那么 $h_2x = h_2y \implies x=y$。</li>
+  <li>这表明，对于固定的一个表示，我们可以通过交集中的每个元素构造出一个新的、不同的表示。</li>
+  <li>因此，总的表示方式数量正好是 $|H \cap K|$。</li>
+</ul></li>
+</ol>
+<p><strong>特别地 (Special Case)</strong></p>
+<ul>
+  <li><strong>原文</strong>：“特别地，如果 $H \cap K=1$，则 $H K$ 中的每个<strong>元素</strong>可以唯一地写成<strong>乘积</strong> $h k$ 的形式...”</li>
+  <li><strong>解释</strong>：这是上述结论的直接推论。如果交集只有一个元素（单位元），即 $|H \cap K|=1$，那么表示方式的数量就是 1。这意味着对 $HK$ 中的任何元素 $g$，都只存在唯一的一对 $(h, k)$ ($h \in H, k \in K$) 使得 $g = hk$。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1：交集非平凡</strong></li>
+  <li>设 $G=S_3$, $H = \langle (12) \rangle = \{e, (12)\}$, $K = \langle (13) \rangle = \{e, (13)\}$。</li>
+  <li>$H \cap K = \{e\}$。$|H \cap K|=1$。</li>
+  <li>$HK = \{e \cdot e, e \cdot (13), (12) \cdot e, (12) \cdot (13)\} = \{e, (13), (12), (132)\}$。</li>
+  <li>这里的每个元素都只有一种写法。例如 $(132)$ 只能写成 $(12) \cdot (13)$。</li>
+</ul>
+<ul>
+  <li><strong>示例2：(构造一个交集非平凡的例子)</strong></li>
+  <li>设 $G=S_4$。设 $H = D_8 \cong \langle (1234), (13) \rangle$ (一个Sylow 2-子群)，$K = \langle (12), (34) \rangle$ (一个四元群)。</li>
+  <li>让我们找一个更简单的例子。设 $G = Z_6 = \{0,1,2,3,4,5\}$。</li>
+  <li>设 $H = \langle 2 \rangle = \{0, 2, 4\}$。设 $K = \langle 3 \rangle = \{0, 3\}$。</li>
+  <li>$H \cap K = \{0\}$。$|H \cap K|=1$。</li>
+  <li>$HK = H+K = \{h+k \mid h \in H, k \in K\} = \{0,2,4\} + \{0,3\} = \{0,3,2,5,4,1\} = Z_6$。</li>
+  <li>每个元素表示唯一，例如 $5 = 2+3$。</li>
+</ul>
+<ul>
+  <li><strong>示例3：交集非平凡的例子</strong></li>
+  <li>设 $G=Z_{12}$。设 $H = \langle 2 \rangle = \{0, 2, 4, 6, 8, 10\}$。设 $K = \langle 3 \rangle$ 是错误的，应该是 $K=\langle 4 \rangle = \{0,4,8\}$。</li>
+  <li>设 $K = \langle 6 \rangle = \{0, 6\}$。</li>
+  <li>$H \cap K = \{0, 6\}$。$|H \cap K| = 2$。</li>
+  <li>$HK = H+K = \{0,2,4,6,8,10\} + \{0,6\} = \{0,6, 2,8, 4,10, 6,0, 8,2, 10,4\} = \{0,2,4,6,8,10\} = H$。</li>
+  <li>考虑 $HK$ 中的元素 $g=2$。</li>
+  <li>它可以写成 $2+0$ ($h=2, k=0$)。</li>
+  <li>它可以写成 $8+6$ ($h=8, k=6$)。</li>
+  <li>$h_1=2, k_1=0; h_2=8, k_2=6$。 $h_1-h_2 = 2-8 = -6 \equiv 6 \pmod{12}$。$k_2-k_1 = 6-0=6$。这个差 $6$ 就是在交集 $H \cap K$ 中。</li>
+  <li>我们看到元素 $2$ 恰好有两种表示方法，等于 $|H \cap K|$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>HK 不一定是子群</strong>：本命题讨论的是集合 $HK$，它不总是一个子群。它成为子群的充要条件是 $HK=KH$。</li>
+  <li><strong>表示的唯一性依赖交集</strong>：这是核心，唯一性是后续定义直积同构的基础。如果表示不唯一，就无法建立一个从 $HK$ 到 $H \times K$ 的良好定义的映射。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>命题8建立了一个关于子群乘积集 $HK$ 中元素表示方式数量的精确公式：数量等于交集的阶 $|H \cap K|$。其最重要的推论是，当两个子群的交集只有单位元时，乘积集中的任何元素都可以被唯一地分解为一个来自第一个子群的元素和第二个子群的元素的乘积。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本命题是为下一节的核心定理——识别内直积的定理9——做铺垫。定理9需要将子群的乘积 $HK$ 与外直积 $H \times K$ 建立同构关系。同构映射 $\varphi(hk) = (h, k)$ 要想是<strong>良定义的 (well-defined)</strong>，就必须保证 $hk$ 的表示是唯一的。否则，如果 $h_1k_1 = h_2k_2$，映射会产生歧义：应该映到 $(h_1,k_1)$ 还是 $(h_2,k_2)$？命题8恰好提供了保证这种唯一性的条件：$H \cap K = 1$。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-8">
+    <h2><span class="section-number">8</span>8. 内直积识别定理</h2>
+    <p id="original-8"><strong style="font-size: 1.3rem;">📜 [原文8]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>本节的<strong>主要结果</strong>是以下<strong>识别定理</strong>。</p>
+<p><strong>定理</strong> 9。假设 $G$ 是一个<strong>群</strong>，具有<strong>子群</strong> $H$ 和 $K$，使得</p>
+<p>(1) $H$ 和 $K$ 在 $G$ 中<strong>正规</strong>，并且</p>
+<p>(2) $H \cap K=1$。</p>
+<p>则 $H K \cong H \times K$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是本节的核心定理，给出了判断一个群的子群乘积何时同构于外直积的充分条件。</p>
+<p><strong>定理 9 详解</strong></p>
+<ul>
+  <li><strong>前提条件</strong>：定理要求两个子群 $H$ 和 $K$ 必须同时满足两个条件：</li>
+</ul>
+<ol>
+  <li> <strong>都是正规子群</strong>：$H \unlhd G$ 并且 $K \unlhd G$。这是一个非常强的条件。不仅仅是其中一个正规，而是两者都正规。</li>
+  <li> <strong>交集平凡</strong>：$H \cap K = \{1\}$。它们除了单位元之外没有公共元素。</li>
+</ol>
+<ul>
+  <li><strong>结论</strong>：如果这两个条件满足，那么由它们构成的子群乘积 $HK$ 在结构上就等同于 (同构于) 外直积 $H \times K$。</li>
+</ul>
+<p><strong>定理证明的逻辑链条 (原文在下一段，这里先概述)</strong></p>
+<ol>
+  <li> <strong>证明 $HK$ 是一个子群</strong>：由于 $H$ (或 $K$) 是正规的，可以保证 $HK=KH$，所以 $HK$ 是 $G$ 的一个子群。</li>
+  <li> <strong>证明 $H$ 和 $K$ 的元素可交换</strong>：对于任意 $h \in H, k \in K$，证明 $hk=kh$。这是利用两个子群都是正规子群这一关键条件得出的。</li>
+  <li> <strong>构建映射</strong>：定义一个从 $HK$ 到 $H \times K$ 的映射 $\varphi$。</li>
+  <li> <strong>证明映射是良定义的</strong>：利用命题8的结论，因为 $H \cap K = \{1\}$，所以 $HK$ 中每个元素 $g$ 都能唯一地写成 $hk$ 的形式。因此，$\varphi(hk) = (h, k)$ 是没有歧义的，是良定义的。</li>
+  <li> <strong>证明映射是同态</strong>：证明 $\varphi(g_1g_2) = \varphi(g_1)\varphi(g_2)$。这里会用到第2步证明的 $h, k$ 元素的可交换性。</li>
+  <li> <strong>证明映射是双射</strong>：证明 $\varphi$ 既是单射也是满射。这同样源于表示的唯一性和 $HK$ 的构造本身。</li>
+  <li> <strong>结论</strong>：一个良定义的、双射的同态就是一个<strong>同构</strong>。因此 $HK \cong H \times K$。</li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1：克莱因四元群 $V_4$</strong></li>
+  <li>设 $G = V_4 = \{e, a, b, c\}$，其中 $a^2=b^2=c^2=e, ab=c, bc=a, ca=b$。这是一个阿贝尔群。</li>
+  <li>设 $H = \langle a \rangle = \{e, a\}$。设 $K = \langle b \rangle = \{e, b\}$。</li>
+  <li><strong>验证条件 (1) - 正规性</strong>：因为 $G$ 是阿贝尔群，它的所有子群都是正规的。所以 $H \unlhd G$ 且 $K \unlhd G$。条件满足。</li>
+  <li><strong>验证条件 (2) - 交集</strong>：$H \cap K = \{e\}$。即 $\{e, a\} \cap \{e, b\} = \{e\}$。条件满足。</li>
+  <li><strong>结论</strong>：根据定理9，$HK \cong H \times K$。</li>
+  <li>$HK = \{e \cdot e, e \cdot b, a \cdot e, a \cdot b\} = \{e, b, a, c\} = G$。</li>
+  <li>$H \cong Z_2$, $K \cong Z_2$。</li>
+  <li>所以 $G = V_4 \cong Z_2 \times Z_2$。这个定理帮助我们识别出 $V_4$ 的直积结构。</li>
+</ul>
+<ul>
+  <li><strong>示例2：$Z_6$</strong></li>
+  <li>设 $G = Z_6$。设 $H = \langle 2 \rangle = \{0, 2, 4\}$。设 $K = \langle 3 \rangle = \{0, 3\}$。</li>
+  <li><strong>条件 (1) - 正规性</strong>：$G$ 是阿贝尔群，子群都是正规的。满足。</li>
+  <li><strong>条件 (2) - 交集</strong>：$H \cap K = \{0\}$。满足。</li>
+  <li><strong>结论</strong>：$HK \cong H \times K$。</li>
+  <li>$HK = H+K = Z_6 = G$。</li>
+  <li>$H \cong Z_3$, $K \cong Z_2$。</li>
+  <li>所以 $G=Z_6 \cong Z_3 \times Z_2$。这与中国剩余定理是一致的。</li>
+</ul>
+<ul>
+  <li><strong>反例：$S_3$</strong></li>
+  <li>设 $G=S_3$。设 $H = A_3 = \{e, (123), (132)\}$。设 $K = \langle (12) \rangle = \{e, (12)\}$。</li>
+  <li><strong>条件 (1)</strong>：$H=A_3$ 是 $S_3$ 的正规子群 (指数为2)。但 $K = \langle (12) \rangle$ 不是正规子群。例如 $(123)(12)(123)^{-1} = (123)(12)(132) = (23) \notin K$。</li>
+  <li><strong>条件 (2)</strong>：$H \cap K = \{e\}$。满足。</li>
+  <li>由于条件(1)不满足，定理9不适用。事实上 $S_3$ 并不等于 $A_3 \times \langle(12)\rangle \cong Z_3 \times Z_2 \cong Z_6$。$S_3$ 是非阿贝尔的，而 $Z_6$ 是阿贝尔的。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>两个条件缺一不可</strong>：必须同时满足正规性和交集平凡。上面的 $S_3$ 反例显示了缺少正规性的后果。如果交集不平凡，比如 $G=Z_{12}, H=\langle 2 \rangle, K=\langle 4 \rangle$，则 $H \cap K = \langle 4 \rangle \neq \{0\}$，此时 $HK=H$, 显然 $H \not\cong H \times K$。</li>
+  <li><strong>$G$ vs $HK$</strong>：定理的结论是 $HK \cong H \times K$。$HK$ 只是 $G$ 的一个子群。只有当 $G=HK$ 时，才能说 $G$ 本身同构于这个直积。在很多应用中，我们恰好能证明 $G=HK$。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>定理9提供了一个强大而简洁的工具，用于在一个大群 $G$ 内部识别出直积结构。只需验证两个子群 $H$ 和 $K$ 是否都正规且交集平凡，就可以断定它们的乘积 $HK$ 同构于外直积 $H \times K$。这个定理是连接内、外直积概念的桥梁。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本定理的目的是将抽象的“外直积”构造与群的内部分解联系起来。它回答了本节最初提出的问题：如何判断一个群 $G$ 是其子群的直积？通过提供可操作的条件（正规性、交集平凡），它使得我们可以对已知的群进行结构分析和分解，从而更深刻地理解这些群的性质。这是群论中一个基本的分解定理。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-9">
+    <h2><span class="section-number">9</span>9. 定理9的证明</h2>
+    <p id="original-9"><strong style="font-size: 1.3rem;">📜 [原文9]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>证明</strong>：观察到根据<strong>假设</strong> (1)， $H K$ 是 $G$ 的一个<strong>子群</strong>（参见<strong>推论</strong> 3.15）。设 $h \in H$ 且 $k \in K$。由于 $H \unlhd G$， $k^{-1} h k \in H$，因此 $h^{-1}\left(k^{-1} h k\right) \in H$。类似地，$\left(h^{-1} k^{-1} h\right) k \in K$。由于 $H \cap K=1$，因此 $h^{-1} k^{-1} h k=1$，即 $h k=k h$，因此 $H$ 的每个<strong>元素</strong>都与 $K$ 的每个<strong>元素</strong>可交换。</p>
+<p>根据前面的<strong>命题</strong>，$H K$ 中的每个<strong>元素</strong>可以唯一地写成<strong>乘积</strong> $h k$ 的形式，其中 $h \in H$ 且 $k \in K$。因此<strong>映射</strong></p>
+<p><div class="math-block">$$
+\begin{aligned}
+\varphi: H K &amp; \rightarrow H \times K \\
+h k &amp; \mapsto(h, k)
+\end{aligned}
+$$</div></p>
+<p>是<strong>良定义</strong>的。为了看出 $\varphi$ 是一个<strong>同态</strong>，请注意，如果 $h_{1}, h_{2} \in H$ 且 $k_{1}, k_{2} \in K$，则我们已经看到 $h_{2}$ 和 $k_{1}$ 可交换。因此</p>
+<p><div class="math-block">$$
+\left(h_{1} k_{1}\right)\left(h_{2} k_{2}\right)=\left(h_{1} h_{2}\right)\left(k_{1} k_{2}\right)
+$$</div></p>
+<p>而后者是 $\left(h_{1} k_{1}\right)\left(h_{2} k_{2}\right)$ 写成 $h k$ 形式的唯一<strong>乘积</strong>，其中 $h \in H$ 且 $k \in K$。这表明</p>
+<p><div class="math-block">$$
+\begin{aligned}
+\varphi\left(h_{1} k_{1} h_{2} k_{2}\right) &amp; =\varphi\left(h_{1} h_{2} k_{1} k_{2}\right) \\
+&amp; =\left(h_{1} h_{2}, k_{1} k_{2}\right) \\
+&amp; =\left(h_{1}, k_{1}\right)\left(h_{2}, k_{2}\right)=\varphi\left(h_{1} k_{1}\right) \varphi\left(h_{2} k_{2}\right)
+\end{aligned}
+$$</div></p>
+<p>因此 $\varphi$ 是一个<strong>同态</strong>。<strong>同态</strong> $\varphi$ 是一个<strong>双射</strong>，因为 $H K$ 的每个<strong>元素</strong>表示为 $h k$ 形式的<strong>乘积</strong>是唯一的，这就<strong>证明</strong>了 $\varphi$ 是一个<strong>同构</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本段详细阐述了定理9的证明过程，分为三个主要步骤。</p>
+<p><strong>第一步：证明 $H$ 和 $K$ 的元素逐点可交换</strong></p>
+<ul>
+  <li><strong>原文</strong>：“...设 $h \in H$ 且 $k \in K$。由于 $H \unlhd G$， $k^{-1} h k \in H$，因此 $h^{-1}\left(k^{-1} h k\right) \in H$。类似地，$\left(h^{-1} k^{-1} h\right) k \in K$。由于 $H \cap K=1$，因此 $h^{-1} k^{-1} h k=1$，即 $h k=k h$...”</li>
+  <li><strong>解释</strong>：这是证明中最巧妙的部分。目标是证明对任意 $h \in H, k \in K$, 都有 $hk=kh$，这等价于证明它们的换位子 $[h,k] = h^{-1}k^{-1}hk$ 等于单位元 1。</li>
+  <li>考虑换位子 $c = h^{-1}k^{-1}hk$。</li>
+  <li><strong>从 $H$ 的角度看</strong>：</li>
+  <li>因为 $H \unlhd G$（$H$是正规子群），所以对于任何 $k \in G$ (这里 $k \in K \subset G$) 和 $h \in H$，有 $k^{-1}hk \in H$。</li>
+  <li>既然 $k^{-1}hk \in H$，而 $h^{-1}$ 也显然在 $H$ 中，那么它们的乘积 $h^{-1}(k^{-1}hk)$ 必须在 $H$ 中（因为 $H$ 是子群，对乘法封闭）。</li>
+  <li>所以， $c \in H$。</li>
+  <li><strong>从 $K$ 的角度看</strong>：</li>
+  <li>因为 $K \unlhd G$（$K$也是正规子群），所以对于任何 $h \in G$ (这里 $h \in H \subset G$) 和 $k \in K$，有 $h^{-1}kh \in K$。</li>
+  <li>换位子 $c = h^{-1}k^{-1}hk$ 可以重新组合成 $(h^{-1}k^{-1}h)k$。</li>
+  <li>既然 $k \in K$，而 $h^{-1}k^{-1}h$ 是 $k^{-1} \in K$ 的共轭，由于 $K$ 正规，所以 $h^{-1}k^{-1}h \in K$。</li>
+  <li>那么它们的乘积 $(h^{-1}k^{-1}h)k$ 必须在 $K$ 中。</li>
+  <li>所以， $c \in K$。</li>
+  <li><strong>结合交集条件</strong>：</li>
+  <li>我们证明了同一个元素 $c$ 既属于 $H$ 又属于 $K$。</li>
+  <li>因此，$c$ 必须属于它们的交集 $H \cap K$。</li>
+  <li>根据定理的条件 (2)，$H \cap K = \{1\}$。</li>
+  <li>所以 $c$ 只能是单位元，即 $h^{-1}k^{-1}hk = 1$。</li>
+  <li>两边左乘 $kh$，得到 $kh(h^{-1}k^{-1}hk) = kh \cdot 1$，即 $hk=kh$。</li>
+  <li><strong>结论</strong>：在定理的条件下，来自 $H$ 的任意元素和来自 $K$ 的任意元素都可交换。</li>
+</ul>
+<p><strong>第二步：构建映射并证明其为同态</strong></p>
+<ul>
+  <li><strong>良定义性 (Well-definedness)</strong></li>
+  <li><strong>原文</strong>：“根据前面的<strong>命题</strong>，$H K$ 中的每个<strong>元素</strong>可以唯一地写成<strong>乘积</strong> $h k$ 的形式... 因此<strong>映射</strong>...是<strong>良定义</strong>的。”</li>
+  <li><strong>解释</strong>：我们想定义映射 $\varphi(g) = (h,k)$，其中 $g=hk$。要使这个映射成立，必须保证对于每个输入 $g$，只有一个输出 $(h,k)$。命题8已经告诉我们，表示的唯一性恰好由条件 $H \cap K=\{1\}$ 保证。因此，这个映射的定义没有歧义。</li>
+  <li><strong>证明同态 (Homomorphism)</strong></li>
+  <li><strong>原文</strong>：“为了看出 $\varphi$ 是一个<strong>同态</strong>... $\left(h_{1} k_{1}\right)\left(h_{2} k_{2}\right)=\left(h_{1} h_{2}\right)\left(k_{1} k_{2}\right)$ ...”</li>
+  <li><strong>解释</strong>：我们需要证明 $\varphi(g_1 g_2) = \varphi(g_1) \varphi(g_2)$。</li>
+  <li>设 $g_1 = h_1k_1$ 和 $g_2 = h_2k_2$ 是 $HK$ 中的任意两个元素。</li>
+  <li>它们的乘积是 $g_1g_2 = (h_1k_1)(h_2k_2)$。</li>
+  <li><strong>关键步骤</strong>：利用刚刚证明的交换性。因为 $k_1 \in K$ 且 $h_2 \in H$，所以 $k_1h_2 = h_2k_1$。</li>
+  <li>$g_1g_2 = h_1(k_1h_2)k_2 = h_1(h_2k_1)k_2 = (h_1h_2)(k_1k_2)$。</li>
+  <li>这个结果 $(h_1h_2)(k_1k_2)$ 的形式是一个 $H$ 中的元素 ($h_1h_2$) 乘以一个 $K$ 中的元素 ($k_1k_2$)。这正是 $\varphi$ 定义所需要的 $hk$ 形式。</li>
+  <li><strong>应用 $\varphi$</strong>：</li>
+  <li>$\varphi(g_1g_2) = \varphi((h_1h_2)(k_1k_2)) = (h_1h_2, k_1k_2)$ (根据 $\varphi$ 的定义)。</li>
+  <li>另外，$\varphi(g_1) = (h_1, k_1)$ 和 $\varphi(g_2) = (h_2, k_2)$。</li>
+  <li>在外直积 $H \times K$ 中，乘法是按分量定义的：$\varphi(g_1)\varphi(g_2) = (h_1, k_1)(h_2, k_2) = (h_1h_2, k_1k_2)$。</li>
+  <li>比较两边的结果，我们发现 $\varphi(g_1g_2) = \varphi(g_1)\varphi(g_2)$。因此 $\varphi$ 是一个同态。</li>
+</ul>
+<p><strong>第三步：证明映射为双射 (Bijection)</strong></p>
+<ul>
+  <li><strong>原文</strong>：“<strong>同态</strong> $\varphi$ 是一个<strong>双射</strong>，因为 $H K$ 的每个<strong>元素</strong>表示为 $h k$ 形式的<strong>乘积</strong>是唯一的，这就<strong>证明</strong>了 $\varphi$ 是一个<strong>同构</strong>。”</li>
+  <li><strong>解释</strong>：</li>
+  <li><strong>单射 (Injective)</strong>：如果 $\varphi(g_1) = \varphi(g_2)$，是否能推出 $g_1=g_2$？</li>
+  <li>设 $g_1=h_1k_1, g_2=h_2k_2$。$\varphi(g_1)=(h_1,k_1), \varphi(g_2)=(h_2,k_2)$。</li>
+  <li>如果 $(h_1,k_1) = (h_2,k_2)$，那么根据有序对相等的定义，必须有 $h_1=h_2$ 且 $k_1=k_2$。</li>
+  <li>这直接导致 $g_1=h_1k_1=h_2k_2=g_2$。所以 $\varphi$ 是单射。</li>
+  <li>（另一种方式：$\ker\varphi = \{g=hk \in HK \mid \varphi(g)=(1,1)\}$。这意味着 $h=1, k=1$，所以 $g=1\cdot1=1$。核是平凡的，所以映射是单射。）</li>
+  <li><strong>满射 (Surjective)</strong>：对于 $H \times K$ 中任意一个元素 $(h, k)$，是否存在 $g \in HK$ 使得 $\varphi(g)=(h,k)$？</li>
+  <li>当然存在。我们只需取 $g = hk$。这个 $g$ 就在 $HK$ 的定义域中。</li>
+  <li>根据 $\varphi$ 的定义，$\varphi(g) = \varphi(hk) = (h,k)$。</li>
+  <li>所以 $\varphi$ 是满射。</li>
+  <li><strong>结论</strong>：$\varphi$ 是一个良定义的、双射的同态，因此它是一个<strong>同构</strong> (isomorphism)。证明完毕。</li>
+</ul>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>公式1</strong>:</li>
+</ul>
+<p><div class="math-block">$$
+\begin{aligned}
+\varphi: H K &amp; \rightarrow H \times K \\
+h k &amp; \mapsto(h, k)
+\end{aligned}
+$$</div></p>
+<ul>
+  <li><strong>拆解</strong>: 定义了一个名为 $\varphi$ 的映射。</li>
+  <li><strong>定义域</strong>: $HK = \{hk \mid h \in H, k \in K\}$。</li>
+  <li><strong>陪域</strong>: $H \times K = \{(h, k) \mid h \in H, k \in K\}$。</li>
+  <li><strong>映射规则</strong>: 将 $HK$ 中的元素 $hk$ 映射到 $H \times K$ 中对应的有序对 $(h,k)$。良定义性是此规则有效的前提。</li>
+</ul>
+<ul>
+  <li><strong>公式2</strong>:</li>
+</ul>
+<p><div class="math-block">$$
+\left(h_{1} k_{1}\right)\left(h_{2} k_{2}\right)=\left(h_{1} h_{2}\right)\left(k_{1} k_{2}\right)
+$$</div></p>
+<ul>
+  <li><strong>拆解</strong>: 这是证明同态性的关键计算。</li>
+  <li>左边是 $HK$ 中两个通用元素 $g_1=h_1k_1$ 和 $g_2=h_2k_2$ 的乘积。</li>
+  <li>右边是将它们重新组合，把所有 $H$ 的元素放在一起，所有 $K$ 的元素放在一起。</li>
+  <li><strong>推导</strong>: $(h_1 k_1)(h_2 k_2) = h_1 (k_1 h_2) k_2 = h_1 (h_2 k_1) k_2 = (h_1 h_2)(k_1 k_2)$。中间一步 $k_1h_2 = h_2k_1$ 是利用了本证明第一步得到的交换性。</li>
+</ul>
+<ul>
+  <li><strong>公式3</strong>:</li>
+</ul>
+<p><div class="math-block">$$
+\begin{aligned}
+\varphi\left(h_{1} k_{1} h_{2} k_{2}\right) &amp; =\varphi\left(h_{1} h_{2} k_{1} k_{2}\right) \\
+&amp; =\left(h_{1} h_{2}, k_{1} k_{2}\right) \\
+&amp; =\left(h_{1}, k_{1}\right)\left(h_{2}, k_{2}\right)=\varphi\left(h_{1} k_{1}\right) \varphi\left(h_{2} k_{2}\right)
+\end{aligned}
+$$</div></p>
+<ul>
+  <li><strong>拆解</strong>: 这是一个完整的同态证明链条。</li>
+  <li>第一行：代入 $g_1g_2$ 的乘积结果。</li>
+  <li>第二行：应用 $\varphi$ 的定义，将 $h'k'$ 形式的元素 $\mapsto (h',k')$。这里 $h'=h_1h_2, k'=k_1k_2$。</li>
+  <li>第三行：将有序对 $(h_1h_2, k_1k_2)$ 拆开，这是外直积中乘法的定义。然后将拆开的两个有序对识别为 $\varphi(h_1k_1)$ 和 $\varphi(h_2k_2)$。</li>
+  <li><strong>推导</strong>: 完整地展示了 $\varphi(g_1g_2) = \varphi(g_1)\varphi(g_2)$ 的过程。</li>
+</ul>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-10">
+    <h2><span class="section-number">10</span>10. 内外直积的定义</h2>
+    <p id="original-10"><strong style="font-size: 1.3rem;">📜 [原文10]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>定义</strong>。如果 $G$ 是一个<strong>群</strong>，$H$ 和 $K$ 是 $G$ 的<strong>正规子群</strong>且 $H \cap K=1$，我们称 $H K$ 为 $H$ 和 $K$ 的<strong>内直积</strong>。我们将（在需要强调时）称 $H \times K$ 为 $H$ 和 $K$ 的<strong>外直积</strong>。</p>
+<p><strong>内直积</strong>和<strong>外直积</strong>之间的<strong>区别</strong>（根据<strong>定理</strong> 9）纯粹是<strong>记号</strong>上的：<strong>内直积</strong>的<strong>元素</strong>写成 $h k$ 的形式，而<strong>外直积</strong>的<strong>元素</strong>写成<strong>有序对</strong> $(h, k)$。我们以前在<strong>实例</strong>中<strong>交替使用</strong>过这些。例如，当 $Z_{n}=\langle a\rangle$ 和 $Z_{m}=\langle b\rangle$ 时，我们写 $x=(a, 1)$ 和 $y=(1, b)$，因此 $Z_{n} \times Z_{m}$ 的每个<strong>元素</strong>都写成 $x^{r} y^{s}$ 的形式。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本段基于定理9的结论，正式定义了“内直积”和“外直积”，并阐明了它们之间的关系。</p>
+<p><strong>定义部分</strong></p>
+<ul>
+  <li><strong>内直积 (Internal Direct Product)</strong>：</li>
+  <li><strong>条件</strong>：在一个群 $G$ 内部，找到了两个子群 $H$ 和 $K$，它们满足：</li>
+</ul>
+<ol>
+  <li> $H \unlhd G$ (H是正规子群)</li>
+  <li> $K \unlhd G$ (K是正规子群)</li>
+  <li> $H \cap K = \{1\}$ (交集平凡)
+<ul>
+  <li><strong>定义</strong>：满足这些条件的子群乘积 $HK$ 被称为 $H$ 和 $K$ 的<strong>内直积</strong>。</li>
+  <li><strong>外直积 (External Direct Product)</strong>：</li>
+  <li><strong>回顾</strong>：这是我们之前学习的概念。给定任意两个群 $H$ 和 $K$（它们可以毫不相关），我们构建一个新的群，其元素是所有可能的有序对 $(h, k)$，运算是按分量进行的。这个构造出来的群 $H \times K$ 称为<strong>外直积</strong>。</li>
+</ul></li>
+</ol>
+<p><strong>两者关系</strong></p>
+<ul>
+  <li><strong>原文</strong>：“<strong>内直积</strong>和<strong>外直积</strong>之间的<strong>区别</strong>...纯粹是<strong>记号</strong>上的...”</li>
+  <li><strong>解释</strong>：定理9告诉我们，只要条件满足，内直积 $HK$ 就和外直积 $H \times K$ 是<strong>同构</strong>的。这意味着从抽象代数的角度看，它们的“群结构”是完全一样的。</li>
+  <li><strong>区别体现在记号上</strong>：</li>
+  <li><strong>内直积</strong>的元素是 $G$ 中的元素，我们习惯将它们写成乘积形式 $hk$。它们生活在“大”群 $G$ 内部。</li>
+  <li><strong>外直积</strong>的元素是我们构造出来的有序对 $(h, k)$。它们生活在一个新的、独立的空间中。</li>
+  <li>同构映射 $\varphi: hk \mapsto (h, k)$ 就是连接这两种记号的桥梁。</li>
+</ul>
+<p><strong>例子说明</strong></p>
+<ul>
+  <li><strong>原文</strong>：“例如，当 $Z_{n}=\langle a\rangle$ 和 $Z_{m}=\langle b\rangle$ 时，我们写 $x=(a, 1)$ 和 $y=(1, b)$，因此 $Z_{n} \times Z_{m}$ 的每个<strong>元素</strong>都写成 $x^{r} y^{s}$ 的形式。”</li>
+  <li><strong>解释</strong>：这个例子说明了我们实际上经常在不自觉地模糊这两种记号。</li>
+  <li>考虑外直积 $G = Z_n \times Z_m$。</li>
+  <li>我们可以识别出它内部的两个子群：</li>
+  <li>$H = \{(a^r, 1) \mid r \in Z\} \cong Z_n$</li>
+  <li>$K = \{(1, b^s) \mid s \in Z\} \cong Z_m$</li>
+  <li>在 $G$ 中，$H$ 和 $K$ 满足定理9的条件（因为 $G$ 阿贝尔，所以它们都正规，且交集显然是 $\{(1,1)\}$）。</li>
+  <li>因此 $G = HK$，是 $H$ 和 $K$ 的内直积。</li>
+  <li>$G$ 中的任何一个元素 $(a^r, b^s)$，可以看作是外直积的有序对，也可以看作是内直积中两个元素的乘积：$(a^r, 1) \cdot (1, b^s)$。</li>
+  <li>如果我们用 $x$ 代表生成元 $(a,1)$，用 $y$ 代表生成元 $(1,b)$，那么任何元素都可以写成 $x^r y^s$。这种写法看起来就像内直积的 $hk$ 形式，尽管我们最初是从外直积出发的。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段给出了内直积的正式定义，并强调了它与外直积在结构上的等价性（同构）。它们的区别主要在于元素的表示方式：内直积的元素是原群内子群元素的乘积，而外直积的元素是人为构造的有序对。实践中，这两种观点常常可以互换使用。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是为了给我们在一个群内部发现的、满足特定条件的子群结构 ($HK$) 一个正式的名称——“内直积”。通过区分“内”和“外”，使得概念更加清晰，同时也通过定理9强调了两者本质上是同一回事，从而统一了两种看待直积的视角。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>外直积</strong>：你去商店分别买了一盒“引擎”零件和一盒“车身”零件，它们是两个独立的产品。你把它们带回家，按照说明书（笛卡尔积规则）组合成一辆完整的玩具车。</li>
+  <li><strong>内直积</strong>：你拿到一辆已经组装好的玩具车。你发现可以把它完美地拆成“引擎”和“车身”两个部分，而且这两个部分之间的连接非常简单，拆装都不会损坏任何一方。你断定，这辆车就是“引擎”和“车身”的<strong>内直积</strong>。</li>
+  <li><strong>定理9</strong>：这个定理就是告诉你，你拆出来的“引擎”和“车身”，跟你当初在商店里买的那两盒独立的零件，在功能和结构上是完全一样的。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-11">
+    <h2><span class="section-number">11</span>11. 例子 (识别直积)</h2>
+    <p id="original-11"><strong style="font-size: 1.3rem;">📜 [原文11]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>例子</h3><p>(1) 如果 $n$ 是一个<strong>正奇整数</strong>，我们证明 $D_{4 n} \cong D_{2 n} \times Z_{2}$。为此，设</p><p><div class="math-block">$$
+D_{4 n}=\left\langle r, s \mid r^{2 n}=s^{2}=1, s r s=r^{-1}\right\rangle
+$$</div></p><p>是 $D_{4 n}$ 的<strong>通常表示</strong>。设 $H=\left\langle s, r^{2}\right\rangle$ 且设 $K=\left\langle r^{n}\right\rangle$。从<strong>几何</strong>上看，如果 $D_{4 n}$ 是<strong>正 2n 边形</strong>的<strong>对称群</strong>，$H$ 是通过连接<strong>顶点</strong> $2 i$ 到<strong>顶点</strong> $2 i+2$（对于所有 $i \bmod 2 n$）<strong>内接</strong>在<strong>2n 边形</strong>中的<strong>正 n 边形</strong>的<strong>对称群</strong>（如果令 $r_{1}=r^{2}$，$H$ 具有<strong>阶</strong>为 $2n$ 的<strong>二面体群</strong>的<strong>通常表示</strong>，<strong>生成元</strong>为 $r_{1}$ 和 $s$）。注意 $H \unlhd D_{4 n}$（它的<strong>指数</strong>为 2）。由于 $|r|=2 n$，$\left|r^{n}\right|=2$。由于 $s r s=r^{-1}$，我们有 $s r^{n} s=r^{-n}=r^{n}$，即 $s$ 与 $r^{n}$ <strong>中心化</strong>。由于 $r$ 显然与 $r^{n}$ <strong>中心化</strong>，$K \leq Z\left(D_{4 n}\right)$。因此 $K \unlhd D_{4 n}$。最后，$K \not\subseteq H$ 因为 $r^{2}$ 具有<strong>奇数阶</strong>（或者因为 $r^{n}$ 将<strong>顶点</strong> $i$ <strong>映射</strong>到<strong>顶点</strong> $i+n$，因此不保留<strong>2n 边形</strong>的<strong>偶数顶点集合</strong>）。因此根据<strong>拉格朗日定理</strong>，$H \cap K=1$。<strong>定理</strong> 9 现在完成了<strong>证明</strong>。</p><p>(2) 设 $I$ 是 $\{1,2, \ldots, n\}$ 的一个<strong>子集</strong>，设 $G$ 是 $I$ 在 $S_{n}$ 中的<strong>集合稳定子</strong>，即</p><p><div class="math-block">$$
+G=\left\{\sigma \in S_{n} \mid \sigma(i) \in I \text { for all } i \in I\right\} .
+$$</div></p><p>设 $J=\{1,2, \ldots, n\}-I$ 是 $I$ 的<strong>补集</strong>，并注意 $G$ 也是 $J$ 的<strong>集合稳定子</strong>。设 $H$ 是 $I$ 的<strong>点稳定子</strong>，设 $K$ 是 $\{1,2, \ldots, n\}-I$ 的<strong>点稳定子</strong>，即</p><p><div class="math-block">$$
+\begin{aligned}
+&amp; H=\{\sigma \in G \mid \sigma(i)=i \text { for all } i \in I\} \\
+&amp; K=\{\tau \in G \mid \tau(j)=j \text { for all } j \in J\} .
+\end{aligned}
+$$</div></p><p>很容易看出 $H$ 和 $K$ 是 $G$ 的<strong>正规子群</strong>（实际上它们分别是 $G$ 在 $I$ 和 $J$ 上的<strong>作用的核</strong>）。由于 $H \cap K$ 中的任何<strong>元素</strong>都固定 $\{1,2, \ldots, n\}$ 中的所有<strong>元素</strong>，我们有 $H \cap K=1$。最后，由于 $G$ 的每个<strong>元素</strong> $\sigma$ 都<strong>稳定集合</strong> $I$ 和 $J$，因此 $\sigma$ 的<strong>循环分解</strong>中的每个<strong>循环</strong>只涉及 $I$ 中的<strong>元素</strong>或只涉及 $J$ 中的<strong>元素</strong>。因此 $\sigma$ 可以写成<strong>乘积</strong> $\sigma_{I} \sigma_{J}$ 的形式，其中 $\sigma_{I} \in H$ 且 $\sigma_{J} \in K$。这<strong>证明</strong>了 $G=H K$。根据<strong>定理</strong> 9，$G \cong H \times K$。现在 $J$ 的任何<strong>置换</strong>都可以<strong>扩展</strong>为 $S_{n}$ 中的<strong>置换</strong>，方法是使其在 $I$ 上<strong>作用</strong>为<strong>恒等元</strong>。这些正是 $H$ 中的<strong>置换</strong>（类似地，$K$ 中的<strong>置换</strong>是 $I$ 的<strong>置换</strong>，它们在 $J$ 上是<strong>恒等元</strong>），所以</p><p><div class="math-block">$$
+H \cong S_{J} \quad K \cong S_{I} \quad \text { and } \quad G \cong S_{m} \times S_{n-m},
+$$</div></p><p>其中 $m=|J|$（并且，按照<strong>约定</strong>，$S_{\emptyset}=1$）。</p><p>(3) 设 $\sigma \in S_{n}$，设 $I$ 是 $\{1,2, \ldots, n\}$ 中被 $\sigma$ <strong>逐点固定</strong>的<strong>子集</strong>：</p><p><div class="math-block">$$
+I=\{i \in\{1,2, \ldots, n\} \mid \sigma(i)=i\} .
+$$</div></p><p>如果 $C=C_{S_{n}}(\sigma)$，那么根据<strong>第 4.3 节</strong>的<strong>习题</strong> 18，$C$ <strong>稳定集合</strong> $I$ 及其<strong>补集</strong> $J$。根据前面的<strong>例子</strong>，$C$ <strong>同构</strong>于 $H \times K$ 的一个<strong>子群</strong>，其中 $H$ 是 $S_{n}$ 中所有<strong>逐点固定</strong> $I$ 的<strong>置换</strong>的<strong>子群</strong>，$K$ 是所有<strong>逐点固定</strong> $J$ 的<strong>置换</strong>的<strong>集合</strong>。注意 $\sigma \in H$。因此 $C$ 的每个<strong>元素</strong> $\alpha$ 可以（唯一地）写成 $\alpha=\alpha_{I} \alpha_{J}$ 的形式，其中 $\alpha_{I} \in H$ 且 $\alpha_{J} \in K$。进一步注意，如果 $\tau$ 是 $\{1,2, \ldots, n\}$ 的任何<strong>置换</strong>，它固定每个 $j \in J$（即 $K$ 的任何<strong>元素</strong>），那么 $\sigma$ 和 $\tau$ <strong>可交换</strong>（因为它们不移动<strong>共同的整数</strong>）。因此 $C$ 包含所有这样的 $\tau$，即 $C$ 包含<strong>子群</strong> $K$。这<strong>证明</strong>了<strong>群</strong> $C$ 由 $H \times K$ 中所有<strong>元素</strong> $\alpha_{I} \alpha_{J}$ 组成，其中 $\alpha_{J}$ 在 $K$ 中是任意的，且 $\alpha_{I}$ 在 $H$ 中与 $\sigma$ <strong>可交换</strong>：</p><p><div class="math-block">$$
+\begin{aligned}
+C_{S_{n}}(\sigma) &amp; =C_{H}(\sigma) \times K \\
+&amp; \cong C_{S_{J}}(\sigma) \times S_{I}
+\end{aligned}
+$$</div></p><p>特别地，如果 $\sigma$ 是 $S_{n}$ 中的一个 $m$-<strong>循环</strong>，</p><p><div class="math-block">$$
+C_{S_{n}}(\sigma)=\langle\sigma\rangle \times S_{n-m}
+$$</div></p><p>后一个<strong>群</strong>的<strong>阶</strong>为 $m(n-m)!$，如<strong>第 4.3 节</strong>所计算。</p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本节通过三个具体的、更复杂的例子，展示了如何应用定理9来分解群的结构。</p>
+<p><strong>例子 (1): 分解二面体群</strong></p>
+<ul>
+  <li><strong>目标</strong>：证明当 $n$ 是奇数时，$D_{4n} \cong D_{2n} \times Z_2$。</li>
+  <li><strong>策略</strong>：在 $D_{4n}$ 内部找到两个子群 $H$ 和 $K$，验证它们满足定理9的条件，并证明 $D_{4n}=HK$。</li>
+  <li><strong>构造子群</strong>：</li>
+  <li>$D_{4n} = \langle r, s \mid r^{2n}=1, s^2=1, srs=r^{-1} \rangle$。</li>
+  <li>$H = \langle s, r^2 \rangle$。</li>
+  <li>$K = \langle r^n \rangle$。</li>
+  <li><strong>验证条件</strong>：</li>
+</ul>
+<ol>
+  <li> <strong>$H \unlhd D_{4n}$?</strong>
+<ul>
+  <li>$H$ 是由 $s$ 和 $r^2$ 生成的。$|H|$ 是多少？$H$ 的元素是形如 $(r^2)^i s^j$。可以证明 $H$ 的阶是 $2n$。</li>
+  <li>$|D_{4n}| = 4n$。所以 $H$ 在 $D_{4n}$ 中的指数是 $4n / (2n) = 2$。</li>
+  <li><strong>任何指数为2的子群都是正规子群</strong>。所以 $H \unlhd D_{4n}$。</li>
+</ul></li>
+  <li> <strong>$K \unlhd D_{4n}$?</strong>
+<ul>
+  <li>$K = \langle r^n \rangle = \{e, r^n\}$，因为 $(r^n)^2 = r^{2n} = e$。</li>
+  <li>我们需要证明 $K$ 在 $D_{4n}$ 的中心 $Z(D_{4n})$ 里。</li>
+  <li>$r$ 和 $r^n$ 显然可交换，因为它们都是 $r$ 的幂。</li>
+  <li>$s$ 和 $r^n$ 可交换吗？$sr^ns^{-1} = (srs^{-1})^n = (r^{-1})^n = r^{-n}$。</li>
+  <li>我们需要 $r^{-n} = r^n$，即 $r^{2n}=e$。这个条件是满足的。所以 $sr^ns^{-1}=r^n$。</li>
+  <li><strong>等一下</strong>，这里原文的推导 $s r^n s = r^{-n} = r^n$ 是有问题的。$r^{-n}=r^n$ 仅当 $r^{2n}=e$ 且 $r^n$ 的阶是2时成立，即 $r^{2n}=e$。不对，应该是 $r^{2n}=e$ 和 $r^n \ne e$ 蕴含 $r^n = r^{-n}$ 吗？不，是 $(r^n)^2=e$ 蕴含 $r^n=(r^n)^{-1}=r^{-n}$。这在 $r$ 的阶为 $2n$ 时成立。所以 $sr^n s^{-1} = r^{-n} = (r^n)^{-1}$。这里原文的 $s r^n s = r^{-n} = r^n$ 是在 $s$ 与 $r^n$ <strong>可交换</strong>的条件下才成立的。</li>
+  <li>让我们重新检查 $s$ 与 $r^n$ 的交换性：$s r^n s^{-1} = (r^{-1})^n = r^{-n}$。我们需要 $r^{-n}=r^n$，这意味着 $r^{2n}=e$。这是 $D_{4n}$ 定义的一部分。所以 $s$ 与 $r^n$ <strong>并不交换</strong>，而是 $s r^n s^{-1} = r^{-n}$。</li>
+  <li><strong>但是</strong>，<strong>当 $n$ 是奇数时</strong>，$r^{-n} = r^{2n} \cdot r^{-n} = r^n$。这个等式成立！$r^{2n}=e$, 所以 $r^n = r^{-n}$。</li>
+  <li>更正：$srs = r^{-1}$，所以 $sr^ns = (srs)^n = (r^{-1})^n = r^{-n}$。我们需要 $sr^n = r^ns$。即 $sr^n = sr^{-n}$，所以 $r^n=r^{-n}$，即 $r^{2n}=e$。这个条件始终成立。所以 $s$ 和 $r^n$ <strong>始终交换</strong>！</li>
+  <li><strong>重新思考</strong>：$s r^n s = r^{-n}$。$r^n$ 要在中心里，需要 $r^n$ 与 $s$ 交换，即 $sr^ns = r^n$。所以需要 $r^{-n}=r^n$，这等价于 $(r^n)^2=e$，即 $r^{2n}=e$。这是对的。所以 $K = \langle r^n \rangle$ <strong>始终在 $D_{4n}$ 的中心里</strong>。</li>
+  <li>既然 $K \leq Z(D_{4n})$，那么 $K$ 肯定是正规子群。$K \unlhd D_{4n}$。</li>
+</ul></li>
+  <li> <strong>$H \cap K = \{e\}$?</strong>
+<ul>
+  <li>$H=\langle s, r^2 \rangle$。$K=\langle r^n \rangle = \{e, r^n\}$。</li>
+  <li>交集不为 $\{e\}$ 的唯一可能是 $r^n \in H$。</li>
+  <li>$H$ 中的旋转元素都是 $r^2$ 的幂，即 $r^{2k}$。</li>
+  <li>如果 $r^n \in H$，那么 $r^n$ 必须能表示为 $r^{2k}$ 的形式。</li>
+  <li>这意味着 $n$ 必须是偶数。</li>
+  <li>但定理的<strong>前提是 $n$ 是奇数</strong>。当 $n$ 是奇数时，$r^n$ 不可能是 $r$ 的偶数次幂。</li>
+  <li>因此，$r^n \notin H$。所以 $H \cap K = \{e\}$。</li>
+  <li><strong>应用定理9</strong></li>
+  <li>所有条件都满足了。所以 $HK \cong H \times K$。</li>
+  <li>$H = \langle s, r^2 \rangle$。令 $r_1=r^2, s_1=s$。$r_1^n = (r^2)^n = r^{2n}=e$, $s_1^2=s^2=e$, $s_1r_1s_1^{-1}=sr^2s^{-1}=(srs^{-1})^2=(r^{-1})^2=r^{-2}=(r^2)^{-1}=r_1^{-1}$。所以 $H$ 的表示是 $\langle r_1, s_1 \mid r_1^n=s_1^2=1, s_1r_1s_1^{-1}=r_1^{-1} \rangle$，这正是 $D_{2n}$ 的定义。所以 $H \cong D_{2n}$。</li>
+  <li>$K=\langle r^n \rangle$ 是阶为2的循环群，所以 $K \cong Z_2$。</li>
+  <li>$|HK| = |H||K|/|H \cap K| = (2n)(2)/1 = 4n$。</li>
+  <li>$|D_{4n}| = 4n$。</li>
+  <li>因为 $HK$ 是 $D_{4n}$ 的子群且阶数相同，所以 $D_{4n} = HK$。</li>
+  <li><strong>最终结论</strong>：$D_{4n} = HK \cong H \times K \cong D_{2n} \times Z_2$。</li>
+</ul></li>
+</ol>
+<p><strong>例子 (2): 分解集合稳定子</strong></p>
+<ul>
+  <li><strong>目标</strong>：证明 $S_n$ 中一个子集 $I$ 的集合稳定子 $G$ 同构于 $S_I \times S_J$。</li>
+  <li><strong>定义</strong>：</li>
+  <li>$I \subseteq \{1, \dots, n\}$，$J$ 是其补集。$|I|=n-m, |J|=m$。</li>
+  <li>$G = \{\sigma \in S_n \mid \sigma(I)=I\}$。这意味着 $\sigma$ 把 $I$ 中的元素映射到 $I$ 中，把 $J$ 中的元素映射到 $J$ 中。</li>
+  <li>$H = \{\sigma \in G \mid \sigma(i)=i \text{ for all } i \in I\}$。$H$ 是 $G$ 中逐点固定 $I$ 的置换集合。</li>
+  <li>$K = \{\tau \in G \mid \tau(j)=j \text{ for all } j \in J\}$。$K$ 是 $G$ 中逐点固定 $J$ 的置换集合。</li>
+  <li><strong>验证条件</strong>：</li>
+</ul>
+<ol>
+  <li> <strong>$H, K$ 正规吗？</strong>
+<ul>
+  <li>$H$ 是 $G$ 在 $I$ 上的作用的核，核总是正规子群。或者直接验证：对任意 $g \in G, h \in H$，要证明 $g h g^{-1} \in H$。即证明 $ghg^{-1}$ 逐点固定 $I$。对任意 $i \in I$, 设 $i' = g(i) \in I$。则 $g^{-1}(i')=i$。$ghg^{-1}(i') = gh(i) = g(i) = i'$。不对，这个推导是错的。</li>
+  <li>让我们重新来：设 $i \in I$。我们要看 $ghg^{-1}(i)$ 是什么。因为 $g \in G$ (集合稳定子)，$g^{-1}(i)$ 不一定等于 $i$，但它一定在 $I$ 中。设 $i' = g^{-1}(i) \in I$。因为 $h \in H$ (逐点固定 $I$)，所以 $h(i')=i'$。那么 $ghg^{-1}(i) = gh(i') = g(i') = g(g^{-1}(i)) = i$。所以 $ghg^{-1}$ 确实逐点固定了 $I$ 的所有元素。因此 $ghg^{-1} \in H$。所以 $H \unlhd G$。</li>
+  <li>同理可证 $K \unlhd G$。</li>
+</ul></li>
+  <li> <strong>$H \cap K = \{e\}$?</strong>
+<ul>
+  <li>如果一个置换 $\sigma \in H \cap K$，那么它既要逐点固定 $I$ 的所有元素，也要逐点固定 $J$ 的所有元素。</li>
+  <li>$I \cup J = \{1, \dots, n\}$。所以 $\sigma$ 必须固定所有 $n$ 个元素。</li>
+  <li>唯一能做到这点的置换就是单位元 $e$。所以 $H \cap K = \{e\}$。</li>
+</ul></li>
+  <li> <strong>$G=HK$?</strong>
+<ul>
+  <li>任何一个 $\sigma \in G$，它保持 $I$ 和 $J$ 不变。这意味着 $\sigma$ 的循环分解中，每个循环要么只包含 $I$ 的元素，要么只包含 $J$ 的元素。不会有循环跨越 $I, J$。</li>
+  <li>我们可以把 $\sigma$ 分解成两部分：$\sigma_J$ 是 $\sigma$ 在 $J$ 上的作用部分（在 $I$ 上是恒等），$\sigma_I$ 是 $\sigma$ 在 $I$ 上的作用部分（在 $J$ 上是恒等）。</li>
+  <li>$\sigma_J$ 只动 $J$ 的元素，所以它逐点固定 $I$。因此 $\sigma_J \in H$。</li>
+  <li>$\sigma_I$ 只动 $I$ 的元素，所以它逐点固定 $J$。因此 $\sigma_I \in K$。</li>
+  <li>并且 $\sigma = \sigma_J \sigma_I$ (因为它们作用在不相交的集合上，所以可交换)。</li>
+  <li>因此 $G=HK$。</li>
+  <li><strong>应用定理9</strong></li>
+  <li>$G = HK \cong H \times K$。</li>
+  <li>$H$ 中的置换只动 $J$ 上的点，实际上就是 $J$ 上的所有置换的集合。所以 $H \cong S_J \cong S_m$。</li>
+  <li>$K$ 中的置换只动 $I$ 上的点，实际上就是 $I$ 上的所有置换的集合。所以 $K \cong S_I \cong S_{n-m}$。</li>
+  <li><strong>最终结论</strong>：$G \cong S_m \times S_{n-m}$。</li>
+</ul></li>
+</ol>
+<p><strong>例子 (3): 分解中心化子</strong></p>
+<ul>
+  <li><strong>目标</strong>：确定 $S_n$ 中一个置换 $\sigma$ 的中心化子 $C_{S_n}(\sigma)$ 的结构。</li>
+  <li><strong>定义</strong>：</li>
+  <li>$\sigma \in S_n$。</li>
+  <li>$I = \{i \mid \sigma(i)=i\}$，被 $\sigma$ 固定的点的集合。$J$ 是补集，即 $\sigma$ 移动的点的集合。</li>
+  <li>$C=C_{S_n}(\sigma) = \{\tau \in S_n \mid \tau\sigma = \sigma\tau\}$。</li>
+  <li><strong>分析</strong>：</li>
+</ul>
+<ol>
+  <li> <strong>$C$ 稳定 $I, J$</strong>：如果 $i \in I$, $\tau \in C$, 则 $\sigma(\tau(i)) = \tau(\sigma(i)) = \tau(i)$。这意味着 $\tau(i)$ 也是被 $\sigma$ 固定的点，所以 $\tau(i) \in I$。因此 $C$ 是 $I$ (和 $J$) 的集合稳定子。</li>
+  <li> <strong>应用例子(2)的框架</strong>：既然 $C$ 是一个集合稳定子，它本身具有一个直积结构。$C \le S_I \times S_J$ (这里 $S_I$ 指作用在 $I$ 上的对称群， $S_J$ 指作用在 $J$ 上的对称群)。
+<ul>
+  <li>任何 $\alpha \in C$ 都可以唯一分解为 $\alpha = \alpha_I \alpha_J$，其中 $\alpha_I$ 只动 $I$ 的点，$\alpha_J$ 只动 $J$ 的点。</li>
+</ul></li>
+  <li> <strong>确定 $C$ 的具体形式</strong>：$\alpha = \alpha_I \alpha_J$ 要在 $C$ 中，必须满足 $\alpha\sigma = \sigma\alpha$。
+<ul>
+  <li>$(\alpha_I \alpha_J)\sigma = \sigma(\alpha_I \alpha_J)$</li>
+  <li>$\sigma$ 只在 $J$ 上有非平凡作用，所以它与在 $I$ 上作用的 $\alpha_I$ 可交换：$\sigma\alpha_I = \alpha_I\sigma$。</li>
+  <li>代入上式：$\alpha_I \alpha_J \sigma = \alpha_I \sigma \alpha_J$。消去 $\alpha_I$ 得 $\alpha_J \sigma = \sigma \alpha_J$。</li>
+  <li>所以，$\alpha$ 在中心化子中 $\iff \alpha_J$ 与 $\sigma$ 可交换。</li>
+</ul></li>
+  <li> <strong>$\alpha_I$ 的限制</strong>：对 $\alpha_I$ 没有任何限制。它可以是任何作用在 $I$ 上的置换。所以 $\alpha_I$ 来自于整个 $S_I$。这部分构成了 $K \cong S_I$。</li>
+  <li> <strong>$\alpha_J$ 的限制</strong>：$\alpha_J$ 是一个作用在 $J$ 上的置换，且必须与 $\sigma$ (限制在 $J$ 上的部分) 可交换。这正是 $\sigma$ 在群 $S_J$ 中的中心化子 $C_{S_J}(\sigma)$。这部分构成了 $H \cong C_{S_J}(\sigma)$。
+<ul>
+  <li><strong>结论</strong>：$C_{S_n}(\sigma) \cong C_{S_J}(\sigma) \times S_I$。</li>
+  <li><strong>特殊情况：m-循环</strong>：</li>
+  <li>如果 $\sigma$ 是一个 $m$-循环，那么 $J$ 是它移动的 $m$ 个点，$I$ 是它不动的 $n-m$ 个点。</li>
+  <li>在 $S_J$ (阶为 $m!$ 的对称群) 中，一个 $m$-循环的中心化子就是它自身生成的循环群，阶为 $m$。即 $C_{S_J}(\sigma) = \langle \sigma \rangle$。</li>
+  <li>$S_I$ 就是作用在 $n-m$ 个点上的对称群 $S_{n-m}$。</li>
+  <li><strong>最终结论</strong>：$C_{S_n}(\sigma) \cong \langle \sigma \rangle \times S_{n-m}$。</li>
+  <li><strong>阶数验证</strong>：这个群的阶是 $m \times (n-m)!$，这与我们之前用轨道-稳定化子定理计算出的中心化子阶数结果一致。</li>
+</ul></li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-12">
+    <h2><span class="section-number">12</span>12. 习题</h2>
+    <p id="original-12"><strong style="font-size: 1.3rem;">📜 [原文12]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>习题</h3><p>设 $G$ 是一个<strong>群</strong>。</p><p>1. <strong>证明</strong>如果 $x, y \in G$，则 $[y, x]=[x, y]^{-1}$。<strong>推导</strong>出对于 $G$ 的任何<strong>子集</strong> $A$ 和 $B$， $[A, B]=[B, A]$（<strong>回想</strong> $[A, B]$ 是由<strong>换位子</strong> $[a, b]$ <strong>生成</strong>的 $G$ 的<strong>子群</strong>）。</p><p>2. <strong>证明</strong> $G$ 的<strong>子群</strong> $H$ 是<strong>正规的</strong>当且仅当 $[G, H] \leq H$。</p><p>3. 设 $a, b, c \in G$。<strong>证明</strong></p><p>(a) $[a, b c]=[a, c]\left(c^{-1}[a, b] c\right)$</p><p>(b) $[a b, c]=\left(b^{-1}[a, c] b\right)[b, c]$。</p><p>4. 求 $S_{4}$ 和 $A_{4}$ 的<strong>换位子子群</strong>。</p><p>5. <strong>证明</strong>对于所有 $n \geq 5$，$A_{n}$ 是 $S_{n}$ 的<strong>换位子子群</strong>。</p><p>6. 在 $S_{5}$ 中<strong>展示</strong> $A_{5}$ 的每个<strong>循环型</strong>的<strong>代表元</strong>作为一个<strong>换位子</strong>。</p><p>7. <strong>证明</strong>如果 $p$ 是一个<strong>素数</strong>且 $P$ 是<strong>阶</strong>为 $p^{3}$ 的<strong>非 Abel 群</strong>，则 $P^{\prime}=Z(P)$。</p><p>8. 假设 $x, y \in G$ 且 $x$ 和 $y$ 都与 $[x, y]$ <strong>可交换</strong>。<strong>证明</strong>对于所有 $n \in \mathbb{Z}^{+}$， $(x y)^{n}=x^{n} y^{n}[y, x]^{\frac{n(n-1)}{2}}$。</p><p>9. <strong>证明</strong>如果 $p$ 是<strong>奇素数</strong>且 $P$ 是<strong>阶</strong>为 $p^{3}$ 的<strong>群</strong>，则 $p$-次幂<strong>映射</strong> $x \mapsto x^{p}$ 是从 $P$ 到 $Z(P)$ 的一个<strong>同态</strong>。如果 $P$ 不是<strong>循环群</strong>，<strong>显示</strong> $p$-次幂<strong>映射</strong>的<strong>核</strong>的<strong>阶</strong>为 $p^{2}$ 或 $p^{3}$。在上述<strong>证明</strong>中， $p$ 的<strong>奇偶性</strong>在哪里需要？[使用<strong>习题</strong> 8。]</p><p>10. <strong>证明</strong>一个<strong>有限 Abel 群</strong>是其<strong>西洛子群</strong>的<strong>直积</strong>。</p><p>11. <strong>证明</strong>如果 $G=H K$，其中 $H$ 和 $K$ 是 $G$ 的<strong>特征子群</strong>且 $H \cap K=1$，则 $\operatorname{Aut}(G) \cong \operatorname{Aut}(H) \times \operatorname{Aut}(K)$。<strong>推导</strong>出如果 $G$ 是<strong>有限阶 Abel 群</strong>，则 $\operatorname{Aut}(G)$ <strong>同构</strong>于其<strong>西洛子群</strong>的<strong>自同构群</strong>的<strong>直积</strong>。</p><p>12. 使用<strong>定理</strong> 4.17 <strong>描述</strong>一个<strong>有限循环群</strong>的<strong>自同构群</strong>。</p><p>13. <strong>证明</strong> $D_{8 n}$ 不<strong>同构</strong>于 $D_{4 n} \times Z_{2}$。</p><p>14. 设 $G=\left\{\left(a_{i j}\right) \in G L_{n}(F) \mid a_{i j}=0\right.$ 如果 $i&gt;j$，且 $\left.a_{11}=a_{22}=\cdots=a_{n n}\right\}$，其中 $F$ 是一个<strong>域</strong>，是所有<strong>对角线</strong><strong>元素相等</strong>的<strong>上三角矩阵</strong>的<strong>群</strong>。<strong>证明</strong> $G \cong D \times U$，其中 $D$ 是<strong>恒等矩阵</strong>的<strong>所有非零倍数</strong>的<strong>群</strong>，$U$ 是<strong>对角线上</strong>全是 1 的<strong>上三角矩阵</strong>的<strong>群</strong>。</p><p>15. 如果 $A$ 和 $B$ 是 $G$ 的<strong>正规子群</strong>，使得 $G / A$ 和 $G / B$ 都是<strong>Abel 群</strong>，<strong>证明</strong> $G /(A \cap B)$ 是<strong>Abel 群</strong>。</p><p>16. <strong>证明</strong>如果 $K$ 是 $G$ 的<strong>正规子群</strong>，则 $K^{\prime} \unlhd G$。</p><p>17. 如果 $K$ 是 $G$ 的<strong>正规子群</strong>且 $K$ 是<strong>循环群</strong>，<strong>证明</strong> $G^{\prime} \leq C_{G}(K)$。[<strong>回想</strong><strong>循环群</strong>的<strong>自同构群</strong>是<strong>Abel 群</strong>。]</p><p>18. 设 $K_{1}, K_{2}, \ldots, K_{n}$ 是<strong>非 Abel 单群</strong>，设 $G=K_{1} \times K_{2} \times \cdots \times K_{n}$。<strong>证明</strong> $G$ 的每个<strong>正规子群</strong>都<strong>形如</strong> $G_{I}$，对于 $\{1,2, \ldots, n\}$ 的某个<strong>子集</strong> $I$（其中 $G_{I}$ 在<strong>第 1 节</strong>的<strong>习题</strong> 2 中<strong>定义</strong>）。[如果 $N \unlhd G$ 且 $x=\left(a_{1}, \ldots, a_{n}\right) \in N$ 且某些 $a_{i} \neq 1$，则<strong>显示</strong>存在某个 $g_{i} \in G_{i}$ 不与 $a_{i}$ <strong>可交换</strong>。<strong>显示</strong> $\left[\left(1, \ldots, g_{i}, \ldots, 1\right), x\right] \in K_{i} \cap N$ 并<strong>推导</strong> $K_{i} \leq N$。]</p><p>19. 一个<strong>群</strong> $H$ 称为<strong>完美群</strong>如果 $H^{\prime}=H$（即 $H$ 等于其自身的<strong>换位子子群</strong>）。</p><p>(a) <strong>证明</strong>每个<strong>非 Abel 单群</strong>都是<strong>完美群</strong>。</p><p>(b) <strong>证明</strong>如果 $H$ 和 $K$ 是<strong>群</strong> $G$ 的<strong>完美子群</strong>，则 $\langle H, K\rangle$ 也是<strong>完美群</strong>。<strong>扩展</strong>此<strong>结论</strong>以<strong>显示</strong>由任何<strong>完美子群</strong><strong>集合生成</strong>的 $G$ 的<strong>子群</strong>是<strong>完美群</strong>。</p><p>(c) <strong>证明</strong><strong>完美子群</strong>的任何<strong>共轭</strong>都是<strong>完美群</strong>。</p><p>(d) <strong>证明</strong>任何<strong>群</strong> $G$ 都有一个唯一的<strong>最大完美子群</strong>，且此<strong>子群</strong>是<strong>正规的</strong>。</p><p>20. 设 $H(F)$ 是<strong>域</strong> $F$ 上的<strong>海森堡群</strong>，参见<strong>第 1.4 节</strong>的<strong>习题</strong> 11。求<strong>换位子</strong> $[X, Y]$ 的<strong>显式公式</strong>，其中 $X, Y \in H(F)$，并<strong>显示</strong> $H(F)$ 的<strong>换位子子群</strong>等于 $H(F)$ 的<strong>中心</strong>（参见<strong>第 2.2 节</strong>的<strong>习题</strong> 14）。</p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分是本章的习题，旨在巩固本节所学的概念，包括换位子、换位子子群、内直积识别定理及其应用。以下对部分习题的思路进行解析：</p>
+<ol>
+  <li> <strong>思路</strong>:
+<ul>
+  <li>$[y, x] = y^{-1}x^{-1}yx$。计算 $[x, y]^{-1} = (x^{-1}y^{-1}xy)^{-1} = y^{-1}x^{-1}(y^{-1})^{-1}(x^{-1})^{-1} = y^{-1}x^{-1}yx$。两者相等。</li>
+  <li>$[A, B] = \langle [a,b] \mid a \in A, b \in B \rangle$。$[B, A] = \langle [b,a] \mid b \in B, a \in A \rangle$。</li>
+  <li>由于 $[b,a] = [a,b]^{-1}$，一个子群的生成集中的所有元素的逆元，生成的子群是同一个子群。即 $\langle S \rangle = \langle S^{-1} \rangle$。因此 $[A,B]=[B,A]$。</li>
+</ul></li>
+  <li> <strong>思路</strong>: 这是命题7(2)的证明，原文中已给出。要求自己独立证明一遍。</li>
+  <li> <strong>思路</strong>: 这是换位子的恒等式，需要直接展开定义进行代数运算。
+<ul>
+  <li>(a) $[a, c](c^{-1}[a, b] c) = (a^{-1}c^{-1}ac)(c^{-1}(a^{-1}b^{-1}ab)c) = a^{-1}c^{-1}a(c c^{-1})a^{-1}b^{-1}ab c = a^{-1}c^{-1}b^{-1}abc = a^{-1}(bc)^{-1}a(bc) = [a, bc]$。</li>
+  <li>(b) 类似地展开即可。</li>
+</ul></li>
+  <li> <strong>思路</strong>:
+<ul>
+  <li>$S_4/A_4 \cong Z_2$，是阿贝尔群。所以 $S_4' \le A_4$。</li>
+  <li>$A_4$ 的商群 $A_4/V_4 \cong Z_3$，是阿贝尔群 ($V_4$ 是克莱因四元群)。所以 $A_4' \le V_4$。</li>
+  <li>$A_4$ 非阿贝尔（例如 $(123)(124) \neq (124)(123)$），所以 $A_4' \neq \{e\}$。</li>
+  <li>计算 $A_4$ 中一个换位子，如 $[(123), (124)] = (132)(142)(123)(124) = (12)(34) \in V_4$。</li>
+  <li>可以证明 $V_4$ 中所有非单位元元素都可以表示成换位子，且 $A_4'$ 不可能比 $V_4$ 更小。所以 $A_4' = V_4$。</li>
+  <li>由于 $S_4' \le A_4$，且 $S_4$ 非阿贝尔，所以 $S_4'$ 是非平凡的。$S_4/V_4$ 的阶是 $24/4=6$，同构于 $S_3$，非阿贝尔。所以 $S_4'$ 不可能 $\le V_4$。这说明 $S_4' = A_4$。</li>
+</ul></li>
+  <li> <strong>思路</strong>:
+<ul>
+  <li>$A_n$ 在 $n \ge 5$ 时是单群。</li>
+  <li>$S_n' \unlhd S_n$。我们知道 $S_n' \le A_n$。</li>
+  <li>因为 $S_n$ 非阿贝尔， $S_n' \neq \{e\}$。</li>
+  <li>$A_n$ 是单群，它内部只有 $\{e\}$ 和 $A_n$ 两个正规子群。$S_n'$ 作为 $S_n$ 的正规子群，不一定是 $A_n$ 的正规子群。</li>
+  <li>但是 $S_n'$ 是特征子群，所以它在 $S_n$ 的任何自同构下不变，也就一定是正规子群。</li>
+  <li>$A_n$ 也是 $S_n$ 的正规子群。$[S_n', A_n] \le S_n' \cap A_n = S_n'$。</li>
+  <li>正确的思路是：$S_n/A_n \cong Z_2$ 是阿贝尔群，所以 $S_n' \leq A_n$。又因为 $A_n$ 是非阿贝尔单群，它的换位子子群 $A_n'$ 是 $A_n$ 的一个正规子群，且 $A_n$ 非阿贝尔所以 $A_n' \neq \{e\}$。因为 $A_n$ 是单群，所以 $A_n'=A_n$。$A_n \le S_n'$？是的。所有3-循环都在 $A_n$ 中，可以证明所有3-循环都是 $S_n$ 中的换位子。因此 $A_n = \langle \text{3-cycles} \rangle \le S_n'$。结合 $S_n' \le A_n$，得到 $S_n' = A_n$。</li>
+</ul></li>
+  <li><strong>思路</strong>: 设 $G$ 是有限阿贝尔群。设其 Sylow p-子群为 $P_1, P_2, \dots, P_k$。
+<ul>
+  <li>因为 $G$ 阿贝尔，所有子群都是正规的。所以 $P_i \unlhd G$ for all $i$。</li>
+  <li>根据拉格朗日定理，$P_i \cap P_j = \{e\}$ for $i \neq j$ (因为它们的阶互素)。</li>
+  <li>应用定理9的推广（对多个子群），$P_1P_2\dots P_k \cong P_1 \times P_2 \times \dots \times P_k$。</li>
+  <li>这个乘积子群的阶是 $|P_1||P_2|\dots|P_k| = |G|$。</li>
+  <li>所以 $G = P_1P_2\dots P_k \cong P_1 \times P_2 \times \dots \times P_k$。</li>
+</ul></li>
+  <li><strong>思路</strong>: 这是一个陷阱题。例子(1)证明了当 $n$ 是奇数时，$D_{4n} \cong D_{2n} \times Z_2$。题目要求证明 $D_{8n}$ (原文 $D_{8n}$ 应该是笔误，可能指 $n$ 是偶数的情况，比如 $D_{4 \times (2k)}$) 与 $D_{4n} \times Z_2$ 不同构。
+<ul>
+  <li>考虑 $n=2$，我们要比较 $D_{16}$ 和 $D_8 \times Z_2$。</li>
+  <li>比较它们的中心。$Z(D_{16}) = \langle r^8 \rangle$，阶为2。</li>
+  <li>$Z(D_8 \times Z_2) = Z(D_8) \times Z(Z_2) = \langle r^4 \rangle_{D_8} \times Z_2$。这是一个阶为 $2 \times 2=4$ 的群 ($V_4$)。</li>
+  <li>由于中心不同构，原群也不同构。</li>
+</ul></li>
+  <li><strong>思路</strong>:
+<ul>
+  <li>$G/A$ 阿贝尔 $\implies G' \le A$。</li>
+  <li>$G/B$ 阿贝尔 $\implies G' \le B$。</li>
+  <li>所以 $G'$ 被包含在 $A$ 和 $B$ 的交集中，$G' \le A \cap B$。</li>
+  <li>令 $H = A \cap B$。因为 $G' \le H$，根据命题7(4)的逆命题， $G/H = G/(A \cap B)$ 是阿贝尔群。</li>
+</ul></li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-13">
+    <h2><span class="section-number">13</span>行间公式索引</h2>
+    <p>1.  <strong>自同构对换位子的作用</strong></p><p><div class="math-block">$$
+    \begin{aligned}
+    \sigma([x, y]) &amp; =\sigma\left(x^{-1} y^{-1} x y\right) \\
+    &amp; =\sigma(x)^{-1} \sigma(y)^{-1} \sigma(x) \sigma(y) \\
+    &amp; =[\sigma(x), \sigma(y)]
+    \end{aligned}
+$$</div></p><p>这个公式表明，对一个换位子进行自同构运算，等同于对换位子内的每个元素先进行自同构运算，然后再计算它们的换位子。</p><p>2.  <strong>商群 $G/G'$ 的阿贝尔性证明</strong></p><p><div class="math-block">$$
+    \begin{aligned}
+    \left(x G^{\prime}\right)\left(y G^{\prime}\right) &amp; =(x y) G^{\prime} \\
+    &amp; =(y x[x, y]) G^{\prime} \\
+    &amp; =(y x) G^{\prime}=\left(y G^{\prime}\right)\left(x G^{\prime}\right),
+    \end{aligned}
+$$</div></p><p>此公式通过在商群 $G/G'$ 中展开陪集的乘积，并利用 $xy=yx[x,y]$ 以及 $[x,y] \in G'$ 的事实，证明了商群中任意两个元素相乘是可交换的。</p><p>3.  <strong>从阿贝尔商群推导换位子属于核</strong></p><p><div class="math-block">$$
+    \begin{aligned}
+    1 H &amp; =(x H)^{-1}(y H)^{-1}(x H)(y H) \\
+    &amp; =x^{-1} y^{-1} x y H \\
+    &amp; =[x, y] H .
+    \end{aligned}
+$$</div></p><p>该公式说明，如果商群 $G/H$ 是阿贝尔群，那么任意两个元素的换位子在商群中都是单位元，这等价于换位子 $[x,y]$ 本身属于正规子群 $H$。</p><p>4.  <strong>第三同构定理的应用</strong></p><p><div class="math-block">$$
+    G / H \cong\left(G / G^{\prime}\right) /\left(H / G^{\prime}\right)
+$$</div></p><p>这个同构关系是证明“若 $G' \le H$，则 $G/H$ 是阿贝尔群”的关键。它将对 $G/H$ 的讨论转化为了对阿贝尔群 $G/G'$ 的商群的讨论。</p><p>5.  <strong>内直积到外直积的同构映射</strong></p><p><div class="math-block">$$
+    \begin{aligned}
+    \varphi: H K &amp; \rightarrow H \times K \\
+    h k &amp; \mapsto(h, k)
+    \end{aligned}
+$$</div></p><p>此公式定义了一个从内直积 $HK$ 到外直积 $H \times K$ 的自然映射，将乘积元素 $hk$ 对应到有序对 $(h,k)$。</p><p>6.  <strong>证明同态性的关键乘法步骤</strong></p><p><div class="math-block">$$
+    \left(h_{1} k_{1}\right)\left(h_{2} k_{2}\right)=\left(h_{1} h_{2}\right)\left(k_{1} k_{2}\right)
+$$</div></p><p>此公式展示了在内直积的条件下（特别是 $H,K$ 中元素互相交换），两个元素的乘积可以重新组合，将 $H$ 的部分和 $K$ 的部分分别聚合在一起。</p><p>7.  <strong>同构映射的同态性质证明</strong></p><p><div class="math-block">$$
+    \begin{aligned}
+    \varphi\left(h_{1} k_{1} h_{2} k_{2}\right) &amp; =\varphi\left(h_{1} h_{2} k_{1} k_{2}\right) \\
+    &amp; =\left(h_{1} h_{2}, k_{1} k_{2}\right) \\
+    &amp; =\left(h_{1}, k_{1}\right)\left(h_{2}, k_{2}\right)=\varphi\left(h_{1} k_{1}\right) \varphi\left(h_{2} k_{2}\right)
+    \end{aligned}
+$$</div></p><p>这个计算过程完整地展示了映射 $\varphi$ 保持群的乘法结构，即 $\varphi(g_1g_2)=\varphi(g_1)\varphi(g_2)$，从而证明了它是一个同态。</p><p>8.  <strong>$D_{4n}$ 的群表示</strong></p><p><div class="math-block">$$
+    D_{4 n}=\left\langle r, s \mid r^{2 n}=s^{2}=1, s r s=r^{-1}\right\rangle
+$$</div></p><p>这是二面体群 $D_{4n}$ 的标准生成元与关系表示，定义了群的基本结构。</p><p>9.  <strong>集合稳定子的定义</strong></p><p><div class="math-block">$$
+    G=\left\{\sigma \in S_{n} \mid \sigma(i) \in I \text { for all } i \in I\right\} .
+$$</div></p><p>该公式定义了集合稳定子 $G$，即 $S_n$ 中所有能将子集 $I$ 映射回自身的置换所构成的群。</p><p>10. <strong>点稳定子 $H$ 和 $K$ 的定义</strong></p><p><div class="math-block">$$
+    \begin{aligned}
+    &amp; H=\{\sigma \in G \mid \sigma(i)=i \text { for all } i \in I\} \\
+    &amp; K=\{\tau \in G \mid \tau(j)=j \text { for all } j \in J\} .
+    \end{aligned}
+$$</div></p><p>这两个公式定义了在集合稳定子 $G$ 内部，分别逐点固定集合 $I$ 和其补集 $J$ 的子群。</p><p>11. <strong>集合稳定子的直积分解</strong></p><p><div class="math-block">$$
+    H \cong S_{J} \quad K \cong S_{I} \quad \text { and } \quad G \cong S_{m} \times S_{n-m},
+$$</div></p><p>这个结论表明，一个稳定了大小为 $n-m$ 和 $m$ 的两个互补子集的置换群，同构于这两个子集上对称群的直积。</p><p>12. <strong>被置换固定的点集</strong></p><p><div class="math-block">$$
+    I=\{i \in\{1,2, \ldots, n\} \mid \sigma(i)=i\} .
+$$</div></p><p>这个公式定义了置换 $\sigma$ 的不动点集合 $I$。</p><p>13. <strong>中心化子的直积分解 (一般形式)</strong></p><p><div class="math-block">$$
+    \begin{aligned}
+    C_{S_{n}}(\sigma) &amp; =C_{H}(\sigma) \times K \\
+    &amp; \cong C_{S_{J}}(\sigma) \times S_{I}
+    \end{aligned}
+$$</div></p><p>这个公式揭示了中心化子 $C_{S_n}(\sigma)$ 的结构，它可以分解为 $\sigma$ 在其移动点集 $J$ 上的中心化子与不动点集 $I$ 上的全对称群的直积。</p><p>14. <strong>m-循环中心化子的分解</strong></p><p><div class="math-block">$$
+    C_{S_{n}}(\sigma)=\langle\sigma\rangle \times S_{n-m}
+$$</div></p><p>这是上一个公式在 $\sigma$ 是一个 $m$-循环时的特例，此时 $\sigma$ 在其移动点集上的中心化子就是它自己生成的循环群。</p>
+</section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>1. 5.4 识别直积</p>
+    </footer>
+
+
+    <!-- 手机端点击翻页功能 -->
+    <script>
+        (function() {
+            // 点击翻页功能（在所有设备上启用）
+            
+            document.addEventListener('click', function(e) {
+                // 如果 TOC 目录面板处于打开状态，不触发翻页
+                var tocPanel = document.getElementById('tocPanel');
+                if (tocPanel && tocPanel.classList.contains('active')) {
+                    return;
+                }
+                
+                // 排除对链接、按钮、输入框等交互元素的点击
+                var target = e.target;
+                var tagName = target.tagName.toLowerCase();
+                if (tagName === 'a' || tagName === 'button' || tagName === 'input' || 
+                    tagName === 'textarea' || tagName === 'select' || 
+                    target.closest('a') || target.closest('button') ||
+                    target.closest('.toc-panel') || target.closest('.toc-toggle') ||
+                    target.closest('.toc-overlay')) {
+                    return;
+                }
+                
+                var clickY = e.clientY;
+                var windowHeight = window.innerHeight;
+                var scrollAmount = windowHeight * 0.85; // 滚动85%的屏幕高度
+                
+                if (clickY > windowHeight / 2) {
+                    // 点击下半部分：向下翻页
+                    window.scrollBy({
+                        top: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 点击上半部分：向上翻页
+                    window.scrollBy({
+                        top: -scrollAmount,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        })();
+    </script>
+
+    <!-- TOC 目录控制脚本 -->
+    <script>
+        (function() {
+            var tocToggle = document.getElementById('tocToggle');
+            var tocPanel = document.getElementById('tocPanel');
+            var tocOverlay = document.getElementById('tocOverlay');
+            
+            // 切换目录显示/隐藏
+            function toggleTOC() {
+                var isOpen = tocPanel.classList.contains('active');
+                if (isOpen) {
+                    closeTOC();
+                } else {
+                    openTOC();
+                }
+            }
+            
+            // 打开目录
+            function openTOC() {
+                tocPanel.classList.add('active');
+                tocOverlay.classList.add('active');
+                tocToggle.setAttribute('aria-label', '关闭目录');
+            }
+            
+            // 关闭目录
+            function closeTOC() {
+                tocPanel.classList.remove('active');
+                tocOverlay.classList.remove('active');
+                tocToggle.setAttribute('aria-label', '打开目录');
+            }
+            
+            // 点击按钮切换目录
+            tocToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTOC();
+            });
+            
+            // 点击遮罩层关闭目录
+            tocOverlay.addEventListener('click', function() {
+                closeTOC();
+            });
+            
+            // 点击目录项后关闭目录
+            var tocLinks = tocPanel.querySelectorAll('a');
+            tocLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    closeTOC();
+                });
+            });
+            
+            // ESC 键关闭目录
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && tocPanel.classList.contains('active')) {
+                    closeTOC();
+                }
+            });
+            
+            // 高亮当前可见的目录条目
+            function updateActiveItem() {
+                var scrollPos = window.scrollY + 150;  // 偏移量
+                var activeSection = null;
+                var activeOriginal = null;
+                
+                // 查找当前可见的 section
+                var sections = document.querySelectorAll('section[id^="section-"]');
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    if (section.offsetTop <= scrollPos) {
+                        activeSection = section.id;
+                    }
+                }
+                
+                // 查找当前可见的原文区块
+                var originals = document.querySelectorAll('[id^="original-"]');
+                for (var j = 0; j < originals.length; j++) {
+                    var original = originals[j];
+                    if (original.offsetTop <= scrollPos) {
+                        activeOriginal = original.id;
+                    }
+                }
+                
+                // 先移除所有 active 类
+                var allHeadings = tocPanel.querySelectorAll('.toc-heading');
+                for (var h = 0; h < allHeadings.length; h++) {
+                    allHeadings[h].classList.remove('active');
+                }
+                
+                var allOriginals = tocPanel.querySelectorAll('.toc-original');
+                for (var o = 0; o < allOriginals.length; o++) {
+                    allOriginals[o].classList.remove('active');
+                }
+                
+                // 只给当前活动的条目添加 active 类
+                if (activeSection) {
+                    var activeHeadingLink = tocPanel.querySelector('.toc-heading a[href="#' + activeSection + '"]');
+                    if (activeHeadingLink) {
+                        activeHeadingLink.parentElement.classList.add('active');
+                    }
+                }
+                
+                if (activeOriginal) {
+                    var activeOriginalLink = tocPanel.querySelector('.toc-original a[href="#' + activeOriginal + '"]');
+                    if (activeOriginalLink) {
+                        activeOriginalLink.parentElement.classList.add('active');
+                    }
+                }
+            }
+            
+            // 节流函数
+            var scrollTimeout;
+            function throttledUpdate() {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(function() {
+                    updateActiveItem();
+                    scrollTimeout = null;
+                }, 100);
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', throttledUpdate);
+            
+            // 打开目录时立即更新高亮
+            var originalOpenTOC = openTOC;
+            openTOC = function() {
+                originalOpenTOC();
+                updateActiveItem();
+            };
+            
+            // 初始化
+            updateActiveItem();
+        })();
+    </script>
+</body>
+</html>

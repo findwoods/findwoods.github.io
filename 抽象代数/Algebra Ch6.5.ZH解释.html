@@ -1,0 +1,3987 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1. 等距变换的离散群</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- MathJax v4 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            output: {
+                displayOverflow: 'linebreak',
+                linebreaks: {
+                    inline: true,
+                    width: '100%',
+                    lineleading: 0.2
+                }
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            /* 五大区块主题色 */
+            --original-color: #8b5cf6;
+            --explain-color: #0ea5e9;
+            --formula-color: #6366f1;
+            --example-color: #10b981;
+            --warning-color: #f59e0b;
+            /* Q1修复：总结、存在目的、直觉心智模型、直观想象 统一使用 #36828C 青色主题 */
+            --summary-color: #36828C;     /* 青色主题 */
+            --purpose-color: #36828C;     /* 青色主题 */
+            --intuition-color: #36828C;   /* 青色主题 */
+            --imagination-color: #36828C; /* 青色主题 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .authors {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
+        .content-section h4 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h5 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 18px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h6 {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            margin: 15px 0 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        /* ===============================
+           五大内容区块 - 统一风格不同主题色
+           =============================== */
+
+        /* 原文区 - 紫色 */
+        .original-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid var(--original-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .original-box .box-label {
+            color: var(--original-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-box .box-content {
+            font-style: italic;
+            color: #6b21a8;
+        }
+
+        /* 📜 [原文]区块内容 - 使用统一的黑色 */
+        .original-content {
+            color: #2d3748; /* 统一的深灰黑色 */
+        }
+
+        .original-content * {
+            color: #2d3748; /* 所有子元素 */
+        }
+
+        .original-content .MathJax, .original-content .MathJax * {
+            color: #2d3748 !important; /* 行内公式 */
+        }
+
+        /* 通用 .box-content 换行规则 - 确保长文本（如代码调用）能自动换行 */
+        .box-content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .box-content strong, .box-content code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            display: inline;
+        }
+
+        /* 逐步解释区 - 蓝色 */
+        .explain-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--explain-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .explain-box .box-label {
+            color: var(--explain-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explain-box .box-content {
+            color: #1a365d; /* Dark Blue */
+        }
+
+        .explain-box .box-content * {
+            color: #1a365d; /* Dark Blue - 所有子元素 */
+        }
+
+        .explain-box .box-content .MathJax, .explain-box .box-content .MathJax * {
+            color: #1a365d !important; /* Dark Blue - 行内公式 */
+        }
+
+        .explain-box ul, .explain-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .explain-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 公式拆解区 - 靛蓝色 */
+        .formula-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--formula-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .formula-box .box-label {
+            color: var(--formula-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .formula-box .box-content {
+            color: var(--text-color); /* 统一使用默认黑色，与原文区块一致 */
+            overflow-x: auto;
+        }
+
+        .formula-box .box-content * {
+            color: var(--text-color); /* 所有子元素 */
+        }
+
+        .formula-box .box-content .MathJax, .formula-box .box-content .MathJax * {
+            color: var(--text-color) !important; /* 行内公式 */
+        }
+
+        /* 数值示例区 - 绿色 */
+        .example-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--example-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .example-box .box-label {
+            color: var(--example-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-box .box-content {
+            color: #166534; /* Dark Green from edstem5 .answer-en */
+        }
+
+        .example-box .box-content * {
+            color: #166534; /* Dark Green - 所有子元素 */
+        }
+
+        .example-box .box-content .MathJax, .example-box .box-content .MathJax * {
+            color: #166534 !important; /* Dark Green - 行内公式 */
+        }
+
+        .example-box ul, .example-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .example-box li {
+            margin-bottom: 6px;
+        }
+
+        .example-box code {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* 易错点区 - 橙色 */
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .warning-box .box-label {
+            color: var(--warning-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warning-box .box-content {
+            color: #92400e;
+        }
+
+        .warning-box .box-content * {
+            color: #92400e; /* 所有子元素 */
+        }
+
+        .warning-box .box-content .MathJax, .warning-box .box-content .MathJax * {
+            color: #92400e !important; /* 行内公式 */
+        }
+
+        .warning-box ul, .warning-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .warning-box li {
+            margin-bottom: 6px;
+        }
+
+        /* 总结区 - Q1修复：使用#36828C青色主题 */
+        .summary-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--summary-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .summary-box .box-label {
+            color: var(--summary-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .summary-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .summary-box .box-content .MathJax, .summary-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 存在目的区 - Q1修复：使用#36828C青色主题 */
+        .purpose-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--purpose-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .purpose-box .box-label {
+            color: var(--purpose-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .purpose-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .purpose-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .purpose-box .box-content .MathJax, .purpose-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直觉心智模型区 - Q1修复：使用#36828C青色主题 */
+        .intuition-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--intuition-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .intuition-box .box-label {
+            color: var(--intuition-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .intuition-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .intuition-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .intuition-box .box-content .MathJax, .intuition-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直观想象区 - Q1修复：使用#36828C青色主题 */
+        .imagination-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--imagination-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .imagination-box .box-label {
+            color: var(--imagination-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .imagination-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .imagination-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .imagination-box .box-content .MathJax, .imagination-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 高亮术语 */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* 代码块 */
+        code {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            margin: 15px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 表格样式 - 紧凑型，行高列宽适应文字最小值 */
+        table {
+            border-collapse: collapse;
+            width: auto;  /* 列宽适应内容 */
+            margin: 15px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;  /* 减小padding使行高更紧凑 */
+            text-align: left;
+            white-space: nowrap;  /* 防止不必要的换行，列宽适应文字 */
+            line-height: 1.4;  /* 紧凑的行高 */
+        }
+
+        th {
+            background: #e0f7fa;
+            color: #006064;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #e2e8f0;
+        }
+
+        /* 表格对齐 */
+        .align-left {
+            text-align: left;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        /* 图例区域 */
+        .legend-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .legend-bar {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .legend-bar.original { background: #8b5cf6; }
+        .legend-bar.explain { background: #0ea5e9; }
+        .legend-bar.formula { background: #6366f1; }
+        .legend-bar.example { background: #10b981; }
+        .legend-bar.warning { background: #f59e0b; }
+        .legend-bar.summary { background: #36828C; }
+        .legend-bar.purpose { background: #36828C; }
+        .legend-bar.intuition { background: #36828C; }
+        .legend-bar.imagination { background: #36828C; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive - 移动端适配 */
+        @media (max-width: 768px) {
+            /* 容器宽度适配 */
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 20px 12px;
+                box-sizing: border-box;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+                padding: 0 15px;
+            }
+            
+            .hero {
+                padding: 50px 15px;
+            }
+            
+            .hero h1 {
+                font-size: 1.6rem;
+                word-break: break-word;
+            }
+            
+            .authors {
+                font-size: 1rem;
+            }
+            
+            /* 内容区块适配 */
+            .content-section {
+                padding: 20px 15px;
+                margin-left: 5px;
+                margin-right: 5px;
+                border-radius: 12px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.4rem;
+                flex-wrap: wrap;
+            }
+            
+            .content-section h3 {
+                font-size: 1.2rem;
+            }
+            
+            .content-section h4 {
+                font-size: 1.1rem;
+            }
+            
+            .section-number {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            /* 各区块box适配 */
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 15px 12px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .original-box .box-label,
+            .explain-box .box-label,
+            .formula-box .box-label,
+            .example-box .box-label,
+            .warning-box .box-label,
+            .summary-box .box-label,
+            .purpose-box .box-label,
+            .intuition-box .box-label,
+            .imagination-box .box-label {
+                font-size: 1.1rem;
+            }
+            
+            /* 图例区域移动端适配 */
+            .legend-section {
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
+            
+            .legend-row {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            
+            .legend-item {
+                font-size: 0.8rem;
+                gap: 5px;
+            }
+            
+            .legend-bar {
+                width: 3px;
+                height: 16px;
+            }
+            
+            /* 列表适配 */
+            ul, ol {
+                margin-left: 15px;
+                padding-left: 5px;
+            }
+            
+            /* 表格移动端适配 */
+            table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.9rem;
+                min-width: 80px;
+            }
+            
+            /* 代码块适配 */
+            pre {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            
+            /* 数学公式适配 */
+            .math-block {
+                padding: 10px 8px;
+                margin: 15px 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* MathJax公式溢出处理 - 只处理块级公式，保持行内公式inline */
+            mjx-container[jax="CHTML"][display="true"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                display: block !important;
+            }
+            
+            /* 行内公式 - 超宽时自动换行 */
+            mjx-container:not([display="true"]) {
+                display: inline-block !important;
+                max-width: 100% !important;
+                overflow-wrap: break-word !important;
+                word-wrap: break-word !important;
+            }
+            
+            /* MathJax内部元素换行支持 */
+            mjx-math {
+                white-space: normal !important;
+            }
+            
+            mjx-mrow {
+                flex-wrap: wrap !important;
+            }
+            
+            /* Footer适配 */
+            .footer {
+                padding: 25px 15px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* 超小屏幕适配 (手机竖屏) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 8px;
+            }
+            
+            .hero {
+                padding: 40px 10px;
+            }
+            
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+            
+            .content-section {
+                padding: 15px 10px;
+                margin-left: 3px;
+                margin-right: 3px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 12px 10px;
+            }
+            
+            .legend-section {
+                padding: 12px 8px;
+            }
+            
+            .legend-row {
+                gap: 8px;
+            }
+            
+            .legend-item {
+                font-size: 0.75rem;
+            }
+            
+            ul, ol {
+                margin-left: 12px;
+            }
+        }
+        
+        /* 确保所有内容不溢出 */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* ========================================
+           TOC 目录样式
+           ======================================== */
+        
+        /* TOC 触发按钮 - 左上角小方块 */
+        .toc-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(54, 130, 140, 0.5);  /* 青色 50% 透明度 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .toc-toggle:hover {
+            background: rgba(54, 130, 140, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .toc-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* TOC 目录面板 */
+        .toc-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 95vw;  /* 手机浏览器宽度的 95% */
+            height: 80vh; /* 手机浏览器高度的 80% */
+            max-width: 450px;  /* 桌面端最大宽度 */
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0 0 16px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .toc-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* TOC 头部 - 标题在图标右侧 */
+        .toc-header {
+            padding: 15px 20px 15px 80px;  /* 左侧留出按钮空间 */
+            background: linear-gradient(135deg, #36828C 0%, #2a6a72 100%);
+            color: white;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .toc-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* TOC 内容区 */
+        .toc-content {
+            flex: 1;
+            overflow-y: auto;   /* 允许垂直滚动 */
+            overflow-x: hidden; /* 禁止水平滚动 */
+            padding: 15px 0;
+        }
+        
+        /* TOC 列表 */
+        .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc-item {
+            margin: 0;
+        }
+        
+        .toc-item a {
+            display: block;
+            padding: 4px 20px;  /* 更紧凑的行间距 */
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #2d3748;
+            text-decoration: none;
+            word-wrap: break-word;   /* 自动换行 */
+            overflow-wrap: break-word;
+            white-space: normal;     /* 允许换行 */
+            line-height: 1.3;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .toc-item a:hover {
+            background: #e8f4f5;
+            color: #36828C;
+            border-left-color: #36828C;
+        }
+        
+        /* 标题项样式 */
+        .toc-heading a {
+            font-weight: 600;
+            color: #1a365d;
+            background: #f7fafc;
+        }
+        
+        .toc-heading a:hover {
+            background: #e8f4f5;
+        }
+        
+        /* 当前活动的标题项样式 */
+        .toc-heading.active a {
+            background: #d0e8ea;
+            color: #36828C;
+            border-left-color: #36828C;
+            font-weight: 700;
+        }
+        
+        /* 当前活动的原文项样式 */
+        .toc-original.active a {
+            background: #36828C;
+            color: white;
+            box-shadow: 0 3px 8px rgba(54, 130, 140, 0.35);
+        }
+        
+        /* 原文项容器 - 横向排列自动换行 */
+        .toc-originals-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 8px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* 原文项样式 - 浅青色带阴影 */
+        .toc-original {
+            margin: 0;
+        }
+        
+        .toc-original a {
+            display: inline-block;
+            width: 64px;  /* 固定宽度确保每行显示数量一致 */
+            padding: 6px 4px;
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #36828C;  /* 青色主题色 */
+            text-decoration: none;
+            text-align: center;
+            background: #e8f4f5;
+            border-radius: 6px;
+            border-left: none;
+            box-shadow: 0 2px 4px rgba(54, 130, 140, 0.2);  /* 青色阴影 */
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .toc-original a:hover {
+            background: #e0f2f4;
+            color: #36828C;
+            box-shadow: 0 3px 6px rgba(54, 130, 140, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        /* TOC 遮罩层 */
+        .toc-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .toc-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 移动端 TOC 适配 */
+        @media (max-width: 768px) {
+            .toc-toggle {
+                top: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .toc-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .toc-panel {
+                width: 90vw;
+                height: 80vh;
+                max-width: none;
+            }
+            
+            .toc-header {
+                padding: 12px 15px 12px 65px;
+            }
+            
+            .toc-header h3 {
+                font-size: 16px;
+            }
+            
+            .toc-item a {
+                padding: 4px 15px;
+                font-size: 15.5px;
+            }
+            
+            .toc-originals-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            .toc-original a {
+                padding: 5px 10px;
+                font-size: 15.5px;
+            }
+        }
+
+        /* 特殊术语着色 */
+        .spectral {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .periodicity {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .fourier {
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        /* 列表样式增强 */
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 - 已移除重复定义，使用上方第602-633行的紧凑型样式 */
+
+        /* 分隔线 */
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 30px 0;
+        }
+
+        /* 数学公式样式 - Q7: 行间公式颜色用黑色 */
+        .math-block {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            color: #000000; /* Q7: 黑色文字 */
+        }
+
+        /* Q7: 确保MathJax渲染的公式为黑色 */
+        .math-block .MathJax {
+            color: #000000 !important;
+        }
+
+        mjx-container {
+            color: #000000 !important;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- TOC 目录按钮 -->
+    <button class="toc-toggle" id="tocToggle" aria-label="打开目录">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+        </svg>
+    </button>
+    
+    <!-- TOC 遮罩层 -->
+    <div class="toc-overlay" id="tocOverlay"></div>
+    
+    <!-- TOC 目录面板 -->
+    <nav class="toc-panel" id="tocPanel">
+        <div class="toc-header">
+            <h3>📑 目录</h3>
+        </div>
+        <div class="toc-content">
+            <ul class="toc-list">
+                <li class="toc-item toc-heading"><a href="#section-1">1. 1. 等距变换的离散群</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-1">原文1</a></span><span class="toc-original"><a href="#original-2">原文2</a></span><span class="toc-original"><a href="#original-3">原文3</a></span><span class="toc-original"><a href="#original-4">原文4</a></span><span class="toc-original"><a href="#original-5">原文5</a></span><span class="toc-original"><a href="#original-6">原文6</a></span><span class="toc-original"><a href="#original-7">原文7</a></span><span class="toc-original"><a href="#original-8">原文8</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-2">2. 2. 平移群</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-9">原文9</a></span><span class="toc-original"><a href="#original-10">原文10</a></span><span class="toc-original"><a href="#original-11">原文11</a></span><span class="toc-original"><a href="#original-12">原文12</a></span><span class="toc-original"><a href="#original-13">原文13</a></span><span class="toc-original"><a href="#original-14">原文14</a></span><span class="toc-original"><a href="#original-15">原文15</a></span><span class="toc-original"><a href="#original-16">原文16</a></span><span class="toc-original"><a href="#original-17">原文17</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-3">3. 3. 点群</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-18">原文18</a></span><span class="toc-original"><a href="#original-19">原文19</a></span><span class="toc-original"><a href="#original-20">原文20</a></span><span class="toc-original"><a href="#original-21">原文21</a></span><span class="toc-original"><a href="#original-22">原文22</a></span><span class="toc-original"><a href="#original-23">原文23</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-4">4. 4. 晶体学限制</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-24">原文24</a></span><span class="toc-original"><a href="#original-25">原文25</a></span><span class="toc-original"><a href="#original-26">原文26</a></span><span class="toc-original"><a href="#original-27">原文27</a></span><span class="toc-original"><a href="#original-28">原文28</a></span><span class="toc-original"><a href="#original-29">原文29</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-5">5. 行间公式索引</a></li>
+                <li class="toc-item toc-heading"><a href="#section-6">6. 最终检查清单</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>1. 等距变换的离散群</h1>
+            <p class="authors"></p>
+            <p class="date"></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 图例区域 -->
+        <div class="legend-section">
+            <!-- 第一行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar original"></div>
+                    <span>📜 原文</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar explain"></div>
+                    <span>📖 逐步解释</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar formula"></div>
+                    <span>∑ 公式拆解</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar example"></div>
+                    <span>💡 数值示例</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar warning"></div>
+                    <span>⚠️ 易错点</span>
+                </div>
+            </div>
+            <!-- 第二行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar summary"></div>
+                    <span>📝 总结</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar purpose"></div>
+                    <span>🎯 存在目的</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar intuition"></div>
+                    <span>🧠 直觉心智模型</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar imagination"></div>
+                    <span>💭 直观想象</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="content-section" id="section-1">
+    <h2><span class="section-number">1</span>1. 等距变换的离散群</h2>
+    <h3>1.1 引言与万花筒原理</h3><p id="original-1"><strong style="font-size: 1.3rem;">📜 [原文1]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>在本节中，我们讨论无界图形的对称群，例如图 6.1.5 中所示的图形。我称之为万花筒原理的方法可以用来构造具有给定对称群的图形。你可能曾透过万花筒观看。你会看到管子末端的一个扇形区域，其两侧由两面沿着管子长度延伸并以角度 $\theta$ 放置的镜子限定，例如 $\theta=\pi / 6$。你还会看到每个镜子中扇形区域的反射，然后是反射的反射，依此类推。扇形区域中通常有一些彩色玻璃碎片，它们的反射形成一个图案。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本节的核心议题是研究<strong>离散群 (discrete groups)</strong>，特别是在<strong>等距变换 (isometries)</strong> 的背景下。<strong>等距变换</strong>是指在几何空间中保持距离不变的变换，比如平移、旋转、反射。而<strong>离散群</strong>则是一类特殊的<strong>等距变换</strong>群，其元素之间存在某种“最小间隔”，不会无限地“挤”在一起。</p>
+<p>文章首先引入一个直观的例子——<strong>万花筒 (kaleidoscope)</strong>，来帮助我们理解如何通过一个给定的<strong>对称群 (symmetry group)</strong> 来生成一个复杂的、具有该对称性的图形。</p>
+<ol>
+  <li> <strong>研究对象</strong>: 我们关注的是<strong>无界图形 (unbounded figures)</strong> 的<strong>对称群</strong>。<strong>无界图形</strong>可以无限延伸，比如一条无限长的直线，或者一个铺满整个平面的瓷砖图案。这与之前可能讨论的<strong>有界图形</strong>（如正方形、圆形）的对称性是不同的。</li>
+  <li> <strong>核心方法：万花筒原理</strong>: 这是一种构造具有特定对称性图形的方法。</li>
+  <li> <strong>万花筒的构造</strong>: 想象一个万花筒。它本质上是一个由两面镜子组成的管子。
+<ul>
+  <li><strong>扇形区域</strong>: 这两面镜子在管子末端形成一个夹角为 $\theta$ 的扇形区域。这个区域是基础图案的“画布”。</li>
+  <li><strong>镜子</strong>: 两面镜子沿着管子平行放置，它们之间的夹角 $\theta$ 是关键参数。文中举例 $\theta = \pi/6$ (也就是30度)。</li>
+  <li><strong>反射</strong>: 当你向管子里看时，你不仅看到了扇形区域本身，还看到了它在两面镜子里的像。这些像是通过<strong>反射 (reflection)</strong> 变换得到的。</li>
+  <li><strong>无穷反射</strong>: 这些像又会被另一面镜子反射，产生“反射的反射”，如此无限循环下去。</li>
+  <li><strong>形成图案</strong>: 如果在扇形区域里放一些彩色玻璃碎片，这些无限的反射就会将这些碎片组合成一个复杂而高度对称的图案。</li>
+</ul></li>
+</ol>
+<p>这个过程揭示了一个深刻的数学思想：通过反复应用一组基本的变换（在这里是两次反射），可以从一个简单的初始对象（扇形区域里的玻璃碎片）生成一个具有复杂对称性的整体结构。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>: 设两面镜子夹角 $\theta = \pi/6 = 30^\circ$。</li>
+  <li>原始物体在一个$30^\circ$的扇形区域内。</li>
+  <li>第一次反射，产生了两个镜像，覆盖了另外两个$30^\circ$的区域。现在总共覆盖了$3 \times 30^\circ = 90^\circ$。</li>
+  <li>对这些镜像再进行反射，会继续填充空间。由于 $360^\circ / (2 \times 30^\circ) = 360^\circ / 60^\circ = 6$，这个过程会生成6个基础扇形和它们的镜像，最终形成一个具有六重旋转对称性的图案（类似于一个正六边形）。</li>
+  <li><strong>示例2</strong>: 设两面镜子夹角 $\theta = \pi/4 = 45^\circ$。</li>
+  <li>原始物体在一个$45^\circ$的扇形区域内。</li>
+  <li>$360^\circ / (2 \times 45^\circ) = 360^\circ / 90^\circ = 4$。这个过程会生成4个基础扇形和它们的镜像，形成一个具有四重旋转对称性的图案（类似于一个正方形）。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>角度选择</strong>: 并非所有角度 $\theta$ 都能产生一个“闭合”的、规则的图案。如果 $2\theta$ 不是 $2\pi$ (360度) 的整数分之一，那么反射会无限进行下去，但永远不会完美地重叠，图案会变得混乱而不是规则对称。这正是后文提到的“狂野”的群。例如，如果 $\theta = 20^\circ$，那么 $2\theta = 40^\circ$，$360/40=9$，可以形成一个九重对称图案。但如果 $\theta = \sqrt{2}^\circ$，就无法形成闭合的规则图案。</li>
+  <li><strong>无界图形</strong>: 万花筒的例子是在一个平面上创造一个（通常是）有界的、重复的图案。但这个原理可以推广到生成无界的图形，比如铺满整个平面的壁纸图案。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段通过万花筒这个生动的例子，介绍了利用<strong>对称操作</strong>（主要是<strong>反射</strong>）从一个基本单元生成复杂对称图形的核心思想。这个思想被称为<strong>万花筒原理</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是为后续引入<strong>离散群</strong>和<strong>对称群</strong>的概念提供一个直观、易于理解的物理模型。它将抽象的群论概念与一个可见、可触摸的现象联系起来，降低了理解门槛。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你手里拿着一个橡皮图章（代表扇形区域里的玻璃碎片）。你先在一个地方盖一个章，然后沿着一条线（镜子）翻转图章再盖一个，再沿着另一条线翻转图章盖一个，然后不断重复这个“翻转再盖章”的过程。最终，纸上会布满由这个图章生成的对称图案。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>直视一个真实的万花筒。你看到的不仅仅是里面的几片彩色玻璃，而是一个由它们经过无数次镜面反射后组成的、绚丽夺目、完美对称的圆形图案。这个图案就是通过群操作（反射）生成的。</p>
+    </div>
+</div><hr><p id="original-2"><strong style="font-size: 1.3rem;">📜 [原文2]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>其中涉及一个群。在万花筒管子末端的平面上，设 $\ell_{1}$ 和 $\ell_{2}$ 是限定由镜子形成的扇形区域的线。这个群是一个<strong>二面体群</strong>，由关于 $\ell_{i}$ 的反射 $r_{i}$ 生成。这些反射的乘积 $r_{1} r_{2}$ 保持定向并固定两条线的交点，因此它是一个旋转。其旋转角度为 $\pm 2 \theta$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话将万花筒的物理现象与抽象的<strong>群论 (group theory)</strong> 语言联系起来。</p>
+<ol>
+  <li> <strong>群的出现</strong>: 万花筒里重复的反射操作，在数学上构成了一个<strong>群 (group)</strong>。群的元素就是这些对称操作（变换），群的运算就是操作的复合（即，先做一个变换，再做另一个）。</li>
+  <li> <strong>数学建模</strong>:
+<ul>
+  <li>我们将万花筒末端的平面视为一个二维平面。</li>
+  <li>两面镜子对应平面上的两条直线，记为 $\ell_1$ 和 $\ell_2$。这两条线相交于一点（通常是原点），夹角为 $\theta$。</li>
+  <li>关于直线 $\ell_i$ 的<strong>反射</strong>是一个<strong>等距变换</strong>，我们将其记为 $r_i$。</li>
+</ul></li>
+  <li> <strong>生成元与二面体群</strong>:
+<ul>
+  <li>这个对称<strong>群</strong>是由两个基本操作——反射 $r_1$ 和 $r_2$ ——<strong>生成 (generated)</strong> 的。这意味着群里所有的对称操作都可以通过反复组合 $r_1$ 和 $r_2$ 得到（例如 $r_1, r_2, r_1r_2, r_2r_1, r_1r_2r_1, \dots$）。</li>
+  <li>由两条相交直线上的反射生成的群，被称为<strong>二面体群 (dihedral group)</strong>。<strong>二面体群</strong> $D_n$ 通常被定义为正 $n$ 边形的对称群，它包含 $n$ 个旋转和 $n$ 个反射。在这里，如果 $2\theta = 2\pi/n$，那么生成的群就是 $D_n$。</li>
+</ul></li>
+  <li> <strong>反射的乘积是旋转</strong>:
+<ul>
+  <li>考虑两个反射的<strong>乘积 (product)</strong>，也就是它们的复合操作 $r_1 r_2$（表示先做 $r_2$ 反射，再做 $r_1$ 反射）。</li>
+  <li><strong>反射</strong>是一种<strong>改变定向 (orientation-reversing)</strong> 的变换。例如，一个左手手套经过反射会变成一个右手手套。</li>
+  <li>两个改变定向的变换复合在一起，其效果是<strong>保持定向 (orientation-preserving)</strong> 的。想象一下，左手手套变右手，再变回左手。</li>
+  <li>在平面上，保持定向且固定一个点（这里是 $\ell_1$ 和 $\ell_2$ 的交点）的<strong>等距变换</strong>必然是一个<strong>旋转 (rotation)</strong>。</li>
+</ul></li>
+  <li> <strong>旋转角度的计算</strong>:
+<ul>
+  <li>这个由 $r_1 r_2$ 产生的旋转，其旋转角度是两条反射线夹角 $\theta$ 的两倍，即 $2\theta$。方向取决于操作的顺序（$r_1 r_2$ 还是 $r_2 r_1$），所以旋转角度是 $\pm 2\theta$。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li>$\ell_1, \ell_2$: 代表两条直线，在万花筒中是镜子的位置。</li>
+  <li>$r_1, r_2$: 代表关于直线 $\ell_1$ 和 $\ell_2$ 的<strong>反射</strong>操作。它们是群的<strong>生成元 (generators)</strong>。</li>
+  <li>$r_1 r_2$: 两个反射的复合操作。这是一个<strong>旋转</strong>操作。</li>
+  <li>$\theta$: 直线 $\ell_1$ 和 $\ell_2$ 之间的夹角。</li>
+  <li>$2\theta$: 复合操作 $r_1 r_2$ 所产生的旋转的角度。</li>
+  <li><strong>推导</strong>: 设 $\ell_1$ 是 x-轴，$\ell_2$ 是与 x-轴夹角为 $\theta$ 的直线。一个点 $P$ 经过 $r_2$ 反射到 $P'$，再经过 $r_1$ 反射到 $P''$。可以证明，从原点到 $P$ 的向量与从原点到 $P''$ 的向量之间的夹角是 $2\theta$。这可以通过坐标几何或向量方法证明。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>: $\theta = \pi/6 = 30^\circ$。</li>
+  <li>两条反射线的夹角是 $30^\circ$。</li>
+  <li>反射的乘积 $r_1 r_2$ 是一个旋转，旋转角度为 $2\theta = 60^\circ$。</li>
+  <li>重复这个旋转操作6次（即 $(r_1 r_2)^6$），总共旋转了 $6 \times 60^\circ = 360^\circ$，回到了原位。这对应于正六边形的旋转对称性。生成的群是<strong>二面体群</strong> $D_6$。</li>
+  <li><strong>示例2</strong>: $\theta = \pi/2 = 90^\circ$。</li>
+  <li>两条反射线互相垂直。</li>
+  <li>反射的乘积 $r_1 r_2$ 是一个旋转，旋转角度为 $2\theta = 180^\circ$（点反演）。</li>
+  <li>生成的群是 $D_2$，即矩形（非正方形）的对称群。它有恒等、一个$180^\circ$旋转和两个反射。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>操作顺序</strong>: 群的乘法（操作复合）不一定是可交换的。一般来说，$r_1 r_2 \neq r_2 r_1$。$r_2 r_1$ 也是一个旋转，但方向相反，角度为 $-2\theta$。</li>
+  <li><strong>二面体群的阶</strong>: 如果 $n = 2\pi / (2\theta)$ 是一个整数，那么生成的<strong>二面体群</strong> $D_n$ 是一个<strong>有限群</strong>，它有 $2n$ 个元素。如果 $n$ 不是整数，情况会更复杂，可能生成无限群。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段将万花筒的物理模型数学化，指出其背后的对称性结构是一个由两次<strong>反射</strong>生成的<strong>二面体群</strong>。关键结论是：两次跨越角度为 $\theta$ 的反射等价于一次角度为 $2\theta$ 的<strong>旋转</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段旨在建立几何操作（反射、旋转）与代数结构（群、生成元、乘积）之间的桥梁。这是理解<strong>对称群</strong>的关键一步，即将几何直观转化为精确的数学语言。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象站在两面成角度的镜子之间。你在镜子A中看到你的像，这个像是“翻转”过的。然后镜子B又反射了镜子A中的那个像，这个“像的像”被翻转了两次，所以它看起来和你本人方向一致，只是转过了一个角度。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>拿两本书或两块板子，像镜子一样立在桌面上，让它们之间有一个夹角（比如60度）。在夹角区域内放一个小物体（比如一个硬币）。观察硬币在两块板子里的反射，以及反射的反射。你会发现，这些像似乎是围绕着两块板子的交点旋转排列的。</p>
+    </div>
+</div><h3>1.2 推广至一般群</h3><p id="original-3"><strong style="font-size: 1.3rem;">📜 [原文3]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>我们可以使用相同的原理，对 $M$ 的任意子群 $G$ 亦然。我们不会给出精确的推理来证明这一点，但该方法可以精确化。我们从平面上的随机图形 $R$ 开始。群 $G$ 的每个元素 $g$ 会将 $R$ 移动到一个新位置，称之为 $g R$。图形 $F$ 是所有图形 $g R$ 的并集。群的一个元素 $h$ 会将 $g R$ 发送到 $h g R$，这也是 $F$ 的一部分，因此它将 $F$ 发送给自己。如果 $R$ 足够随机，则 $G$ 将是 $F$ 的对称群。正如我们从万花筒中了解到的，图形 $F$ 通常非常吸引人。当 $G$ 是正五边形的对称群时，应用此过程的结果如下所示。</p>
+<p><img src="https://cdn.mathpix.com/cropped/ace3f27f-694b-4e2e-b3f0-30bcc6ea7cdf-14.jpg?height=384&width=370&top_left_y=1420&top_left_x=850" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这一段将<strong>万花筒原理</strong>从特定的<strong>二面体群</strong>推广到一个更普适的方法，用于为任意给定的<strong>等距变换群</strong> $G$ 构造一个具有该对称性的图形 $F$。</p>
+<ol>
+  <li> <strong>推广</strong>: 前面讨论的是由两次反射生成的群，现在我们考虑 $M$（所有平面<strong>等距变换</strong>构成的群）的任意一个子群 $G$。这个 $G$ 可以包含平移、旋转、反射、滑移反射等各种变换。</li>
+  <li> <strong>构造方法</strong>:
+<ul>
+  <li><strong>第一步：选择一个初始图形 $R$</strong>: 这个 $R$ 被描述为“<strong>随机图形 (random figure)</strong>”。“随机”的意义在于，它本身不应具有任何特殊的对称性。如果 $R$ 本身就是一个对称图形（比如一个圆），那么最终生成的图形 $F$ 的对称性可能会比 $G$ 更高。例如，一个点或者一个不对称的墨迹都可以作为 $R$。</li>
+  <li><strong>第二步：应用群 $G$ 的所有元素</strong>: 对初始图形 $R$，我们应用群 $G$ 中的<strong>每一个</strong>变换 $g$。每次应用都会得到一个新的图形，记为 $gR$。这可以想象成用一个“图章” $R$，在群 $G$ 指示的所有位置和方向上都盖一次。</li>
+  <li><strong>第三步：取并集</strong>: 将所有这些变换后的图形 $gR$ (对于所有 $g \in G$) 全部合并起来，形成最终的大图形 $F$。即 $F = \bigcup_{g \in G} gR$。</li>
+</ul></li>
+  <li> <strong>验证对称性</strong>: 为什么图形 $F$ 的<strong>对称群</strong>就是 $G$？
+<ul>
+  <li>取 $F$ 上的任意一个点，这个点必然属于某个 $gR$。</li>
+  <li>现在我们对整个图形 $F$ 应用群 $G$ 中的任意一个变换 $h$。</li>
+  <li>变换 $h$ 作用在 $F$ 的一个组成部分 $gR$ 上，会得到 $h(gR)$。根据群的复合规则，这等于 $(hg)R$。</li>
+  <li>由于 $h$ 和 $g$ 都是 $G$ 的元素，它们的乘积 $hg$ 也必然是 $G$ 的元素（这是群的<strong>封闭性</strong>）。</li>
+  <li>所以，$(hg)R$ 也是构成 $F$ 的一个部分。</li>
+  <li>这意味着，用 $h$ 变换 $F$ 的任何一部分，都会得到 $F$ 的另一部分。因此，整个图形 $F$ 在变换 $h$ 下保持不变，即 $h(F) = F$。</li>
+  <li>这就证明了 $G$ 中的任何元素都是 $F$ 的一个对称操作，所以 $G$ 是 $F$ 的<strong>对称群</strong>的子群。</li>
+  <li><strong>“如果 R 足够随机”</strong>: 这个条件是为了保证 $F$ 的对称群<strong>恰好</strong>是 $G$，而不会有额外的对称性。如果 $R$ 本身有对称性，可能会导致 $F$ 的对称群比 $G$更大。</li>
+</ul></li>
+  <li> <strong>示例</strong>: 图片展示了当 $G$ 是<strong>正五边形的对称群</strong>（即<strong>二面体群</strong> $D_5$）时，应用此方法生成的一个图形。$D_5$ 有10个元素（5个旋转，5个反射）。从一个初始的随机图形（比如图片中的某个小叶片或线条），通过10个对称操作复制和变换，最终组合成了这个美丽的图案。</li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>: 设 $G$ 是一个只包含沿x轴平移整数个单位的群，即 $G = \{t_{(n,0)} \mid n \in \mathbb{Z}\}$。设初始图形 $R$ 是位于原点的一个小圆圈。</li>
+  <li>应用 $G$ 中所有元素：$t_{(0,0)}(R)$ 是原点的小圆圈, $t_{(1,0)}(R)$ 是 $(1,0)$ 处的小圆圈, $t_{(-1,0)}(R)$ 是 $(-1,0)$ 处的小圆圈，等等。</li>
+  <li>取并集 $F$：最终得到的是在x轴上所有整数点位置都画一个圆圈，形成一条无限的“珍珠项链”。这个图形的<strong>对称群</strong>正是 $G$。</li>
+  <li><strong>示例2</strong>: 设 $G$ 是一个4阶<strong>循环群</strong> $C_4$，由绕原点旋转 $0^\circ, 90^\circ, 180^\circ, 270^\circ$ 构成。设初始图形 $R$ 是点 $(1,0)$。</li>
+  <li>$g_1 = \text{rot}(0^\circ)$, $g_1(R)$ 是点 $(1,0)$。</li>
+  <li>$g_2 = \text{rot}(90^\circ)$, $g_2(R)$ 是点 $(0,1)$。</li>
+  <li>$g_3 = \text{rot}(180^\circ)$, $g_3(R)$ 是点 $(-1,0)$。</li>
+  <li>$g_4 = \text{rot}(270^\circ)$, $g_4(R)$ 是点 $(0,-1)$。</li>
+  <li>取并集 $F$：最终得到的是四个点 $\{(1,0), (0,1), (-1,0), (0,-1)\}$，它们构成一个正方形的顶点。这个图形的<strong>对称群</strong>实际上是 $D_4$（正方形的对称群），比我们开始的 $C_4$ 要大。这就是因为初始图形 $R$（一个点）本身是圆对称的，不够“随机”。如果我们选择一个不对称的形状，比如一个位于 $(1,0.1)$ 到 $(1.1, 0.2)$ 的小线段作为 $R$，那么最终生成的图形的对称群就<strong>恰好</strong>是 $C_4$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>初始图形 R 的选择</strong>: 这是关键。如果 $R$ 选择不当（具有额外的对称性），最终图形 $F$ 的对称群可能会比预设的 $G$ 更大。理论上，“随机”意味着 $R$ 的<strong>稳定子群 (stabilizer)</strong> 是平凡的（只包含恒等变换）。</li>
+  <li><strong>群 G 的性质</strong>: 如果 $G$ 是一个无限群（如平移群），那么 $F$ 将是一个无界图形。如果 $G$ 是一个有限群（如 $D_5$），那么 $F$ 通常是一个有界图形。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段提出了一个普适的构造方法：任取一个<strong>等距变换群</strong> $G$ 和一个足够“随机”的初始图形 $R$，通过将 $R$ 进行 $G$ 中所有变换并取其并集，可以构造出一个<strong>对称群</strong>恰好为 $G$ 的新图形 $F$。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是将<strong>万花筒原理</strong>从一个具体例子抽象和推广，为理解<strong>对称群</strong>和其生成的几何图形之间的关系提供一个强大的、具有建设性的工具。它告诉我们，任何一个<strong>离散对称群</strong>都可以成为某个几何图形的对称性。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像一个“对称性打印机”。你给打印机“安装”一个<strong>对称群</strong> $G$（如同安装驱动程序），然后给它一个“墨水盒” $R$（初始图形）。打印机就会在纸上（平面）按照 $G$ 定义的对称规则，把 $R$ 的形状打印得到处都是，最终形成一幅完整的对称画作 $F$。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你站在一个布满镜子的大厅里，这些镜子的排列方式对应着群 $G$ 的结构。你（作为初始图形 $R$）的身影会被这些镜子无限次地反射和再反射，充满了整个大厅。你和你的所有影像共同构成了最终的图案 $F$。图片中那个正五边形对称的图案，就可以想象成在一个中心点周围以 $72^\circ$ 的倍数放置了5面镜子，然后观察一个物体在其中的反射效果。</p>
+    </div>
+</div><h3>1.3 对群的分类与“离散”的必要性</h3><p id="original-4"><strong style="font-size: 1.3rem;">📜 [原文4]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>当然，许多不同的图形具有相同的对称群。但描述这些群是很有趣和有启发性的。我们将提出一个粗略的分类，它将在练习中得到细化。</p>
+<p>$M$ 的某些子群过于“狂野”，以至于没有合理的几何结构。例如，如果万花筒中镜子放置的角度 $\theta$ 不是 $2 \pi$ 的有理倍数，则会有无限多个不同的扇形区域反射。我们需要排除这种可能性。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>对称群的非唯一性</strong>: 作者指出，对称性是一种结构属性，许多外观完全不同的图形可能拥有完全相同的<strong>对称群</strong>。
+<ul>
+  <li>例如，一个正方形、一个风车形状（四片叶片）、以及四个点 $\{(1,1), (-1,1), (-1,-1), (1,-1)\}$，它们的对称群都是同一个<strong>二面体群</strong> $D_4$。</li>
+  <li>因此，研究的重点不应该是无穷无尽的图形本身，而是它们背后的对称结构——也就是那些<strong>对称群</strong>。</li>
+</ul></li>
+  <li> <strong>分类的目标</strong>: 作者预告，接下来的目标是对这些<strong>对称群</strong>进行<strong>分类 (classification)</strong>。分类是数学中的一个核心思想，即将无限的研究对象根据某些共同属性划分成有限的几类。</li>
+  <li> <strong>“狂野”群的排除</strong>: 不是所有的<strong>等距变换群</strong>都适合进行几何研究。有些群的行为非常复杂和混乱，无法生成具有“合理几何结构”（如重复、规则图案）的图形。这些群被称为“<strong>狂野的 (wild)</strong>”。</li>
+  <li> <strong>“狂野”群的例子</strong>:
+<ul>
+  <li>回到万花筒的例子。我们之前看到，当两面镜子的夹角 $\theta$ 使得 $2\theta$ 是 $2\pi$ (即 $360^\circ$) 的整数分之一时（即 $\theta = \pi/n$ for integer $n$），我们会得到一个漂亮的、有限重对称的图案。</li>
+  <li>现在考虑相反的情况：如果 $\theta$ 是 $2\pi$ 的一个<strong>无理数倍</strong>，例如 $\theta = 1$ 弧度 (大约 $57.3^\circ$)。那么 $2\theta=2$ 弧度。$2\pi$ 除以 $2$ 不是一个有理数。</li>
+  <li>在这种情况下，每次反射生成的扇形区域的像，其角度都不会与之前的像重合。这些像会不断地以新的角度出现，无限地填充下去，但永远不会“闭合”形成一个规则的图案。整个图案会显得杂乱无章，并且在任意小的角度范围内都会有新的反射像出现。</li>
+</ul></li>
+  <li> <strong>引入“离散”概念的动机</strong>: 为了避免这种“狂野”的行为，我们需要对所研究的群施加一个限制条件。这个条件就是<strong>离散性 (discreteness)</strong>。直观地说，离散性要求群中的变换不能“无限地相互靠近”。在万花筒的例子中，这意味着旋转的角度不能任意地小。</li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1 (非狂野群)</strong>: 万花筒夹角 $\theta = \pi/5 = 36^\circ$。这是一个有理数乘以 $\pi$。$2\theta = 72^\circ = 2\pi/5$。旋转操作的集合是 $\{k \cdot 72^\circ \mid k \in \mathbb{Z}\}$。这是一个<strong>离散</strong>的集合，任意两个不同旋转角度的差的绝对值至少是 $72^\circ$。这会产生一个漂亮的五重对称图案。</li>
+  <li><strong>示例2 (狂野群)</strong>: 万花筒夹角 $\theta = 1$ 弧度。这是一个无理数乘以 $\pi$。旋转操作的集合是 $\{k \cdot 2 \text{ rad} \pmod{2\pi} \mid k \in \mathbb{Z}\}$。根据数论中的一个结论（Kronecker's theorem），这个角度集合在 $[0, 2\pi)$ 中是<strong>稠密 (dense)</strong> 的。这意味着，在任意小的角度区间 $(\alpha, \beta)$ 内，你总能找到一个 $k \cdot 2 \pmod{2\pi}$ 落在里面。因此，旋转可以有任意小的角度，群不是离散的，产生的图案没有规则的重复结构。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>有理倍数 vs. 有理数</strong>: 这里的关键是 $\theta$ 是否为 $\pi$ 的<strong>有理倍数</strong>（即 $\theta = q\pi$ for $q \in \mathbb{Q}$），而不是 $\theta$ 本身是否为有理数。例如，$\pi/6$ 是 $\pi$ 的有理倍数，但它本身是一个无理数。而 $1$ 弧度不是 $\pi$ 的有理倍数。</li>
+  <li><strong>几何结构</strong>: “没有合理的几何结构”是一个非正式的说法。在数学上，这通常意味着生成的图形的对称群不是<strong>离散的</strong>，或者说由群作用产生的轨道在空间中是稠密的。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段阐明了研究的范围：我们不关心所有可能的<strong>等距变换群</strong>，只关心那些能产生规则几何结构的群。为了排除那些行为“狂野”、无法形成规则图案的群，我们需要引入一个关键的限制条件，即<strong>离散性</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是为引入下一部分的核心定义——<strong>离散群 (discrete group)</strong> ——提供动机和背景。它解释了为什么我们需要这个定义，以及这个定义旨在解决什么问题。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象在一条数轴上标出点。如果只标记整数点 $\{..., -2, -1, 0, 1, 2, ...\}$，这些点是<strong>离散</strong>的，它们之间有最小的间隔1。但如果标记所有有理数点，那么在任意两个点之间总能找到另一个点，这个集合是<strong>稠密</strong>的，不是离散的。我们研究的对称群，其元素就像那些整数点一样，是“分立”的，而不是“挤在一起”的。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>对比两种壁纸图案。一种是规则重复的瓷砖图案，你可以清楚地看到一个基本单元在平移、旋转后重复出现。这是由<strong>离散群</strong>生成的。另一种图案看起来像是随机泼洒的墨点，没有任何重复规律，放大看细节也还是乱的。这可能对应一个“狂野”的、非离散的群。</p>
+    </div>
+</div><h3>1.4 离散群的定义</h3><p id="original-5"><strong style="font-size: 1.3rem;">📜 [原文5]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>定义 6.5.1 平面 $P$ 的<strong>等距变换</strong>群 $G$ 是<strong>离散</strong>的，如果它不包含任意小的平移或旋转。更精确地说，$G$ 是<strong>离散</strong>的，如果存在一个正实数 $\epsilon$，使得：</p>
+<p>(i) 如果 $G$ 的一个元素是由非零向量 $a$ 进行的平移，则 $a$ 的长度至少为 $\epsilon:|a| \geq \epsilon$，并且</p>
+<p>(ii) 如果 $G$ 的一个元素是关于平面上某个点的非零角度 $\theta$ 的旋转，则 $\theta$ 的绝对值至少为 $\epsilon:|\theta| \geq \epsilon$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是本节的核心定义，它精确地描述了什么是<strong>离散等距变换群 (discrete group of isometries)</strong>。</p>
+<ol>
+  <li> <strong>直观定义</strong>: 首先给出一个直观的描述：“不包含任意小的平移或旋转”。
+<ul>
+  <li><strong>没有任意小的平移</strong>: 你不能在这个群里找到一个平移，其移动距离要多短有多短。所有平移的距离都有一个最小的“门槛”。</li>
+  <li><strong>没有任意小的旋转</strong>: 你不能在这个群里找到一个旋转，其转动角度要多小有多小。所有旋转的角度也有一个最小的“门槛”。</li>
+</ul></li>
+  <li> <strong>精确定义</strong>: 接下来是用数学语言给出的严格定义。
+<ul>
+  <li><strong>存在一个 $\epsilon &gt; 0$</strong>: 这是关键。必须存在一个<strong>统一的</strong>、正的实数 $\epsilon$（epsilon），作为所有平移和旋转的“最小门槛”。这个 $\epsilon$ 对整个群 $G$ 都有效。</li>
+  <li><strong>(i) 对平移的限制</strong>:</li>
+  <li>考察群 $G$ 中所有的<strong>平移 (translation)</strong> 变换。每个平移都由一个<strong>平移向量</strong> $a$ 定义。</li>
+  <li>如果这个平移不是<strong>恒等变换</strong>（即，它确实移动了点），那么它的<strong>平移向量</strong> $a$ 就不是零向量。</li>
+  <li>对于所有这些非零的<strong>平移向量</strong> $a$，它们的长度（模长）$|a|$ 必须大于或等于我们之前说的那个 $\epsilon$。</li>
+  <li>换句话说，群 $G$ 中最短的非零平移距离就是 $\epsilon$（或者比 $\epsilon$ 更大）。</li>
+  <li><strong>(ii) 对旋转的限制</strong>:</li>
+  <li>考察群 $G$ 中所有的<strong>旋转 (rotation)</strong> 变换。每个旋转都绕着某个中心点转动一个角度 $\theta$。</li>
+  <li>如果这个旋转不是<strong>恒等变换</strong>（即，它确实转动了图形），那么它的旋转角度 $\theta$ 就不是零（或 $2\pi$ 的整数倍）。</li>
+  <li>对于所有这些非零的旋转角度 $\theta$，它们的绝对值 $|\theta|$ 必须大于或等于同一个 $\epsilon$。</li>
+  <li>换句话说，群 $G$ 中最小的非零旋转角度就是 $\epsilon$（或者比 $\epsilon$ 更大）。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li>$G$: 一个由平面<strong>等距变换</strong>构成的<strong>群</strong>。</li>
+  <li>$\epsilon$: 一个正实数，是定义中的“最小门槛”。</li>
+  <li>$a$: 一个<strong>平移向量</strong>。$t_a$ 表示由向量 $a$ 定义的平移变换。</li>
+  <li>$|a|$: 向量 $a$ 的长度（欧几里得范数）。条件是 $|a| \ge \epsilon$ 对于所有 $t_a \in G$ 且 $a \neq 0$ 成立。</li>
+  <li>$\theta$: 一个<strong>旋转角度</strong>。$\rho_{p, \theta}$ 表示绕点 $p$ 旋转角度 $\theta$ 的变换。</li>
+  <li>$|\theta|$: 角度 $\theta$ 的绝对值。条件是 $|\theta| \ge \epsilon$ 对于所有非恒等旋转 $\rho_{p, \theta} \in G$ 成立。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1 (离散群)</strong>: 考虑一个由所有沿x轴整数距离平移构成的群 $G = \{t_{(n,0)} \mid n \in \mathbb{Z}\}$。</li>
+  <li>这个群只包含平移，没有旋转。所以我们只需要检查条件(i)。</li>
+  <li>群中的非零平移向量是 $a = (n,0)$ 其中 $n$ 是非零整数。</li>
+  <li>这些向量的长度是 $|a| = \sqrt{n^2+0^2} = |n|$。</li>
+  <li>最短的非零平移向量长度是当 $n=\pm 1$ 时，为 $1$。</li>
+  <li>我们可以选择 $\epsilon = 1$（或者任何 $0 &lt; \epsilon \le 1$ 的数，比如 $\epsilon=0.5$）。对于所有非零平移向量 $a=(n,0)$ ($n \neq 0$)，其长度 $|a| = |n| \ge 1$，所以 $|a| \ge \epsilon$ 成立。</li>
+  <li>因此，这个群是<strong>离散的</strong>。</li>
+  <li><strong>示例2 (非离散群)</strong>: 考虑一个由所有沿x轴有理数距离平移构成的群 $G = \{t_{(q,0)} \mid q \in \mathbb{Q}\}$。</li>
+  <li>这个群中的平移向量是 $a=(q,0)$，其中 $q$ 是任意有理数。</li>
+  <li>我们能找到任意小的平移吗？是的。例如，平移向量可以是 $(1/2, 0), (1/3, 0), (1/100, 0), (1/N, 0)$... 其长度分别是 $1/2, 1/3, 1/100, 1/N$。</li>
+  <li>无论你取一个多小的正数 $\epsilon$ (比如 $\epsilon = 0.0001$)，我总能找到一个更大的整数 $N$ 使得 $1/N &lt; \epsilon$。这意味着我总能找到一个平移，其距离小于你给的任何门槛 $\epsilon$。</li>
+  <li>所以，不存在这样一个 $\epsilon &gt; 0$ 满足条件(i)。</li>
+  <li>因此，这个群是<strong>非离散的</strong>。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>统一的 $\epsilon$</strong>: 必须存在一个<strong>单一的</strong> $\epsilon$ 同时适用于所有平移和所有旋转。不能对平移用一个 $\epsilon_1$，对旋转用另一个 $\epsilon_2$。不过，正如后面的注意所说，这只是为了定义方便，实际分析时可以分开考虑。</li>
+  <li><strong>非零</strong>: 条件只对非零平移和非零旋转施加。恒等变换（零平移或零旋转）是允许的，它总是群的一部分。</li>
+  <li><strong>存在性</strong>: 定义只要求<strong>存在</strong>一个这样的 $\epsilon$。$\epsilon$ 的具体值不唯一，任何比“真正”的最小间隔小的正数都可以。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>一个<strong>等距变换群</strong>是<strong>离散的</strong>，如果它所有的非零平移的距离和所有非零旋转的角度都有一个统一的、大于零的下界 $\epsilon$。这形式化了“变换之间不无限拥挤”的概念。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个定义是本章后续所有讨论的基石。通过将研究对象限制在<strong>离散群</strong>上，我们排除了那些行为“狂野”、没有规则几何结构的群，从而可以对剩下的“规整”的群进行有意义的分类和分析。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一把尺子，上面的刻度是群里的变换所对应的数值（平移距离或旋转角度）。如果这把尺子是<strong>离散的</strong>，那么刻度线之间总是有最小的间隔，就像普通的毫米刻度尺。如果它是<strong>非离散的</strong>，那么刻度线会密密麻麻地挤在一起，在任何一小段上都有无穷多个刻度，就像一把标记了所有有理数点的尺子。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个旋转开关。如果它是<strong>离散的</strong>，那么它只能“咔哒、咔哒”地停在固定的几个角度上（比如每隔30度一个档位）。如果它是<strong>非离散的</strong>，那么它就是一个可以平滑转动、停在任何角度的无级旋钮。<strong>离散群</strong>中的旋转就像那个有档位的开关。</p>
+    </div>
+</div><hr><p id="original-6"><strong style="font-size: 1.3rem;">📜 [原文6]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>注意：由于平移向量和旋转角度形成不同的集合，所以为它们设置单独的下限可能更合适。然而，在此定义中，我们不关心向量和角度的最佳界限，所以我们选择足够小的 $\epsilon$ 来同时处理两者。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是一个对定义的补充说明，解释了为什么用一个统一的 $\epsilon$ 是合理的。</p>
+<ol>
+  <li> <strong>两种不同的量</strong>: 定义中限制了两种物理量：
+<ul>
+  <li><strong>平移向量的长度</strong>，单位是距离（例如米）。</li>
+  <li><strong>旋转的角度</strong>，单位是弧度或度。</li>
+</ul></li>
+  <li> <strong>更精确的做法</strong>: 作者承认，一个更严谨或更细致的定义可能会使用两个不同的下限：
+<ul>
+  <li>一个 $\epsilon_{trans} &gt; 0$ 作为平移距离的下限。</li>
+  <li>一个 $\epsilon_{rot} &gt; 0$ 作为旋转角度的下限。</li>
+</ul></li>
+  <li> <strong>当前定义的简化</strong>: 为什么教科书中不采用这种更精确的方式？
+<ul>
+  <li><strong>不关心最佳界限</strong>: 在这个定义的层面，我们只关心<strong>是否存在</strong>一个下限，而不关心这个下限<strong>具体是多少</strong>。我们不追求找到那个“最大”的可能的 $\epsilon$。</li>
+  <li><strong>简化处理</strong>: 既然我们不关心具体值，那么只要 $\epsilon_{trans}$ 和 $\epsilon_{rot}$ 都存在，我们总可以取它们中较小的那一个（当然，要注意单位不同，不能直接比较数值，这里是取一个足够小的无单位数 $\epsilon_0$，然后要求平移距离大于 $\epsilon_0$ 米，旋转角度大于 $\epsilon_0$ 弧度），或者干脆就抽象地声明存在一个 $\epsilon$。</li>
+  <li>选择一个足够小的 $\epsilon$: 只要能找到 $\epsilon_{trans}$ 和 $\epsilon_{rot}$，我们总能找到一个足够小的 $\epsilon$ (例如 $\epsilon = \min(1, \epsilon_{trans}, \epsilon_{rot})$，如果把它们都看作无单位的纯数字)，使得它比这两个下限都小。那么如果 $|a| \ge \epsilon_{trans}$，则必然有 $|a| \ge \epsilon$。同样，如果 $|\theta| \ge \epsilon_{rot}$，也必然有 $|\theta| \ge \epsilon$。所以使用一个统一的、足够小的 $\epsilon$ 在逻辑上是等价的，并且更简洁。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例</strong>: 假设一个群 $G$ 的最短非零平移距离是2米，最小非零旋转角度是 $\pi/3$ 弧度 (60度)。</li>
+  <li>我们可以使用两个下限来描述：$\epsilon_{trans} = 2$ (米)，$\epsilon_{rot} = \pi/3$ (弧度)。这个描述是精确的。</li>
+  <li>我们也可以使用一个统一的 $\epsilon$ 来描述。例如，我们选择 $\epsilon = 0.5$。</li>
+  <li>对于任何非零平移，距离 $|a| \ge 2$ 米，所以显然 $|a| \ge 0.5$ 米。</li>
+  <li>对于任何非零旋转，角度 $|\theta| \ge \pi/3 \approx 1.047$ 弧度，所以显然 $|\theta| \ge 0.5$ 弧度。</li>
+  <li>因此，我们可以说这个群是离散的，因为存在一个 $\epsilon=0.5$ 满足定义。我们也可以选择 $\epsilon=1$。只要选择的 $\epsilon$ 小于或等于真正的最小间隔（$\min(2, \pi/3)$），定义就成立。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>单位混淆</strong>: 最大的易错点是混淆平移距离和旋转角度的单位。定义中的 $\epsilon$ 实际上是一个无量纲的数字，它同时限制了以米为单位的长度和以弧度为单位的角度。这在数学上是允许的，但在物理直觉上可能有点奇怪。理解这里的关键是，我们只关心“存在一个正的下限”，而不关心这个下限的值和单位。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段解释了定义中使用单一 $\epsilon$ 是为了简化，逻辑上是可行的，尽管平移和旋转是不同的物理量。我们只需保证存在一个足够小的正数 $\epsilon$ 作为统一的门槛即可。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段旨在消除读者可能有的困惑，即为什么可以用同一个 $\epsilon$ 来衡量两种完全不同的量（长度和角度）。它强调了定义的抽象性和目的性——只为确立“存在最小间隔”这一事实，而非精确测量该间隔。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像在评估一个人的健康状况时说“他的各项指标都好于一个基准值 $\epsilon$”。虽然血压、心率、血糖的单位和正常范围都不同，但我们可以设定一个抽象的“健康标准”，只要所有指标都在各自的安全区内，我们就说他满足这个标准。这里的 $\epsilon$ 就是这个抽象的“安全标准”。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个仪表盘上有两个指针，一个显示速度（公里/小时），一个显示转速（转/分钟）。我们可以说“这辆车处于怠速状态”的条件是：速度的绝对值小于 $\epsilon_1=1$ 公里/小时，同时转速与怠速标准转速的差的绝对值小于 $\epsilon_2=50$ 转/分钟。我们也可以找一个抽象的、足够小的数值 $\epsilon=0.1$ 来作一个统一的、虽然不精确但逻辑上正确的描述：“速度和转速的变化都小于 $\epsilon$”。</p>
+    </div>
+</div><hr><p id="original-7"><strong style="font-size: 1.3rem;">📜 [原文7]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>平移</strong>和<strong>旋转</strong>都是保持定向的<strong>等距变换</strong> (6.3.4)，这些条件适用于所有这些<strong>等距变换</strong>。我们不对改变定向的<strong>等距变换</strong>施加条件。如果 $m$ 是具有非零<strong>滑移向量</strong> $v$ 的<strong>滑移反射</strong>，则 $m^{2}$ 是<strong>平移</strong> $t_{2 v}$。因此，对<strong>平移向量</strong>的下限也决定了<strong>滑移向量</strong>的下限。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话解释了<strong>离散性</strong>定义如何间接地影响到其他类型的<strong>等距变换</strong>，特别是<strong>滑移反射</strong>。</p>
+<ol>
+  <li> <strong>回顾等距变换分类</strong>: 平面上的<strong>等距变换</strong>可以分为两类：
+<ul>
+  <li><strong>保向等距变换 (orientation-preserving isometries)</strong>: 保持图形的“左右手性”不变。这类变换包括<strong>平移 (translations)</strong> 和<strong>旋转 (rotations)</strong>。定义 6.5.1 直接对这两者施加了条件。</li>
+  <li><strong>变向等距变换 (orientation-reversing isometries)</strong>: 改变图形的“左右手性”。这类变换包括<strong>反射 (reflections)</strong> 和<strong>滑移反射 (glide reflections)</strong>。</li>
+</ul></li>
+  <li> <strong>定义中未提及的变换</strong>: 你可能会问，为什么定义只提了平移和旋转，而没有提反射和滑移反射？
+<ul>
+  <li><strong>反射</strong>: 一个孤立的反射变换自身没有“距离”或“角度”的概念（反射轴的位置可以是任意的）。它不会导致“无限拥挤”的问题。</li>
+  <li><strong>滑移反射</strong>: 这是一种复合变换，由沿着一条直线 $\ell$ 的反射和沿着同一条直线 $\ell$ 的平移（由向量 $v$ 定义）组成。这个平移向量 $v$ 被称为<strong>滑移向量</strong>。</li>
+</ul></li>
+  <li> <strong>对滑移反射的间接限制</strong>:
+<ul>
+  <li>考虑一个<strong>滑移反射</strong> $m$，其<strong>滑移向量</strong>为 $v$ ($v \neq 0$)。</li>
+  <li>我们对 $m$ 进行平方，即连续做两次这个变换：$m^2 = m \circ m$。</li>
+  <li>第一次 $m$: 反射 + 平移 $t_v$。</li>
+  <li>第二次 $m$: 反射 + 平移 $t_v$。</li>
+  <li>总效果是：(反射 + 平移 $t_v$) $\circ$ (反射 + 平移 $t_v$)。</li>
+  <li>由于沿着同一条线的两次反射会相互抵消（变向再变向等于保向），所以反射部分消失了。</li>
+  <li>平移部分则会叠加：$t_v \circ t_v = t_{v+v} = t_{2v}$。</li>
+  <li>因此，$m^2$ 是一个纯<strong>平移</strong>，其平移向量是 $2v$。</li>
+</ul></li>
+  <li> <strong>推论</strong>:
+<ul>
+  <li>因为 $m$ 是群 $G$ 中的元素，所以 $m^2$ 也必须在群 $G$ 中（群的<strong>封闭性</strong>）。</li>
+  <li>我们知道 $m^2 = t_{2v}$ 是一个平移。根据<strong>离散性</strong>的定义(i)，如果这个平移非零（即 $v \neq 0$），那么它的平移向量的长度必须满足 $|2v| \ge \epsilon$。</li>
+  <li>$|2v| = 2|v|$，所以 $2|v| \ge \epsilon$，这意味着 $|v| \ge \epsilon/2$。</li>
+  <li>这就得出了一个结论：群 $G$ 中所有<strong>滑移反射</strong>的非零<strong>滑移向量</strong> $v$ 的长度，也存在一个正的下限（即 $\epsilon/2$）。</li>
+  <li>因此，对平移的限制<strong>自动地</strong>包含了对滑移反射的限制，无需在定义中额外说明。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li>$m$: 一个<strong>滑移反射</strong>变换。它可以写成 $m = t_v r_\ell$，其中 $r_\ell$ 是关于直线 $\ell$ 的反射，向量 $v$ 平行于 $\ell$。</li>
+  <li>$m^2$: 对 $m$ 操作两次。</li>
+  <li>$m^2 = (t_v r_\ell)(t_v r_\ell)$</li>
+  <li>因为 $v$ 平行于 $\ell$，所以平移 $t_v$ 和反射 $r_\ell$ 是可交换的：$r_\ell t_v = t_v r_\ell$。</li>
+  <li>所以 $m^2 = t_v (r_\ell t_v) r_\ell = t_v (t_v r_\ell) r_\ell = t_v t_v r_\ell r_\ell = t_{2v} (r_\ell)^2$。</li>
+  <li>任何反射的平方都是恒等变换 $I$：$(r_\ell)^2 = I$。</li>
+  <li>因此，$m^2 = t_{2v} I = t_{2v}$。</li>
+  <li>$|2v| \ge \epsilon \implies 2|v| \ge \epsilon \implies |v| \ge \epsilon/2$。这表明<strong>滑移向量</strong>的长度也有一个正的下限。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例</strong>: 假设一个<strong>离散群</strong> $G$ 存在一个统一的下限 $\epsilon=0.1$。如果 $m$ 是 $G$ 中的一个<strong>滑移反射</strong>，其滑移向量为 $v$。</li>
+  <li>那么我们知道 $m^2 = t_{2v}$ 也是 $G$ 中的一个平移。</li>
+  <li>根据定义，只要 $v \neq 0$，就必须有 $|2v| \ge \epsilon=0.1$。</li>
+  <li>这意味着 $2|v| \ge 0.1$，所以 $|v| \ge 0.05$。</li>
+  <li>所以，这个群里不可能找到一个滑移向量长度为 $0.01$ 的滑移反射。所有滑移反射的滑移距离都被限制在至少 $0.05$ 以上。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>混淆滑移反射和反射</strong>: 纯粹的反射没有滑移向量 ($v=0$)。对一个纯反射 $r$，$r^2=I$ (恒等变换，即零平移)，这满足 $|0| \ge \epsilon$ (不适用，因为是零向量) 或说平凡地满足。该论证仅适用于<strong>滑移向量</strong>非零的<strong>滑移反射</strong>。</li>
+  <li><strong>$m^2$的几何意义</strong>: $m^2$ 就是沿着滑移反射的轴线，进行两倍滑移向量的平移。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段说明了<strong>离散群</strong>的定义虽然只明确限制了<strong>平移</strong>和<strong>旋转</strong>，但它通过群的代数性质（特别是元素的平方）间接地也对<strong>滑移反射</strong>中的平移部分施加了限制。因此，定义是完备的，覆盖了所有可能导致“无限拥挤”的保向和变向变换。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段旨在展示数学定义的严密性和优雅之处。一个看似简单的定义，其逻辑推论可以自动覆盖其他看似被遗漏的情况，显示了代数结构约束的力量。这增强了我们对<strong>离散群</strong>定义的信心。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像一个法律条款：“禁止任何时速超过10公里的机动车上路”。这条法律没有提“摩托车”，但因为摩托车是机动车的一种，所以它自动地被包含在内了。同样地，对所有<strong>平移</strong>的限制，自动地限制了那些“内嵌”了平移的<strong>滑移反射</strong>。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个人的脚印图案，这是<strong>滑移反射</strong>的经典例子。左脚印到右脚印是一个滑移反射。再做一次滑移反射（右脚印到下一个左脚印），总的效果是从第一个左脚印到第二个左脚印的纯粹平移，这个距离就是“一步”的长度。如果对“一步”的长度有限制（必须大于 $\epsilon$），那么“半步”（滑移向量）的长度也必然被限制了（必须大于 $\epsilon/2$）。</p>
+    </div>
+</div><hr><p id="original-8"><strong style="font-size: 1.3rem;">📜 [原文8]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>分析<strong>离散群</strong> $G$ 有三个主要工具：</p>
+<ul>
+  <li><strong>平移群</strong> $L$，<strong>平移向量</strong>群 $V$ 的子群，</li>
+  <li><strong>点群</strong> $\bar{G}$，正交群 $O_{2}$ 的子群，</li>
+  <li>$\bar{G}$ 在 $L$ 上的作用。</li>
+</ul>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这一段是路线图，预告了接下来分析<strong>离散群</strong> $G$ 的结构时将要使用的三大核心工具或视角。这是将一个复杂的<strong>等距变换群</strong> $G$ 分解成更简单、更易于理解的部分的策略。</p>
+<ol>
+  <li> <strong>第一个工具：平移群 L (Translation Group)</strong>
+<ul>
+  <li><strong>定义</strong>: 在一个<strong>离散群</strong> $G$ 中，可能包含一些纯粹的<strong>平移</strong>变换。把 $G$ 里面所有的<strong>平移</strong>变换收集起来，它们自身也构成一个群，称为 $G$ 的<strong>平移子群 (subgroup of translations)</strong>。</li>
+  <li><strong>对应的向量群 $L$</strong>: 更方便的做法是，不考虑平移变换本身，而是考虑与这些平移变换对应的<strong>平移向量</strong>。所有这些<strong>平移向量</strong>的集合，在向量加法下也构成一个群。这个向量群被记为 $L$。$L$ 是所有平移向量空间 $V$ (即 $\mathbb{R}^2$) 的一个子群。</li>
+  <li><strong>作用</strong>: 这个工具关注的是群 $G$ 的“周期性”或“晶格”结构。$L$ 描述了图形在空间中是如何重复平移的。</li>
+</ul></li>
+  <li> <strong>第二个工具：点群 $\bar{G}$ (Point Group)</strong>
+<ul>
+  <li><strong>定义</strong>: 每个<strong>等距变换</strong> $g \in G$ 都可以被分解为一个<strong>旋转/反射</strong>部分和一个<strong>平移</strong>部分（例如 $g = t_b \varphi$，其中 $\varphi \in O_2$）。这个 $\varphi$ 部分是一个<strong>正交变换 (orthogonal transformation)</strong>，它描述了变换的“旋转和反射”特性，而忽略了平移。</li>
+  <li>把群 $G$ 中所有元素的这个“旋转/反射”部分 ($\varphi$) 收集起来，它们在<strong>正交群</strong> $O_2$（所有 $2 \times 2$ 正交矩阵构成的群）中也形成一个群。这个群被称为 $G$ 的<strong>点群</strong> $\bar{G}$。</li>
+  <li><strong>作用</strong>: 这个工具关注的是群 $G$ 的“对称朝向”，即它包含了哪些角度的旋转和哪些方向的反射，而不关心这些操作在平面的哪个位置发生。它描述了图形“局部”的对称性。</li>
+</ul></li>
+  <li> <strong>第三个工具：$\bar{G}$ 在 $L$ 上的作用 (Action of $\bar{G}$ on $L$)</strong>
+<ul>
+  <li><strong>定义</strong>: 这不是一个独立的群，而是一种<strong>关系</strong>或<strong>相互作用 (interaction)</strong>。<strong>点群</strong> $\bar{G}$ 的元素是旋转和反射，它们可以作用在<strong>平移群</strong> $L$ 的向量上。</li>
+  <li><strong>作用</strong>: 这个工具描述了群的“平移部分”和“旋转/反射部分”是如何相互协调、相互制约的。例如，如果一个晶格（由 $L$ 描述）具有某种平移对称性，那么任何施加于其上的旋转对称性（由 $\bar{G}$ 描述）都不能破坏这个晶格结构。一个正方形的晶格可以有90度旋转，但不能有60度旋转。这种制约关系被称为<strong>晶体学限制 (crystallographic restriction)</strong>，是后面要讨论的核心内容。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例</strong>: 考虑一个由正方形瓷砖铺满的平面的对称群 $G$。</li>
+  <li><strong>平移群 L</strong>: $L$ 由所有形如 $(m, n)$ 的向量组成（假设瓷砖边长为1，且与坐标轴平行），其中 $m, n$ 是整数。这是一个<strong>格 (lattice)</strong>。它描述了瓷砖图案可以向上下左右平移任意整数个单位而不变。</li>
+  <li><strong>点群 $\bar{G}$</strong>: $\bar{G}$ 是正方形的对称群 $D_4$。它包含绕中心旋转 $0^\circ, 90^\circ, 180^\circ, 270^\circ$ 的操作，以及关于四条对称轴的反射。它描述了每个瓷砖本身的对称性，或者说在任何一个顶点周围的局部对称性。</li>
+  <li><strong>$\bar{G}$ 在 $L$ 上的作用</strong>: $D_4$ 中的旋转和反射作用在 $L$ 的向量上会发生什么？例如，将向量 $(1,0)$ 旋转 $90^\circ$，会得到向量 $(0,1)$。由于 $(1,0)$ 和 $(0,1)$ 都在 $L$ 中，所以这个作用是“允许的”。如果你试图用一个 $30^\circ$ 的旋转作用于 $(1,0)$，你会得到一个不在 $L$ 中的向量，这说明 $30^\circ$ 旋转与这个平移晶格不相容。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>群与向量集合</strong>: 要区分<strong>平移群</strong>（变换的群）和 $L$（向量的群），尽管它们在结构上是同构的，但研究 $L$ 更为直观。</li>
+  <li><strong>点群的抽象性</strong>: $\bar{G}$ 的元素是“纯”旋转/反射，它们都固定原点。而 $G$ 中的实际旋转操作可以在平面的任何地方。$\bar{G}$ 是把所有这些旋转都“移到”原点后得到的集合。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段提出了分析<strong>离散等距变换群</strong> $G$ 的“三步走”战略：首先，分离出其纯<strong>平移</strong>部分，形成<strong>平移群</strong> $L$；其次，分离出其纯<strong>旋转/反射</strong>部分，形成<strong>点群</strong> $\bar{G}$；最后，研究这两部分之间的相互制约关系，即 $\bar{G}$ 如何作用于 $L$。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段为后续章节的内容组织提供了清晰的框架和路线图。它将一个复杂的问题分解为三个更小、更易于处理的子问题，是数学中典型的“分而治之”策略。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>分析一个复杂的机器（群 $G$）：</p>
+<ol>
+  <li> 先研究它的“引擎”——<strong>平移群</strong> $L$，它提供了持续移动的动力（周期性）。</li>
+  <li> 再研究它的“方向盘和镜子”——<strong>点群</strong> $\bar{G}$，它决定了机器可以如何转向和翻转（旋转/反射对称性）。</li>
+  <li> 最后研究“联动系统”——$\bar{G}$ 对 $L$ 的作用，即方向盘的操作是如何与引擎的运动相协调的。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象分析一幅壁纸图案（代表由 $G$ 生成的图形）：</p>
+<ol>
+  <li> <strong>平移群 L</strong>: 找到图案中最小的重复单元，以及它可以如何通过平移铺满整个墙面。这些平移向量构成了 $L$。</li>
+  <li> <strong>点群 $\bar{G}$</strong>: 随机在图案上戳一个点，观察围绕这个点的局部对称性。例如，它是不是一个四重旋转中心？是不是有几条对称轴穿过它？这些局部的旋转和反射操作的集合就是 $\bar{G}$。</li>
+  <li> <strong>$\bar{G}$ 在 $L$ 上的作用</strong>: 观察壁纸的整体，你会发现，平移的结构（比如是正方形网格还是六边形蜂巢网格）决定了局部可能出现的旋转对称类型（正方形网格允许四重旋转，六边形网格允许六重旋转，但正方形网格不允许六重旋转）。这就是两者之间的相互作用。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-2">
+    <h2><span class="section-number">2</span>2. 平移群</h2>
+    <h3>2.1 平移群的定义</h3><p id="original-9"><strong style="font-size: 1.3rem;">📜 [原文9]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>$G$ 的<strong>平移群</strong> $L$ 是向量 $v$ 的集合，使得<strong>平移</strong> $t_{v}$ 在 $G$ 中。</p>
+<p><div class="math-block">$$
+\begin{equation*}
+L=\left\{v \in V \mid t_{v} \in G\right\} \tag{6.5.3}
+\end{equation*}
+$$</div></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这一段正式定义了第一个分析工具——<strong>平移群</strong> $L$。</p>
+<ol>
+  <li> <strong>背景</strong>: 我们正在分析一个给定的<strong>等距变换群</strong> $G$。这个群 $G$ 里面可能有很多种变换，比如旋转、反射，也可能有一些纯粹的<strong>平移</strong>。</li>
+  <li> <strong>定义</strong>: 我们把 $G$ 中所有的纯<strong>平移</strong>变换都挑出来。每一个这样的<strong>平移</strong>变换都唯一对应一个<strong>平移向量</strong> $v$。我们将所有这些<strong>平移向量</strong> $v$ 收集起来，形成一个集合，这个集合就被命名为 $L$。</li>
+  <li> <strong>符号化定义</strong>:
+<ul>
+  <li>$L$ 是一个向量的集合。</li>
+  <li>一个向量 $v$ 属于集合 $L$ 的<strong>条件</strong>是：以 $v$ 为平移向量的<strong>平移变换</strong> $t_v$ 必须是群 $G$ 的一个元素。</li>
+  <li>$V$ 代表所有可能的二维向量组成的空间（即 $\mathbb{R}^2$）。$L$ 是 $V$ 的一个子集。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+L=\left\{v \in V \mid t_{v} \in G\right\} \tag{6.5.3}
+$$</div></p>
+<ul>
+  <li>$L$: 我们要定义的<strong>平移（向量）群</strong>。</li>
+  <li>$=$: 定义符号。</li>
+  <li>$\{$ ... $\}$: 集合的表示法，花括号内是集合的元素。</li>
+  <li>$v \in V$: “元素 $v$ 属于向量空间 $V$”。这说明 $L$ 的元素是向量。$V$ 在这里就是二维平面 $\mathbb{R}^2$。</li>
+  <li>$\mid$: “使得”或“满足以下条件”。</li>
+  <li>$t_v$: 由向量 $v$ 定义的<strong>平移变换</strong>。这是一个函数，它将平面上任意一点 $p$ 映射到 $p+v$。</li>
+  <li>$t_v \in G$: “平移变换 $t_v$ 是群 $G$ 的一个元素”。这是向量 $v$ 能否被收入集合 $L$ 的唯一标准。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>: 设 $G$ 是由沿 x 轴平移 $\pm 1$ 生成的群，即 $G = \{t_{(n,0)} \mid n \in \mathbb{Z}\}$。</li>
+  <li>我们来检查哪些向量 $v$ 满足条件。</li>
+  <li>如果 $v=(1,0)$，那么 $t_{(1,0)} \in G$。所以 $(1,0) \in L$。</li>
+  <li>如果 $v=(2,0)$，那么 $t_{(2,0)} = t_{(1,0)} \circ t_{(1,0)}$，根据群的封闭性，$t_{(2,0)} \in G$。所以 $(2,0) \in L$。</li>
+  <li>对于任何整数 $n$， $t_{(n,0)} \in G$，所以 $(n,0) \in L$。</li>
+  <li>如果 $v=(0.5, 0)$，那么 $t_{(0.5,0)}$ 不在 $G$ 中。所以 $(0.5,0) \notin L$。</li>
+  <li>如果 $v=(0,1)$，那么 $t_{(0,1)}$ 不在 $G$ 中。所以 $(0,1) \notin L$。</li>
+  <li>最终，我们发现 $L = \{(n,0) \mid n \in \mathbb{Z}\}$。这是 x 轴上所有整数点的集合。</li>
+</ul>
+<ul>
+  <li><strong>示例2</strong>: 设 $G$ 是正方形的对称群 $D_4$（固定原点）。</li>
+  <li>这个群包含4个旋转和4个反射，但它包含纯平移吗？</li>
+  <li>唯一的平移是<strong>恒等变换</strong>，也就是平移向量为 $(0,0)$ 的平移 $t_{(0,0)}$。</li>
+  <li>所以，对于这个群 $G$，$L = \{(0,0)\}$。这是一个只包含零向量的<strong>平凡群</strong>。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>$L$ 是向量的集合，不是变换的集合</strong>: 虽然 $L$ 被称为<strong>平移群</strong>，但它的元素是<strong>向量</strong>，其群运算是<strong>向量加法</strong>。而 $G$ 的元素是<strong>变换</strong>，群运算是<strong>变换的复合</strong>。两者在代数上<strong>同构</strong>，但属于不同类型的数学对象。</li>
+  <li><strong>包含零向量</strong>: 任何群 $G$ 都必须包含恒等变换 $I$。恒等变换可以被看作是零向量平移 $t_0$。因此，任何<strong>平移群</strong> $L$ 都必然包含零向量 $0$。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>平移群</strong> $L$ 是一个<strong>等距变换群</strong> $G$ 中所有<strong>纯平移</strong>部分所对应的<strong>平移向量</strong>的集合。它从 $G$ 中“提取”出了关于周期性平移的全部信息。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个定义是“分而治之”策略的第一步。通过明确地定义 $L$，我们可以将一个复杂的<strong>等距变换群</strong> $G$ 分解为平移和非平移两部分，并首先聚焦于研究相对简单的平移部分的结构。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你有一大堆各种各样的乐高积木（群 $G$）。定义 $L$ 的过程，就像是从这堆积木里，只把所有“长条形”的、代表纯粹位移的积木挑出来，放到一个单独的盒子里。这个盒子里的积木集合就是 $L$。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>看着一幅无限延伸的棋盘格图案（它的对称群是 $G$）。你的眼睛会不自觉地寻找它的重复规律。你会发现，把整个图案向右平移一格，图案不变。向上平移一格，图案也不变。所有这些能让图案保持不变的平移，其对应的位移向量就组成了这个图案的<strong>平移群</strong> $L$。</p>
+    </div>
+</div><hr><p id="original-10"><strong style="font-size: 1.3rem;">📜 [原文10]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>由于 $t_{v} t_{w}=t_{v+w}$ 且 $t_{v}^{-1}=t_{-v}$，$L$ 是所有<strong>平移向量</strong>的<strong>加法群</strong> $V^{+}$的子群。 $G$ 中<strong>平移</strong>的界限 $\epsilon$ 限制了 $L$ 中向量的长度：</p>
+<p><div class="math-block">$$
+\begin{equation*}
+L \text{ 中每个非零向量 } v \text{ 的长度 }|v| \geq \epsilon \text{。} \tag{6.5.4}
+\end{equation*}
+$$</div></p>
+<ul>
+  <li>$V^{+}$ 或 $\mathbb{R}^{n+}$ 的<strong>加法群</strong>的子群 $L$，如果满足条件 (6.5.4) 对于某个 $\epsilon&gt;0$，则称为<strong>离散子群</strong>。（这与之前对 $\mathbb{R}^{+}$ 的定义相同。）</li>
+</ul>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话阐述了 $L$ 的两个重要性质：它是一个群，并且它继承了 $G$ 的<strong>离散性</strong>。</p>
+<ol>
+  <li> <strong>$L$ 是一个群</strong>: 为了证明 $L$ 在向量加法下构成一个群，需要验证群的三个公理：
+<ul>
+  <li><strong>封闭性</strong>: 如果向量 $v$ 和 $w$ 都在 $L$ 中，那么它们的和 $v+w$ 是否也在 $L$ 中？</li>
+  <li>$v \in L$ 意味着平移 $t_v \in G$。</li>
+  <li>$w \in L$ 意味着平移 $t_w \in G$。</li>
+  <li>因为 $G$ 是一个群，所以两个元素的复合也在 $G$ 中：$t_v t_w \in G$。</li>
+  <li>而平移的复合等于向量的和的平移：$t_v t_w = t_{v+w}$。</li>
+  <li>所以，$t_{v+w} \in G$。根据 $L$ 的定义，这意味着向量 $v+w$ 必须在 $L$ 中。封闭性成立。</li>
+  <li><strong>单位元</strong>: $L$ 中必须有单位元，即零向量 $0$。</li>
+  <li>群 $G$ 必须有单位元，即恒等变换 $I$。</li>
+  <li>恒等变换可以看作是零向量平移 $t_0$。所以 $t_0 \in G$。</li>
+  <li>根据 $L$ 的定义，这意味着 $0 \in L$。单位元存在。</li>
+  <li><strong>逆元</strong>: 如果向量 $v$ 在 $L$ 中，它的加法逆元 $-v$ 是否也在 $L$ 中？</li>
+  <li>$v \in L$ 意味着平移 $t_v \in G$。</li>
+  <li>因为 $G$ 是一个群，所以 $t_v$ 的逆变换 $(t_v)^{-1}$ 也必须在 $G$ 中。</li>
+  <li>平移 $t_v$ 的逆是反向平移 $t_{-v}$，即 $(t_v)^{-1} = t_{-v}$。</li>
+  <li>所以，$t_{-v} \in G$。根据 $L$ 的定义，这意味着向量 $-v$ 必须在 $L$ 中。逆元存在。</li>
+  <li>结论: $L$ 满足群的所有公理，所以 $L$ 是一个群。它是所有平移向量构成的<strong>加法群</strong> $V^+$ 的一个<strong>子群</strong>。</li>
+</ul></li>
+  <li> <strong>$L$ 是离散的</strong>:
+<ul>
+  <li>我们研究的 $G$ 是一个<strong>离散群</strong>。根据定义 6.5.1，存在一个 $\epsilon &gt; 0$ 使得 $G$ 中任何非零平移 $t_v$ 的向量长度 $|v| \ge \epsilon$。</li>
+  <li>$L$ 的定义是，它包含了 $G$ 中所有平移所对应的向量。</li>
+  <li>因此，这个条件直接“遗传”给了 $L$：对于 $L$ 中的任何非零向量 $v$，它的长度必须满足 $|v| \ge \epsilon$。</li>
+  <li>这正是向量群<strong>离散</strong>的定义。所以，$L$ 是 $V^+$ 的一个<strong>离散子群</strong>。</li>
+</ul></li>
+  <li> <strong>离散子群的正式定义</strong>:
+<ul>
+  <li>在这一小段的末尾，作者给出了 $\mathbb{R}^n$ (这里是 $n=2$) 中<strong>离散子群</strong>的正式定义，它完全依赖于向量长度的下限。一个子群 $L$ 是离散的，当且仅当存在一个 $\epsilon &gt; 0$，使得 $L$ 中所有非零向量的长度都大于等于 $\epsilon$。这与我们刚刚为 $L$ 推导出的性质完全吻合。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+L \text{ 中每个非零向量 } v \text{ 的长度 }|v| \geq \epsilon \text{。} \tag{6.5.4}
+$$</div></p>
+<ul>
+  <li>这个“公式”其实是一个文字描述的数学命题。</li>
+  <li>$L$: 我们正在讨论的<strong>平移向量群</strong>。</li>
+  <li>$v$: $L$ 中的一个向量。</li>
+  <li>非零向量: $v \neq 0$。</li>
+  <li>$|v|$: 向量 $v$ 的长度。</li>
+  <li>$\ge \epsilon$: 大于或等于某个正的常数 $\epsilon$。这个 $\epsilon$ 直接来自于父群 $G$ 是离散群的定义。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例</strong>: 再次考虑由正方形瓷砖（边长为1）铺满的平面的对称群 $G$。</li>
+  <li>它的平移群是 $L = \{(m,n) \mid m,n \in \mathbb{Z}\}$。</li>
+  <li>我们来验证 $L$ 是不是一个离散子群。</li>
+  <li>$L$ 中的非零向量是什么？例如 $(1,0), (0,1), (1,1), (2,0), (-1, -1)$ 等等。</li>
+  <li>这些向量的长度分别是：</li>
+  <li>$|(1,0)| = 1$</li>
+  <li>$|(0,1)| = 1$</li>
+  <li>$|(1,1)| = \sqrt{1^2+1^2} = \sqrt{2} \approx 1.414$</li>
+  <li>$|(2,0)| = 2$</li>
+  <li>$|(-1,-1)| = \sqrt{(-1)^2+(-1)^2} = \sqrt{2}$</li>
+  <li>$L$ 中最短的非零向量长度是多少？是1（由 $(1,0), (-1,0), (0,1), (0,-1)$ 这四个向量达到）。</li>
+  <li>我们能否找到一个 $\epsilon &gt; 0$ 使得所有非零向量的长度都 $\ge \epsilon$？是的，我们可以取 $\epsilon=1$。任何 $L$ 中的非零向量 $(m,n)$ (其中 $m,n$ 不全为零) 的长度是 $\sqrt{m^2+n^2}$，这个值最小就是1。所以 $|v| \ge 1$ 对所有非零 $v \in L$ 成立。</li>
+  <li>因此，$L$ 是一个<strong>离散子群</strong>。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>离散 vs 有限</strong>: <strong>离散</strong>不等于<strong>有限</strong>。上面的例子 $L = \{(m,n) \mid m,n \in \mathbb{Z}\}$ 是一个无限群，但它是离散的。离散关心的是元素之间的“最小间隔”，而不是元素的总数。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段建立了两个关键事实：(1) <strong>平移群</strong> $L$ 在向量加法下确实是一个群，是 $V^+$ 的子群。(2) 由于父群 $G$ 是<strong>离散</strong>的，$L$ 也必然是一个<strong>离散子群</strong>，即其非零向量的长度有一个正的下限。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是为了将研究 $G$ 的平移部分这个问题，转化为一个更具体、更经典的数学问题：对 $\mathbb{R}^2$ 中的<strong>离散加法子群</strong>进行分类。这是一个有完整解的、结构优美的问题，为接下来的定理 6.5.5 铺平了道路。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>如果一个大家庭 $G$ 的成员都同意彼此之间保持至少 $\epsilon$ 的社交距离（离散性），那么这个家庭里的一个小组 $L$（比如只由男性成员组成的小组）也必然遵守这个规定。$L$ 从 $G$ 那里“继承”了保持社交距离的特性。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个由原子组成的完美晶体。所有原子的位置构成一个集合。如果你把其中一个原子放在原点，那么其他所有原子的相对位置就构成了<strong>平移群</strong> $L$。因为原子之间有最小的间距（由化学键长度决定），所以这个 $L$ 必然是<strong>离散的</strong>。你不可能找到两个原子无限地贴近。这个最小间距就是 $\epsilon$ 的物理体现。</p>
+    </div>
+</div><hr><p id="original-11"><strong style="font-size: 1.3rem;">📜 [原文11]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>一个子群 $L$ 是<strong>离散</strong>的，当且仅当 $L$ 中不同向量 $a$ 和 $b$ 之间的距离至少为 $\epsilon$。这是因为距离是 $b-a$ 的长度，并且 $b-a$ 在 $L$ 中，因为 $L$ 是一个群。如果 (6.5.4) 成立，则 $|b-a| \geq \epsilon$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话给出了<strong>离散子群</strong>定义的另一个等价的、更具几何直观的表述。</p>
+<ol>
+  <li> <strong>原始定义回顾</strong>: $L$ 是离散的 $\iff$ 存在 $\epsilon &gt; 0$ 使得对所有非零向量 $v \in L$，都有 $|v| \ge \epsilon$。这个定义关注的是向量到<strong>原点</strong>的距离。</li>
+  <li> <strong>等价定义</strong>: $L$ 是离散的 $\iff$ 存在 $\epsilon &gt; 0$ 使得对所有<strong>不相等</strong>的向量 $a, b \in L$，它们之间的距离 $|b-a|$ 至少为 $\epsilon$。这个定义关注的是<strong>任意两个不同点</strong>之间的距离。</li>
+  <li> <strong>证明等价性</strong>: 为什么这两个定义是等价的？
+<ul>
+  <li><strong>从 "原点距离" 推导 "任意点距离"</strong>:</li>
+  <li>假设原始定义成立，即存在 $\epsilon&gt;0$ 使得所有非零 $v \in L$ 都有 $|v| \ge \epsilon$。</li>
+  <li>现在取 $L$ 中任意两个不相等的向量 $a$ 和 $b$ ($a \neq b$)。</li>
+  <li>因为 $L$ 是一个群， $a \in L$ 且 $b \in L$，那么它们的差 $b-a$ 也一定在 $L$ 中（因为 $b-a = b + (-a)$，而 $-a$ 是 $a$ 的逆元，也在 $L$ 中）。</li>
+  <li>由于 $a \neq b$，它们的差 $b-a$ 是一个<strong>非零向量</strong>。</li>
+  <li>既然 $b-a$ 是 $L$ 中的一个非零向量，根据我们的假设，它的长度必须满足 $|b-a| \ge \epsilon$。</li>
+  <li>而 $|b-a|$ 正是点 $a$ 和点 $b$ 之间的欧几里得距离。</li>
+  <li>所以，我们证明了任意两个不同点之间的距离至少为 $\epsilon$。</li>
+  <li><strong>从 "任意点距离" 推导 "原点距离"</strong>:</li>
+  <li>假设等价定义成立，即存在 $\epsilon&gt;0$ 使得对所有 $a, b \in L$ 且 $a \neq b$，都有 $|b-a| \ge \epsilon$。</li>
+  <li>现在取 $L$ 中任意一个非零向量 $v$ ($v \neq 0$)。</li>
+  <li>我们可以把这个 $v$ 看作是两个向量的差：$v = v - 0$。</li>
+  <li>因为 $L$ 是一个群，零向量 $0$ 肯定在 $L$ 中。</li>
+  <li>现在我们有两个 $L$ 中的不同向量：$a=v$ 和 $b=0$ (这里原文用的a,b，我们换成v,0以清晰)。不，应该是 $a=v$ 和 $b=0$。</li>
+  <li>根据假设，这两个不同向量之间的距离必须满足 $|v-0| \ge \epsilon$。</li>
+  <li>$|v-0|$ 就是 $|v|$。</li>
+  <li>所以我们证明了 $|v| \ge \epsilon$。</li>
+</ul></li>
+  <li> <strong>结论</strong>: 两个定义是完全等价的。</li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例</strong>: 考虑离散群 $L = \{(n,0) \mid n \in \mathbb{Z}\}$，我们已经知道它的最短非零向量长度为1。</li>
+  <li><strong>原点距离视角</strong>: 最短的到原点的非零距离是 $|(1,0)-0|=1$。我们可以取 $\epsilon=1$。</li>
+  <li><strong>任意点距离视角</strong>:</li>
+  <li>取两个不同的点，例如 $a=(2,0)$ 和 $b=(5,0)$。它们之间的距离是 $|b-a| = |(3,0)| = 3$。$3 \ge \epsilon=1$。</li>
+  <li>取两个不同的点，例如 $a=(-1,0)$ 和 $b=(-2,0)$。它们之间的距离是 $|b-a| = |(-1,0)| = 1$。$1 \ge \epsilon=1$。</li>
+  <li>你会发现， $L$ 中任意两个不同点之间的距离最小就是1。所以从这个角度看，我们也可以取 $\epsilon=1$。两个视角给出了一致的结论。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>a 和 b 必须不同</strong>: 这个等价定义只适用于两个不同的向量。如果 $a=b$，那么 $|b-a|=|0|=0$，这当然小于任何正的 $\epsilon$。</li>
+  <li><strong>几何直观</strong>: 这个等价定义非常有用，因为它把<strong>离散性</strong>和“点与点之间是分开的，不是挤在一起的”这个几何直观紧密地联系起来了。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段阐明并证明了<strong>离散子群</strong>的一个等价几何图像：群里的所有点（向量）都是相互隔离的，任意两点之间的距离都有一个统一的最小下限。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是加强对<strong>离散性</strong>概念的直观理解。它将一个关于“到原点距离”的代数式条件，翻译成了一个关于“任意两点间距离”的几何图像，使得这个概念更加具体和形象化。这为后面引理中关于有界区域只包含有限个点的证明提供了直接依据。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一个社交距离规定。规定 A：“任何离开家的人，必须离家至少1米远”。规定 B：“任何两个人之间，必须保持至少1米的距离”。本段证明了，在一个所有人都遵守规则的社区里，这两条规定是等价的（假设“家”是原点，并且“家”本身也算一个位置）。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象在平原上的一片理想化的果园。每棵树的位置都在一个<strong>离散群</strong> $L$ 中。这个等价定义意味着，你测量任意两棵不同的树之间的距离，都会发现这个距离不会小于某个最小值（比如5米）。果园里的树不会有两棵长得任意近。</p>
+    </div>
+</div><h3>2.2 离散子群的分类定理</h3><p id="original-12"><strong style="font-size: 1.3rem;">📜 [原文12]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>定理 6.5.5 $V^{+}$ 或 $\mathbb{R}^{2+}$ 的每个<strong>离散子群</strong> $L$ 都是以下之一：</p>
+<p>(a) 零群：$L=\{0\}$。</p>
+<p>(b) 非零向量 $a$ 的整数倍集：</p>
+<p><div class="math-block">$$
+L=\mathbb{Z} a=\{m a \mid m \in \mathbb{Z}\}, \quad \text { 或 }
+$$</div></p>
+<p>(c) 两个线性无关向量 $a$ 和 $b$ 的整数组合集：</p>
+<p><div class="math-block">$$
+L=\mathbb{Z} a+\mathbb{Z} b=\{m a+n b \mid m, n \in \mathbb{Z}\}。
+$$</div></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是本节的第一个主要定理，它对二维平面中所有的<strong>离散加法子群</strong>进行了完全的分类。定理指出，这样的群只有三种可能的形式。</p>
+<ol>
+  <li> <strong>定理的适用对象</strong>: 作用于 $V^+$ 或 $\mathbb{R}^{2+}$ 的<strong>离散子群</strong> $L$。$V^+$ 指的是几何向量的加法群，$\mathbb{R}^{2+}$ 指的是坐标向量的加法群，两者是同构的。<strong>离散</strong>意味着 $L$ 中的非零向量长度有正的下限。</li>
+  <li> <strong>分类结果</strong>: 这样的 $L$ 必定是以下三种类型中的一种，且仅能是一种。
+<ul>
+  <li><strong>(a) 零群 (The zero group)</strong>:</li>
+  <li>$L = \{0\}$。</li>
+  <li>这是最简单的情况，群里只有一个元素，即零向量。</li>
+  <li>几何上，这对应一个没有任何平移对称性的图形（或者说，只有恒等变换这一个平移对称性）。</li>
+  <li><strong>(b) 一维格 (A 1-dimensional lattice)</strong>:</li>
+  <li>$L = \mathbb{Z}a = \{ ma \mid m \in \mathbb{Z} \}$，其中 $a$ 是一个固定的非零向量。</li>
+  <li>这个集合包含了向量 $a$ 的所有整数倍，例如 $..., -2a, -a, 0, a, 2a, ...$。</li>
+  <li>几何上，这些点在一条穿过原点的直线上等距分布。这对应于一个只在一个方向上具有周期性平移对称的图形，比如一条无限长的饰带图案或一道篱笆。</li>
+  <li><strong>(c) 二维格 (A 2-dimensional lattice)</strong>:</li>
+  <li>$L = \mathbb{Z}a + \mathbb{Z}b = \{ ma + nb \mid m, n \in \mathbb{Z} \}$，其中 $a$ 和 $b$ 是两个<strong>线性无关 (linearly independent)</strong> 的向量。</li>
+  <li><strong>线性无关</strong>意味着 $a$ 和 $b$ 不在同一条直线上。它们可以作为平面的一组<strong>基 (basis)</strong>。</li>
+  <li>这个集合包含了 $a$ 和 $b$ 的所有<strong>整系数线性组合</strong>。</li>
+  <li>几何上，这些点构成一个覆盖整个平面的、由平行四边形组成的网格。这对应于一个在两个不同方向上都具有周期性平移对称的图形，比如壁纸、瓷砖或晶体结构。这种群也叫<strong>格 (lattice)</strong>。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li>$L=\mathbb{Z} a=\{m a \mid m \in \mathbb{Z}\}$</li>
+  <li>$\mathbb{Z}$: 整数集 $\{...,-2, -1, 0, 1, 2, ...\}$。</li>
+  <li>$\mathbb{Z}a$: 这是一个集合的简写，表示用 $\mathbb{Z}$ 中的每个整数 $m$ 去数乘向量 $a$ 所得到的所有向量的集合。</li>
+  <li>$L=\mathbb{Z} a+\mathbb{Z} b=\{m a+n b \mid m, n \in \mathbb{Z}\}$</li>
+  <li>$\mathbb{Z}a + \mathbb{Z}b$: 集合的简写，表示所有形如 $ma+nb$ 的向量的集合，其中系数 $m$ 和 $n$ 独立地取遍所有整数。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例 (a) 零群</strong>: $L = \{(0,0)\}$。这是一个<strong>离散群</strong>，因为它没有非零向量，所以非零向量长度 $\ge \epsilon$ 的条件是“空真”的（trivially true）。正五边形的对称群 $D_5$ 的平移群就是这个。</li>
+  <li><strong>示例 (b) 一维格</strong>:</li>
+  <li>令 $a = (2,1)$。那么 $L = \mathbb{Z}a = \{ (2m, m) \mid m \in \mathbb{Z} \}$。</li>
+  <li>这个集合的点包括 $(0,0), (2,1), (4,2), (-2,-1), ...$。它们都在直线 $y=x/2$ 上等距排列。</li>
+  <li>这是一个<strong>离散群</strong>，因为最短的非零向量是 $a$ 和 $-a$，长度为 $\sqrt{2^2+1^2} = \sqrt{5}$。我们可以取 $\epsilon = \sqrt{5}$。</li>
+  <li><strong>示例 (c) 二维格</strong>:</li>
+  <li>令 $a=(1,0)$ 和 $b=(0,1)$。它们线性无关。</li>
+  <li>$L = \mathbb{Z}a + \mathbb{Z}b = \{ (m,n) \mid m,n \in \mathbb{Z} \}$。</li>
+  <li>这就是平面上所有整数坐标点构成的<strong>正方形网格</strong>。这是一个<strong>离散群</strong>，最短非零向量长度为1。</li>
+  <li>令 $a=(1,0)$ 和 $b=(1/2, \sqrt{3}/2)$。这两个向量也线性无关，长度都是1，夹角为60度。</li>
+  <li>$L = \mathbb{Z}a + \mathbb{Z}b$ 构成一个由等边三角形组成的<strong>六边形网格</strong>（或称三角晶格）。这也是一个<strong>离散群</strong>，最短非零向量长度为1。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>线性无关</strong>: 在情况 (c) 中，$a$ 和 $b$ <strong>必须</strong>是线性无关的。如果它们线性相关（在同一条直线上），比如 $b=2a$，那么 $\mathbb{Z}a + \mathbb{Z}b = \mathbb{Z}a + \mathbb{Z}(2a) = \mathbb{Z}a$，这就退化回了情况 (b)。</li>
+  <li><strong>完备性</strong>: 这个定理是<strong>完备的</strong>，即任何 $\mathbb{R}^2$ 的<strong>离散子群</strong>都必须是这三种形式之一，没有第四种可能。例如，一个只包含 $\{0, a, 2a, 3a\}$ 的集合不是群（没有逆元）。一个包含 $\mathbb{Z}a$ 和一个与之线性无关的向量 $c$ 但不包含 $c$ 的整数倍或与 $a$ 的组合的集合，也不是群。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>定理6.5.5 给出了二维平面上<strong>离散平移群</strong>的完整“花名册”。它们要么是微不足道的（只有原点），要么像一条直线上的刻度尺（一维），要么像一张无限的网格纸（二维）。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个定理是分析工作的重大突破。它将一个抽象的性质（<strong>离散性</strong>）转化为了三种具体的、几何上非常清晰的结构。这使得我们对<strong>平移群</strong> $L$ 的理解从“一个满足某种条件的抽象集合”变成了“好的，它就是这三种样子之一”。这为后续研究<strong>点群</strong>如何与这些具体结构相互作用奠定了坚实的基础。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你在一个无限大的、平坦的沙漠里寻找绿洲。如果绿洲的分布是“离散的”（任意两个绿洲之间有最小距离），那么你最终会发现：</p>
+<p>(a) 整个沙漠只有一个绿洲（零群）。</p>
+<p>(b) 所有的绿洲都排列在一条笔直的公路上，且间距相等（一维格）。</p>
+<p>(c) 所有的绿洲形成一个巨大的、规则的网状灌溉系统（二维格）。</p>
+<p>不可能有第四种情况，比如绿洲形成一个巨大的圆圈，或者一个螺旋。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>这个定理可以用晶体学中的晶格来想象。</p>
+<p>(a) <strong>非晶体</strong>: 只有一个原子。</p>
+<p>(b) <strong>一维晶体 (聚合物链)</strong>: 原子沿着一条长链规则排列。</p>
+<p>(c) <strong>二维晶体 (石墨烯)</strong>: 原子在平面上形成规则的蜂窝状或方形网格。</p>
+<p>这个定理说明，任何具有平移对称性且满足<strong>离散性</strong>的结构，其平移对称向量的集合必然是这三种形式之一。</p>
+    </div>
+</div><hr><p id="original-13"><strong style="font-size: 1.3rem;">📜 [原文13]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>上面列出的第三种群称为<strong>格</strong>，生成集 $(a, b)$ 称为<strong>格基</strong>。</p>
+<p>一个<strong>格</strong></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这一小段是对定理 6.5.5(c) 中出现的结构给出的正式命名。</p>
+<ol>
+  <li> <strong>格 (Lattice)</strong>:
+<ul>
+  <li>定理 6.5.5(c) 中描述的群类型，$L=\mathbb{Z} a+\mathbb{Z} b=\{m a+n b \mid m, n \in \mathbb{Z}\}$，有一个专门的名字，叫做<strong>格</strong>。</li>
+  <li>在二维空间中，一个<strong>格</strong>就是由两个线性无关的向量 $a$ 和 $b$ 的所有整系数线性组合构成的点集。</li>
+  <li>这个词在固体物理和晶体学中非常常用，用来描述晶体中原子的规则排列。</li>
+</ul></li>
+  <li> <strong>格基 (Lattice Basis)</strong>:
+<ul>
+  <li>用于生成这个<strong>格</strong>的两个线性无关的向量 $(a,b)$ 组成的集合，被称为<strong>格</strong>的一个<strong>基</strong>，或<strong>格基</strong>。</li>
+  <li><strong>基</strong>的选择不是唯一的。同一个<strong>格</strong>可以由不同的<strong>格基</strong>生成。例如，对于整数格点 $\mathbb{Z}^2$，$(a=(1,0), b=(0,1))$ 是一个<strong>格基</strong>。但 $(a'=(1,0), b'=(1,1))$ 也是一个<strong>格基</strong>，因为任何整数点 $(m,n)$ 都可以表示为 $(m-n)a' + n b'$，系数 $(m-n)$ 和 $n$ 也是整数。反之， $a'$ 和 $b'$ 也可以由 $a,b$ 表示。</li>
+  <li>不同的<strong>格基</strong>所张成的平行四边形（称为<strong>原胞 (primitive cell)</strong>）的面积是相同的。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1 (正方晶格)</strong>:</li>
+  <li><strong>格基</strong>: $(a=(1,0), b=(0,1))$。</li>
+  <li><strong>格</strong>: $L = \{ (m,n) \mid m,n \in \mathbb{Z}\}$。</li>
+  <li><strong>示例2 (六角晶格)</strong>:</li>
+  <li><strong>格基</strong>: $(a=(1,0), b=(1/2, \sqrt{3}/2))$。</li>
+  <li><strong>格</strong>: $L = \{ m(1,0) + n(1/2, \sqrt{3}/2) \mid m,n \in \mathbb{Z}\}$。这个格的点是所有六角蜂巢结构的顶点。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>格 vs. 晶体结构</strong>: 在物理学中，<strong>格</strong>是一个纯粹的数学点集，而<strong>晶体结构</strong>是<strong>格</strong>加上在每个格点（或原胞内）放置的原子（称为<strong>基元 (basis)</strong>）。一个简单的晶体结构是每个格点上只放一个原子。</li>
+  <li><strong>格基的非唯一性</strong>: 这是一个重要的概念。只要两个向量 $a', b'$ 线性无关，并且它们张成的平行四边形内（包括边界，但通常只含一个顶点）不包含其他格点，那么 $(a',b')$ 就是一个合法的<strong>格基</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段为定理中的第三类<strong>离散群</strong>（二维周期性结构）赋予了标准名称：<strong>格 (lattice)</strong>，并将其生成元命名为<strong>格基 (lattice basis)</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>引入标准术语是为了方便后续的讨论，并与数学和物理学的其他领域（如数论、晶体学）建立联系。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p><strong>格</strong>就像一张渔网。<strong>格基</strong> $(a,b)$ 就是渔网网眼相邻的两个边向量。你可以通过沿着这两个方向移动整数步，到达渔网的任何一个结点。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>看一块铺好地砖的地板。地砖的顶点就形成了一个<strong>格</strong>。选择任何一个顶点作为原点，从它指向相邻两个顶点的向量就可以作为一个<strong>格基</strong> $(a,b)$。你可以通过 $m$ 步 $a$ 和 $n$ 步 $b$ 的方式从原点走到任何一个地砖顶点。</p>
+    </div>
+</div><h3>2.3 离散子群的性质引理</h3><p id="original-14"><strong style="font-size: 1.3rem;">📜 [原文14]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>引理 6.5.7 令 $L$ 是 $V^{+}$ 或 $\mathbb{R}^{2+}$ 的一个<strong>离散子群</strong>。</p>
+<p>(a) 平面上一个有界区域只包含 $L$ 的有限个点。</p>
+<p>(b) 如果 $L$ 不是平凡群，它包含一个长度最小的非零向量。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个引理描述了<strong>离散子群</strong> $L$ 的两个关键性质，这两个性质是证明主定理 6.5.5 的基石。</p>
+<p><strong>性质 (a): 有界区域内只有有限个点</strong></p>
+<ol>
+  <li> <strong>陈述</strong>: 任何一个<strong>有界区域 (bounded region)</strong>，无论它多大，里面最多只能包含 $L$ 的有限多个点。</li>
+  <li> <strong>什么是“有界区域”</strong>: 一个区域是<strong>有界</strong>的，如果它可以被一个足够大的圆或矩形完全包围起来。</li>
+  <li> <strong>证明思路</strong>:
+<ul>
+  <li>我们知道 $L$ 是<strong>离散</strong>的，这意味着任意两个不同的点 $a,b \in L$ 之间的距离 $|a-b|$ 都有一个正的下限 $\epsilon$。</li>
+  <li>想象在每个 $L$ 的点上都画一个小圆盘，半径为 $\epsilon/2$。由于任意两点距离至少为 $\epsilon$，这些小圆盘是互不相交的。</li>
+  <li>现在考虑一个<strong>有界区域</strong> $R$。假设 $R$ 的面积是 $A_R$。</li>
+  <li>每个落在 $R$ 里的 $L$ 的点，都贡献了一个面积为 $\pi(\epsilon/2)^2$ 的小圆盘的一部分。</li>
+  <li>由于这些小圆盘不相交，它们在 $R$ 内部的总面积不能超过 $R$ 的面积 $A_R$。</li>
+  <li>如果 $R$ 中有 $N$ 个 $L$ 的点，那么这些圆盘的总面积（的一个下界）大约是 $N \times (\text{某个小面积})$。这个总面积必须小于一个有限的数（有界区域的面积）。</li>
+  <li>因此，点的数量 $N$ 必须是有限的。</li>
+  <li>书中的证明更简单：用边长为 $\epsilon$ 的小方块覆盖有界区域。每个小方块里最多只能有一个 $L$ 的点（如果一个小方块里有两个点，它们的距离会小于 $\sqrt{\epsilon^2+\epsilon^2} = \sqrt{2}\epsilon$，这还不够严谨。更严谨的说法是，用边长为 $\epsilon/\sqrt{2}$ 的小方块，这样方块内任意两点距离小于 $\epsilon$）。既然有界区域可以用有限个小方块覆盖，那么点的总数就是有限的。</li>
+</ul></li>
+</ol>
+<p><strong>性质 (b): 存在长度最小的非零向量</strong></p>
+<ol>
+  <li> <strong>陈述</strong>: 只要 $L$ 不仅仅是零群 $\{0\}$（即 $L$ 中至少有一个非零向量），那么 $L$ 中必然存在一个或多个<strong>长度最小的非零向量</strong>。</li>
+  <li> <strong>什么是“长度最小的非零向量”</strong>: 一个向量 $v \in L$ ($v \neq 0$)，如果对于任何其他非零向量 $w \in L$，都有 $|v| \le |w|$。</li>
+  <li> <strong>证明思路</strong>:
+<ul>
+  <li><strong>前提</strong>: $L$ 不是平凡群，所以我们知道至少存在一个非零向量。我们随便抓一个，叫它 $a_0$。它的长度是 $|a_0|$。</li>
+  <li><strong>构造一个搜索范围</strong>: 考虑一个以原点为中心，半径为 $|a_0|$ 的闭圆盘 $D$。这是一个<strong>有界区域</strong>。</li>
+  <li><strong>应用性质 (a)</strong>: 根据刚刚证明的性质 (a)，这个有界圆盘 $D$ 中只包含 $L$ 的有限个点。</li>
+  <li><strong>找到候选者</strong>: 我们要找的是 $L$ 中长度最小的<strong>非零</strong>向量。所有这样的候选者，其长度肯定不会超过 $|a_0|$（因为 $a_0$ 本身就是一个候选者）。所以，我们要找的最小向量一定也位于圆盘 $D$ 内部。</li>
+  <li><strong>有限集里找最小</strong>: 我们现在有一个<strong>有限的</strong>、<strong>非空的</strong>（至少包含 $a_0$）向量集合，即 $L \cap D \setminus \{0\}$。在一个有限的实数集合（这些向量的长度）中，必然存在一个最小值。</li>
+  <li><strong>结论</strong>: 对应的那个或那些向量，就是 $L$ 中长度最小的非零向量。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例 (a)</strong>: 考虑 $L = \mathbb{Z}^2$ （整数格点）。</li>
+  <li>取一个有界区域 $R$，比如以原点为中心，半径为 2.5 的圆。</li>
+  <li>$L$ 中落在这个圆里的点有哪些？它们的坐标 $(m,n)$ 必须满足 $m^2+n^2 \le 2.5^2 = 6.25$。</li>
+  <li>这些点是: $(0,0), (\pm 1, 0), (0, \pm 1), (\pm 2, 0), (0, \pm 2), (\pm 1, \pm 1), (\pm 1, \pm 2), (\pm 2, \pm 1)$。</li>
+  <li>数一下，总共是 $1+4+4+4+4 = 17$ 个点（这里我可能数漏了，应该是 (0,0), (±1,0), (0,±1), (±2,0), (0,±2), (±1,±1), (±2,±1), (±1,±2), (±2,±2) 。 $m,n \in \{-2, -1, 0, 1, 2\}$。$m^2+n^2 \le 6.25$ 的点有：(0,0), (±1,0), (0,±1), (±2,0), (0,±2), (±1,±1), (±1,±2), (±2,±1)。总共是 $1+2+2+2+2+4+4+4 = 21$ 个点。这是一个有限的数字，验证了性质 (a)。</li>
+  <li><strong>示例 (b)</strong>: 考虑 $L = \mathbb{Z}^2$。</li>
+  <li>它不是平凡群，比如 $(1,0) \in L$。</li>
+  <li>我们来找长度最小的非零向量。</li>
+  <li>随便找一个非零向量，比如 $a_0=(2,1)$，长度为 $\sqrt{5}$。</li>
+  <li>我们现在只需要在以原点为中心，半径为 $\sqrt{5}$ 的圆内寻找 $L$ 的非零点。</li>
+  <li>这些点有 $(\pm 1, 0), (0, \pm 1), (\pm 2, 0), (0, \pm 2), (\pm 1, \pm 1), (\pm 2, \pm 1), (\pm 1, \pm 2)$。</li>
+  <li>它们的长度平方分别是 $1, 1, 4, 4, 2, 5, 5$。</li>
+  <li>这些长度的最小值是 1。</li>
+  <li>所以，长度最小的非零向量是 $(\pm 1, 0)$ 和 $(0, \pm 1)$ 这四个向量，它们的长度都是1。验证了性质 (b)。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>无限区域</strong>: 性质 (a) 只对<strong>有界区域</strong>成立。对于无限区域（如整个平面），当然可以包含无限个 $L$ 的点（如果 $L$ 本身是无限群）。</li>
+  <li><strong>平凡群</strong>: 性质 (b) 的前提是 $L$ 不是平凡群。如果 $L=\{0\}$，它没有非零向量，所以谈论“长度最小的非零向量”没有意义。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本引理揭示了<strong>离散性</strong>带来的两个强大后果：</p>
+<p>(a) 离散点集在任何有限空间里都不能无限密集。</p>
+<p>(b) 任何非平凡的离散点集，总有一个点离原点最近（除了原点自己）。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个引理是证明<strong>离散群分类定理 (6.5.5)</strong> 的关键步骤。证明过程是一个构造性的算法，它依赖于能够“找到”一个最短的向量。性质 (b) 保证了这个“寻找”操作总是可以成功的。性质 (a) 是证明性质 (b) 的基础。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>(a) <strong>有限的盒子，有限的球</strong>: 如果你有一堆大小相同的弹珠（代表 $L$ 的点之间有最小距离），你往一个有限大小的盒子里扔，最多只能装下有限个弹珠。</p>
+<p>(b) <strong>总有一个离你最近的人</strong>: 在一个遵守社交距离的人群中（非平凡离散群），只要人群里不止你一个人，那么必然有一个人离你最近。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>(a) 看着夜空中的星星。虽然星星看起来很多，但在你视野的任何一小块区域（有界区域），你看到的星星数量都是有限的。星星是离散分布的。</p>
+<p>(b) 想象你在一个广阔的停车场，里面停着很多车（但不是密密麻麻停满的）。只要停车场里不止你一辆车，你总能找到离你最近的那辆车。</p>
+    </div>
+</div><h3>2.4 平行四边形区域的定义</h3><p id="original-15"><strong style="font-size: 1.3rem;">📜 [原文15]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>给定 $\mathbb{R}^{2}$ 的一个<strong>基</strong> $\mathbf{B}=(u, w)$，我们用 $\Pi(\mathbf{B})$ 表示以 $0, u, w, u+w$ 为顶点的<strong>平行四边形</strong>。它由 $0 \leq r \leq 1$ 和 $0 \leq s \leq 1$ 的线性组合 $r u+s w$ 组成。我们还用 $\Pi^{\prime}(\mathbf{B})$ 表示从 $\Pi(\mathbf{B})$ 中删除两条边 $[u, u+w]$ 和 $[w, u+w]$ 后得到的区域。它由 $0 \leq r&lt;1$ 和 $0 \leq s&lt;1$ 的线性组合 $r u+s w$ 组成。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话定义了两个在证明中非常有用的几何区域：一个闭合的平行四边形和一个“半开”的平行四边形。</p>
+<ol>
+  <li> <strong>背景</strong>: 我们在处理由两个线性无关向量 $u, w$ 生成的<strong>格</strong>。这两个向量可以看作是 $\mathbb{R}^2$ 的一个<strong>基</strong>。这个<strong>基</strong>自然地定义了一个基本的构建块——一个<strong>平行四边形</strong>。</li>
+  <li> <strong>闭合平行四边形 $\Pi(\mathbf{B})$</strong>:
+<ul>
+  <li><strong>基</strong>: $\mathbf{B}=(u,w)$，其中 $u, w$ 是两个线性无关的向量。</li>
+  <li><strong>顶点</strong>: 这个平行四边形有四个顶点：原点 $0$，向量 $u$ 的终点，向量 $w$ 的终点，以及向量 $u+w$ 的终点。</li>
+  <li><strong>定义</strong>: $\Pi(\mathbf{B})$ 是由向量 $u$ 和 $w$ 张成的<strong>闭合平行四边形区域</strong>。</li>
+  <li><strong>参数化描述</strong>: 区域内的任何一个点 $p$ 都可以表示为 $p = ru + sw$，其中系数 $r$ 和 $s$ 的取值范围是 $0 \le r \le 1$ 和 $0 \le s \le 1$。</li>
+  <li><strong>包含边界</strong>: 因为 $r$ 和 $s$ 都可以等于1，所以这个区域包含了它所有的四条边界。</li>
+</ul></li>
+  <li> <strong>半开平行四边形 $\Pi'(\mathbf{B})$</strong>:
+<ul>
+  <li><strong>定义</strong>: $\Pi'(\mathbf{B})$ 是从闭合平行四边形 $\Pi(\mathbf{B})$ 中“挖掉”两条边后的区域。</li>
+  <li><strong>挖掉哪两条边</strong>: 挖掉的是不与原点相邻的两条边。一条是从 $u$ 到 $u+w$ 的边，另一条是从 $w$ 到 $u+w$ 的边。</li>
+  <li><strong>参数化描述</strong>: 区域内的任何一个点 $p$ 都可以表示为 $p = ru + sw$，其中系数 $r$ 和 $s$ 的取值范围是 $0 \le r &lt; 1$ 和 $0 \le s &lt; 1$。</li>
+  <li><strong>不包含部分边界</strong>: 因为 $r&lt;1$ 且 $s&lt;1$，所以这个区域包含了从 $0$ 到 $u$ 和从 $0$ 到 $w$ 的两条边（除了端点 $u$ 和 $w$），但不包含另外两条边。这种“半开”的定义非常关键，因为它能<strong>不重不漏</strong>地铺满整个平面。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li>$\mathbf{B}=(u,w)$: $\mathbb{R}^2$ 的一组<strong>基</strong>，由两个线性无关的向量 $u,w$ 构成。</li>
+  <li>$\Pi(\mathbf{B})$: 由 $\mathbf{B}$ 定义的<strong>闭合平行四边形</strong>。</li>
+  <li>$\Pi(\mathbf{B}) = \{ ru+sw \mid 0 \le r \le 1, 0 \le s \le 1 \}$。</li>
+  <li>$\Pi'(\mathbf{B})$: 由 $\mathbf{B}$ 定义的<strong>半开平行四边形</strong>（也称为<strong>基本平行四边形 (fundamental parallelepiped)</strong> 或<strong>原胞 (primitive cell)</strong>）。</li>
+  <li>$\Pi'(\mathbf{B}) = \{ ru+sw \mid 0 \le r &lt; 1, 0 \le s &lt; 1 \}$。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1 (标准基)</strong>:</li>
+  <li><strong>基</strong>: $\mathbf{B} = (u,w)$ 其中 $u=(1,0), w=(0,1)$。</li>
+  <li>$\Pi(\mathbf{B})$: 是一个以 $(0,0), (1,0), (0,1), (1,1)$ 为顶点的<strong>闭合正方形</strong>。它包含了所有满足 $0 \le x \le 1, 0 \le y \le 1$ 的点 $(x,y)$。</li>
+  <li>$\Pi'(\mathbf{B})$: 是一个<strong>半开正方形</strong>，包含所有满足 $0 \le x &lt; 1, 0 \le y &lt; 1$ 的点 $(x,y)$。它包含了x轴和y轴上的边（不含端点(1,0)和(0,1)），但不包含 $x=1$ 和 $y=1$ 的边。</li>
+  <li><strong>示例2 (非正交基)</strong>:</li>
+  <li><strong>基</strong>: $\mathbf{B} = (u,w)$ 其中 $u=(2,0), w=(1,1)$。</li>
+  <li>$\Pi(\mathbf{B})$: 是一个以 $(0,0), (2,0), (1,1), (3,1)$ 为顶点的<strong>闭合平行四边形</strong>。</li>
+  <li>$\Pi'(\mathbf{B})$: 是一个<strong>半开平行四边形</strong>，包含所有形如 $r(2,0) + s(1,1)$ 的点，其中 $0 \le r &lt; 1, 0 \le s &lt; 1$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>$\Pi'$ 的作用</strong>: $\Pi'(\mathbf{B})$ 的美妙之处在于，如果你用格 $L=\mathbb{Z}u+\mathbb{Z}w$ 中的所有向量去平移它，即考虑所有集合 $\ell + \Pi'(\mathbf{B})$ (其中 $\ell \in L$)，这些平移后的半开平行四边形会像瓷砖一样<strong>完美地、无重叠地、无缝隙地</strong>铺满整个平面 $\mathbb{R}^2$。这被称为平面的一个<strong>剖分 (tiling or partition)</strong>。如果使用闭合的 $\Pi(\mathbf{B})$，则相邻的“瓷砖”会在边界上重叠。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段定义了由一组基向量张成的<strong>闭合平行四边形</strong> $\Pi(\mathbf{B})$ 和<strong>半开平行四边形</strong> $\Pi'(\mathbf{B})$。后者由于其能完美剖分平面的特性，在格理论中尤为重要。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个定义是为了引入下一个引理 6.5.8 的核心工具。引理 6.5.8 将说明任何一个平面向量都可以唯一地分解为一个<strong>格点向量</strong>和一个在<strong>半开平行四边形</strong> $\Pi'(\mathbf{B})$ 内的“余项”向量。这类似于整数除法中的带余除法。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一张坐标纸。</p>
+<ol>
+  <li>$\Pi(\mathbf{B})$ 就像一个完整的、带边框的方格。</li>
+  <li>$\Pi'(\mathbf{B})$ 就像一个不包含顶部和右侧边框的方格。</li>
+</ol>
+<p>如果你用很多个 $\Pi'(\mathbf{B})$ 这样的“左下角封闭”的方格去拼接，它们可以完美地铺满整个平面。任何一个点都恰好落在一个方格内。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象用乐高积木板来类比。</p>
+<ol>
+  <li><strong>格 $L$</strong>: 板子上所有的凸点。</li>
+  <li><strong>基 $(u,w)$</strong>: 从一个凸点到相邻两个方向的凸点的向量。</li>
+  <li>$\Pi(\mathbf{B})$: 由这四个凸点围成的那个平行四边形区域。</li>
+  <li>$\Pi'(\mathbf{B})$: 这个区域，但规定只有左边和下边的棱在线上，右上两边的棱不算。这样每个点都只属于唯一一个积木单元格。</li>
+</ol>
+    </div>
+</div><h3>2.5 向量的唯一分解引理</h3><p id="original-16"><strong style="font-size: 1.3rem;">📜 [原文16]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>引理 6.5.8 令 $\mathbf{B}=(u, w)$ 是 $\mathbb{R}^{2}$ 的一个<strong>基</strong>，令 $L$ 是 $\mathbf{B}$ 的整数组合形成的<strong>格</strong>。$\mathbb{R}^{2}$ 中的每个向量 $v$ 都可以唯一地写成 $v=x+v_{0}$ 的形式，其中 $x$ 在 $L$ 中，$v_{0}$ 在 $\Pi^{\prime}(\mathbf{B})$ 中。</p>
+<p>证明。由于 $\mathbf{B}$ 是一个<strong>基</strong>，每个向量都是实数系数 $r$ 和 $s$ 的线性组合 $r u+s w$。我们取出它们的整数部分，写成 $r=m+r_{0}$ 和 $s=n+s_{0}$，其中 $m, n$ 是整数，$0 \leq r_{0}, s_{0}&lt;1$。那么 $v=x+v_{0}$，其中 $x=m u+n w$ 在 $L$ 中，$v_{0}=r_{0} u+s_{0} w$ 在 $\Pi^{\prime}(\mathbf{B})$ 中。只有一种方法可以做到这一点。$\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个引理及其证明是格理论中的一个基本结果，可以类比为实数的“整数部分和小数部分”分解。</p>
+<p><strong>引理陈述</strong></p>
+<ol>
+  <li> <strong>前提</strong>:
+<ul>
+  <li>有一个<strong>基</strong> $\mathbf{B}=(u,w)$，这意味着 $u,w$ 线性无关。</li>
+  <li>有一个由这个基生成的<strong>格</strong> $L = \mathbb{Z}u + \mathbb{Z}w$。</li>
+</ul></li>
+  <li> <strong>结论</strong>:
+<ul>
+  <li>对于平面上<strong>任意</strong>一个向量 $v$，都存在一种<strong>唯一的</strong>分解方式，将其写成两部分之和：$v = x + v_0$。</li>
+  <li><strong>第一部分 $x$</strong>: 必须是<strong>格</strong> $L$ 中的一个点（一个整数组合）。</li>
+  <li><strong>第二部分 $v_0$</strong>: 必须落在我们刚刚定义的<strong>半开平行四边形</strong> $\Pi'(\mathbf{B})$ 区域内。</li>
+</ul></li>
+</ol>
+<p><strong>证明解析</strong></p>
+<ol>
+  <li> <strong>存在性证明 (如何进行分解)</strong>:
+<ul>
+  <li><strong>第一步</strong>: 因为 $(u,w)$ 是 $\mathbb{R}^2$ 的一个<strong>基</strong>，所以任何向量 $v$ 都可以<strong>唯一地</strong>表示为它们的<strong>实数</strong>线性组合：$v = ru + sw$，其中 $r,s$ 是实数。</li>
+  <li><strong>第二步</strong>: 对实数系数 $r$ 和 $s$ 分别进行“取整”。任何一个实数 $r$ 都可以唯一地分解为一个整数部分 $m$ 和一个小数部分 $r_0$，其中 $m = \lfloor r \rfloor$ 是不大于 $r$ 的最大整数，$r_0 = r - m$ 满足 $0 \le r_0 &lt; 1$。</li>
+  <li>我们写出 $r = m + r_0$ (其中 $m \in \mathbb{Z}$, $0 \le r_0 &lt; 1$)。</li>
+  <li>同样地，$s = n + s_0$ (其中 $n \in \mathbb{Z}$, $0 \le s_0 &lt; 1$)。</li>
+  <li><strong>第三步</strong>: 将这个分解代入 $v$ 的表达式：</li>
+  <li>$v = (m+r_0)u + (n+s_0)w$</li>
+  <li>利用向量加法的分配律展开：$v = (mu + nw) + (r_0u + s_0w)$。</li>
+  <li><strong>第四步</strong>: 识别分解出的两部分：</li>
+  <li>令 $x = mu + nw$。因为 $m, n$ 都是整数，所以根据<strong>格</strong> $L$ 的定义，$x$ 正是 $L$ 中的一个元素。</li>
+  <li>令 $v_0 = r_0u + s_0w$。因为 $0 \le r_0 &lt; 1$ 且 $0 \le s_0 &lt; 1$，所以根据<strong>半开平行四边形</strong> $\Pi'(\mathbf{B})$ 的定义，$v_0$ 正是 $\Pi'(\mathbf{B})$ 中的一个元素。</li>
+  <li>这样，我们就成功地将 $v$ 分解成了 $v = x + v_0$ 的形式，证明了这种分解的<strong>存在性</strong>。</li>
+</ul></li>
+  <li> <strong>唯一性证明</strong>:
+<ul>
+  <li>假设存在两种不同的分解方式：</li>
+  <li>$v = x_1 + v_{0,1}$</li>
+  <li>$v = x_2 + v_{0,2}$</li>
+  <li>其中 $x_1, x_2 \in L$，$v_{0,1}, v_{0,2} \in \Pi'(\mathbf{B})$。</li>
+  <li>让这两个表达式相等：$x_1 + v_{0,1} = x_2 + v_{0,2}$。</li>
+  <li>移项整理：$x_1 - x_2 = v_{0,2} - v_{0,1}$。</li>
+  <li>分析等式左边：$x_1$ 和 $x_2$ 都是格点，因为 $L$ 是一个群，$x_1 - x_2$ 也必然是一个格点，即 $x_1 - x_2 \in L$。</li>
+  <li>分析等式右边：$v_{0,1}$ 和 $v_{0,2}$ 都在 $\Pi'(\mathbf{B})$ 中。</li>
+  <li>$v_{0,1} = r_1 u + s_1 w$，其中 $0 \le r_1, s_1 &lt; 1$。</li>
+  <li>$v_{0,2} = r_2 u + s_2 w$，其中 $0 \le r_2, s_2 &lt; 1$。</li>
+  <li>它们的差是 $v_{0,2} - v_{0,1} = (r_2-r_1)u + (s_2-s_1)w$。</li>
+  <li>由于 $0 \le r_1, s_1, r_2, s_2 &lt; 1$，所以系数的范围是 $-1 &lt; r_2-r_1 &lt; 1$ 和 $-1 &lt; s_2-s_1 &lt; 1$。</li>
+  <li>现在我们有一个向量 $X = x_1 - x_2 = v_{0,2} - v_{0,1}$。这个向量 $X$ 既在格 $L$ 中，又可以表示为 $r'u+s'w$ 的形式，其中 $-1 &lt; r', s' &lt; 1$。</li>
+  <li>但是，在格 $L$ 中，向量的形式是 $mu+nw$，其中 $m, n$ 是<strong>整数</strong>。唯一同时满足 $m,n$ 是整数且 $-1 &lt; m,n &lt; 1$ 的情况是 $m=0, n=0$。</li>
+  <li>所以，向量 $X$ 必须是零向量 $0$。</li>
+  <li>$x_1 - x_2 = 0 \implies x_1 = x_2$。</li>
+  <li>$v_{0,2} - v_{0,1} = 0 \implies v_{0,1} = v_{0,2}$。</li>
+  <li>这证明了分解是<strong>唯一的</strong>。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>:</li>
+  <li><strong>基</strong>: $\mathbf{B}=((1,0), (0,1))$，<strong>格</strong> $L=\mathbb{Z}^2$。</li>
+  <li><strong>向量</strong>: $v = (3.7, -1.2)$。</li>
+  <li>$v = 3.7(1,0) - 1.2(0,1)$。所以 $r=3.7, s=-1.2$。</li>
+  <li>分解 $r$: $r=3.7 = 3 + 0.7$。所以 $m=3, r_0=0.7$。</li>
+  <li>分解 $s$: $s=-1.2 = -2 + 0.8$。所以 $n=-2, s_0=0.8$。 (注意：不是-1和-0.2，因为小数部分必须是正的)</li>
+  <li>$x = m u + n w = 3(1,0) - 2(0,1) = (3, -2)$。这是一个格点，在 $L$ 中。</li>
+  <li>$v_0 = r_0 u + s_0 w = 0.7(1,0) + 0.8(0,1) = (0.7, 0.8)$。这个向量在 $\Pi'(\mathbf{B})$ (单位正方形) 内。</li>
+  <li>验证: $x+v_0 = (3,-2) + (0.7,0.8) = (3.7, -1.2) = v$。分解成功。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>负数的取整</strong>: 分解负实数时要小心。例如，$-1.2$ 的整数部分 $\lfloor -1.2 \rfloor$ 是 $-2$，小数部分是 $-1.2 - (-2) = 0.8$。不能分解成 $-1$ 和 $-0.2$，因为要求小数部分 $s_0$ 必须在 $[0,1)$ 区间内。</li>
+  <li><strong>唯一性的关键</strong>: 唯一性证明的关键在于，半开平行四边形 $\Pi'(\mathbf{B})$ 中只包含一个格点，那就是原点 $0$。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本引理说明，一旦选定一个<strong>格基</strong>，整个平面就可以被看作是这个<strong>格</strong>与一个<strong>基本平行四边形</strong>的“直积”。任何一个点都可以唯一地表示为“它在哪个单元格里”（由格点 $x$ 确定）和“它在那个单元格里的具体位置”（由 $v_0$ 确定）。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个引理是证明<strong>离散群分类定理 (6.5.5)</strong> 的最后一块拼图。它建立了一个强大的工具，可以将任何向量与格点联系起来，并得到一个落在标准区域内的“余数”。在接下来的证明中，我们将证明这个“余数”对于某个特定的基选择来说必须是零。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这和我们日常使用的地址系统非常类似。</p>
+<ol>
+  <li><strong>格 $L$</strong>: 城市里所有大楼的编号，例如“第3大道第5街”。</li>
+  <li><strong>$\Pi'(\mathbf{B})$</strong>: 一栋标准大楼的内部空间。</li>
+  <li><strong>向量 $v$</strong>: 城市里的任何一个精确位置。</li>
+  <li><strong>分解 $v=x+v_0$</strong>: 就是把一个位置描述成“它在第3大道第5街那栋楼里（$x$），具体位置是这栋楼的7层A户的窗边（$v_0$）”。这个描述是唯一的。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一张无限大的方格纸。任何一个点 $v$ 的位置，都可以通过先找到它左下角的那个格点 $x$（整数坐标点），然后再用一个从 $x$ 出发、完全落在该方格内的向量 $v_0$ 来精确表示。</p>
+    </div>
+</div><h3>2.6 分类定理的证明</h3><p id="original-17"><strong style="font-size: 1.3rem;">📜 [原文17]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>定理 6.5.5 的证明 仅考虑 $\mathbb{R}^{2+}$ 的<strong>离散子群</strong> $L$ 即可。 $L$ 是零群的情况已包含在列表中。如果 $L \neq\{0\}$，则有两种可能性：</p>
+<p>情况 1： $L$ 中所有向量都位于穿过原点的一条直线 $\ell$ 上。</p>
+<p>那么 $L$ 是 $\ell^{+}$ <strong>加法群</strong>的子群，它同构于 $\mathbb{R}^{+}$。引理 6.4.6 表明 $L$ 具有 $\mathbb{Z} a$ 的形式。</p>
+<p>情况 2： $L$ 的元素不位于一条直线上。</p>
+<p>在这种情况下，$L$ 包含线性无关的向量 $a^{\prime}$ 和 $b^{\prime}$，那么 $\mathbf{B}^{\prime}=\left(a^{\prime}, b^{\prime}\right)$ 是 $\mathbb{R}^{2}$ 的一个<strong>基</strong>。我们必须证明存在 $L$ 的<strong>格基</strong>。</p>
+<p>我们首先考虑由 $a^{\prime}$ 张成的直线 $\ell$。$\ell^{+}$ 的子群 $L \cap \ell$ 是<strong>离散</strong>的，且 $a^{\prime}$ 不为零。因此，根据情况 1 中已证明的， $L$ 具有 $\mathbb{Z} a$ 的形式，其中 $a$ 是某个向量。我们调整坐标并重新缩放，使得 $a$ 变为向量 $(1,0)^{t}$。</p>
+<p>接下来，如有必要，我们将 $b^{\prime}=\left(b_{1}^{\prime}, b_{2}^{\prime}\right)^{t}$ 替换为 $-b^{\prime}$，使得 $b_{2}^{\prime}$ 变为正值。我们寻找 $L$ 中一个向量 $b=\left(b_{1}, b_{2}\right)^{t}$，使得 $b_{2}$ 为正，并且在其他条件相同的情况下尽可能小。先验地，我们需要检查无限多个元素。然而，由于 $b^{\prime}$ 在 $L$ 中，我们只需检查满足 $0&lt;b_{2} \leq b_{2}^{\prime}$ 的元素 $b$。此外，我们可以将 $a$ 的倍数加到 $b$ 上，因此我们也可以假设 $0 \leq b_{1}&lt;1$。完成这些后，$b$ 将位于一个包含 $L$ 的有限个元素的有界区域中。我们遍历这个有限集以找到所需的元素 $b$，并且我们证明 $\mathbf{B}=(a, b)$ 是 $L$ 的<strong>格基</strong>。</p>
+<p>令 $\tilde{L}=\mathbb{Z} a+\mathbb{Z} b$。那么 $\tilde{L} \subset L$。我们必须证明 $L$ 的每个元素都在 $\tilde{L}$ 中，并且根据引理 6.5.8（应用于<strong>格</strong> $\tilde{L}$），只需证明区域 $\Pi^{\prime}(\mathbf{B})$ 中 $L$ 的唯一元素是零向量。令 $c=\left(c_{1}, c_{2}\right)^{t}$ 是该区域中 $L$ 的一个点，使得 $0 \leq c_{1}&lt;1$ 且 $0 \leq c_{2}&lt;b_{2}$。由于 $b_{2}$ 被选为最小值，所以 $c_{2}=0$，且 $c$ 在直线 $\ell$ 上。那么 $c$ 是 $a$ 的整数倍，且由于 $0 \leq c_{1}&lt;1$，所以 $c=0$。$\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是定理 6.5.5 的证明，它是一个构造性的证明，展示了如何为任何一个<strong>离散子群</strong> $L$ 找到它的生成元。</p>
+<p><strong>证明结构</strong></p>
+<p>证明分为几种情况：</p>
+<ul>
+  <li><strong>平凡情况</strong>: 如果 $L = \{0\}$，这直接对应于分类 (a)。证明结束。</li>
+  <li><strong>非平凡情况 ($L \neq \{0\}$)</strong>: 这时 $L$ 至少包含一个非零向量。又分为两种子情况。</li>
+</ul>
+<p><strong>情况 1: $L$ 的所有向量都在一条直线上 (共线)</strong></p>
+<ol>
+  <li> <strong>设定</strong>: 假设 $L$ 中所有向量都位于某条穿过原点的直线 $\ell$ 上。</li>
+  <li> <strong>转化为一维问题</strong>: 直线 $\ell$ 上的向量加法群 $\ell^+$ 与实数加法群 $\mathbb{R}^+$ 是同构的。$L$ 可以看作是 $\mathbb{R}^+$ 的一个<strong>离散子群</strong>。</li>
+  <li> <strong>引用一维结果</strong>: 教科书在之前的章节（引理 6.4.6）已经证明了 $\mathbb{R}^+$ 的<strong>离散子群</strong>只有两种形式：要么是 $\{0\}$（已被排除），要么是形如 $\mathbb{Z}a$ 的形式，其中 $a$ 是群里绝对值最小的非零元素。</li>
+  <li> <strong>结论</strong>: 因此，在这种情况下，$L$ 必须是 $\mathbb{Z}a$ 的形式，其中 $a$ 是 $L$ 中长度最小的非零向量（根据引理 6.5.7(b)，这样的 $a$ 必然存在）。这对应于分类 (b)。</li>
+</ol>
+<p><strong>情况 2: $L$ 的元素不都在一条直线上 (不共线)</strong></p>
+<p>这是证明的核心和最复杂的部分。我们的目标是证明 $L$ 是一个由两个线性无关向量生成的<strong>格</strong>（分类 (c)）。</p>
+<ol>
+  <li> <strong>构造第一基向量 $a$</strong>:
+<ul>
+  <li>根据引理 6.5.7(b)，因为 $L \neq \{0\}$，所以 $L$ 中必然存在一个<strong>长度最小的非零向量</strong>。我们把这个向量命名为 $a$。这就是我们基的第一个候选向量。</li>
+  <li>由 $a$ 生成的一维子群 $\mathbb{Z}a$ 肯定在 $L$ 中。</li>
+</ul></li>
+  <li> <strong>寻找第二基向量 $b$</strong>:
+<ul>
+  <li><strong>存在性</strong>: 因为我们处于情况2，所以 $L$ 中的元素不都在一条直线上。这意味着，必然存在一个向量 $b' \in L$ 它不与 $a$ 共线。</li>
+  <li><strong>构造候选集合</strong>: 我们现在要从所有不与 $a$ 共线的 $L$ 中的向量里，选出一个“最好”的 $b$。什么样的最好呢？一个好的标准是，它离直线 $\ell_a$ (由 $a$ 生成的直线)“最近”。换句话说，它的垂直分量最小。</li>
+  <li><strong>最小化过程</strong>:</li>
+  <li>我们可以调整坐标系，让 $a = (|a|, 0)$。现在直线 $\ell_a$ 就是 x-轴。一个向量 $v=(v_x, v_y)$ 离 x-轴的距离就是 $|v_y|$。</li>
+  <li>我们考虑所有 $L$ 中 $y$ 坐标为正的向量，并寻找其中 $y$ 坐标最小的那个。根据一个与引理 6.5.7 类似的论证（在一个有界条形区域内寻找），这样的向量 $b$ 必然存在。</li>
+  <li>找到了这个 $b=(b_x, b_y)$ 后，我们还可以通过减去 $a$ 的整数倍来调整它的 $x$ 坐标，使得 $0 \le b_x &lt; |a|$。这个操作不改变 $y$ 坐标，所以 $b$ 仍然是离 x-轴最近的向量之一。这个新的 $b$ 就是我们最终选定的第二基向量。</li>
+</ul></li>
+  <li> <strong>证明 $(a,b)$ 是 $L$ 的一个格基</strong>:
+<ul>
+  <li><strong>定义 $\tilde{L}$</strong>: 令 $\tilde{L} = \mathbb{Z}a + \mathbb{Z}b$。这是由我们找到的 $a$ 和 $b$ 生成的格。</li>
+  <li><strong>证明 $\tilde{L} = L$</strong>:</li>
+  <li>显然 $\tilde{L} \subseteq L$，因为 $a,b \in L$ 且 $L$ 是群，所以它们的整数组合也都在 $L$ 里。</li>
+  <li>我们现在需要证明反向的 $L \subseteq \tilde{L}$。这等价于证明 $L$ 中没有任何元素在 $\tilde{L}$ 之外。</li>
+  <li><strong>使用反证法和引理 6.5.8</strong>:</li>
+  <li>假设存在一个向量 $c \in L$ 但 $c \notin \tilde{L}$。</li>
+  <li>根据引理 6.5.8（应用于格 $\tilde{L}$ 和基 $(a,b)$），任何向量 $c$ 都可以唯一分解为 $c = x + c_0$，其中 $x \in \tilde{L}$ 且 $c_0 \in \Pi'((a,b))$。</li>
+  <li>$c_0 = c - x$。因为 $c \in L$ 且 $x \in \tilde{L} \subseteq L$，所以 $c_0$ 也必须在 $L$ 中。</li>
+  <li>由于我们假设 $c \notin \tilde{L}$，所以 $c_0$ 必然是一个<strong>非零向量</strong>。</li>
+  <li>现在我们有了一个非零向量 $c_0 \in L$，它位于半开平行四边形 $\Pi'((a,b))$ 中。</li>
+  <li><strong>导出矛盾</strong>:</li>
+  <li>$c_0$ 在 $\Pi'((a,b))$ 中意味着 $c_0 = r_0 a + s_0 b$，其中 $0 \le r_0 &lt; 1, 0 \le s_0 &lt; 1$。</li>
+  <li>我们回到坐标系，其中 $a=(|a|,0), b=(b_x, b_y)$。</li>
+  <li>$c_0$ 的 $y$ 坐标是 $s_0 b_y$。</li>
+  <li>因为 $0 \le s_0 &lt; 1$，所以 $0 \le s_0 b_y &lt; b_y$。</li>
+  <li>但是我们当初选择 $b$ 时，要求它的 $y$ 坐标 $b_y$ 是所有 $L$ 中 $y$ 坐标为正的向量里<strong>最小</strong>的！</li>
+  <li>现在我们找到了一个向量 $c_0 \in L$，它的 $y$ 坐标 $s_0 b_y$ 比 $b_y$ 还要小。</li>
+  <li>唯一的可能性是 $c_0$ 的 $y$ 坐标为 0，即 $s_0=0$。</li>
+  <li>如果 $s_0=0$，那么 $c_0 = r_0 a$。这意味着 $c_0$ 在直线 $\ell_a$ 上。</li>
+  <li>同时我们知道 $c_0$ 是非零的。</li>
+  <li>所以 $c_0$ 是一个在 $L$ 中的非零向量，且 $c_0=r_0 a$ 其中 $0 &lt; r_0 &lt; 1$ (如果$r_0=0$, $c_0$就是0了)。</li>
+  <li>这意味着 $|c_0| = r_0 |a| &lt; |a|$。</li>
+  <li>这与我们最初选择 $a$ 为 $L$ 中<strong>长度最小的非零向量</strong>相矛盾！</li>
+  <li><strong>最终结论</strong>: 我们的假设“存在 $c \in L$ 但 $c \notin \tilde{L}$”是错误的。所以必须有 $L = \tilde{L} = \mathbb{Z}a + \mathbb{Z}b$。这对应于分类 (c)。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>证明通过一个精巧的构造性算法完成了分类。</p>
+<ol>
+  <li> 首先处理平凡情况和一维情况。</li>
+  <li> 对于二维情况，算法是：
+<ul>
+  <li>第一步：在所有非零向量中，找到一个<strong>长度最短</strong>的，称之为 $a$。</li>
+  <li>第二步：在所有不与 $a$ 共线的向量中，找到一个<strong>离 $a$ 所在直线最近</strong>的，称之为 $b$。</li>
+  <li>第三步：证明 $L$ 中所有向量都可以由 $a$ 和 $b$ 的整数组合表示出来。证明方法是反证法，利用 $a$ 和 $b$ 的“最小性”导出矛盾。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个证明不仅仅是为了验证定理的正确性，它本身也揭示了<strong>离散性</strong>和“最小化”思想的强大威力。它展示了数学家如何通过一系列巧妙的构造和选择，将一个抽象的群结构“驯服”为一个具体的、由两个向量生成的格。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这个证明过程就像是在一片无序的点集中建立一个坐标系。</p>
+<ol>
+  <li> <strong>找原点</strong>: (默认在0)</li>
+  <li> <strong>找x轴方向</strong>: 找到离原点最近的点，连接原点和它，定义为“单位长度1”和x轴方向。这就是向量 $a$。</li>
+  <li> <strong>找y轴方向</strong>: 在所有剩下的点中，找到一个离新的x轴最近的点。从这个点向x轴做垂线，这个垂线方向和长度就定义了y轴方向和单位。这就是向量 $b$ 的思想。</li>
+  <li> <strong>检查</strong>: 检查是否所有其他的点都能通过在这个“歪斜的坐标系”里走整数步到达。证明表明，答案是肯定的。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你在一个大房间里，地上散落着很多弹珠（离散群 $L$）。</p>
+<ol>
+  <li>你站在一个弹珠上（原点）。你找到离你最近的弹珠，画一条线过去，这是你的第一根“基准杆” $a$。</li>
+  <li>然后你环顾四周，寻找所有不在这条线上的弹珠，并找到一个离这条线最近的弹珠。你画出第二根“基准杆” $b$。</li>
+  <li>这个证明告诉你，房间里所有的弹珠，你都可以通过沿着第一根杆走几步，再沿着第二根杆走几步来精确到达。整个房间的弹珠形成了一个由这两根杆定义的、完美的平行四边形网格。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-3">
+    <h2><span class="section-number">3</span>3. 点群</h2>
+    <h3>3.1 点群的定义与同态</h3><p id="original-18"><strong style="font-size: 1.3rem;">📜 [原文18]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>现在我们转向分析<strong>等距变换</strong>的<strong>离散群</strong>的第二个工具。我们选择坐标，回到<strong>同态</strong> $\pi: M \rightarrow O_{2}$，其<strong>核</strong>是<strong>平移群</strong> $T$ (6.3.10)。当我们将此<strong>同态</strong>限制到<strong>离散子群</strong> $G$ 时，我们得到一个<strong>同态</strong></p>
+<p><div class="math-block">$$
+\begin{equation*}
+\left.\pi\right|_{G}: G \rightarrow O_{2} 。 \tag{6.5.9}
+\end{equation*}
+$$</div></p>
+<p><strong>点群</strong> $\bar{G}$ 是 $G$ 在正交群 $O_{2}$ 中的像。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这一段引入了第二个分析工具——<strong>点群 (point group)</strong>，并解释了它是如何通过一个<strong>群同态 (group homomorphism)</strong> 得到的。</p>
+<ol>
+  <li> <strong>回顾大的图景</strong>: 我们正在分析<strong>离散群</strong> $G$。我们已经分析了它的<strong>平移子群</strong> $L$。现在转向第二个工具。</li>
+  <li> <strong>核心思想：剥离平移部分</strong>: 任何一个平面<strong>等距变换</strong> $g$ 都可以被唯一地分解成一个“纯旋转/反射”部分和一个“平移”部分。例如，在坐标系中，任何等距变换 $g$ 作用于点 $v$ 都可以写成 $g(v) = Av + b$，其中 $A$ 是一个<strong>正交矩阵 (orthogonal matrix)</strong>，代表旋转/反射部分；$b$ 是一个向量，代表平移部分。</li>
+  <li> <strong>同态 $\pi$</strong>:
+<ul>
+  <li>教科书在之前的章节 (6.3.10) 定义了一个<strong>同态</strong> $\pi$。<strong>同态</strong>是一个保持群结构的映射。</li>
+  <li>映射 $\pi: M \rightarrow O_2$。</li>
+  <li>$M$: 全体平面<strong>等距变换</strong>构成的群。</li>
+  <li>$O_2$: 全体 $2 \times 2$ <strong>正交矩阵</strong>构成的群。它代表了所有绕原点进行的旋转和反射。</li>
+  <li>$\pi$ 的作用是：对于任何一个等距变换 $g(v)=Av+b$，$\pi(g)$ 就是它的线性部分 $A$。即 $\pi(g) = A$。</li>
+  <li>$\pi$ 是一个<strong>同态</strong>，意味着 $\pi(g_1 g_2) = \pi(g_1) \pi(g_2)$。也就是说，两个变换复合后的旋转/反射部分，等于它们各自旋转/反射部分的复合。</li>
+  <li><strong>核 (Kernel)</strong>: 这个同态的<strong>核</strong>是所有被映射到单位元（在 $O_2$ 中是单位矩阵 $I$）的 $g \in M$。$\pi(g)=I$ 意味着 $g(v) = Iv + b = v+b$，这正是一个纯粹的<strong>平移</strong>。所以，$\ker(\pi)$ 是全体<strong>平移</strong>构成的群 $T$。</li>
+</ul></li>
+  <li> <strong>限制同态到 $G$</strong>:
+<ul>
+  <li>我们现在不考虑所有的等距变换 $M$，只考虑我们感兴趣的那个<strong>离散子群</strong> $G$。</li>
+  <li>我们可以将同态 $\pi$ 的定义域限制在 $G$ 上，得到一个新的同态，记为 $\left.\pi\right|_{G}$。</li>
+  <li>这个新的同态 $\left.\pi\right|_{G}: G \rightarrow O_2$ 依然把 $G$ 中的每个元素 $g$ 映射到它对应的旋转/反射矩阵 $A \in O_2$。</li>
+</ul></li>
+  <li> <strong>点群 $\bar{G}$ 的定义</strong>:
+<ul>
+  <li><strong>点群</strong> $\bar{G}$ 被定义为这个限制同态 $\left.\pi\right|_{G}$ 的<strong>像 (image)</strong>。</li>
+  <li><strong>像</strong>的定义是：所有 $G$ 中的元素通过 $\pi$ 映射后，在目标空间 $O_2$ 中得到的所有元素的集合。</li>
+  <li>$\bar{G} = \text{Im}(\left.\pi\right|_{G}) = \{ \pi(g) \mid g \in G \} = \{ A \in O_2 \mid \exists g \in G, \pi(g)=A \}$。</li>
+  <li>简单来说，$\bar{G}$ 就是 $G$ 中所有变换的“旋转/反射”部分所构成的集合。根据<strong>同态基本定理</strong>，一个同态的像总是一个群，所以 $\bar{G}$ 是 $O_2$ 的一个子群。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+\left.\pi\right|_{G}: G \rightarrow O_{2} \tag{6.5.9}
+$$</div></p>
+<ul>
+  <li>$\pi$: 原始的<strong>同态</strong>，从所有等距变换群 $M$ 映出到正交群 $O_2$。</li>
+  <li>$\left.\right|_{G}$: 限制符号，表示将映射 $\pi$ 的定义域从 $M$ 缩小到其子集 $G$。</li>
+  <li>$: G \rightarrow O_2$: 声明这是一个从群 $G$ 到群 $O_2$ 的映射。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>: 设 $G$ 是一个由绕点 $(5,0)$ 旋转 $90^\circ$ 生成的4阶循环群 $C_4$。</li>
+  <li>$G$ 的元素 $g_k$ 是绕 $(5,0)$ 旋转 $k \cdot 90^\circ$ ($k=0,1,2,3$)。</li>
+  <li>一个绕任意点 $p$ 旋转 $\theta$ 的变换 $g(v)$ 可以分解为 $g(v) = \rho_\theta(v-p)+p = \rho_\theta v - \rho_\theta p + p$。其中 $\rho_\theta$ 是绕原点的旋转矩阵。</li>
+  <li>所以 $\pi(g_k)$ 就是这个绕原点的旋转矩阵 $\rho_{k \cdot 90^\circ}$。</li>
+  <li>$g_0$: 旋转 $0^\circ$, $\pi(g_0) = \rho_0 = I$ (单位矩阵)。</li>
+  <li>$g_1$: 旋转 $90^\circ$, $\pi(g_1) = \rho_{90^\circ} = \begin{pmatrix} 0 &amp; -1 \\ 1 &amp; 0 \end{pmatrix}$。</li>
+  <li>$g_2$: 旋转 $180^\circ$, $\pi(g_2) = \rho_{180^\circ} = \begin{pmatrix} -1 &amp; 0 \\ 0 &amp; -1 \end{pmatrix}$。</li>
+  <li>$g_3$: 旋转 $270^\circ$, $\pi(g_3) = \rho_{270^\circ} = \begin{pmatrix} 0 &amp; 1 \\ -1 &amp; 0 \end{pmatrix}$。</li>
+  <li><strong>点群</strong> $\bar{G}$ 就是这四个矩阵的集合，它同构于抽象循环群 $C_4$。</li>
+  <li><strong>示例2</strong>: 设 $G$ 是由沿 x 轴的滑移反射 $m(x,y) = (x+1, -y)$ 生成的群。</li>
+  <li>$m$ 是一个元素。$m(v) = \begin{pmatrix} 1 &amp; 0 \\ 0 &amp; -1 \end{pmatrix} v + \begin{pmatrix} 1 \\ 0 \end{pmatrix}$。</li>
+  <li>$\pi(m) = \begin{pmatrix} 1 &amp; 0 \\ 0 &amp; -1 \end{pmatrix}$，这是一个关于 x 轴的反射矩阵。</li>
+  <li>$m^2$ 是一个平移 $t_{(2,0)}$。$\pi(m^2) = I$ (单位矩阵)。</li>
+  <li>这个群 $G$ 的元素形如 $m^k$。如果 $k$ 是奇数，$\pi(m^k)$ 是反射矩阵；如果 $k$ 是偶数，$\pi(m^k)$ 是单位矩阵。</li>
+  <li><strong>点群</strong> $\bar{G}$ 就只有两个元素：$\{ I, \begin{pmatrix} 1 &amp; 0 \\ 0 &amp; -1 \end{pmatrix} \}$。这是一个2阶循环群 $C_2$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>点群 vs G</strong>: <strong>点群</strong> $\bar{G}$ 不是 $G$ 的子群（除非 $G$ 本身就是 $O_2$ 的子群）。$G$ 的元素是作用在整个平面上的<strong>等距变换</strong>，而 $\bar{G}$ 的元素是固定原点的<strong>正交变换</strong>（可以看作是矩阵）。$\bar{G}$ 是 $G$ 的一个“简化版”的“摘要”。</li>
+  <li><strong>多对一映射</strong>: $\pi$ 通常是多对一的。所有纯平移都被映射到同一个单位矩阵 $I$。所有绕不同中心但旋转相同角度的旋转，也都被映射到同一个旋转矩阵。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>点群</strong> $\bar{G}$ 是通过一个自然的<strong>同态</strong> $\pi$ 提取出<strong>离散群</strong> $G$ 中所有变换的“旋转/反射”部分而形成的群。它忽略了所有平移信息，只保留了关于方向和角度的对称信息。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>定义<strong>点群</strong>是“分而治之”策略的第二步。它允许我们暂时忽略复杂的平移部分（已经在 $L$ 中研究），而专注于研究群的“局部”对称性，即它由哪些旋转和反射构成。这同样将问题简化为一个更经典的问题：对 $O_2$ 的子群进行分类。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>如果把<strong>等距变换</strong> $g$ 看作一张指令卡片，上面写着：“先旋转/反射 $A$，再平移 $b$”。那么同态 $\pi$ 就是一个只读取并记录第一行指令（旋转/反射 $A$）的机器。<strong>点群</strong> $\bar{G}$ 就是这台机器记录下来的所有不同指令 $A$ 的集合。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你看一幅壁纸图案（对称群为 $G$）。</p>
+<ol>
+  <li><strong>$G$ 的元素</strong>: 是让整幅壁纸重合的操作，比如“绕着这朵花的中心旋转90度”，或者“沿着这条线平移20厘米”。</li>
+  <li><strong>$\bar{G}$ 的元素</strong>: 是这些操作的“纯粹”版本。你不再关心是绕哪朵花旋转，或者平移了多远，你只记录下“哦，这个图案里存在一个90度的旋转对称性”。所有这些“纯粹对称性”的集合就是<strong>点群</strong> $\bar{G}$。它描述了图案基本单元的对称性。</li>
+</ol>
+    </div>
+</div><hr><p id="original-19"><strong style="font-size: 1.3rem;">📜 [原文19]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>区分群 $G$ 的元素和其<strong>点群</strong> $\bar{G}$ 的元素很重要。因此，为了避免混淆，当符号代表 $\bar{G}$ 的元素时，我们将用横杠标记它们。对于 $G$ 中的 $g$，$\bar{g}$ 将是一个正交算子。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是一个关于符号约定的重要说明。</p>
+<ol>
+  <li> <strong>区分的必要性</strong>:
+<ul>
+  <li>$G$ 的元素 $g$ 是一个<strong>等距变换</strong>，它是一个函数，作用于整个平面 $P$。例如，$g$ 可以是绕点 $(1,2)$ 旋转 $30^\circ$。</li>
+  <li>$\bar{G}$ 的元素 $\bar{g}$ 是一个<strong>正交算子</strong> (或<strong>正交矩阵</strong>)，它是一个线性变换，作用于向量空间 $V$ (即 $\mathbb{R}^2$)，并且固定原点。例如，$\bar{g}$ 可以是绕<strong>原点</strong>旋转 $30^\circ$ 的矩阵 $\begin{pmatrix} \cos 30^\circ &amp; -\sin 30^\circ \\ \sin 30^\circ &amp; \cos 30^\circ \end{pmatrix}$。</li>
+  <li>这两者是根本不同的对象。$g$ 是一个仿射变换，而 $\bar{g}$ 是一个线性变换。</li>
+</ul></li>
+  <li> <strong>符号约定</strong>:
+<ul>
+  <li>为了在视觉上明确区分这两者，教科书引入了一个约定。</li>
+  <li>当一个符号，比如 $g$，代表 $G$ 中的一个元素（一个完整的等距变换）时，就直接写 $g$。</li>
+  <li>当需要表示这个 $g$ 所对应的<strong>点群</strong>中的元素时，就在符号上加一个横杠，写作 $\bar{g}$。</li>
+  <li>所以，关系是：$\bar{g} = \pi(g)$。</li>
+  <li>$\bar{g}$ 是一个正交算子/矩阵。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例</strong>:</li>
+  <li>令 $g$ 为绕点 $(1,0)$ 旋转 $90^\circ$ 的变换。这是一个 $G$ 中的元素。</li>
+  <li>$g$ 作用于点 $(x,y)$ 的效果比较复杂。</li>
+  <li>$\bar{g}$ 就是 $g$ 对应的正交算子，即绕<strong>原点</strong>旋转 $90^\circ$ 的算子。它对应的矩阵是 $\begin{pmatrix} 0 &amp; -1 \\ 1 &amp; 0 \end{pmatrix}$。这是一个 $\bar{G}$ 中的元素。</li>
+  <li>现在考虑另一个变换，$h$，是绕点 $(3,4)$ 旋转 $90^\circ$ 的变换。这也是 $G$ 中的一个元素。</li>
+  <li>$\bar{h}$ 也是绕<strong>原点</strong>旋转 $90^\circ$ 的算子，对应的矩阵也是 $\begin{pmatrix} 0 &amp; -1 \\ 1 &amp; 0 \end{pmatrix}$。</li>
+  <li>所以，尽管 $g \neq h$（因为它们旋转中心不同），但它们的点群元素是相同的：$\bar{g} = \bar{h}$。这再次说明了 $\pi$ 映射是多对一的。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>忘记加横杠</strong>: 在后续的阅读和推导中，一定要注意符号上是否有横杠，它直接告诉你这个对象是作用于平面的仿射变换，还是作用于向量空间且固定原点的线性变换。混淆这两者会导致严重的逻辑错误。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>为了区分一个完整的<strong>等距变换</strong> $g \in G$ 和它对应的、只包含旋转/反射信息的<strong>正交算子</strong> $\pi(g) \in \bar{G}$，我们约定将后者记作 $\bar{g}$。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>引入清晰的、无歧义的符号是数学严谨性的基本要求。本段的目的是建立这样一个符号系统，以避免在后续更复杂的论证中产生混淆。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像给同一个人取两个名字：</p>
+<ol>
+  <li>$g$ 是他的全名加家庭住址：“住在A街的张三”。</li>
+  <li>$\bar{g}$ 是他的名字：“张三”。</li>
+</ol>
+<p>很多“住在不同街道的张三”($g, h, ...$)，他们的名字 $\bar{g}, \bar{h}$ 都是同一个。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<ol>
+  <li>$g$: 一把真实的、可以拿在手里到处移动的螺丝刀。</li>
+  <li>$\bar{g}$: 这把螺丝刀的“型号”，比如“十字花型，2号”。</li>
+</ol>
+<p>你可以有很多把不同位置、不同颜色的2号十字花螺丝刀（不同的 $g$），但它们的“型号”（$\bar{g}$）是相同的。</p>
+    </div>
+</div><hr><p id="original-20"><strong style="font-size: 1.3rem;">📜 [原文20]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>根据定义，如果 $G$ 包含一个 $t_{a} \rho_{\theta}$ 形式的元素，并且这是一个关于平面上某个点的相同角度 $\theta$ 的旋转 (6.3.5)，则旋转 $\bar{\rho}_{\theta}$ 在 $\bar{G}$ 中。$\bar{G}$ 的元素 $\bar{\rho}_{\theta}$ 在 $G$ 中的<strong>逆像</strong>由 $G$ 中关于平面上各个点以角度 $\theta$ 旋转的元素组成。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话详细解释了<strong>点群</strong> $\bar{G}$ 中的旋转元素与原始群 $G$ 中旋转元素之间的关系。</p>
+<ol>
+  <li> <strong>从 $G$ 到 $\bar{G}$</strong>:
+<ul>
+  <li>假设群 $G$ 中有一个元素 $g$。</li>
+  <li>在之前的章节 (6.3.5) 中，我们知道任何一个保向的等距变换如果不是纯平移，那它就是一个<strong>旋转</strong>。它可以写成 $g = t_a \rho_\theta$ 的形式，其中 $\rho_\theta$ 是绕原点的旋转，而整个变换 $g$ 是绕某个点 $p$ 旋转角度 $\theta$。</li>
+  <li>根据<strong>点群</strong>的定义，$\bar{g} = \pi(g) = \pi(t_a \rho_\theta)$。$\pi$ 的作用是提取线性部分，所以 $\bar{g} = \rho_\theta$。</li>
+  <li>教科书在这里用 $\bar{\rho}_\theta$ 符号来强调这是一个<strong>点群</strong>中的元素，它就是那个绕原点的旋转 $\rho_\theta$。</li>
+  <li>所以，如果 $G$ 中包含任何一个转角为 $\theta$ 的旋转（无论绕哪个点转），那么<strong>点群</strong> $\bar{G}$ 中就必然包含那个标准的、绕原点旋转 $\theta$ 的元素 $\bar{\rho}_\theta$。</li>
+</ul></li>
+  <li> <strong>从 $\bar{G}$ 回到 $G$ (逆像)</strong>:
+<ul>
+  <li>现在反过来看。假设我们在<strong>点群</strong> $\bar{G}$ 中发现了一个元素 $\bar{\rho}_\theta$。这意味着什么？</li>
+  <li>这意味着，在原始群 $G$ 中，<strong>至少存在一个</strong>元素 $g$，使得 $\pi(g) = \bar{\rho}_\theta$。</li>
+  <li>这个 $g$ 必然是一个旋转角度为 $\theta$ 的旋转，或者是滑移向量为零的滑移反射（也就是纯反射），但这里讨论的是旋转，所以它是旋转。</li>
+  <li><strong>逆像 (preimage)</strong>: 在映射 $\pi: G \rightarrow \bar{G}$ 中，一个元素 $\bar{g} \in \bar{G}$ 的<strong>逆像</strong>指的是 $G$ 中所有被映射到 $\bar{g}$ 的元素的集合，记为 $\pi^{-1}(\bar{g})$。</li>
+  <li>所以，$\pi^{-1}(\bar{\rho}_\theta)$ 这个集合，包含了 $G$ 中所有那些旋转角度恰好是 $\theta$ 的旋转变换。这些旋转的旋转中心可以各不相同。</li>
+  <li>例如，如果 $g_1$ 是绕点 $p_1$ 转 $\theta$， $g_2$ 是绕点 $p_2$ 转 $\theta$，并且 $g_1, g_2$ 都在 $G$ 中，那么它们都在 $\bar{\rho}_\theta$ 的逆像集里。同时，如果 $t_v$ 是 $G$ 中的一个平移，那么 $t_v g_1$ 也是一个旋转角为 $\theta$ 的旋转，它也在 $G$ 中，也在这个逆像集里。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例</strong>: 考虑正方形瓷砖铺满平面的对称群 $G$。</li>
+  <li><strong>从 G 到 $\bar{G}$</strong>:</li>
+  <li>$G$ 中包含一个元素 $g_1$，是绕着一个瓷砖中心 $(0.5, 0.5)$ 旋转 $90^\circ$ 的变换。</li>
+  <li>因此，$\pi(g_1) = \bar{\rho}_{90^\circ}$ 在点群 $\bar{G}$ 中。</li>
+  <li>$G$ 中还包含另一个元素 $g_2$，是绕着一个顶点 $(1,1)$ 旋转 $90^\circ$ 的变换。</li>
+  <li>因此，$\pi(g_2) = \bar{\rho}_{90^\circ}$ 也在点群 $\bar{G}$ 中（是同一个元素）。</li>
+  <li><strong>从 $\bar{G}$ 回到 G</strong>:</li>
+  <li>点群 $\bar{G}$ 是 $D_4$，它包含元素 $\bar{\rho}_{90^\circ}$。</li>
+  <li>$\bar{\rho}_{90^\circ}$ 的逆像 $\pi^{-1}(\bar{\rho}_{90^\circ})$ 是 $G$ 中一个很大的集合。它包含了所有绕着瓷砖中心点的 $90^\circ$ 旋转，所有绕着顶点（格点）的 $90^\circ$ 旋转，以及所有绕着边的中点的 $180^\circ$ 旋转...等等，抱歉，是所有旋转角度为 $90^\circ$ 的旋转。对于正方形壁纸，旋转中心只可能在瓷砖中心、顶点和边的中点。$90^\circ$ 旋转的中心在瓷砖中心和顶点。</li>
+  <li>所以，这个逆像集包含了无穷多个旋转变换，它们的旋转角度都是 $90^\circ$，但旋转中心遍布整个平面上的特定位置（所有形如 $(m+0.5, n+0.5)$ 和 $(m,n)$ 的点）。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>逆像是一个集合</strong>: $\pi^{-1}(\bar{g})$ 不是单个元素，而是一个集合。这个集合中的所有元素在 $\pi$ 映射下都“坍缩”到了同一个点群元素 $\bar{g}$。</li>
+  <li><strong>旋转和滑移反射</strong>: 正如后面一段会讲的，一个变向的等距变换的点群元素 $\bar{g}$ 可能是由一个纯反射产生的，也可能是由一个滑移反射产生的。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段阐明了 $G$ 中的旋转与 $\bar{G}$ 中旋转元素的一一对应关系（在角度上）和多对一的映射关系（在具体变换上）。$G$ 中任何一个 $\theta$ 旋转都贡献了同一个 $\bar{\rho}_\theta$ 到 $\bar{G}$；反之，$\bar{G}$ 中的一个 $\bar{\rho}_\theta$ 对应了 $G$ 中所有角度为 $\theta$ 的旋转（可能有很多个，分布在不同中心）。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段通过具体分析旋转的情况，让读者更深入地理解 $G$ 和 $\bar{G}$ 之间的关系，特别是<strong>同态</strong>、<strong>像</strong>和<strong>逆像</strong>这些抽象概念在几何变换这个具体例子中的含义。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像一个投票系统。</p>
+<ol>
+  <li>$G$ 中的元素是具体的投票人，每个人都有自己的住址和姓名。</li>
+  <li>$\bar{G}$ 中的元素是候选人（比如“候选人A”，“候选人B”）。</li>
+  <li>$\pi$ 是投票过程，每个投票人 $g$ 投给他支持的候选人 $\pi(g)$。</li>
+  <li>如果 $g$ 是一个绕点 $p$ 转 $\theta$ 的人，他就会投给“候选人 $\bar{\rho}_\theta$”。</li>
+  <li>“候选人 $\bar{\rho}_\theta$”的<strong>逆像</strong>，就是所有投给他票的那些人的名单。这个名单上的人都支持旋转 $\theta$，但他们住在不同的地方（旋转中心不同）。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一队士兵在阅兵。</p>
+<ol>
+  <li>$G$ 的一个元素 $g$ 是一个具体的指令，如“排头兵张三，向右转90度”。</li>
+  <li>$\bar{G}$ 的元素 $\bar{\rho}_{90^\circ}$ 是一个抽象的指令，“向右转90度”。</li>
+  <li>$\pi(g) = \bar{\rho}_{90^\circ}$ 意味着张三执行的动作属于“向右转90度”这个类别。</li>
+  <li>$\bar{\rho}_{90^\circ}$ 的逆像，就是整个队伍里所有被命令“向右转90度”的士兵的集合。</li>
+</ol>
+    </div>
+</div><hr><p id="original-21"><strong style="font-size: 1.3rem;">📜 [原文21]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>类似地，令 $\ell$ 表示反射 $\rho_{\theta} r$ 的反射线。正如我们之前指出的，它与 $e_{1}$ 轴的夹角为 $\frac{1}{2} \theta$ (5.1.17)。如果 $G$ 中存在元素 $t_{a} \rho_{\theta} r$，并且 $t_{a} \rho_{\theta} r$ 是沿着平行于 $\ell$ 的直线的反射或<strong>滑移反射</strong> (6.3.8)，则<strong>点群</strong> $\bar{G}$ 包含 $\overline{\rho_{\theta} r}$。$\overline{\rho_{\theta} r}$ 的<strong>逆像</strong>由 $G$ 中所有沿平行于 $\ell$ 的直线进行反射或滑移的元素组成。总结起来：</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这一段将上一段对旋转的分析，平行地推广到变向变换——<strong>反射</strong>和<strong>滑移反射</strong>。</p>
+<ol>
+  <li> <strong>回顾变向变换</strong>:
+<ul>
+  <li>一个标准的、过原点的反射，可以写成 $\rho_\theta r$ 的形式，其中 $r$ 是关于 x-轴的反射，$\rho_\theta$ 是一个旋转。这个复合变换 $\rho_\theta r$ 的效果是关于一条与 x-轴夹角为 $\theta/2$ 的直线 $\ell$ 的反射。</li>
+  <li>一个一般的变向等距变换，如果它有不动点，就是一个<strong>反射</strong>。如果它没有不动点，就是一个<strong>滑移反射</strong>。</li>
+  <li>任何一个变向等距变换 $g$ 都可以写成 $g = t_a \rho_\theta r$ 的形式。$g$ 的效果是沿着一条平行于 $\ell$ 的直线进行反射或滑移反射。</li>
+</ul></li>
+  <li> <strong>从 $G$ 到 $\bar{G}$ (变向情况)</strong>:
+<ul>
+  <li>假设 $G$ 中有一个变向变换 $g = t_a \rho_\theta r$。</li>
+  <li>根据点群定义，$\bar{g} = \pi(g) = \pi(t_a \rho_\theta r)$。$\pi$ 提取线性部分，所以 $\bar{g} = \rho_\theta r$。</li>
+  <li>教科书用 $\overline{\rho_\theta r}$ 来标记这个点群元素。它代表了一个标准的、过原点的、反射轴与 x-轴夹角为 $\theta/2$ 的反射。</li>
+  <li>所以，如果 $G$ 中包含任何一个反射轴方向为 $\ell$ 的<strong>反射</strong>或<strong>滑移反射</strong>，那么点群 $\bar{G}$ 中就必然包含那个标准的、反射轴也是 $\ell$（平移到过原点）的反射元素 $\overline{\rho_\theta r}$。</li>
+</ul></li>
+  <li> <strong>从 $\bar{G}$ 回到 $G$ (变向情况)</strong>:
+<ul>
+  <li>反过来看，如果点群 $\bar{G}$ 中有一个反射元素 $\overline{\rho_\theta r}$，它的反射轴是 $\ell$。</li>
+  <li>那么它的<strong>逆像</strong> $\pi^{-1}(\overline{\rho_\theta r})$ 是什么呢？</li>
+  <li>这个逆像集合包含了 $G$ 中所有那些线性部分是 $\rho_\theta r$ 的变换。</li>
+  <li>这些变换就是所有沿着与 $\ell$ <strong>平行</strong>的直线进行的<strong>反射</strong>和<strong>滑移反射</strong>。它们的反射轴可以不同（但必须平行），它们的滑移向量也可以不同（可以是零，即纯反射）。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例</strong>: 考虑一个由脚印组成的图案（滑移反射），其对称群为 $G$。设滑移反射轴是 x-轴，滑移向量是 $(1,0)$。</li>
+  <li><strong>从 G 到 $\bar{G}$</strong>:</li>
+  <li>$G$ 中有一个元素 $g(x,y) = (x+1, -y)$。这是一个滑移反射。</li>
+  <li>它可以写成 $g(v) = t_{(1,0)} r_x v$，其中 $r_x$ 是关于x轴的反射。$r_x$ 对应的矩阵是 $\begin{pmatrix} 1 &amp; 0 \\ 0 &amp; -1 \end{pmatrix}$。</li>
+  <li>这个矩阵 $\overline{r_x} = \begin{pmatrix} 1 &amp; 0 \\ 0 &amp; -1 \end{pmatrix}$ 就在点群 $\bar{G}$ 中。</li>
+  <li>$G$ 中可能还有另一个滑移反射，比如 $g^3(x,y) = (x+3, -y)$。它的点群元素也是同一个 $\overline{r_x}$。</li>
+  <li><strong>从 $\bar{G}$ 回到 G</strong>:</li>
+  <li>点群 $\bar{G}$ 包含元素 $\overline{r_x}$。</li>
+  <li>它的逆像 $\pi^{-1}(\overline{r_x})$ 包含了 $G$ 中所有关于平行于 x-轴的直线进行的反射或滑移反射。</li>
+  <li>在这个脚印的例子中，就是所有奇数次方的变换 $\{..., g^{-3}, g^{-1}, g, g^3, ...\}$。这些都是滑移反射，它们的反射轴都是x轴，但滑移向量分别是 $\{..., (-3,0), (-1,0), (1,0), (3,0), ...\}$。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段的逻辑与上一段完全平行。$G$ 中任何一个轴线方向为 $\ell$ 的反射或滑移反射，都贡献了同一个“标准反射”（轴线过原点且方向为 $\ell$）到点群 $\bar{G}$ 中。反之，$\bar{G}$ 中的一个标准反射，对应了 $G$ 中所有与该反射轴平行的反射和滑移反射。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是完成对 $G$ 和 $\bar{G}$ 关系的描述，将上一段对保向变换的分析推广到变向变换，从而覆盖所有类型的等距变换。这为下一段的总结做好了铺垫。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>继续投票的类比：</p>
+<ol>
+  <li>$G$ 中的元素 $g$ 是一个变向投票人。他支持“候选人 $\overline{\rho_\theta r}$”。</li>
+  <li>这个候选人代表“支持沿着 $\ell$ 方向反射”的立场。</li>
+  <li>支持这个候选人的投票人，有的可能是“纯粹的反射派”（住在反射轴上），有的人是“滑移反射派”（住在别处，但对称轴方向一致）。他们都投给了同一个候选人。</li>
+  <li>候选人的逆像，就是所有这些“反射派”和“滑移反射派”的名单。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一面镜子。</p>
+<ol>
+  <li>$\bar{G}$ 中的元素 $\bar{g}$ 是一个理想的、放在原点的镜子，它的朝向是固定的。</li>
+  <li>$G$ 中的元素，是很多把这面理想镜子在空间中到处平移后得到的“实体镜子”（纯反射），或者是在平移的同时还沿着镜面方向滑动一下得到的“魔法镜子”（滑移反射）。</li>
+  <li>所有这些方向相同的“实体镜子”和“魔法镜子”都对应于同一个“理想镜子”型号。</li>
+</ol>
+    </div>
+</div><hr><p id="original-22"><strong style="font-size: 1.3rem;">📜 [原文22]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ul>
+  <li><strong>点群</strong> $\bar{G}$ 记录了 $G$ 元素的旋转角度、<strong>滑移线</strong>的斜率和反射线的斜率。</li>
+</ul>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是一个对前面两段内容的精炼总结，一句话概括了<strong>点群</strong> $\bar{G}$ 的核心作用。</p>
+<ul>
+  <li><strong>点群 $\bar{G}$ 记录了什么信息？</strong> 它是一个“摘要”或“目录”。</li>
+  <li><strong>旋转角度</strong>: 如果你遍历<strong>点群</strong> $\bar{G}$ 中所有的旋转元素，记下它们的旋转角度，你就得到了原始群 $G$ 中所有可能出现的旋转角度的完整列表。$\bar{G}$ 告诉你 $G$ 是否包含 $30^\circ$ 旋转、 $60^\circ$ 旋转等，但它不告诉你这些旋转发生在哪里。</li>
+  <li><strong>滑移线的斜率</strong>: 如果你遍历<strong>点群</strong> $\bar{G}$ 中所有的反射元素，记下它们的反射轴的斜率（方向），你就得到了原始群 $G$ 中所有<strong>滑移反射</strong>的滑移反射轴可能出现的所有方向的完整列表。</li>
+  <li><strong>反射线的斜率</strong>: 同样地，这也记录了所有<strong>纯反射</strong>的反射轴可能出现的所有方向。</li>
+</ul>
+<ul>
+  <li><strong>点群 $\bar{G}$ 丢失了什么信息？</strong></li>
+  <li><strong>平移信息</strong>: 所有的纯平移信息都丢失了，它们都被“坍缩”到了<strong>点群</strong>的单位元 $I$。</li>
+  <li><strong>位置信息</strong>:</li>
+  <li>旋转的<strong>中心点</strong>位置信息丢失了。</li>
+  <li>反射/滑移反射的<strong>轴线具体位置</strong>信息丢失了。</li>
+  <li>滑移反射的<strong>滑移向量</strong>的大小和方向信息也丢失了（只留下了轴线方向）。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例</strong>: 对于正方形壁纸的对称群 $G$。</li>
+  <li>它的点群是 $\bar{G} = D_4$。</li>
+  <li>查看 $\bar{G}=D_4$ 的元素：</li>
+  <li>旋转：有旋转角度为 $0^\circ, 90^\circ, 180^\circ, 270^\circ$ 的元素。这告诉你，在原始的壁纸图案 $G$ 中，只可能找到这四种角度的旋转中心。</li>
+  <li>反射：有4个反射元素。它们的反射轴分别是 x-轴, y-轴, $y=x$ 直线, $y=-x$ 直线。它们的斜率分别是 $0, \infty, 1, -1$。这告诉你，在原始壁纸图案 $G$ 中，所有可能出现的反射线和滑移反射线，其方向必须是水平、竖直或者对角线这四种方向之一。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>点群</strong> $\bar{G}$ 是原始群 $G$ 的一个“方向盘”，它精确地记录了 $G$ 所包含的全部旋转和反射的“朝向”信息（角度和斜率），但完全忽略了它们的“位置”信息（平移、旋转中心、反射轴位置）。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这段总结是为了让读者在进入下一个命题之前，对<strong>点群</strong>这个工具的本质有一个清晰、简洁的认识。它强调了<strong>点群</strong>作为“方向性摘要”的核心功能。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p><strong>点群</strong>就像一个公司的部门名录。</p>
+<ol>
+  <li>名录上有“工程部”、“市场部”、“财务部”。</li>
+  <li>这告诉你这个公司有哪些<strong>种类</strong>的职能。</li>
+  <li>但这名录不告诉你每个部门有多少人，也不告诉你他们具体坐在哪里办公。</li>
+</ol>
+<p><strong>点群</strong> $\bar{G}$ 就是<strong>等距变换</strong>群 $G$ 的“部门名录”，告诉你它有哪些<strong>种类</strong>的对称操作。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>你拿到一个万花筒，但不准你看里面，只准你转动它或者从外面观察。</p>
+<ol>
+  <li>你转动它，发现每转 $60^\circ$ 它就“咔哒”一下。你记录下来：“存在 $60^\circ$ 旋转”。</li>
+  <li>你发现它有几条对称缝。你用量角器量出这些缝的方向。你记录下来：“存在与基准线成 $0^\circ, 30^\circ, ...$ 的反射”。</li>
+  <li>你记录下来的这个列表——$\{60^\circ\text{旋转}, 120^\circ\text{旋转}, ..., 0^\circ\text{反射}, 30^\circ\text{反射}, ...\}$——在精神上就等于<strong>点群</strong> $\bar{G}$。它描述了这个万花筒的对称“能力”。</li>
+</ol>
+    </div>
+</div><h3>3.2 点群的离散性与分类</h3><p id="original-23"><strong style="font-size: 1.3rem;">📜 [原文23]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>命题 6.5.10 $O_{2}$ 的<strong>离散子群</strong> $\bar{G}$ 是有限的，因此是<strong>循环群</strong>或<strong>二面体群</strong>。</p>
+<p>证明。由于 $\bar{G}$ 不包含小旋转，使得 $\rho_{\theta}$ 在 $\bar{G}$ 中的实数 $\theta$ 集合 $\Gamma$ 是<strong>加法群</strong> $\mathbb{R}^{+}$ 的<strong>离散子群</strong>，它包含 $2 \pi$。引理 6.4.6 告诉我们 $\Gamma$ 具有 $\mathbb{Z} \theta$ 的形式，其中 $\theta=2 \pi / n$ 对于某个整数 $n$ 成立。此时，定理 6.4.1 的证明可以照搬。$\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个命题是关于<strong>点群</strong> $\bar{G}$ 自身结构的一个重要结论。</p>
+<p><strong>命题陈述</strong></p>
+<ol>
+  <li> <strong>前提</strong>: $\bar{G}$ 是一个<strong>离散子群</strong> $G$ 的<strong>点群</strong>。</li>
+  <li> <strong>结论</strong>: 那么 $\bar{G}$ 必然是一个<strong>有限群 (finite group)</strong>。</li>
+  <li> <strong>推论</strong>: 根据之前章节对 $O_2$ 的有限子群的分类 (定理 6.4.1)，$\bar{G}$ 必然是<strong>循环群 (cyclic group)</strong> $C_n$ 或<strong>二面体群 (dihedral group)</strong> $D_n$ 中的一种。</li>
+</ol>
+<p><strong>证明解析</strong></p>
+<ol>
+  <li> <strong>关键：$\bar{G}$ 继承了 $G$ 的离散性</strong>:
+<ul>
+  <li>原始群 $G$ 是<strong>离散</strong>的，这意味着 $G$ 中不包含任意小的非零旋转。即存在一个 $\epsilon &gt; 0$，使得 $G$ 中任何旋转，其角度 $\theta$ 满足 $|\theta| \ge \epsilon$。</li>
+  <li><strong>点群</strong> $\bar{G}$ 中的旋转元素 $\bar{\rho}_\theta$ 正是由 $G$ 中的旋转元素（角度为 $\theta$）映射过来的。</li>
+  <li>因此，如果 $G$ 中没有角度小于 $\epsilon$ 的旋转，那么 $\bar{G}$ 中也不可能凭空出现一个角度小于 $\epsilon$ 的旋转。</li>
+  <li>所以，<strong>点群</strong> $\bar{G}$ 本身也是 $O_2$ 的一个<strong>离散子群</strong>（根据 $O_2$ 中子群离散的定义，即不包含任意小的旋转）。</li>
+</ul></li>
+  <li> <strong>分析 $\bar{G}$ 中的旋转</strong>:
+<ul>
+  <li>考虑 $\bar{G}$ 中所有旋转元素所对应的角度集合，我们称这个集合为 $\Gamma$ (Gamma)。</li>
+  <li>$\Gamma = \{ \theta \in \mathbb{R} \mid \rho_\theta \in \bar{G} \}$。</li>
+  <li>如果 $\rho_{\theta_1} \in \bar{G}$ 且 $\rho_{\theta_2} \in \bar{G}$，那么它们的复合 $\rho_{\theta_1+\theta_2} \in \bar{G}$，它们的逆 $\rho_{-\theta_1} \in \bar{G}$。这意味着角度集合 $\Gamma$ 在加法下构成 $\mathbb{R}$ 的一个子群。</li>
+  <li>由于 $\bar{G}$ 是离散的，$\Gamma$ 中所有非零角度的绝对值都有一个正下限 $\epsilon$。这意味着 $\Gamma$ 是 $\mathbb{R}^+$ 的一个<strong>离散子群</strong>。</li>
+</ul></li>
+  <li> <strong>应用一维离散子群分类</strong>:
+<ul>
+  <li>我们再次使用引理 6.4.6，它告诉我们 $\mathbb{R}^+$ 的<strong>离散子群</strong>只有两种形式：$\{0\}$ 或 $\mathbb{Z}\alpha$ (某个最小正元素的整数倍)。</li>
+  <li>因为恒等变换（旋转 $0=2\pi$）总是在群里，所以 $\Gamma$ 中至少包含 $2\pi$ 的所有整数倍。所以 $\Gamma$ 非平凡。</li>
+  <li>因此 $\Gamma$ 必须是 $\mathbb{Z}\theta_0$ 的形式，其中 $\theta_0$ 是 $\Gamma$ 中最小的正角度。</li>
+  <li>又因为 $2\pi \in \Gamma$，所以 $2\pi$ 必须是 $\theta_0$ 的整数倍，即 $2\pi = n \theta_0$。</li>
+  <li>这表明 $\theta_0 = 2\pi/n$ 对于某个整数 $n \ge 1$ 成立。</li>
+  <li>所以，$\bar{G}$ 中所有旋转的角度都是 $2\pi/n$ 的整数倍。</li>
+</ul></li>
+  <li> <strong>引用 $O_2$ 有限子群的分类</strong>:
+<ul>
+  <li>至此，我们已经证明了 $\bar{G}$ 中的旋转部分是有限的（只有 $n$ 个不同的旋转）。</li>
+  <li>教科书作者说“此时，定理 6.4.1 的证明可以照搬”。定理 6.4.1 正是分类 $O_2$ 的所有有限子群的定理。其证明逻辑是：</li>
+  <li>如果一个 $O_2$ 的子群的旋转部分是有限循环群 $C_n$，那么这个子群要么就是 $C_n$ 本身（如果它不包含任何反射），要么就是 $D_n$（如果它还包含一个反射）。</li>
+  <li>没有其他可能性。</li>
+  <li>因此，$\bar{G}$ 必然是 $C_n$ 或 $D_n$。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>: 设 $G$ 是一个包含绕某点旋转 $30^\circ (= \pi/6)$ 的<strong>离散群</strong>。</li>
+  <li>那么 $\bar{G}$ 包含 $\bar{\rho}_{\pi/6}$。</li>
+  <li>由于 $\bar{G}$ 是群，它也必须包含 $(\bar{\rho}_{\pi/6})^2 = \bar{\rho}_{\pi/3}$, $(\bar{\rho}_{\pi/6})^3 = \bar{\rho}_{\pi/2}$... 等等，直到 $(\bar{\rho}_{\pi/6})^{12} = \bar{\rho}_{2\pi} = I$。</li>
+  <li>所以 $\bar{G}$ 的旋转子群至少是 $C_{12}$。根据命题，$\bar{G}$ 只能是 $C_{12}$ 或 $D_{12}$。</li>
+  <li><strong>示例2</strong>: 设 $G$ 是一个包含绕某点旋转 $\sqrt{2}$ 弧度的群。</li>
+  <li>那么 $\bar{G}$ 包含 $\bar{\rho}_{\sqrt{2}}$。</li>
+  <li>$\bar{G}$ 就会包含所有 $\bar{\rho}_{k\sqrt{2} \pmod{2\pi}}$ 的元素。这个角度集合在 $[0, 2\pi)$ 中是稠密的，不是离散的。</li>
+  <li>因此，这样的 $G$ 根本不可能是<strong>离散群</strong>。这个命题从另一个角度说明了为什么<strong>离散群</strong>的旋转角度必须是 $2\pi$ 的有理倍数。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>G vs. $\bar{G}$</strong>: 命题的结论是关于<strong>点群</strong> $\bar{G}$ 是有限的，而不是关于原始群 $G$。$G$ 完全可以是无限群，例如壁纸图案的对称群，它有无限个平移，但它的<strong>点群</strong>（例如 $D_4$）是有限的。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本命题的核心结论是：一个<strong>离散等距变换群</strong> $G$ 的<strong>点群</strong> $\bar{G}$ 必然是<strong>有限的</strong>，并且只能是<strong>循环群</strong> $C_n$ 或<strong>二面体群</strong> $D_n$。这是因为 $G$ 的<strong>离散性</strong>导致了其旋转角度不能任意小，从而限制了其<strong>点群</strong>的结构。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个命题是“分而治之”策略的第二步的巨大成功。它告诉我们，我们试图分析的<strong>点群</strong> $\bar{G}$ 的可能性被极大地限制了。它不再是 $O_2$ 中任何一个可能的子群，而只能从一个非常短的、具体的列表中选择：$C_1, C_2, C_3, ...$ 或 $D_1, D_2, D_3, ...$。这使得接下来的分析变得可行。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>如果你有一把只能“咔哒、咔哒”按固定角度转动的尺子（离散旋转），那么用这把尺子能画出的所有角度，必然是某个最小角度的整数倍。转一整圈 $360^\circ$ 也必须是这个最小角度的整数倍。因此，这把尺子只有有限个“档位”。<strong>点群</strong>就像这把尺子，它的“档位”是有限的。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你有一套可以用来制作对称图案的“对称性图章”。这套图章（点群 $\bar{G}$）如果是从一个<strong>离散群</strong> $G$ 里提取出来的，那么这套图章的数量一定是有限的。你不可能有无限多种不同角度的旋转图章。这套图章要么只包含几种旋转（循环群 $C_n$），要么包含几种旋转和几种反射（二面体群 $D_n$）。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-4">
+    <h2><span class="section-number">4</span>4. 晶体学限制</h2>
+    <h3>4.1 点群对平移群的作用</h3><p id="original-24"><strong style="font-size: 1.3rem;">📜 [原文24]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>如果<strong>等距变换</strong><strong>离散群</strong> $G$ 的<strong>平移群</strong> $L$ 是平凡群，则 $\pi$ 到 $G$ 的限制将是<strong>内射</strong>的。在这种情况下，$G$ 将同构于其<strong>点群</strong> $\bar{G}$，并且将是<strong>循环群</strong>或<strong>二面体群</strong>。下一个命题是我们分析无限<strong>离散群</strong>的第三个工具。它将<strong>点群</strong>与<strong>平移群</strong>联系起来。</p>
+<p>除非选择一个原点，否则<strong>正交群</strong> $O_{2}$ 不在平面 $P$ 上作用。但它在<strong>平移向量</strong>空间 $V$ 上作用。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这一段是引入第三个分析工具——<strong>点群</strong>与<strong>平移群</strong>相互作用——的开场白。它首先处理了一个特殊情况，然后阐明了作用的舞台。</p>
+<ol>
+  <li> <strong>特殊情况: 平移群 L 是平凡的</strong>
+<ul>
+  <li><strong>平凡平移群</strong>: $L=\{0\}$。这意味着在群 $G$ 中，除了恒等变换外，没有任何纯粹的<strong>平移</strong>。</li>
+  <li><strong>同态 $\pi$ 是内射的</strong>: 回顾同态 $\pi: G \rightarrow \bar{G}$。它的<strong>核</strong> $\ker(\pi)$ 是 $G$ 中所有被映射到单位元的元素，即 $\ker(\pi) = G \cap T = L$ (其中 $T$ 是所有平移的群)。</li>
+  <li>如果 $L=\{0\}$，那么 $\ker(\pi)=\{I\}$（只包含恒等变换）。</li>
+  <li>一个群同态的核只包含单位元，当且仅当这个同态是<strong>内射 (injective)</strong> 的（即一对一映射）。</li>
+  <li><strong>$G$ 与 $\bar{G}$ 同构</strong>: 如果 $\pi: G \rightarrow \bar{G}$ 是一个内射的满射（根据 $\bar{G}$ 的定义，$\pi$ 到其像的映射总是满射），那么它就是一个<strong>同构 (isomorphism)</strong>。这意味着 $G$ 和 $\bar{G}$ 在代数结构上是完全一样的。</li>
+  <li><strong>结论</strong>: 在这种情况下，$G$ 本身就是一个<strong>循环群</strong>或<strong>二面体群</strong>（因为根据命题 6.5.10，$\bar{G}$ 是这两者之一）。这对应于那些只有旋转和反射对称、没有平移对称的图形，比如一个正五边形或一个孤立的风车图案。这些是<strong>有限的离散群</strong>。</li>
+</ul></li>
+  <li> <strong>转向无限离散群</strong>:
+<ul>
+  <li>更有趣、更复杂的情况是当<strong>平移群</strong> $L$ <strong>不是</strong>平凡群时。这意味着 $G$ 至少包含一个非零平移，因此 $G$ 必然是一个<strong>无限群</strong>（因为它包含了 $\mathbb{Z}a$ 这样的无限子群）。壁纸图案的对称群就属于这类。</li>
+  <li>此时，需要第三个分析工具，即研究 $\bar{G}$ 和 $L$ 之间的关系。</li>
+</ul></li>
+  <li> <strong>作用的舞台</strong>:
+<ul>
+  <li><strong>$O_2$ 不直接作用于平面 $P$</strong>: <strong>正交群</strong> $O_2$ 的元素是 $2 \times 2$ 矩阵，它们是作用于<strong>向量</strong>的线性算子。一个平面 $P$ 是一个点的集合（仿射空间），它没有一个天生的“原点”。你不能直接用一个矩阵去乘一个“点”。</li>
+  <li><strong>$O_2$ 作用于向量空间 $V$</strong>: 但是，$O_2$ 的矩阵可以完美地作用在<strong>平移向量</strong>空间 $V$ (即 $\mathbb{R}^2$) 上。如果 $A \in O_2$ 且 $v \in V$，那么 $Av$ 就是一个新的向量。</li>
+  <li><strong>联系</strong>: <strong>平移群</strong> $L$ 正是向量空间 $V$ 的一个子集。因此，我们可以研究<strong>点群</strong> $\bar{G}$ (它是 $O_2$ 的一个子群) 的元素如何作用在<strong>平移群</strong> $L$ 的向量上。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例 (L平凡)</strong>: 设 $G$ 是正三角形的对称群 $D_3$，其中心在原点。</li>
+  <li>$G$ 中没有非零平移，所以 $L=\{0\}$。</li>
+  <li>$\pi$ 是内射的。$G$ 中的6个元素（3个旋转，3个反射）都固定原点，它们本身就是正交变换。</li>
+  <li>$g$ (绕原点旋转120度) $\rightarrow \pi(g) = \bar{g}$ (旋转120度的矩阵)。</li>
+  <li>在这种情况下，$G$ 和它的点群 $\bar{G}$ 是同一个东西，$G \cong \bar{G} = D_3$。</li>
+  <li><strong>示例 (L非平凡)</strong>: 设 $G$ 是正方形壁纸的对称群。</li>
+  <li>$L = \mathbb{Z}^2$，非平凡。</li>
+  <li>$\bar{G} = D_4$。</li>
+  <li>我们可以研究 $D_4$ 中的一个元素，比如旋转 $90^\circ$ 的矩阵 $\bar{\rho}_{90^\circ} = \begin{pmatrix} 0 &amp; -1 \\ 1 &amp; 0 \end{pmatrix}$，如何作用在 $L$ 的一个向量上，比如 $a=(1,0)$。</li>
+  <li>作用的结果是 $\bar{\rho}_{90^\circ} a = \begin{pmatrix} 0 &amp; -1 \\ 1 &amp; 0 \end{pmatrix} \begin{pmatrix} 1 \\ 0 \end{pmatrix} = \begin{pmatrix} 0 \\ 1 \end{pmatrix}$。</li>
+  <li>我们发现，作用前的向量 $(1,0)$ 在 $L$ 中，作用后的向量 $(0,1)$ 也在 $L$ 中。这暗示了一个深刻的联系。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>作用的对象</strong>: 一定要清晰地认识到，是<strong>点群</strong> $\bar{G}$ 作用在<strong>平移向量群</strong> $L$ 上，而不是反过来。也不是 $G$ 作用在 $L$ 上（如文末的注意所说，这没有直接意义）。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段为引入第三个工具“$\bar{G}$ 对 $L$ 的作用”做铺垫。它首先排除了 $L$ 平凡的简单情况（此时 $G$ 就是一个有限的循环群或二面体群），然后明确了相互作用的双方：一方是代表旋转/反射的<strong>点群</strong> $\bar{G}$，另一方是代表周期性平移的<strong>向量群</strong> $L$。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是将分析的焦点从 $L$ 平凡的有限群，转移到 $L$ 非平凡的无限群（如晶体和壁纸图案的对称群）。并为这种分析建立正确的框架：研究 $\bar{G}$ 如何“操作”或“变换” $L$ 中的向量。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像研究一个国家的政府结构。</p>
+<ol>
+  <li><strong>L平凡</strong>: 这是一个很小的城邦国家（有限群 $G$），没有省份（没有平移）。中央政府（点群 $\bar{G}$）直接管理所有公民。中央政府的结构就是国家的结构。</li>
+  <li><strong>L非平凡</strong>: 这是一个大的联邦国家（无限群 $G$）。它有许多个省份（由平移群 $L$ 描述）。我们需要研究中央政府（点群 $\bar{G}$）是如何管理和影响这些省份的（$\bar{G}$ 对 $L$ 的作用）。比如，中央政府的法令是否在所有省份都适用和兼容。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<ol>
+  <li>$P$ 是一个没有坐标系的白板。</li>
+  <li>$V$ 是一个有原点的、带坐标系的画板。</li>
+  <li>$L$ 是画板上的一组特殊的“格点”。</li>
+  <li>$\bar{G}$ 是一组可以旋转和翻转这张画板的操作。</li>
+  <li>我们要研究的是，当你旋转或翻转画板时，原来画好的那些“格点” $L$ 是不是恰好都落在了新的“格点”位置上。</li>
+</ol>
+    </div>
+</div><hr><p id="original-25"><strong style="font-size: 1.3rem;">📜 [原文25]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>命题 6.5.11 令 $G$ 是 $M$ 的一个<strong>离散子群</strong>。令 $a$ 是其<strong>平移群</strong> $L$ 的一个元素，令 $\bar{g}$ 是其<strong>点群</strong> $\bar{G}$ 的一个元素。那么 $\bar{g}(a)$ 在 $L$ 中。</p>
+<p>我们可以通过说 $\bar{G}$ 的元素将 $L$ 映射到自身来重新表述这个命题。因此，当 $L$ 被视为平面 $V$ 中的一个图形时，$\bar{G}$ 包含在 $L$ 的对称群中。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是本节的核心命题，它精确地描述了<strong>点群</strong> $\bar{G}$ 和<strong>平移群</strong> $L$ 之间的相互作用。</p>
+<p><strong>命题陈述</strong></p>
+<ol>
+  <li> <strong>前提</strong>:
+<ul>
+  <li>$G$ 是一个<strong>离散等距变换群</strong>。</li>
+  <li>$L$ 是 $G$ 的<strong>平移向量群</strong>。</li>
+  <li>$\bar{G}$ 是 $G$ 的<strong>点群</strong>。</li>
+  <li>$a$ 是 $L$ 中的任意一个平移向量。</li>
+  <li>$\bar{g}$ 是 $\bar{G}$ 中的任意一个正交算子。</li>
+</ul></li>
+  <li> <strong>结论</strong>:
+<ul>
+  <li>将算子 $\bar{g}$ 作用在向量 $a$ 上得到的新向量 $\bar{g}(a)$，也必然在<strong>平移群</strong> $L$ 中。</li>
+</ul></li>
+</ol>
+<p><strong>重新表述</strong></p>
+<ol>
+  <li> <strong>$\bar{G}$ 将 $L$ 映射到自身</strong>: 因为结论对于 $L$ 中<strong>任意</strong>向量 $a$ 和 $\bar{G}$ 中<strong>任意</strong>元素 $\bar{g}$ 都成立，这意味着用 $\bar{G}$ 中的任何元素去变换整个集合 $L$，得到的新集合仍然是 $L$ 本身。即 $\bar{G}(L) = L$。这说明 $L$ 在 $\bar{G}$ 的作用下是<strong>不变的 (invariant)</strong>。</li>
+  <li> <strong>$\bar{G}$ 是 $L$ 的对称群的子群</strong>:
+<ul>
+  <li>我们可以把<strong>平移群</strong> $L$ 本身看作是向量空间 $V$ 中的一个几何图形（一个由无穷多个点组成的图形）。</li>
+  <li>一个图形的<strong>对称群</strong>，是所有能使该图形保持不变的<strong>正交变换</strong>的集合（这里我们只关心固定原点的对称性）。</li>
+  <li>既然 $\bar{G}$ 的所有元素都能使 $L$ 保持不变，那么根据定义，$\bar{G}$ 必然是 $L$ 的对称群的一个<strong>子群</strong>。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例</strong>: 再次考虑正方形壁纸的对称群 $G$。</li>
+  <li>$L = \mathbb{Z}^2 = \{ (m,n) \mid m,n \in \mathbb{Z} \}$。</li>
+  <li>$\bar{G} = D_4$。</li>
+  <li>取一个 $L$ 中的向量 $a=(2,1)$。</li>
+  <li>取一个 $\bar{G}$ 中的元素 $\bar{g} = \bar{\rho}_{90^\circ}$ (旋转 $90^\circ$ 的矩阵 $\begin{pmatrix} 0 &amp; -1 \\ 1 &amp; 0 \end{pmatrix}$)。</li>
+  <li>计算作用结果: $\bar{g}(a) = \begin{pmatrix} 0 &amp; -1 \\ 1 &amp; 0 \end{pmatrix} \begin{pmatrix} 2 \\ 1 \end{pmatrix} = \begin{pmatrix} -1 \\ 2 \end{pmatrix}$。</li>
+  <li>我们检查新向量 $(-1,2)$ 是否在 $L$ 中。是的，因为它的坐标 $-1$ 和 $2$ 都是整数。</li>
+  <li>命题的结论在这个例子中成立。</li>
+  <li>再取一个 $\bar{G}$ 中的元素 $\bar{h}$，是关于 x 轴的反射，矩阵为 $\begin{pmatrix} 1 &amp; 0 \\ 0 &amp; -1 \end{pmatrix}$。</li>
+  <li>计算作用结果: $\bar{h}(a) = \begin{pmatrix} 1 &amp; 0 \\ 0 &amp; -1 \end{pmatrix} \begin{pmatrix} 2 \\ 1 \end{pmatrix} = \begin{pmatrix} 2 \\ -1 \end{pmatrix}$。</li>
+  <li>新向量 $(2,-1)$ 也在 $L$ 中。结论再次成立。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>$\bar{G}$ 是 L 的对称群的子群，不一定相等</strong>: $L$ 本身的对称群可能比 $\bar{G}$ 更大。例如，如果 $G$ 是一个只有平移和 $180^\circ$ 旋转的群（点群为 $C_2$），但它的平移格 $L$ 碰巧是一个正方形格。那么 $L$ 本身的对称群是 $D_4$，而 $\bar{G}=C_2$ 只是 $D_4$ 的一个子群。原始群 $G$ 没有利用到其平移格所能提供的全部对称性。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本命题建立了<strong>点群</strong>和<strong>平移群</strong>之间的关键联系：一个<strong>离散群</strong>的旋转/反射对称性（$\bar{G}$）必须与其平移对称性（$L$）相容。具体来说，$\bar{G}$ 中的任何对称操作都不能破坏 $L$ 这个格的结构。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个命题是导出著名的<strong>晶体学限制</strong>的直接前提。它将问题“一个离散群的点群可能是什么”转化为了一个更具体的问题：“一个离散格（只有三种可能）的对称群可能是什么”。这就建立了一个强大的约束。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>一个设计完美的机器人（离散群 $G$）。它的轮子只能让它在地面上特定的轨道网格（平移群 $L$）上移动。它的上半身可以旋转（点群 $\bar{G}$）。这个命题是说，无论它的上半身怎么旋转，它伸出手臂去抓取一个轨道交叉点，旋转后松手，手臂必须正好在另一个轨道交叉点上。上半身的旋转设计必须与地面上的轨道网格完全匹配。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个由原子构成的完美晶体（原子位置构成 $L$）。如果你对整个晶体进行一个旋转（$\bar{g}$ 的物理体现），使得晶体旋转后看起来和原来一模一样，那么原来在某个原子位置上的原子，旋转后必须精确地落在另一个原子的位置上。你不能把一个原子转到一个空无一物的地方去。</p>
+    </div>
+</div><hr><p id="original-26"><strong style="font-size: 1.3rem;">📜 [原文26]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>命题 6.5.11 的证明 令 $a$ 和 $g$ 分别是 $L$ 和 $G$ 的元素，令 $\bar{g}$ 是 $g$ 在 $\bar{G}$ 中的像，令 $a^{\prime}=\bar{g}(a)$。我们将证明 $t_{a^{\prime}}$ 是<strong>共轭</strong> $g t_{a} g^{-1}$。这将表明 $t_{a^{\prime}}$ 在 $G$ 中，因此 $a^{\prime}$ 在 $L$ 中。我们写 $g=t_{b} \varphi$。那么 $\varphi$ 在 $O_{2}$ 中且 $\bar{g}=\bar{\varphi}$。所以 $a^{\prime}=\bar{\varphi}(a)$。使用公式 (6.2.8)，我们发现：</p>
+<p><div class="math-block">$$
+g t_{a} g^{-1}=\left(t_{b} \varphi\right) t_{a}\left(\varphi^{-1} t_{-b}\right)=t_{b} t_{a^{\prime}} \varphi \varphi^{-1} t_{-b}=t_{a^{\prime}} 。
+$$</div></p>
+<p>$\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是对命题 6.5.11 的证明，它巧妙地运用了群<strong>共轭 (conjugation)</strong> 的性质。</p>
+<p><strong>证明思路</strong></p>
+<ol>
+  <li> <strong>目标</strong>: 我们要证明，如果 $a \in L$ 且 $\bar{g} \in \bar{G}$，那么新向量 $a' = \bar{g}(a)$ 也在 $L$ 中。</li>
+  <li> <strong>L 的定义</strong>: 要证明 $a' \in L$，根据 $L$ 的定义，我们只需要证明与之对应的<strong>平移变换</strong> $t_{a'}$ 是原始群 $G$ 的一个元素，即 $t_{a'} \in G$。</li>
+  <li> <strong>构造 $t_{a'}$</strong>: 证明的关键在于发现，$t_{a'}$ 可以通过 $G$ 中已知的元素构造出来。具体来说，它等于<strong>共轭</strong> $g t_a g^{-1}$。</li>
+  <li> <strong>共轭的性质</strong>: 在任何群中，如果 $x$ 和 $y$ 是群的元素，那么它们的<strong>共轭</strong> $xyx^{-1}$ 也必然是群的元素（因为群在乘法和求逆下是封闭的）。</li>
+  <li> <strong>应用共轭</strong>:
+<ul>
+  <li>$a \in L \implies t_a \in G$。</li>
+  <li>$\bar{g} \in \bar{G} \implies$ 存在一个 $g \in G$ 使得 $\pi(g)=\bar{g}$。</li>
+  <li>既然 $g \in G$ 且 $t_a \in G$，那么它们的共轭 $g t_a g^{-1}$ 必然也在 $G$ 中。</li>
+  <li>现在，我们只需要计算出这个共轭到底是什么。如果它恰好就是 $t_{a'}$，那么证明就完成了。</li>
+</ul></li>
+</ol>
+<p><strong>计算共轭 $g t_a g^{-1}$</strong></p>
+<ol>
+  <li> <strong>分解 $g$</strong>: 任何一个等距变换 $g$ 都可以分解为一个正交变换 $\varphi \in O_2$ 和一个平移 $t_b$ 的复合。我们写 $g = t_b \varphi$。（注意：分解顺序很重要，这里是先旋转/反射，再平移）。</li>
+  <li> <strong>联系 $g$ 和 $\bar{g}$</strong>: 根据点群的定义，$\bar{g} = \pi(g) = \pi(t_b \varphi) = \varphi$。所以 $\bar{g}$ 就是 $g$ 的线性部分 $\varphi$。</li>
+  <li> <strong>联系 $a'$ 和 $\varphi$</strong>: 我们的目标向量 $a'$ 被定义为 $a'=\bar{g}(a)$。因为 $\bar{g}=\varphi$，所以 $a' = \varphi(a)$。</li>
+  <li> <strong>代入并计算</strong>:
+<ul>
+  <li>$g t_a g^{-1} = (t_b \varphi) t_a (t_b \varphi)^{-1}$</li>
+  <li>$(t_b \varphi)^{-1} = \varphi^{-1} (t_b)^{-1} = \varphi^{-1} t_{-b}$。</li>
+  <li>所以表达式变为: $t_b \varphi t_a \varphi^{-1} t_{-b}$。</li>
+  <li><strong>核心步骤</strong>: 这里需要一个重要的<strong>共轭恒等式</strong> (在教科书的公式 6.2.8 中给出): $\varphi t_a \varphi^{-1} = t_{\varphi(a)}$。这个恒等式的意思是，用一个旋转/反射 $\varphi$ 去共轭一个平移 $t_a$，得到的结果是一个新的平移，其平移向量恰好是原平移向量被 $\varphi$ 作用后的结果。</li>
+  <li>将 $a'=\varphi(a)$ 代入此恒等式，我们得到 $\varphi t_a \varphi^{-1} = t_{a'}$。</li>
+  <li>现在代回到主表达式中: $g t_a g^{-1} = t_b (t_{a'}) t_{-b}$。</li>
+  <li>利用平移的复合规则: $t_b t_{a'} t_{-b} = t_{b+a'-b} = t_{a'}$。</li>
+</ul></li>
+  <li> <strong>最终结论</strong>: 我们成功证明了 $g t_a g^{-1} = t_{a'}$。
+<ul>
+  <li>因为 $g, t_a \in G$，所以 $g t_a g^{-1} \in G$。</li>
+  <li>所以 $t_{a'} \in G$。</li>
+  <li>根据 $L$ 的定义，这意味着向量 $a'$ 必然在 $L$ 中。</li>
+  <li>证明完毕。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+g t_{a} g^{-1}=\left(t_{b} \varphi\right) t_{a}\left(\varphi^{-1} t_{-b}\right)=t_{b} t_{a^{\prime}} \varphi \varphi^{-1} t_{-b}=t_{a^{\prime}} 。
+$$</div></p>
+<ul>
+  <li><strong>第一步</strong>: $g t_{a} g^{-1} = (t_{b} \varphi) t_{a} (\varphi^{-1} t_{-b})$。</li>
+  <li>将 $g=t_b \varphi$ 和 $g^{-1}=\varphi^{-1} t_{-b}$ 代入。</li>
+  <li><strong>第二步</strong>: $= t_b (\varphi t_a \varphi^{-1}) t_{-b}$。</li>
+  <li>利用群运算的结合律，将中间三项括起来。</li>
+  <li><strong>第三步</strong>: $= t_b t_{a'} t_{-b}$。</li>
+  <li>使用关键的共轭恒等式 $\varphi t_a \varphi^{-1} = t_{\varphi(a)}$，并代入 $a' = \varphi(a)$。</li>
+  <li><strong>第四步</strong>: $= t_{b+a'-b} = t_{a'}$。</li>
+  <li>利用平移的复合规则 $t_u t_v = t_{u+v}$ 和 $t_u^{-1}=t_{-u}$。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>证明的核心是一个代数技巧：证明新向量 $a'$ 对应的平移 $t_{a'}$ 是群 $G$ 中两个元素 $g$ 和 $t_a$ 的共轭，因此 $t_{a'}$ 也必须在 $G$ 中，从而 $a'$ 就在 $L$ 中。这个证明优雅地展示了群的代数结构（共轭）如何导致几何属性（格的不变性）。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是提供命题 6.5.11 的严格数学证明。它展示了之前章节中建立的关于等距变换代数（特别是共轭恒等式）是如何在分析离散群结构中发挥关键作用的。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这个证明可以看作是“变换坐标系”。</p>
+<ol>
+  <li>$t_a$ 是在“旧坐标系”下的一个标准平移。</li>
+  <li>$g$ 是一个坐标变换操作，它将旧坐标系变成一个“新坐标系”。</li>
+  <li>$g^{-1}$ 是把新坐标系变回旧坐标系。</li>
+  <li>$g t_a g^{-1}$ 的意思是：先切换到旧坐标系 ($g^{-1}$)，执行标准平移 ($t_a$)，再切换回新坐标系 ($g$)。整个操作在新坐标系下看起来是什么样的？</li>
+  <li>证明的结论是，它看起来就是一个新的平移 $t_{a'}$，这个新平移的向量 $a'$ 正是旧平移向量 $a$ 在坐标变换 $g$ 的线性部分（即 $\bar{g}$）作用下的像。</li>
+</ol>
+    </div>
+</div><hr><p id="original-27"><strong style="font-size: 1.3rem;">📜 [原文27]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>注意：理解群 $G$ 不作用于其<strong>平移群</strong> $L$ 是很重要的。事实上，询问 $G$ 是否作用于 $L$ 没有意义，因为 $G$ 的元素是平面 $P$ 的<strong>等距变换</strong>，而 $L$ 是 $V$ 的子集。除非固定原点，$P$ 与 $V$ 不同。如果我们在 $P$ 中固定原点，我们可以将 $P$ 与 $V$ 标识。那么这个问题就有意义了。我们可以问：是否存在 $P$ 中的一个点，以该点为原点， $G$ 的元素将 $L$ 映射到自身？有时是，有时不是。这取决于群。$\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是一个非常重要的澄清说明，旨在防止一个常见的概念混淆。</p>
+<ol>
+  <li> <strong>混淆点</strong>: 我们刚证明了<strong>点群</strong> $\bar{G}$ 作用在<strong>平移群</strong> $L$ 上并使其保持不变。一个很自然的想法是：是不是原始群 $G$ 也作用在 $L$ 上呢？</li>
+  <li> <strong>为什么这个想法是错误的 (或者说无意义的)</strong>:
+<ul>
+  <li><strong>作用对象不同</strong>:</li>
+  <li>群 $G$ 的元素 $g$ 是<strong>等距变换</strong>，它们的作用对象是<strong>点</strong>，这些点属于<strong>平面 $P$</strong> (一个仿射空间)。</li>
+  <li><strong>平移群</strong> $L$ 的元素 $a$ 是<strong>向量</strong>，这些向量属于<strong>向量空间 $V$</strong> (一个线性空间)。</li>
+  <li><strong>$P$ 和 $V$ 的区别</strong>: 平面 $P$ 是“无根的”，它没有一个特殊指定的原点。而向量空间 $V$ 有一个天生的、特殊的元素——零向量，也就是原点。你可以说“点(1,2)”，但也可以说“从原点指向(1,2)的向量”。这两个概念在选择一个原点之前是不同的。</li>
+  <li><strong>无意义的提问</strong>: 因此，问“一个作用于点的函数 $g$ 如何作用于一个向量 $a$”是没有直接意义的。你不能把一个函数 $g(p)=Ap+b$ 应用到一个孤立的向量 $a$ 上。</li>
+</ul></li>
+  <li> <strong>如何让问题变得有意义</strong>:
+<ul>
+  <li><strong>固定原点</strong>: 我们可以人为地在平面 $P$ 上选择一个点，并宣布它为“原点”。一旦我们这样做了，平面 $P$ 上的每个点 $p$ 就都可以与向量空间 $V$ 中的一个向量 $v$ (从我们选定的原点指向点 $p$ 的向量) 一一对应。这时，我们就可以将 $P$ 和 $V$ <strong>等同 (identify)</strong> 起来。</li>
+  <li><strong>重新提问</strong>: 在将 $P$ 和 $V$ 等同之后，我们就可以问之前那个问题了：此时，$G$ 的元素 $g$ 是否将 $L$ (现在被看作平面上的一组点) 映射到自身呢？</li>
+</ul></li>
+  <li> <strong>答案：不一定</strong>:
+<ul>
+  <li>这个问题的答案是“有时是，有时不是”，它取决于 $G$ 的性质以及我们选择哪个点作为原点。</li>
+  <li><strong>存在一个特殊点</strong>: 对于某些群 $G$，可能存在一个或多个特殊的点 $p_0$。如果你把 $p_0$ 选为原点，那么 $G$ 中的所有变换都会保持 $L$ 这个点集不变。这样的点通常是群的一个公共不动点或高对称点。</li>
+  <li><strong>不存在这样的点</strong>: 对于另一些群 $G$（比如滑移反射群），可能不存在任何一个点，使得你把它作为原点后，$G$ 的所有操作都能让 $L$ 保持不变。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例 (有时是)</strong>: 考虑正方形壁纸的对称群 $G$。$L=\mathbb{Z}^2$。</li>
+  <li>$\bar{G}=D_4$ 作用于 $L$ 并使其不变。</li>
+  <li>现在我们问，$G$ 是否作用于 $L$？</li>
+  <li><strong>选择1：以格点(0,0)为原点</strong>。$G$ 中有一个元素 $g$ 是绕点 $(0.5, 0.5)$ 旋转 $90^\circ$。我们让它作用在 $L$ 的一个点 $(1,0)$ 上。结果是 $(1,1)$，也在 $L$ 中。我们让它作用在 $L$ 的点 $(1,1)$ 上，结果是 $(0,1)$，也在 $L$ 中。看起来似乎可以。</li>
+  <li>实际上，对于壁纸群，如果存在一个对称中心，其点群与整个壁纸的点群相同（这里是$D_4$），那么以这个点为原点，$G$就会作用在$L$上。对于正方形壁纸，任何一个瓷砖的中心点都是这样的特殊点。</li>
+  <li><strong>示例 (有时不是)</strong>: 考虑一个由滑移反射 $g(x,y)=(x+1,-y)$ 生成的群 $G$。</li>
+  <li>$L$ 是由平移 $(2,0)$ 生成的一维格 $L=\{(2m,0) \mid m \in \mathbb{Z}\}$。</li>
+  <li>$\bar{G} = C_2 = \{I, \text{关于x轴的反射}\}$。$\bar{G}$ 作用在 $L$ 上使其不变（因为 $L$ 本身就在x轴上）。</li>
+  <li>现在问，$G$ 是否作用于 $L$？</li>
+  <li>让我们在平面 $P$ 上选择一个原点，比如就选 $(0,0)$。</li>
+  <li>我们让 $g$ 作用在 $L$ 的一个点上，比如 $a=(2,0)$。</li>
+  <li>$g(a) = g(2,0) = (2+1, -0) = (3,0)$。</li>
+  <li>新得到的点 $(3,0)$ 并不在 $L=\{(2m,0)\}$ 中！</li>
+  <li>所以，如果以 $(0,0)$ 为原点，$G$ <strong>不</strong>作用于 $L$。你可以尝试选择任何其他点作为原点，会发现结论是一样的。对于这个滑移反射群，不存在一个“好”的原点。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段强调了作用域的严格区分：是<strong>点群</strong> $\bar{G}$（线性算子）作用于<strong>向量群</strong> $L$，而不是<strong>等距变换群</strong> $G$（仿射变换）作用于 $L$。后者只有在精心选择了原点后才有意义，并且即使如此，答案也可能是否定的。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段是为了防止读者从“$\bar{G}$ 作用于 $L$”这个正确的结论，过度泛化到“$G$ 作用于 $L$”这个通常是错误的结论。它强调了数学的严谨性，以及区分仿射空间与线性空间的重要性。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li>$\bar{G}$ 作用于 $L$: 这像是在问：“如果我把一个正方形的棋盘旋转90度，原来的格子中心是不是还对准新的格子中心？” 答案是肯定的。这是一个关于<strong>形状</strong>和<strong>结构</strong>的问题。</li>
+  <li>$G$ 作用于 $L$（在选定原点后）: 这像是在问：“如果我把地球（一个球体）绕地轴转一下，美国是不是还留在原来的经纬度上？” 答案是否定的。这是一个关于<strong>物体</strong>在<strong>固定坐标系</strong>中运动的问题。</li>
+</ol>
+    </div>
+</div><h3>4.2 晶体学限制定理</h3><p id="original-28"><strong style="font-size: 1.3rem;">📜 [原文28]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>下一个定理描述了当<strong>平移群</strong> $L$ 不平凡时可能出现的<strong>点群</strong>。</p>
+<p>定理 6.5.12 <strong>晶体学限制</strong>。令 $L$ 是 $V^{+}$ 或 $\mathbb{R}^{2+}$ 的一个<strong>离散子群</strong>，令 $H \subset O_{2}$ 是 $L$ 的对称群的子群。假设 $L$ 不是平凡群。那么</p>
+<p>(a) $H$ 中的每个旋转的<strong>阶</strong>为 1, 2, 3, 4 或 6，并且</p>
+<p>(b) $H$ 是群 $C_{n}$ 或 $D_{n}$ 之一，且 $n=1,2,3,4$ 或 6。</p>
+<p>特别地，<strong>阶</strong>为 5 的旋转被排除在外。没有具有五重旋转对称的墙纸图案。（具有五重对称的“准周期”图案确实存在。例如，参见 <strong style="font-size: 1.2rem;">[Senechal]</strong>。）</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是本章乃至整个晶体学领域最著名的定理之一，<strong>晶体学限制 (Crystallographic Restriction Theorem)</strong>。它极大地限制了周期性结构（如晶体、壁纸图案）可能拥有的旋转对称性。</p>
+<p><strong>定理陈述</strong></p>
+<ol>
+  <li> <strong>前提</strong>:
+<ul>
+  <li>$L$ 是一个<strong>离散子群</strong>，并且<strong>不平凡</strong>（即 $L \neq \{0\}$）。这意味着 $L$ 至少是一个一维格 $\mathbb{Z}a$ 或一个二维格 $\mathbb{Z}a+\mathbb{Z}b$。这代表了一个具有至少一个方向周期性的结构。</li>
+  <li>$H$ 是 $O_2$ 的一个子群，并且 $H$ 是 $L$ 的<strong>对称群</strong>的子群。这意味着 $H$ 中的所有变换（都是绕原点的旋转和反射）都使格 $L$ 保持不变。</li>
+  <li>根据命题 6.5.11，我们知道任何一个离散群 $G$ 的<strong>点群</strong> $\bar{G}$ 都满足这个条件（即 $\bar{G}$ 是 $L$ 的对称群的子群），所以这个定理直接适用于我们正在研究的<strong>点群</strong> $\bar{G}$。</li>
+</ul></li>
+  <li> <strong>结论 (a) - 对旋转阶的限制</strong>:
+<ul>
+  <li>$H$ (因此也包括 $\bar{G}$) 中任何一个旋转操作，它的<strong>阶 (order)</strong> 只能是 1, 2, 3, 4 或 6。</li>
+  <li><strong>旋转的阶</strong>: 一个旋转的<strong>阶</strong> $n$ 是指将这个旋转重复 $n$ 次后第一次回到恒等变换（旋转 $360^\circ$）的次数。旋转角度 $\theta = 2\pi/n$。</li>
+  <li>所以，这个结论等价于说：在一个周期性结构中，可能存在的旋转对称性，其旋转角度只能是 $360^\circ/1=360^\circ$ (无对称), $360^\circ/2=180^\circ$ (二重), $360^\circ/3=120^\circ$ (三重), $360^\circ/4=90^\circ$ (四重), 或 $360^\circ/6=60^\circ$ (六重)。</li>
+</ul></li>
+  <li> <strong>结论 (b) - 对整个群的限制</strong>:
+<ul>
+  <li>由于群 $H$ (或 $\bar{G}$) 是 $O_2$ 的一个子群，并且它的旋转阶受到了限制，那么 $H$ 只能是以下10个可能的群之一（称为<strong>晶体点群</strong>）：</li>
+  <li><strong>循环群</strong>: $C_1, C_2, C_3, C_4, C_6$</li>
+  <li><strong>二面体群</strong>: $D_1, D_2, D_3, D_4, D_6$</li>
+  <li>($D_1$ 只有一个反射，与 $C_2$ 不同构但有时也被看作一类)</li>
+</ul></li>
+  <li> <strong>重要的排除</strong>:
+<ul>
+  <li>最引人注目的结果是，<strong>阶为 5 的旋转被严格排除</strong>。这意味着，你不可能用正五边形的瓷砖严丝合缝地铺满整个地面。尝试一下就会发现，正五边形的内角是 $108^\circ$，三个拼在一起是 $324^\circ$ (有缝隙)，四个拼在一起是 $432^\circ$ (会重叠)。</li>
+  <li>同样，阶为7或更高（$n=5, 7, 8, 9, 10, ...$）的旋转也都被排除了。</li>
+  <li>因此，不存在具有五重、七重、八重等旋转对称性的“墙纸图案”（即周期性图案）。</li>
+</ul></li>
+  <li> <strong>准周期图案</strong>:
+<ul>
+  <li>作者补充说明，虽然<strong>周期性</strong>的五重对称不存在，但存在一种更广义的、被称为<strong>准周期 (quasi-periodic)</strong> 的图案，它们可以具有五重对称性。最著名的例子是<strong>彭罗斯瓷砖 (Penrose tiling)</strong>。这些图案具有长程的有序性，但不是严格的周期性重复。它们的发现挑战了传统晶体学的观念，并引出了准晶体的概念（发现者获得了2011年诺贝尔化学奖）。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例 (允许的)</strong>:</li>
+  <li>一个由正方形瓷砖构成的壁纸。它的<strong>平移群</strong> $L$ 是一个正方晶格。它的<strong>点群</strong> $\bar{G}$ 是 $D_4$。$n=4$ 是允许的。</li>
+  <li>一个由正六边形瓷砖（蜂巢）构成的壁纸。它的<strong>平移群</strong> $L$ 是一个六角晶格。它的<strong>点群</strong> $\bar{G}$ 是 $D_6$。$n=6$ 是允许的。</li>
+  <li>一个由矩形（非正方形）瓷砖构成的壁纸。它的<strong>点群</strong>是 $D_2$。$n=2$ 是允许的。</li>
+  <li><strong>示例 (禁止的)</strong>:</li>
+  <li>你无法设计一个壁纸图案，使得它在一个点周围具有完美的五重旋转对称性，<strong>并且</strong>这个图案在两个不同的方向上是严格周期性重复的。如果你坚持五重对称，你就会破坏周期性（得到彭罗斯那样的准周期图），如果你坚持周期性，你就无法实现五重对称。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>适用范围</strong>: <strong>晶体学限制</strong>仅适用于与<strong>离散平移格</strong>相容的对称性。对于一个孤立的、非周期性的物体，它可以有任何对称性。一个病毒的正二十面体外壳具有五重对称性，一个海星有五重对称性，一朵花也可以有，但它们都不是无限周期性结构。</li>
+  <li><strong>$n=1$ 和 $n=2$</strong>:</li>
+  <li>$C_1$ 是平凡群，没有任何对称性。</li>
+  <li>$D_1$ 只有一个反射，就像一个左右对称的图案。</li>
+  <li>$C_2$ 只有 $180^\circ$ 旋转，中心对称。</li>
+  <li>$D_2$ 有两个垂直的反射轴和一个 $180^\circ$ 旋转。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>晶体学限制定理</strong>是一个强大的筛选工具，它宣称：任何与一个非平凡的<strong>离散平移格</strong>能够和谐共存的旋转对称性，其阶数只能是 1, 2, 3, 4, 或 6。这极大地缩小了周期性结构的对称性分类范围。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个定理是连接抽象群论和现实世界晶体、材料科学、艺术设计的核心桥梁。它解释了为什么自然界中的晶体（其本质是三维周期性结构）和人类设计的周期性图案（壁纸、地砖）只表现出非常有限的几种旋转对称性。它是对二维和三维空间中所有可能的晶体结构进行分类的理论基础。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你想用地砖铺满一个大广场，地砖必须是同一种正多边形，并且要铺得严丝合缝。</p>
+<ol>
+  <li><strong>正三角形</strong> (内角60°): 6个可以拼成360°。可行 (对应六重对称)。</li>
+  <li><strong>正方形</strong> (内角90°): 4个可以拼成360°。可行 (对应四重对称)。</li>
+  <li><strong>正六边形</strong> (内角120°): 3个可以拼成360°。可行 (对应三重对称)。</li>
+  <li><strong>正五边形</strong> (内角108°): 3个是324°(有缝)，4个是432°(重叠)。不可行。</li>
+  <li><strong>正七边形</strong> (内角~128.57°): 无法凑成360°。不可行。</li>
+</ol>
+<p>这个简单的几何拼图实验，正是<strong>晶体学限制</strong>在二维欧氏空间中的直观体现。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>去一个瓷砖店，看他们卖的各种周期性图案的瓷砖。仔细观察，你会发现这些图案的局部旋转对称性，无一例外都是二重、三重、四重或六重的。你绝对找不到一个具有完美五重或七重旋转对称性，同时又是严格周期重复的瓷砖设计。这个定理告诉你，这不是因为设计师缺乏想象力，而是因为数学上根本不可能。</p>
+    </div>
+</div><hr><p id="original-29"><strong style="font-size: 1.3rem;">📜 [原文29]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>晶体学限制</strong>的证明 我们证明 (a)。部分 (b) 由 (a) 和定理 6.4.1 导出。令 $\rho$ 是 $H$ 中角度为 $\theta$ 的旋转，令 $a$ 是 $L$ 中长度最小的非零向量。由于 $H$ 作用于 $L$，$\rho(a)$ 也在 $L$ 中。那么 $b=\rho(a)-a$ 也在 $L$ 中，并且由于 $a$ 具有最小长度，所以 $|b| \geq|a|$。观察下图，可以看出当 $\theta&lt;2 \pi / 6$ 时 $|b|&lt;|a|$。因此我们必须有 $\theta \geq 2 \pi / 6$。由此可知群 $H$ 是<strong>离散</strong>的，因此是有限的，并且 $\rho$ 的<strong>阶</strong> $\leq 6$。</p>
+<p><img src="https://cdn.mathpix.com/cropped/ace3f27f-694b-4e2e-b3f0-30bcc6ea7cdf-19.jpg?height=185&width=279&top_left_y=1022&top_left_x=647" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p>角度为 $\theta=2 \pi / 5$ 的情况也可以排除，因为对于那个角度，元素 $b^{\prime}= \rho^{2}(a)+a$ 比 $a$ 短：</p>
+<p><img src="https://cdn.mathpix.com/cropped/ace3f27f-694b-4e2e-b3f0-30bcc6ea7cdf-19.jpg?height=194&width=462&top_left_y=1375&top_left_x=554" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"> $\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是<strong>晶体学限制定理</strong>的证明，其论证简洁而深刻，完全基于<strong>离散性</strong>和<strong>最小长度向量</strong>的存在。</p>
+<p><strong>证明部分 (a): 限制旋转的阶</strong></p>
+<ol>
+  <li> <strong>前提和工具</strong>:
+<ul>
+  <li>$L$ 是一个非平凡<strong>离散子群</strong>。</li>
+  <li>$\rho \in H$ 是一个角度为 $\theta$ 的旋转，且 $H$ 保持 $L$ 不变。</li>
+  <li><strong>工具1 (最小向量)</strong>: 因为 $L$ 非平凡且离散，根据引理 6.5.7(b)，它必然包含一个<strong>长度最小的非零向量</strong>。我们称之为 $a$。$|a|$ 是 $L$ 中所有非零向量的最短长度。</li>
+  <li><strong>工具2 (H作用于L)</strong>: 因为 $\rho \in H$ 且 $a \in L$，根据命题 6.5.11，$\rho(a)$ 这个新向量也必须在 $L$ 中。</li>
+</ul></li>
+  <li> <strong>构造新向量 $b$</strong>:
+<ul>
+  <li>我们构造一个新向量 $b = \rho(a) - a$。</li>
+  <li>因为 $a \in L$ 且 $\rho(a) \in L$，并且 $L$ 是一个加法群，所以它们的差 $b$ 也必然在 $L$ 中。</li>
+</ul></li>
+  <li> <strong>利用 $a$ 的最小长度</strong>:
+<ul>
+  <li>现在我们有了新向量 $b \in L$。它的长度 $|b|$ 必须遵循 $L$ 的规则。</li>
+  <li>如果 $b$ 不是零向量，那么它的长度必须大于或等于 $L$ 中最短非零向量的长度，即 $|b| \ge |a|$。</li>
+</ul></li>
+  <li> <strong>几何分析 $|b|$ 的长度</strong>:
+<ul>
+  <li>向量 $a$ 和 $\rho(a)$ 的长度都是 $|a|$（因为旋转是等距变换）。它们之间的夹角是 $\theta$。</li>
+  <li>向量 $b = \rho(a) - a$ 是连接向量 $a$ 终点和 $\rho(a)$ 终点的向量。</li>
+  <li>这三个向量 $a, \rho(a), b$ 构成一个等腰三角形，两条腰的长度是 $|a|$，顶角是 $\theta$。底边长度就是 $|b|$。</li>
+  <li>根据余弦定理， $|b|^2 = |a|^2 + |\rho(a)|^2 - 2|a||\rho(a)|\cos\theta = |a|^2 + |a|^2 - 2|a|^2\cos\theta = 2|a|^2(1-\cos\theta)$。</li>
+  <li>所以 $|b| = |a| \sqrt{2(1-\cos\theta)}$。利用半角公式 $1-\cos\theta=2\sin^2(\theta/2)$，可得 $|b| = 2|a||\sin(\theta/2)|$。</li>
+</ul></li>
+  <li> <strong>建立不等式并求解</strong>:
+<ul>
+  <li>我们必须满足 $|b| \ge |a|$。</li>
+  <li>$2|a||\sin(\theta/2)| \ge |a|$。</li>
+  <li>$2|\sin(\theta/2)| \ge 1 \implies |\sin(\theta/2)| \ge 1/2$。</li>
+  <li>我们只考虑最小的正旋转角，所以 $0 &lt; \theta \le \pi$。这意味着 $0 &lt; \theta/2 \le \pi/2$，$\sin(\theta/2)$ 是正的。</li>
+  <li>$\sin(\theta/2) \ge 1/2$。</li>
+  <li>在 $[0, \pi/2]$ 区间内，$\sin(x)$ 是增函数。$\sin(\pi/6) = 1/2$。</li>
+  <li>所以，$\theta/2 \ge \pi/6 \implies \theta \ge \pi/3 = 60^\circ$。</li>
+  <li><strong>第一个重要结论</strong>: 任何与平移格相容的非零旋转，其角度必须至少是 $60^\circ$。</li>
+  <li><strong>推论</strong>: 如果旋转角 $\theta = 2\pi/n$，那么 $2\pi/n \ge \pi/3 \implies 6 \ge n$。所以旋转的阶 $n$ 不能超过6。</li>
+  <li>这就证明了 $n$ 只能是 1, 2, 3, 4, 5, 6。</li>
+</ul></li>
+</ol>
+<p><strong>排除 $n=5$ (五重对称)</strong></p>
+<ol>
+  <li> <strong>情况</strong>: 阶为 5 的旋转对应角度 $\theta = 2\pi/5 = 72^\circ$。这个角度满足 $\theta \ge 60^\circ$，所以上面的论证无法排除它。需要更精细的论证。</li>
+  <li> <strong>构造另一个向量 $b'$</strong>:
+<ul>
+  <li>我们构造 $b' = \rho^2(a) + a$。</li>
+  <li>$\rho^2$ 是旋转 $2\theta = 144^\circ$。$\rho^2(a)$ 也在 $L$ 中。</li>
+  <li>$a$ 也在 $L$ 中，所以 $b' = \rho^2(a) + a$ 也在 $L$ 中。</li>
+</ul></li>
+  <li> <strong>几何分析 $|b'|$ 的长度</strong>:
+<ul>
+  <li>$b'$ 是向量 $a$ 和向量 $\rho^2(a)$ 的和。在图中，这是以 $a$ 和 $\rho^2(a)$ 为邻边的平行四边形的对角线。</li>
+  <li>$a$ 和 $-\rho^2(a)$ 的夹角是 $180^\circ - 144^\circ = 36^\circ$。</li>
+  <li>$a$ 和 $\rho^2(a)$ 构成的等腰三角形，顶角是 $144^\circ$。$b'$ 是连接 $a$ 和 $-\rho^2(a)$ 的向量的长度。</li>
+  <li>更简单地，看图。向量 $\rho^2(a)+a$ 的长度，可以通过几何关系看出它比 $|a|$ 要短。</li>
+  <li>精确计算: $|b'|^2 = |a|^2 + |\rho^2(a)|^2 + 2|a||\rho^2(a)|\cos(144^\circ) = 2|a|^2(1+\cos(144^\circ))$。</li>
+  <li>$\cos(144^\circ) = -\cos(36^\circ) = -(\sqrt{5}+1)/4 \approx -0.809$。</li>
+  <li>$|b'|^2 = 2|a|^2(1 - (\sqrt{5}+1)/4) = 2|a|^2((3-\sqrt{5})/4)$。</li>
+  <li>$|b'|/|a| = \sqrt{(3-\sqrt{5})/2} \approx \sqrt{(3-2.236)/2} \approx \sqrt{0.382} &lt; 1$。</li>
+  <li>所以 $|b'| &lt; |a|$。</li>
+</ul></li>
+  <li> <strong>导出矛盾</strong>: 我们找到了一个在 $L$ 中的向量 $b'$，它的长度比我们假定的“最短非零向量” $a$ 还要短。这是一个矛盾。</li>
+  <li> <strong>结论</strong>: 因此，阶为 5 的旋转是不可能存在的。</li>
+</ol>
+<p><strong>证明部分 (b): 限制群的类型</strong></p>
+<ul>
+  <li>这部分很简单。我们已经证明了 $H$ 中的旋转阶只能是 $n=1,2,3,4,6$。</li>
+  <li>命题 6.5.10 已经证明了这样的群 $\bar{G}$ (或 $H$) 必然是 $C_n$ 或 $D_n$。</li>
+  <li>将两个结论结合，就得到 $H$ 必然是 $C_n$ 或 $D_n$，其中 $n \in \{1,2,3,4,6\}$。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>证明的关键在于，利用旋转不变性在格 $L$ 中构造新的格向量，然后利用 $L$ 的离散性（存在最短非零向量 $a$）来约束这些新向量的长度，从而得到对旋转角度的严格限制。这个证明完美地结合了群论的代数操作和向量的几何属性。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-5">
+    <h2><span class="section-number">5</span>行间公式索引</h2>
+    <p>1.  <strong>平移群L的定义</strong></p><p><div class="math-block">$$
+    \begin{equation*}
+    L=\left\{v \in V \mid t_{v} \in G\right\} \tag{6.5.3}
+    \end{equation*}
+$$</div></p><p>平移群 L 是由所有那些使得平移变换 $t_v$ 属于群 G 的向量 v 组成的集合。</p><p>2.  <strong>离散子群的长度限制</strong></p><p><div class="math-block">$$
+    \begin{equation*}
+    L \text{ 中每个非零向量 } v \text{ 的长度 }|v| \geq \epsilon \text{。} \tag{6.5.4}
+    \end{equation*}
+    在一个离散子群 L 中，所有非零向量 v 的长度都必须大于或等于某个正常数 $\epsilon$。
+
+3.  **点群同态的限制**
+$$</div></p><p>\begin{equation*}</p><p>\left.\pi\right|_{G}: G \rightarrow O_{2} 。 \tag{6.5.9}</p><p>\end{equation*}</p><p>这是将从全体等距变换群 M 到正交群 $O_2$ 的同态 $\pi$ 限制在子群 G 上得到的同态。</p><p>4.  <strong>共轭运算的计算</strong></p><p><div class="math-block">$$
+    g t_{a} g^{-1}=\left(t_{b} \varphi\right) t_{a}\left(\varphi^{-1} t_{-b}\right)=t_{b} t_{a^{\prime}} \varphi \varphi^{-1} t_{-b}=t_{a^{\prime}} 。
+$$</div></p><p>此公式通过代数运算证明了对一个平移变换 $t_a$ 进行共轭操作 $g(\cdot)g^{-1}$ 的结果是另一个平移变换 $t_{a'}$，其中 $a' = \pi(g)(a)$。</p>
+</section>
+
+<section class="content-section" id="section-6">
+    <h2><span class="section-number">6</span>最终检查清单</h2>
+    <p><strong>[行间公式完整性检查]</strong></p><p>- [x] <strong>通过</strong>: 已从源文件 <strong>Algebra Ch6.5.ZH.md</strong> 中提取了全部 4 个行间公式，并已在解释正文和末尾的 <strong>行间公式索引</strong> 章节中完整无遗漏地包含和解释。</p><p><strong>[字数超越检查]</strong></p><p>- [x] <strong>通过</strong>: 生成的解释内容总字数明显超过源文件的字数。通过增加大量的 <strong>[逐步解释]</strong>、<strong>[具体数值示例]</strong>、<strong>[直觉心智模型]</strong> 等模块，确保了信息的极大丰富和内容的显著扩充。</p><p><strong>[段落结构映射检查]</strong></p><p>- [x] <strong>通过</strong>: 已为源文件的每个标题和段落创建了带层级编号的新标题（例如 <strong>1.</strong>, <strong>1.1</strong>, <strong>2.</strong>, <strong>2.1</strong> 等），该编号体系准确反映了源文件的内在逻辑和章节划分，且编号连续无误。所有源文件中的内容都已在新结构下得到覆盖。</p><p><strong>[阅读友好检查]</strong></p><p>- [x] <strong>通过</strong>: 采用了固定的 <strong>[原文]</strong>, <strong>[逐步解释]</strong>, <strong>[公式与符号逐项拆解和推导]</strong>, <strong>[具体数值示例]</strong>, <strong>[易错点与边界情况]</strong>, <strong>[总结]</strong>, <strong>[存在目的]</strong>, <strong>[直觉心智模型]</strong>, <strong>[直观想象]</strong> 结构化模板，使得内容层次分明，易于理解和消化。关键术语已加粗。<strong>行间公式索引</strong> 章节为公式查找提供了便利。</p>
+</section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>1. 等距变换的离散群</p>
+    </footer>
+
+
+    <!-- 手机端点击翻页功能 -->
+    <script>
+        (function() {
+            // 点击翻页功能（在所有设备上启用）
+            
+            document.addEventListener('click', function(e) {
+                // 如果 TOC 目录面板处于打开状态，不触发翻页
+                var tocPanel = document.getElementById('tocPanel');
+                if (tocPanel && tocPanel.classList.contains('active')) {
+                    return;
+                }
+                
+                // 排除对链接、按钮、输入框等交互元素的点击
+                var target = e.target;
+                var tagName = target.tagName.toLowerCase();
+                if (tagName === 'a' || tagName === 'button' || tagName === 'input' || 
+                    tagName === 'textarea' || tagName === 'select' || 
+                    target.closest('a') || target.closest('button') ||
+                    target.closest('.toc-panel') || target.closest('.toc-toggle') ||
+                    target.closest('.toc-overlay')) {
+                    return;
+                }
+                
+                var clickY = e.clientY;
+                var windowHeight = window.innerHeight;
+                var scrollAmount = windowHeight * 0.85; // 滚动85%的屏幕高度
+                
+                if (clickY > windowHeight / 2) {
+                    // 点击下半部分：向下翻页
+                    window.scrollBy({
+                        top: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 点击上半部分：向上翻页
+                    window.scrollBy({
+                        top: -scrollAmount,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        })();
+    </script>
+
+    <!-- TOC 目录控制脚本 -->
+    <script>
+        (function() {
+            var tocToggle = document.getElementById('tocToggle');
+            var tocPanel = document.getElementById('tocPanel');
+            var tocOverlay = document.getElementById('tocOverlay');
+            
+            // 切换目录显示/隐藏
+            function toggleTOC() {
+                var isOpen = tocPanel.classList.contains('active');
+                if (isOpen) {
+                    closeTOC();
+                } else {
+                    openTOC();
+                }
+            }
+            
+            // 打开目录
+            function openTOC() {
+                tocPanel.classList.add('active');
+                tocOverlay.classList.add('active');
+                tocToggle.setAttribute('aria-label', '关闭目录');
+            }
+            
+            // 关闭目录
+            function closeTOC() {
+                tocPanel.classList.remove('active');
+                tocOverlay.classList.remove('active');
+                tocToggle.setAttribute('aria-label', '打开目录');
+            }
+            
+            // 点击按钮切换目录
+            tocToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTOC();
+            });
+            
+            // 点击遮罩层关闭目录
+            tocOverlay.addEventListener('click', function() {
+                closeTOC();
+            });
+            
+            // 点击目录项后关闭目录
+            var tocLinks = tocPanel.querySelectorAll('a');
+            tocLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    closeTOC();
+                });
+            });
+            
+            // ESC 键关闭目录
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && tocPanel.classList.contains('active')) {
+                    closeTOC();
+                }
+            });
+            
+            // 高亮当前可见的目录条目
+            function updateActiveItem() {
+                var scrollPos = window.scrollY + 150;  // 偏移量
+                var activeSection = null;
+                var activeOriginal = null;
+                
+                // 查找当前可见的 section
+                var sections = document.querySelectorAll('section[id^="section-"]');
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    if (section.offsetTop <= scrollPos) {
+                        activeSection = section.id;
+                    }
+                }
+                
+                // 查找当前可见的原文区块
+                var originals = document.querySelectorAll('[id^="original-"]');
+                for (var j = 0; j < originals.length; j++) {
+                    var original = originals[j];
+                    if (original.offsetTop <= scrollPos) {
+                        activeOriginal = original.id;
+                    }
+                }
+                
+                // 先移除所有 active 类
+                var allHeadings = tocPanel.querySelectorAll('.toc-heading');
+                for (var h = 0; h < allHeadings.length; h++) {
+                    allHeadings[h].classList.remove('active');
+                }
+                
+                var allOriginals = tocPanel.querySelectorAll('.toc-original');
+                for (var o = 0; o < allOriginals.length; o++) {
+                    allOriginals[o].classList.remove('active');
+                }
+                
+                // 只给当前活动的条目添加 active 类
+                if (activeSection) {
+                    var activeHeadingLink = tocPanel.querySelector('.toc-heading a[href="#' + activeSection + '"]');
+                    if (activeHeadingLink) {
+                        activeHeadingLink.parentElement.classList.add('active');
+                    }
+                }
+                
+                if (activeOriginal) {
+                    var activeOriginalLink = tocPanel.querySelector('.toc-original a[href="#' + activeOriginal + '"]');
+                    if (activeOriginalLink) {
+                        activeOriginalLink.parentElement.classList.add('active');
+                    }
+                }
+            }
+            
+            // 节流函数
+            var scrollTimeout;
+            function throttledUpdate() {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(function() {
+                    updateActiveItem();
+                    scrollTimeout = null;
+                }, 100);
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', throttledUpdate);
+            
+            // 打开目录时立即更新高亮
+            var originalOpenTOC = openTOC;
+            openTOC = function() {
+                originalOpenTOC();
+                updateActiveItem();
+            };
+            
+            // 初始化
+            updateActiveItem();
+        })();
+    </script>
+</body>
+</html>

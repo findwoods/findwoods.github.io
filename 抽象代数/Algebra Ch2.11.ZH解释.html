@@ -1,0 +1,2559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行间公式索引</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- MathJax v4 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            output: {
+                displayOverflow: 'linebreak',
+                linebreaks: {
+                    inline: true,
+                    width: '100%',
+                    lineleading: 0.2
+                }
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            /* 五大区块主题色 */
+            --original-color: #8b5cf6;
+            --explain-color: #0ea5e9;
+            --formula-color: #6366f1;
+            --example-color: #10b981;
+            --warning-color: #f59e0b;
+            /* Q1修复：总结、存在目的、直觉心智模型、直观想象 统一使用 #36828C 青色主题 */
+            --summary-color: #36828C;     /* 青色主题 */
+            --purpose-color: #36828C;     /* 青色主题 */
+            --intuition-color: #36828C;   /* 青色主题 */
+            --imagination-color: #36828C; /* 青色主题 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .authors {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
+        .content-section h4 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h5 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 18px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h6 {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            margin: 15px 0 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        /* ===============================
+           五大内容区块 - 统一风格不同主题色
+           =============================== */
+
+        /* 原文区 - 紫色 */
+        .original-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid var(--original-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .original-box .box-label {
+            color: var(--original-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-box .box-content {
+            font-style: italic;
+            color: #6b21a8;
+        }
+
+        /* 📜 [原文]区块内容 - 使用统一的黑色 */
+        .original-content {
+            color: #2d3748; /* 统一的深灰黑色 */
+        }
+
+        .original-content * {
+            color: #2d3748; /* 所有子元素 */
+        }
+
+        .original-content .MathJax, .original-content .MathJax * {
+            color: #2d3748 !important; /* 行内公式 */
+        }
+
+        /* 通用 .box-content 换行规则 - 确保长文本（如代码调用）能自动换行 */
+        .box-content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .box-content strong, .box-content code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            display: inline;
+        }
+
+        /* 逐步解释区 - 蓝色 */
+        .explain-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--explain-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .explain-box .box-label {
+            color: var(--explain-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explain-box .box-content {
+            color: #1a365d; /* Dark Blue */
+        }
+
+        .explain-box .box-content * {
+            color: #1a365d; /* Dark Blue - 所有子元素 */
+        }
+
+        .explain-box .box-content .MathJax, .explain-box .box-content .MathJax * {
+            color: #1a365d !important; /* Dark Blue - 行内公式 */
+        }
+
+        .explain-box ul, .explain-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .explain-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 公式拆解区 - 靛蓝色 */
+        .formula-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--formula-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .formula-box .box-label {
+            color: var(--formula-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .formula-box .box-content {
+            color: var(--text-color); /* 统一使用默认黑色，与原文区块一致 */
+            overflow-x: auto;
+        }
+
+        .formula-box .box-content * {
+            color: var(--text-color); /* 所有子元素 */
+        }
+
+        .formula-box .box-content .MathJax, .formula-box .box-content .MathJax * {
+            color: var(--text-color) !important; /* 行内公式 */
+        }
+
+        /* 数值示例区 - 绿色 */
+        .example-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--example-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .example-box .box-label {
+            color: var(--example-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-box .box-content {
+            color: #166534; /* Dark Green from edstem5 .answer-en */
+        }
+
+        .example-box .box-content * {
+            color: #166534; /* Dark Green - 所有子元素 */
+        }
+
+        .example-box .box-content .MathJax, .example-box .box-content .MathJax * {
+            color: #166534 !important; /* Dark Green - 行内公式 */
+        }
+
+        .example-box ul, .example-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .example-box li {
+            margin-bottom: 6px;
+        }
+
+        .example-box code {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* 易错点区 - 橙色 */
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .warning-box .box-label {
+            color: var(--warning-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warning-box .box-content {
+            color: #92400e;
+        }
+
+        .warning-box .box-content * {
+            color: #92400e; /* 所有子元素 */
+        }
+
+        .warning-box .box-content .MathJax, .warning-box .box-content .MathJax * {
+            color: #92400e !important; /* 行内公式 */
+        }
+
+        .warning-box ul, .warning-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .warning-box li {
+            margin-bottom: 6px;
+        }
+
+        /* 总结区 - Q1修复：使用#36828C青色主题 */
+        .summary-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--summary-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .summary-box .box-label {
+            color: var(--summary-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .summary-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .summary-box .box-content .MathJax, .summary-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 存在目的区 - Q1修复：使用#36828C青色主题 */
+        .purpose-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--purpose-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .purpose-box .box-label {
+            color: var(--purpose-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .purpose-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .purpose-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .purpose-box .box-content .MathJax, .purpose-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直觉心智模型区 - Q1修复：使用#36828C青色主题 */
+        .intuition-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--intuition-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .intuition-box .box-label {
+            color: var(--intuition-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .intuition-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .intuition-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .intuition-box .box-content .MathJax, .intuition-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直观想象区 - Q1修复：使用#36828C青色主题 */
+        .imagination-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--imagination-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .imagination-box .box-label {
+            color: var(--imagination-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .imagination-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .imagination-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .imagination-box .box-content .MathJax, .imagination-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 高亮术语 */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* 代码块 */
+        code {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            margin: 15px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 表格样式 - 紧凑型，行高列宽适应文字最小值 */
+        table {
+            border-collapse: collapse;
+            width: auto;  /* 列宽适应内容 */
+            margin: 15px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;  /* 减小padding使行高更紧凑 */
+            text-align: left;
+            white-space: nowrap;  /* 防止不必要的换行，列宽适应文字 */
+            line-height: 1.4;  /* 紧凑的行高 */
+        }
+
+        th {
+            background: #e0f7fa;
+            color: #006064;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #e2e8f0;
+        }
+
+        /* 表格对齐 */
+        .align-left {
+            text-align: left;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        /* 图例区域 */
+        .legend-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .legend-bar {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .legend-bar.original { background: #8b5cf6; }
+        .legend-bar.explain { background: #0ea5e9; }
+        .legend-bar.formula { background: #6366f1; }
+        .legend-bar.example { background: #10b981; }
+        .legend-bar.warning { background: #f59e0b; }
+        .legend-bar.summary { background: #36828C; }
+        .legend-bar.purpose { background: #36828C; }
+        .legend-bar.intuition { background: #36828C; }
+        .legend-bar.imagination { background: #36828C; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive - 移动端适配 */
+        @media (max-width: 768px) {
+            /* 容器宽度适配 */
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 20px 12px;
+                box-sizing: border-box;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+                padding: 0 15px;
+            }
+            
+            .hero {
+                padding: 50px 15px;
+            }
+            
+            .hero h1 {
+                font-size: 1.6rem;
+                word-break: break-word;
+            }
+            
+            .authors {
+                font-size: 1rem;
+            }
+            
+            /* 内容区块适配 */
+            .content-section {
+                padding: 20px 15px;
+                margin-left: 5px;
+                margin-right: 5px;
+                border-radius: 12px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.4rem;
+                flex-wrap: wrap;
+            }
+            
+            .content-section h3 {
+                font-size: 1.2rem;
+            }
+            
+            .content-section h4 {
+                font-size: 1.1rem;
+            }
+            
+            .section-number {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            /* 各区块box适配 */
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 15px 12px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .original-box .box-label,
+            .explain-box .box-label,
+            .formula-box .box-label,
+            .example-box .box-label,
+            .warning-box .box-label,
+            .summary-box .box-label,
+            .purpose-box .box-label,
+            .intuition-box .box-label,
+            .imagination-box .box-label {
+                font-size: 1.1rem;
+            }
+            
+            /* 图例区域移动端适配 */
+            .legend-section {
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
+            
+            .legend-row {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            
+            .legend-item {
+                font-size: 0.8rem;
+                gap: 5px;
+            }
+            
+            .legend-bar {
+                width: 3px;
+                height: 16px;
+            }
+            
+            /* 列表适配 */
+            ul, ol {
+                margin-left: 15px;
+                padding-left: 5px;
+            }
+            
+            /* 表格移动端适配 */
+            table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.9rem;
+                min-width: 80px;
+            }
+            
+            /* 代码块适配 */
+            pre {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            
+            /* 数学公式适配 */
+            .math-block {
+                padding: 10px 8px;
+                margin: 15px 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* MathJax公式溢出处理 - 只处理块级公式，保持行内公式inline */
+            mjx-container[jax="CHTML"][display="true"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                display: block !important;
+            }
+            
+            /* 行内公式 - 超宽时自动换行 */
+            mjx-container:not([display="true"]) {
+                display: inline-block !important;
+                max-width: 100% !important;
+                overflow-wrap: break-word !important;
+                word-wrap: break-word !important;
+            }
+            
+            /* MathJax内部元素换行支持 */
+            mjx-math {
+                white-space: normal !important;
+            }
+            
+            mjx-mrow {
+                flex-wrap: wrap !important;
+            }
+            
+            /* Footer适配 */
+            .footer {
+                padding: 25px 15px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* 超小屏幕适配 (手机竖屏) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 8px;
+            }
+            
+            .hero {
+                padding: 40px 10px;
+            }
+            
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+            
+            .content-section {
+                padding: 15px 10px;
+                margin-left: 3px;
+                margin-right: 3px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 12px 10px;
+            }
+            
+            .legend-section {
+                padding: 12px 8px;
+            }
+            
+            .legend-row {
+                gap: 8px;
+            }
+            
+            .legend-item {
+                font-size: 0.75rem;
+            }
+            
+            ul, ol {
+                margin-left: 12px;
+            }
+        }
+        
+        /* 确保所有内容不溢出 */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* ========================================
+           TOC 目录样式
+           ======================================== */
+        
+        /* TOC 触发按钮 - 左上角小方块 */
+        .toc-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(54, 130, 140, 0.5);  /* 青色 50% 透明度 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .toc-toggle:hover {
+            background: rgba(54, 130, 140, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .toc-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* TOC 目录面板 */
+        .toc-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 95vw;  /* 手机浏览器宽度的 95% */
+            height: 80vh; /* 手机浏览器高度的 80% */
+            max-width: 450px;  /* 桌面端最大宽度 */
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0 0 16px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .toc-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* TOC 头部 - 标题在图标右侧 */
+        .toc-header {
+            padding: 15px 20px 15px 80px;  /* 左侧留出按钮空间 */
+            background: linear-gradient(135deg, #36828C 0%, #2a6a72 100%);
+            color: white;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .toc-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* TOC 内容区 */
+        .toc-content {
+            flex: 1;
+            overflow-y: auto;   /* 允许垂直滚动 */
+            overflow-x: hidden; /* 禁止水平滚动 */
+            padding: 15px 0;
+        }
+        
+        /* TOC 列表 */
+        .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc-item {
+            margin: 0;
+        }
+        
+        .toc-item a {
+            display: block;
+            padding: 4px 20px;  /* 更紧凑的行间距 */
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #2d3748;
+            text-decoration: none;
+            word-wrap: break-word;   /* 自动换行 */
+            overflow-wrap: break-word;
+            white-space: normal;     /* 允许换行 */
+            line-height: 1.3;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .toc-item a:hover {
+            background: #e8f4f5;
+            color: #36828C;
+            border-left-color: #36828C;
+        }
+        
+        /* 标题项样式 */
+        .toc-heading a {
+            font-weight: 600;
+            color: #1a365d;
+            background: #f7fafc;
+        }
+        
+        .toc-heading a:hover {
+            background: #e8f4f5;
+        }
+        
+        /* 当前活动的标题项样式 */
+        .toc-heading.active a {
+            background: #d0e8ea;
+            color: #36828C;
+            border-left-color: #36828C;
+            font-weight: 700;
+        }
+        
+        /* 当前活动的原文项样式 */
+        .toc-original.active a {
+            background: #36828C;
+            color: white;
+            box-shadow: 0 3px 8px rgba(54, 130, 140, 0.35);
+        }
+        
+        /* 原文项容器 - 横向排列自动换行 */
+        .toc-originals-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 8px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* 原文项样式 - 浅青色带阴影 */
+        .toc-original {
+            margin: 0;
+        }
+        
+        .toc-original a {
+            display: inline-block;
+            width: 64px;  /* 固定宽度确保每行显示数量一致 */
+            padding: 6px 4px;
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #36828C;  /* 青色主题色 */
+            text-decoration: none;
+            text-align: center;
+            background: #e8f4f5;
+            border-radius: 6px;
+            border-left: none;
+            box-shadow: 0 2px 4px rgba(54, 130, 140, 0.2);  /* 青色阴影 */
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .toc-original a:hover {
+            background: #e0f2f4;
+            color: #36828C;
+            box-shadow: 0 3px 6px rgba(54, 130, 140, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        /* TOC 遮罩层 */
+        .toc-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .toc-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 移动端 TOC 适配 */
+        @media (max-width: 768px) {
+            .toc-toggle {
+                top: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .toc-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .toc-panel {
+                width: 90vw;
+                height: 80vh;
+                max-width: none;
+            }
+            
+            .toc-header {
+                padding: 12px 15px 12px 65px;
+            }
+            
+            .toc-header h3 {
+                font-size: 16px;
+            }
+            
+            .toc-item a {
+                padding: 4px 15px;
+                font-size: 15.5px;
+            }
+            
+            .toc-originals-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            .toc-original a {
+                padding: 5px 10px;
+                font-size: 15.5px;
+            }
+        }
+
+        /* 特殊术语着色 */
+        .spectral {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .periodicity {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .fourier {
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        /* 列表样式增强 */
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 - 已移除重复定义，使用上方第602-633行的紧凑型样式 */
+
+        /* 分隔线 */
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 30px 0;
+        }
+
+        /* 数学公式样式 - Q7: 行间公式颜色用黑色 */
+        .math-block {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            color: #000000; /* Q7: 黑色文字 */
+        }
+
+        /* Q7: 确保MathJax渲染的公式为黑色 */
+        .math-block .MathJax {
+            color: #000000 !important;
+        }
+
+        mjx-container {
+            color: #000000 !important;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- TOC 目录按钮 -->
+    <button class="toc-toggle" id="tocToggle" aria-label="打开目录">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+        </svg>
+    </button>
+    
+    <!-- TOC 遮罩层 -->
+    <div class="toc-overlay" id="tocOverlay"></div>
+    
+    <!-- TOC 目录面板 -->
+    <nav class="toc-panel" id="tocPanel">
+        <div class="toc-header">
+            <h3>📑 目录</h3>
+        </div>
+        <div class="toc-content">
+            <ul class="toc-list">
+                <li class="toc-item toc-heading"><a href="#section-1">1. 直积群 (Direct Product Group)</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-1">原文1</a></span><span class="toc-original"><a href="#original-2">原文2</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-2">2. 将群分解为直积</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-3">原文3</a></span><span class="toc-original"><a href="#original-4">原文4</a></span><span class="toc-original"><a href="#original-5">原文5</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-3">3. 识别直积的条件</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-6">原文6</a></span><span class="toc-original"><a href="#original-7">原文7</a></span><span class="toc-original"><a href="#original-8">原文8</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-4">4. 4阶群的分类 (Classification of Groups of Order 4)</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-9">原文9</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-5">5. 行间公式索引</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>行间公式索引</h1>
+            <p class="authors"></p>
+            <p class="date"></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 图例区域 -->
+        <div class="legend-section">
+            <!-- 第一行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar original"></div>
+                    <span>📜 原文</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar explain"></div>
+                    <span>📖 逐步解释</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar formula"></div>
+                    <span>∑ 公式拆解</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar example"></div>
+                    <span>💡 数值示例</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar warning"></div>
+                    <span>⚠️ 易错点</span>
+                </div>
+            </div>
+            <!-- 第二行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar summary"></div>
+                    <span>📝 总结</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar purpose"></div>
+                    <span>🎯 存在目的</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar intuition"></div>
+                    <span>🧠 直觉心智模型</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar imagination"></div>
+                    <span>💭 直观想象</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="content-section" id="section-1">
+    <h2><span class="section-number">1</span>直积群 (Direct Product Group)</h2>
+    <h4>1.1 直积群的定义</h4><p id="original-1"><strong style="font-size: 1.3rem;">📜 [原文1]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>令 $G, G^{\prime}$ 为两个<strong>群</strong>。<strong>直积</strong>集 $G \times G^{\prime}$，即由 $G$ 中的元素 $a$ 和 $G^{\prime}$ 中的元素 $a^{\prime}$ 组成的<strong>对</strong> $(a, a^{\prime})$ 的集合，可以通过<strong>分量乘法</strong>构成一个<strong>群</strong>——也就是说，<strong>对</strong>的乘法由以下规则定义：</p>
+<p><div class="math-block">$$
+\begin{equation*}
+\left(a, a^{\prime}\right) \cdot\left(b, b^{\prime}\right)=\left(a b, a^{\prime} b^{\prime}\right) . \tag{2.11.1}
+\end{equation*}
+$$</div></p>
+<p><strong>对</strong> $(1,1)$ 是<strong>单位元</strong>，$\left(a, a^{\prime}\right)$ 的<strong>逆元</strong>是 $\left(a^{-1}, a^{\prime-1}\right)$。 $G \times G^{\prime}$ 中的<strong>结合律</strong>遵循于它在 $G$ 和 $G^{\prime}$ 中成立的事实。</p>
+<p>以这种方式获得的<strong>群</strong>称为 $G$ 和 $G^{\prime}$ 的<strong>直积</strong>，并表示为 $G \times G^{\prime}$。它以一种简单的方式与两个<strong>因子</strong> $G$ 和 $G^{\prime}$ 相关，我们可以通过一些<strong>同态</strong>来总结这种关系。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话的核心思想是：如何用两个已知的<strong>群</strong>，像搭积木一样，构造出一个新的、更大的<strong>群</strong>。这个新的<strong>群</strong>被称为<strong>直积群</strong>。</p>
+<ol>
+  <li> <strong>原材料</strong>：首先，我们需要两个<strong>群</strong>，我们称之为 $G$ 和 $G^{\prime}$。每个<strong>群</strong>都有自己的元素和自己的运算规则。</li>
+  <li> <strong>构造新集合</strong>：我们构造一个新的集合，记作 $G \times G^{\prime}$。这个集合里的元素很特别，它们不是单个的数字或符号，而是一个个的“<strong>有序对</strong>”(ordered pair)，写作 $(a, a^{\prime})$。这个<strong>有序对</strong>的第一个部分 $a$ 必须是来自第一个<strong>群</strong> $G$ 的元素，第二个部分 $a^{\prime}$ 必须是来自第二个<strong>群</strong> $G^{\prime}$ 的元素。这个过程就像从两个篮子里（一个装满了 $G$ 的元素，一个装满了 $G^{\prime}$ 的元素）各取一个元素配对。</li>
+  <li> <strong>定义新运算</strong>：光有元素的集合还不够，要成为一个<strong>群</strong>，必须定义元素之间的运算。这里的运算规则非常直观，叫做<strong>分量乘法</strong> (component-wise multiplication)。也就是说，要计算两个<strong>有序对</strong> $(a, a^{\prime})$ 和 $(b, b^{\prime})$ 的乘积，我们只需要把它们对应位置的元素分别相乘即可。第一个分量 $a$ 和 $b$ 在<strong>群</strong> $G$ 中相乘，得到 $ab$；第二个分量 $a^{\prime}$ 和 $b^{\prime}$ 在<strong>群</strong> $G^{\prime}$ 中相乘，得到 $a^{\prime}b^{\prime}$。最后把这两个结果组成一个新的<strong>有序对</strong> $(ab, a^{\prime}b^{\prime})$。</li>
+  <li> <strong>验证群的公理</strong>：为了确认我们这样构造出来的新结构确实是一个<strong>群</strong>，我们需要检查它是否满足<strong>群</strong>的四个基本条件：
+<ul>
+  <li><strong>封闭性 (Closure)</strong>：由于 $a, b$ 都在 $G$ 中，根据 $G$ 的<strong>封闭性</strong>，$ab$ 也必然在 $G$ 中。同理，$a^{\prime}b^{\prime}$ 也必然在 $G^{\prime}$ 中。因此，它们的乘积 $(ab, a^{\prime}b^{\prime})$ 仍然是一个符合格式的<strong>有序对</strong>，所以这个新结构在<strong>分量乘法</strong>下是<strong>封闭</strong>的。</li>
+  <li><strong>单位元 (Identity Element)</strong>：一个<strong>群</strong>必须有一个<strong>单位元</strong>，任何元素乘以它都等于自身。在<strong>直积群</strong>中，这个<strong>单位元</strong>就是 $(1, 1)$。这里的第一个 $1$ 是<strong>群</strong> $G$ 的<strong>单位元</strong>，第二个 $1$ 是<strong>群</strong> $G^{\prime}$ 的<strong>单位元</strong>。我们可以验证：$(a, a^{\prime}) \cdot (1, 1) = (a \cdot 1, a^{\prime} \cdot 1) = (a, a^{\prime})$。</li>
+  <li><strong>逆元 (Inverse Element)</strong>：对于<strong>群</strong>中的任意一个元素，都必须存在一个<strong>逆元</strong>，使得它与<strong>逆元</strong>的乘积等于<strong>单位元</strong>。对于<strong>直积群</strong>中的任意元素 $(a, a^{\prime})$，它的<strong>逆元</strong>就是 $(a^{-1}, a^{\prime-1})$。这里的 $a^{-1}$ 是 $a$ 在<strong>群</strong> $G$ 中的<strong>逆元</strong>，$a^{\prime-1}$ 是 $a^{\prime}$ 在<strong>群</strong> $G^{\prime}$ 中的<strong>逆元</strong>。验证一下：$(a, a^{\prime}) \cdot (a^{-1}, a^{\prime-1}) = (a \cdot a^{-1}, a^{\prime} \cdot a^{\prime-1}) = (1, 1)$。</li>
+  <li><strong>结合律 (Associativity)</strong>：运算必须满足<strong>结合律</strong>，即 $(x \cdot y) \cdot z = x \cdot (y \cdot z)$。对于<strong>直积群</strong>中的三个元素 $(a, a^{\prime})$, $(b, b^{\prime})$, $(c, c^{\prime})$，我们有：</li>
+</ul></li>
+  <li> <strong>命名</strong>：这个通过<strong>分量乘法</strong>构造出来的<strong>群</strong> $G \times G^{\prime}$，就叫做 $G$ 和 $G^{\prime}$ 的<strong>直积</strong>。$G$ 和 $G^{\prime}$ 被称为<strong>直积</strong>的<strong>因子</strong> (factors)。</li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+\begin{equation*}
+\left(a, a^{\prime}\right) \cdot\left(b, b^{\prime}\right)=\left(a b, a^{\prime} b^{\prime}\right) . \tag{2.11.1}
+\end{equation*}
+$$</div></p>
+<ul>
+  <li>$\left(a, a^{\prime}\right)$: 这是<strong>直积群</strong> $G \times G^{\prime}$ 中的一个元素。它是一个<strong>有序对</strong>，其中 $a \in G$ ( $a$ 是<strong>群</strong> $G$ 中的一个元素)，$a^{\prime} \in G^{\prime}$ ( $a^{\prime}$ 是<strong>群</strong> $G^{\prime}$ 中的一个元素)。</li>
+  <li>$\left(b, b^{\prime}\right)$: 这是<strong>直积群</strong> $G \times G^{\prime}$ 中的另一个元素。其中 $b \in G$，$b^{\prime} \in G^{\prime}$。</li>
+  <li>$\cdot$: 这个点号代表<strong>直积群</strong> $G \times G^{\prime}$ 中定义的运算。</li>
+  <li>$=$: 等于号表示运算的结果。</li>
+  <li>$\left(a b, a^{\prime} b^{\prime}\right)$: 这是运算的结果，也是一个<strong>有序对</strong>。</li>
+  <li>$ab$: 这是 $a$ 和 $b$ 在<strong>群</strong> $G$ 中进行运算的结果。注意，这里的乘法是 $G$ 内部的运算。</li>
+  <li>$a^{\prime} b^{\prime}$: 这是 $a^{\prime}$ 和 $b^{\prime}$ 在<strong>群</strong> $G^{\prime}$ 中进行运算的结果。注意，这里的乘法是 $G^{\prime}$ 内部的运算。</li>
+</ul>
+<p>这个公式的核心是<strong>分量式 (component-wise)</strong> 的运算。就像向量加法一样，对应位置的元素进行各自的运算，然后组合成新的结果。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>示例 1：整数加法群的直积</strong></p>
+<ul>
+  <li>令 $G = (\mathbb{Z}, +)$，即整数加法群。元素是所有整数，运算是普通加法。单位元是 $0$，一个元素 $n$ 的逆元是 $-n$。</li>
+  <li>令 $G^{\prime} = (\mathbb{Z}, +)$，也是整数加法群。</li>
+  <li>我们来构造<strong>直积群</strong> $\mathbb{Z} \times \mathbb{Z}$。</li>
+  <li><strong>元素</strong>：形如 $(m, n)$ 的<strong>有序对</strong>，其中 $m, n$ 都是整数。例如 $(2, 3)$, $(-1, 5)$, $(0, 0)$。</li>
+  <li><strong>运算</strong>：分量加法。例如，计算 $(2, 3) + (-1, 5)$：</li>
+</ul>
+<p>$(2, 3) + (-1, 5) = (2 + (-1), 3 + 5) = (1, 8)$。</p>
+<ul>
+  <li><strong>单位元</strong>：$(0, 0)$，因为 $(m, n) + (0, 0) = (m+0, n+0) = (m, n)$。</li>
+  <li><strong>逆元</strong>：元素 $(m, n)$ 的逆元是 $(-m, -n)$，因为 $(m, n) + (-m, -n) = (m-m, n-n) = (0, 0)$。</li>
+  <li>这个<strong>直积群</strong> $\mathbb{Z} \times \mathbb{Z}$ 在几何上可以看作是二维平面上所有整数坐标点构成的集合，运算是向量加法。</li>
+</ul>
+<p><strong>示例 2：循环群的直积</strong></p>
+<ul>
+  <li>令 $G = C_2 = (\{0, 1\}, +_2)$，即<strong>2阶循环群</strong>，运算是模2加法。$0+0=0, 0+1=1, 1+0=1, 1+1=0$。单位元是 $0$。</li>
+  <li>令 $G^{\prime} = C_3 = (\{0, 1, 2\}, +_3)$，即<strong>3阶循环群</strong>，运算是模3加法。单位元是 $0$。</li>
+  <li>我们来构造<strong>直积群</strong> $C_2 \times C_3$。</li>
+  <li><strong>元素</strong>：集合是 $\{(0,0), (0,1), (0,2), (1,0), (1,1), (1,2)\}$。这个群一共有 $2 \times 3 = 6$ 个元素。</li>
+  <li><strong>运算</strong>：分量模加法。例如，计算 $(1, 2) + (1, 1)$：</li>
+</ul>
+<p>$(1, 2) + (1, 1) = (1 +_2 1, 2 +_3 1) = (0, 0)$。</p>
+<ul>
+  <li><strong>单位元</strong>：$(0, 0)$。</li>
+  <li><strong>逆元</strong>：元素 $(1, 2)$ 的逆元是 $(1, 1)$，因为它们的和是单位元 $(0, 0)$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>混淆运算</strong>：最常见的错误是混淆不同群的运算。在计算 $(ab, a^{\prime}b^{\prime})$ 时，$ab$ 的运算是在 $G$ 中进行的，$a^{\prime}b^{\prime}$ 的运算是在 $G^{\prime}$ 中进行的。如果 $G$ 是加法群，$G^{\prime}$ 是乘法群，那么运算形式可能是 $(a+b, a^{\prime} \cdot b^{\prime})$。</li>
+  <li><strong>元素的阶</strong>：<strong>直积群</strong>中一个元素 $(a, a^{\prime})$ 的<strong>阶</strong> (order) 是使得 $(a, a^{\prime})^k = (a^k, (a^{\prime})^k)$ 等于<strong>单位元</strong> $(1, 1)$ 的最小正整数 $k$。这要求 $a^k=1$ 且 $(a^{\prime})^k=1$ 同时成立。因此，$k$ 必须是 $a$ 的<strong>阶</strong>和 $a^{\prime}$ 的<strong>阶</strong>的<strong>最小公倍数</strong>。即 $\text{ord}(a, a^{\prime}) = \text{lcm}(\text{ord}(a), \text{ord}(a^{\prime}))$。</li>
+  <li><strong>交换律</strong>：即使 $G$ 和 $G^{\prime}$ 都是<strong>阿贝尔群</strong>（交换群），这并不意味着<strong>直积群</strong>中的任意两个元素都可以随意交换分量。例如，在 $\mathbb{Z} \times \mathbb{Z}$ 中，$(a, b) + (c, d) = (a+c, b+d) = (c+a, d+b) = (c, d) + (a, b)$，所以 $\mathbb{Z} \times \mathbb{Z}$ 是<strong>阿贝尔群</strong>。但如果 $G$ 或 $G^{\prime}$ 中有一个不是<strong>阿贝尔群</strong>，那么 $G \times G^{\prime}$ 也不是<strong>阿贝尔群</strong>。</li>
+  <li><strong>集合与群</strong>：$G \times G^{\prime}$ 首先是一个<strong>笛卡尔积集合</strong> (Cartesian product set)，只有在为其定义了合适的<strong>分量乘法</strong>并满足<strong>群</strong>公理后，才成为一个<strong>直积群</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>直积</strong>是一种从已有<strong>群</strong>构造新<strong>群</strong>的基本方法。它将两个<strong>群</strong> $G$ 和 $G^{\prime}$ 的元素配对形成<strong>有序对</strong> $(a, a^{\prime})$，并定义了一种自然的<strong>分量乘法</strong>。这个新<strong>群</strong> $G \times G^{\prime}$ 的结构很大程度上继承了其<strong>因子群</strong> $G$ 和 $G^{\prime}$ 的性质，但又是一个更复杂的独立实体。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p><strong>直积</strong>的概念主要服务于两个目的：</p>
+<ol>
+  <li> <strong>构造 (Construction)</strong>：它提供了一种系统性的方法来创造出更复杂、更多样的<strong>群</strong>的例子。这对于研究<strong>群</strong>的分类和性质至关重要。</li>
+  <li> <strong>分解 (Decomposition)</strong>：反过来看，如果一个复杂的<strong>群</strong> $G$ 能够被<strong>分解</strong>，即证明它<strong>同构</strong>于某个<strong>直积群</strong> $H \times K$，那么我们就可以通过研究更简单的<strong>群</strong> $H$ 和 $K$ 来理解 $G$ 的结构。这是一种化繁为简的强大分析工具。</li>
+</ol>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一个控制面板上有两个独立的旋钮。第一个旋钮有 $|G|$ 个档位，对应<strong>群</strong> $G$ 的所有元素。第二个旋钮有 $|G^{\prime}|$ 个档位，对应<strong>群</strong> $G^{\prime}$ 的所有元素。</p>
+<ol>
+  <li><strong>直积群的一个元素</strong>：就是两个旋钮的当前状态组合，例如“(旋钮1在 $a$ 档, 旋钮2在 $a^{\prime}$ 档)”，即 $(a, a^{\prime})$。</li>
+  <li><strong>直积群的运算</strong>：就是分别拨动两个旋钮。如果你想执行操作 $(b, b^{\prime})$，你就把第一个旋钮从当前档位 $a$ 按照 $G$ 的规则拨动 $b$ 的量，到达 $ab$ 档；同时把第二个旋钮从当前档位 $a^{\prime}$ 按照 $G^{\prime}$ 的规则拨动 $b^{\prime}$ 的量，到达 $a^{\prime}b^{\prime}$ 档。最终两个旋钮的状态就是 $(ab, a^{\prime}b^{\prime})$。</li>
+</ol>
+<p>这两个旋钮的操作是完全独立的，互不影响，这正是<strong>直积</strong>的核心特征。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>二维坐标系</strong>：如果 $G = \mathbb{R}$（实数加法群），$G^{\prime} = \mathbb{R}$，那么<strong>直积群</strong> $\mathbb{R} \times \mathbb{R}$ 就是我们熟悉的二维笛卡尔平面。一个元素 $(x, y)$ 就是平面上的一个点。群的运算 $(x_1, y_1) + (x_2, y_2) = (x_1+x_2, y_1+y_2)$ 就是向量的平行四边形法则。</li>
+  <li><strong>圆环面 (Torus)</strong>：如果 $G = C_n$ (n阶循环群，可想象为钟表的n个点)，$G^{\prime} = C_m$，那么<strong>直积群</strong> $C_n \times C_m$ 可以想象成一个圆环面（甜甜圈的表面）。一个维度的运动是在一个圆上循环（$n$ 个位置），另一个维度的运动是在另一个垂直的圆上循环（$m$ 个位置）。$C_n \times C_m$ 的一个元素就对应圆环面上的一个网格点。</li>
+</ol>
+    </div>
+</div><h4>1.2 直积群与因子群的关系</h4><p id="original-2"><strong style="font-size: 1.3rem;">📜 [原文2]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><img src="https://cdn.mathpix.com/cropped/40925d26-58c4-48c7-a09f-8cbb62bc844d-28.jpg?height=196&width=369&top_left_y=1015&top_left_x=604" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p>它们定义为 $i(x)=(x, 1), i^{\prime}\left(x^{\prime}\right)=\left(1, x^{\prime}\right), \quad p\left(x, x^{\prime}\right)=x, \quad p^{\prime}\left(x, x^{\prime}\right)=x^{\prime}$。<strong>内射同态</strong> $i$ 和 $i^{\prime}$ 可用于将 $G$ 和 $G^{\prime}$ 分别与其像，即 $G \times G^{\prime}$ 的<strong>子群</strong> $G \times 1$ 和 $1 \times G^{\prime}$ 进行识别。映射 $p$ 和 $p^{\prime}$ 是<strong>满射</strong>， $p$ 的<strong>核</strong>是 $1 \times G^{\prime}$， $p^{\prime}$ 的<strong>核</strong>是 $G \times 1$。这些是<strong>投影</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话描述了<strong>直积群</strong> $G \times G^{\prime}$ 和其原始的<strong>因子群</strong> $G, G^{\prime}$ 之间存在的四种标准联系方式。这些联系都是通过<strong>群同态</strong>（保持群结构的映射）来建立的。</p>
+<ol>
+  <li> <strong>从因子群到直积群 (内射/嵌入)</strong>:
+<ul>
+  <li><strong>映射 i</strong>: 我们如何把<strong>群</strong> $G$ “放进”<strong>直积群</strong> $G \times G^{\prime}$ 中？我们可以定义一个映射 $i: G \to G \times G^{\prime}$，它把 $G$ 中的任意一个元素 $x$ 变成<strong>直积群</strong>中的 $(x, 1)$。这里的 $1$ 是 $G^{\prime}$ 的<strong>单位元</strong>。这个映射是<strong>同态</strong>，因为 $i(xy) = (xy, 1) = (x, 1)(y, 1) = i(x)i(y)$。它也是<strong>内射</strong>（一对一）的，因为如果 $i(x_1) = i(x_2)$，那么 $(x_1, 1) = (x_2, 1)$，这意味着 $x_1 = x_2$。</li>
+  <li><strong>映射 i'</strong>: 同样地，我们可以定义一个映射 $i': G' \to G \times G'$，它把 $G'$ 中的任意一个元素 $x'$ 变成<strong>直积群</strong>中的 $(1, x')$。这里的 $1$ 是 $G$ 的<strong>单位元</strong>。这个映射也是一个<strong>内射同态</strong>。</li>
+  <li><strong>识别 (Identification)</strong>: 通过这两个<strong>内射同态</strong>，我们可以在<strong>直积群</strong> $G \times G'$ 内部找到两个特殊的<strong>子群</strong>：</li>
+  <li>$i(G) = \{(x, 1) | x \in G\}$，记作 $G \times 1$。这个<strong>子群</strong>的结构和原始的 $G$ 完全一样（<strong>同构</strong>）。</li>
+  <li>$i'(G') = \{(1, x') | x' \in G'\}$，记作 $1 \times G'$。这个<strong>子群</strong>的结构和原始的 $G'$ 完全一样（<strong>同构</strong>）。</li>
+  <li>因此，我们可以把 $G$ 和 $G'$ 看作是“嵌入”在 $G \times G'$ 内部的两个特殊<strong>子群</strong>。</li>
+</ul></li>
+  <li> <strong>从直积群到因子群 (满射/投影)</strong>:
+<ul>
+  <li><strong>映射 p</strong>: 我们如何从<strong>直积群</strong>的一个元素 $(x, x')$ 中“提取”出属于 $G$ 的部分？我们定义一个映射 $p: G \times G' \to G$，它把 $(x, x')$ 直接映射到它的第一个分量 $x$。这个映射被称为<strong>投影</strong> (projection)。它是<strong>同态</strong>，因为 $p((a, a')(b, b')) = p(ab, a'b') = ab = p(a, a')p(b, b')$。它也是<strong>满射</strong>（映上）的，因为对于 $G$ 中的任何一个元素 $x$，我们总能在 $G \times G'$ 中找到一个元素（比如 $(x, 1)$）映射到它。</li>
+  <li><strong>映射 p'</strong>: 类似地，我们定义另一个<strong>投影</strong> $p': G \times G' \to G'$，它把 $(x, x')$ 映射到它的第二个分量 $x'$。这个映射也是一个<strong>满射同态</strong>。</li>
+  <li><strong>核 (Kernel)</strong>: <strong>同态</strong>的<strong>核</strong>是指被映射到<strong>目标群单位元</strong>的所有<strong>源群</strong>元素的集合。</li>
+  <li>$p$ 的<strong>核</strong> $\text{ker}(p)$：我们需要找到所有被 $p$ 映射到 $G$ 的<strong>单位元</strong> $1_G$ 的元素 $(x, x')$。即 $p(x, x') = x = 1_G$。满足这个条件的元素形如 $(1_G, x')$，其中 $x'$ 可以是 $G'$ 中的任何元素。这个集合正是我们前面提到的<strong>子群</strong> $1 \times G'$。</li>
+  <li>$p'$ 的<strong>核</strong> $\text{ker}(p')$：我们需要找到所有被 $p'$ 映射到 $G'$ 的<strong>单位元</strong> $1_{G'}$ 的元素 $(x, x')$。即 $p'(x, x') = x' = 1_{G'}$。满足这个条件的元素形如 $(x, 1_{G'})$，这个集合正是<strong>子群</strong> $G \times 1$。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li>$i(x)=(x, 1)$:</li>
+  <li>$i$: <strong>内射</strong> (injection) 或<strong>嵌入</strong> (embedding) 映射。</li>
+  <li>$x$: 输入，是<strong>群</strong> $G$ 的一个元素。</li>
+  <li>$(x, 1)$: 输出，是<strong>直积群</strong> $G \times G'$ 的一个元素，第二个分量固定为 $G'$ 的<strong>单位元</strong>。</li>
+  <li>$i^{\prime}\left(x^{\prime}\right)=\left(1, x^{\prime}\right)$:</li>
+  <li>$i'$: 另一个<strong>内射</strong>映射。</li>
+  <li>$x'$: 输入，是<strong>群</strong> $G'$ 的一个元素。</li>
+  <li>$(1, x')$: 输出，是<strong>直积群</strong> $G \times G'$ 的一个元素，第一个分量固定为 $G$ 的<strong>单位元</strong>。</li>
+  <li>$p\left(x, x^{\prime}\right)=x$:</li>
+  <li>$p$: <strong>投影</strong> (projection) 映射。</li>
+  <li>$(x, x')$: 输入，是<strong>直积群</strong>的一个元素。</li>
+  <li>$x$: 输出，是<strong>群</strong> $G$ 的一个元素，即输入的第一个分量。</li>
+  <li>$p^{\prime}\left(x, x^{\prime}\right)=x^{\prime}$:</li>
+  <li>$p'$: 另一个<strong>投影</strong>映射。</li>
+  <li>$(x, x')$: 输入，是<strong>直积群</strong>的一个元素。</li>
+  <li>$x'$: 输出，是<strong>群</strong> $G'$ 的一个元素，即输入的第二个分量。</li>
+</ul>
+<p><strong>图示解释</strong>：</p>
+<p>那个交换图表达了这些映射之间的关系。</p>
+<p>```</p>
+<p>i'</p>
+<p>G' ---&gt; G x G'</p>
+<p>&lt;---</p>
+<p>p'</p>
+<p>^       |</p>
+<p>|       |</p>
+<p>p       v i</p>
+<p>G &lt;---- G x G'</p>
+<p>```</p>
+<ul>
+  <li>从 $G$ 出发，通过 $i$ 映射到 $G \times G'$，再通过 $p$ 投影回来，就回到了 $G$ 本身 ($p(i(x)) = p(x, 1) = x$)。这说明 $p$ 是 $i$ 的一个“左逆”。</li>
+  <li>从 $G$ 出发，通过 $i$ 映射到 $G \times G'$，再通过 $p'$ 投影到 $G'$，结果是 $p'(i(x)) = p'(x, 1) = 1_{G'}$ (G'的单位元)。这说明 $G$ 的像完全落在 $p'$ 的核里。</li>
+  <li>类似的关系对 $G', i', p'$ 和 $p$ 也成立。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>示例：$C_2 \times C_3$</strong></p>
+<ul>
+  <li><strong>群</strong>: $C_2 = \{0, 1\}$, $C_3 = \{0, 1, 2\}$, $C_2 \times C_3 = \{(0,0), (0,1), (0,2), (1,0), (1,1), (1,2)\}$。</li>
+  <li><strong>内射 i</strong>: $i: C_2 \to C_2 \times C_3$</li>
+  <li>$i(0) = (0, 0)$</li>
+  <li>$i(1) = (1, 0)$</li>
+  <li>$i$ 的<strong>像</strong> (image) 是 $C_2 \times \{0\} = \{(0,0), (1,0)\}$，这个<strong>子群</strong>与 $C_2$ <strong>同构</strong>。</li>
+  <li><strong>内射 i'</strong>: $i': C_3 \to C_2 \times C_3$</li>
+  <li>$i'(0) = (0, 0)$</li>
+  <li>$i'(1) = (0, 1)$</li>
+  <li>$i'(2) = (0, 2)$</li>
+  <li>$i'$ 的<strong>像</strong>是 $\{0\} \times C_3 = \{(0,0), (0,1), (0,2)\}$，这个<strong>子群</strong>与 $C_3$ <strong>同构</strong>。</li>
+  <li><strong>投影 p</strong>: $p: C_2 \times C_3 \to C_2$</li>
+  <li>$p(0,0)=0, p(0,1)=0, p(0,2)=0$</li>
+  <li>$p(1,0)=1, p(1,1)=1, p(1,2)=1$</li>
+  <li>这个映射是<strong>满射</strong>的，因为 $0$ 和 $1$ 都被映射到了。</li>
+  <li>$p$ 的<strong>核</strong>是所有被映射到 $C_2$ 的<strong>单位元</strong> $0$ 的元素集合：$\{(0,0), (0,1), (0,2)\}$，这正是 $\{0\} \times C_3$。</li>
+  <li><strong>投影 p'</strong>: $p': C_2 \times C_3 \to C_3$</li>
+  <li>$p'(0,0)=0, p'(1,0)=0$</li>
+  <li>$p'(0,1)=1, p'(1,1)=1$</li>
+  <li>$p'(0,2)=2, p'(1,2)=2$</li>
+  <li>这个映射是<strong>满射</strong>的。</li>
+  <li>$p'$ 的<strong>核</strong>是所有被映射到 $C_3$ 的<strong>单位元</strong> $0$ 的元素集合：$\{(0,0), (1,0)\}$，这正是 $C_2 \times \{0\}$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>像 vs. 群本身</strong>: 严格来说，$G$ 和 $G \times 1$ 是两个不同的集合，但因为它们作为<strong>群</strong>的结构完全一样（<strong>同构</strong>），我们常常为了方便而“识别”它们，把它们看作是同一个东西。这是一种常见的数学上的“滥用符号”，但能大大简化讨论。</li>
+  <li><strong>核是正规子群</strong>: 一个重要的事实是，任何<strong>同态</strong>的<strong>核</strong>都是一个<strong>正规子群</strong>。因此，$G \times 1$ 和 $1 \times G'$ 都是 $G \times G'$ 的<strong>正规子群</strong>。这一点在后面的命题中会用到。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>直积群</strong> $G \times G'$ 内部包含了两个与其<strong>因子群</strong> $G$ 和 $G'$ <strong>同构</strong>的<strong>子群</strong> $G \times 1$ 和 $1 \times G'$。同时，$G \times G'$ 又可以被“压回”到它的<strong>因子群</strong> $G$ 和 $G'$，这个过程就是<strong>投影</strong>。<strong>内射</strong>（嵌入）和<strong>投影</strong>（满射）这两种<strong>同态</strong>，构成了<strong>直积群</strong>和其<strong>因子群</strong>之间最基本的联系。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这段话的目的是建立<strong>直积群</strong>这个新构造与我们已知的<strong>因子群</strong>之间的明确数学关系。它告诉我们，<strong>直积群</strong>并没有完全“忘记”它的来源，而是以<strong>子群</strong>和<strong>商群</strong>的形式保留了 $G$ 和 $G'$ 的全部信息。这些<strong>同态</strong>（$i, i', p, p'$）就像是翻译官，让我们可以在<strong>直积群</strong>的语境下讨论 $G$ 和 $G'$，或者反过来。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>再次使用二维坐标系的例子，令<strong>直积群</strong>为 $G = \mathbb{R} \times \mathbb{R}$（平面）。</p>
+<ol>
+  <li><strong>子群</strong> $G \times 1$ 就是 $\mathbb{R} \times \{0\}$，即平面上的 x-轴。x-轴本身就是一条直线，它的结构和 $\mathbb{R}$ 完全一样。</li>
+  <li><strong>子群</strong> $1 \times G'$ 就是 $\{0\} \times \mathbb{R}$，即平面上的 y-轴。y-轴也和 $\mathbb{R}$ 结构一样。</li>
+  <li><strong>投影</strong> $p: \mathbb{R} \times \mathbb{R} \to \mathbb{R}$， $p(x, y) = x$，就像是把平面上任意一个点 $(x, y)$ 的灯光垂直投射到 x-轴上，只看它的 x-坐标。</li>
+  <li><strong>投影</strong> $p': \mathbb{R} \times \mathbb{R} \to \mathbb{R}$， $p'(x, y) = y$，就像是把点 $(x, y)$ 的灯光水平投射到 y-轴上，只看它的 y-坐标。</li>
+  <li>$p$ 的<strong>核</strong>是所有投影到 x-轴原点（$x=0$）的点，即所有形如 $(0, y)$ 的点，这正是 y-轴。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个长方体。</p>
+<ol>
+  <li>长方体本身可以看作是三个<strong>区间</strong>（代表三个群）的<strong>直积</strong>。</li>
+  <li><strong>内射</strong>：x-轴上的一条边可以看作是第一个<strong>区间群</strong>的“嵌入”。</li>
+  <li><strong>投影</strong>：将整个长方体压扁到 xy-平面上，就得到了一个<strong>矩形</strong>（两个群的直积），这就是一个<strong>投影</strong>操作。这个操作的<strong>核</strong>，即所有被压到原点的点，就是垂直于 xy-平面的 z-轴上的那条边。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-2">
+    <h2><span class="section-number">2</span>将群分解为直积</h2>
+    <h4>2.1 分解的愿望与一个例子</h4><p id="original-3"><strong style="font-size: 1.3rem;">📜 [原文3]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>将给定的<strong>群</strong> $G$ <strong>分解</strong>为<strong>直积</strong>显然是可取的，也就是说，找到<strong>群</strong> $H$ 和 $H^{\prime}$，使得 $G$ <strong>同构</strong>于<strong>直积</strong> $H \times H^{\prime}$。<strong>群</strong> $H$ 和 $H^{\prime}$ 将更简单，并且 $H \times H^{\prime}$ 与其<strong>因子</strong>之间的关系很容易理解。一个<strong>群</strong>是<strong>直积</strong>的情况很少见，但偶尔也会发生。</p>
+<p>例如，<strong>6阶循环群</strong>可以<strong>分解</strong>，这相当令人惊讶：<strong>6阶循环群</strong> $C_{6}$ <strong>同构</strong>于<strong>2阶循环群</strong>和<strong>3阶循环群</strong>的<strong>直积</strong> $C_{2} \times C_{3}$。为了说明这一点，假设 $C_{2}=\langle y\rangle$ 和 $C_{3}=\langle z\rangle$，其中 $y^{2}=1$ 和 $z^{3}=1$，并令 $x$ 表示<strong>直积群</strong> $C_{2} \times C_{3}$ 的元素 $(y, z)$。使得 $x^{k}=\left(y^{k}, z^{k}\right)$ 是<strong>单位元</strong> $(1,1)$ 的最小正整数 $k$ 是 $k=6$。所以 $x$ 的<strong>阶</strong>是 6。由于 $C_{2} \times C_{3}$ 的<strong>阶</strong>也是 6，它等于<strong>循环群</strong> $\langle x\rangle$。 $x$ 的<strong>幂</strong>依次为</p>
+<p><div class="math-block">$$
+(1,1),(y, z),\left(1, z^{2}\right),(y, 1),(1, z),\left(y, z^{2}\right) .
+$$</div></p>
+<p>$\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>分解的目标</strong>：这段话首先提出了一个重要目标——<strong>分解群</strong>。就像将一个大整数分解成质因数乘积（例如 $12 = 2^2 \times 3$）可以帮助我们理解这个数的性质一样，如果我们能将一个复杂的<strong>群</strong> $G$ <strong>分解</strong>成两个更小的、更简单的<strong>群</strong> $H$ 和 $H'$ 的<strong>直积</strong>，即证明 $G \cong H \times H'$（$G$ <strong>同构</strong>于 $H \times H'$），那么我们对 $G$ 的理解就会深刻得多。因为 $H$ 和 $H'$ 更简单，而且我们已经知道<strong>直积</strong>是如何运作的。</li>
+  <li> <strong>稀有但重要</strong>：作者提醒我们，并不是所有的<strong>群</strong>都能被这样漂亮地<strong>分解</strong>。这就像不是所有整数都是合数一样（素数就不能再分解）。能够被<strong>分解</strong>成<strong>直积</strong>的<strong>群</strong>是比较特殊的，但一旦遇到，这就是一个非常重要的性质。</li>
+  <li> <strong>令人惊讶的例子：$C_6$ 的分解</strong>
+<ul>
+  <li><strong>问题</strong>：我们来看一个具体的<strong>群</strong>，<strong>6阶循环群</strong> $C_6$。它能被分解吗？</li>
+  <li><strong>猜测</strong>：$C_6$ 的阶是 6，而 $6=2 \times 3$。那么，$C_6$ 是否和 $C_2 \times C_3$ 有关呢？</li>
+  <li><strong>证明思路</strong>：要证明 $C_6 \cong C_2 \times C_3$，我们需要证明 $C_2 \times C_3$ 本身就是一个<strong>6阶循环群</strong>。如果能做到这一点，因为所有<strong>同阶的循环群都是同构的</strong>，所以命题就得证。</li>
+  <li><strong>执行证明</strong>：</li>
+  <li>首先，构建<strong>直积群</strong> $C_2 \times C_3$。设 $C_2$ 的生成元是 $y$ ($y^2=1$)，$C_3$ 的生成元是 $z$ ($z^3=1$)。（注意：原文为了通用性用了乘法表示，如果用加法群 $C_2=\{0,1\}, C_3=\{0,1,2\}$，则 $y=1, z=1$，单位元是 $(0,0)$）。我们继续沿用原文的乘法表示，单位元分别是 $1$。</li>
+  <li>$C_2 \times C_3$ 的<strong>阶</strong>是 $|C_2| \times |C_3| = 2 \times 3 = 6$。</li>
+  <li>为了证明它是<strong>循环群</strong>，我们只需要在其中找到一个<strong>6阶</strong>的元素即可。如果找到了，这个元素生成的<strong>循环子群</strong>的<strong>阶</strong>也是6，就会占满整个<strong>群</strong>。</li>
+  <li>我们来考察元素 $x = (y, z)$。我们来计算它的<strong>阶</strong>。</li>
+  <li>$x^k = (y, z)^k = (y^k, z^k)$。要使 $x^k$ 成为<strong>单位元</strong> $(1, 1)$，必须同时满足 $y^k = 1$ (在 $C_2$ 中) 和 $z^k = 1$ (在 $C_3$ 中)。</li>
+  <li>$y$ 的<strong>阶</strong>是 2，所以 $y^k=1$ 意味着 $k$ 必须是 2 的倍数。</li>
+  <li>$z$ 的<strong>阶</strong>是 3，所以 $z^k=1$ 意味着 $k$ 必须是 3 的倍数。</li>
+  <li>要同时满足这两个条件， $k$ 必须是 2 和 3 的<strong>公倍数</strong>。我们要找最小的正整数 $k$，所以 $k$ 就是 2 和 3 的<strong>最小公倍数</strong>，即 $\text{lcm}(2, 3) = 6$。</li>
+  <li>因此，元素 $x = (y, z)$ 的<strong>阶</strong>是 6。</li>
+  <li>我们在一个<strong>6阶群</strong> ($C_2 \times C_3$) 中找到了一个<strong>6阶</strong>的元素 ($(y, z)$)。这意味着这个元素可以生成整个<strong>群</strong>。</li>
+  <li>所以，$C_2 \times C_3$ 是一个由 $(y, z)$ 生成的<strong>6阶循环群</strong>。</li>
+  <li>结论：因为 $C_6$ 和 $C_2 \times C_3$ 都是<strong>6阶循环群</strong>，所以它们必然<strong>同构</strong>，即 $C_6 \cong C_2 \times C_3$。</li>
+</ul></li>
+  <li> <strong>$x$ 的幂</strong>：</li>
+</ol>
+<p>为了直观感受，文章列出了 $x=(y,z)$ 的所有幂次：</p>
+<ul>
+  <li>$x^0 = (y^0, z^0) = (1, 1)$  （用加法表示是 $(0,0)$）</li>
+  <li>$x^1 = (y^1, z^1) = (y, z)$    （用加法表示是 $(1,1)$）</li>
+  <li>$x^2 = (y^2, z^2) = (1, z^2)$  （用加法表示是 $(0,2)$）</li>
+  <li>$x^3 = (y^3, z^3) = (y, 1)$    （用加法表示是 $(1,0)$，因为 $y^3=y$）</li>
+  <li>$x^4 = (y^4, z^4) = (1, z)$    （用加法表示是 $(0,1)$，因为 $z^4=z$）</li>
+  <li>$x^5 = (y^5, z^5) = (y, z^2)$  （用加法表示是 $(1,2)$）</li>
+  <li>$x^6 = (y^6, z^6) = (1, 1)$    （用加法表示是 $(0,0)$），回到单位元。</li>
+</ul>
+<p>这 6 个元素各不相同，正好是 $C_2 \times C_3$ 的所有元素。</p>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+(1,1),(y, z),\left(1, z^{2}\right),(y, 1),(1, z),\left(y, z^{2}\right) .
+$$</div></p>
+<p>这是一个元素列表，展示了由元素 $(y, z)$ 生成的<strong>循环群</strong>的所有成员。</p>
+<ul>
+  <li>$(1,1)$: 这是 $x^0$ 或 $x^6$，是<strong>单位元</strong>。</li>
+  <li>$(y, z)$: 这是 $x^1$。</li>
+  <li>$(1, z^2)$: 这是 $x^2 = (y^2, z^2)$。因为 $y \in C_2$，所以 $y^2=1$。</li>
+  <li>$(y, 1)$: 这是 $x^3 = (y^3, z^3)$。因为 $y^3 = y^2 \cdot y = 1 \cdot y = y$，且 $z \in C_3$，所以 $z^3 = 1$。</li>
+  <li>$(1, z)$: 这是 $x^4 = (y^4, z^4)$。因为 $y^4 = (y^2)^2 = 1^2 = 1$，且 $z^4 = z^3 \cdot z = 1 \cdot z = z$。</li>
+  <li>$(y, z^2)$: 这是 $x^5 = (y^5, z^5)$。因为 $y^5=y$, $z^5=z^2$。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>示例 1：$C_6$ 的分解 (已在上面详细解释)</strong></p>
+<ul>
+  <li>$G = C_6 = \{0, 1, 2, 3, 4, 5\}$ (模6加法)。这是一个<strong>6阶循环群</strong>。</li>
+  <li>$H = C_2 = \{0, 1\}$ (模2加法)。</li>
+  <li>$K = C_3 = \{0, 1, 2\}$ (模3加法)。</li>
+  <li><strong>直积群</strong> $C_2 \times C_3$ 是一个<strong>6阶循环群</strong>，因为它包含<strong>6阶</strong>元素 $(1, 1)$。</li>
+  <li>因此 $C_6 \cong C_2 \times C_3$。</li>
+  <li>我们可以建立一个具体的<strong>同构映射</strong> $\phi: C_6 \to C_2 \times C_3$，定义为 $\phi(k) = (k \pmod 2, k \pmod 3)$。</li>
+  <li>$\phi(0) = (0, 0)$</li>
+  <li>$\phi(1) = (1, 1)$</li>
+  <li>$\phi(2) = (0, 2)$</li>
+  <li>$\phi(3) = (1, 0)$</li>
+  <li>$\phi(4) = (0, 1)$</li>
+  <li>$\phi(5) = (1, 2)$</li>
+</ul>
+<p>这个映射是一一对应的，并且保持运算（<strong>中国剩余定理</strong>的群论形式）。</p>
+<p><strong>示例 2：$C_{10}$ 的分解</strong></p>
+<ul>
+  <li>$G = C_{10}$，阶为 $10 = 2 \times 5$。因为 2 和 5 <strong>互素</strong>。</li>
+  <li>我们可以推断 $C_{10} \cong C_2 \times C_5$。</li>
+  <li>证明：在 $C_2 \times C_5$ 中考虑元素 $(1, 1)$（使用加法表示）。</li>
+  <li>它的阶是 $\text{lcm}(\text{ord}(1 \text{ in } C_2), \text{ord}(1 \text{ in } C_5)) = \text{lcm}(2, 5) = 10$。</li>
+  <li>我们在一个<strong>10阶群</strong> ($C_2 \times C_5$) 中找到了一个<strong>10阶</strong>元素。</li>
+  <li>所以 $C_2 \times C_5$ 是一个<strong>10阶循环群</strong>。</li>
+  <li>因此 $C_{10} \cong C_2 \times C_5$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>并非所有阶都可以分解</strong>：$C_4$ 的阶是 $4 = 2 \times 2$。但是 $C_4 \not\cong C_2 \times C_2$。为什么？因为 $C_4$ 中有<strong>4阶</strong>的元素（生成元），而在 $C_2 \times C_2$ 中，任何一个元素 $(a, b)$ 的阶是 $\text{lcm}(\text{ord}(a), \text{ord}(b))$。由于 $a,b$ 的阶最大是2，所以 $(a,b)$ 的阶最大也是2。$C_2 \times C_2$ 中根本没有<strong>4阶</strong>元素。因此它们不可能是<strong>同构</strong>的。</li>
+  <li><strong>分解的条件</strong>：这个例子暗示了一个重要规律，即 $C_{rs} \cong C_r \times C_s$ 的关键在于 $r$ 和 $s$ <strong>互素</strong> (relatively prime)，即它们的最大公约数是1。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>分解群</strong>是群论中的一个核心任务，它能帮助我们将复杂问题简化。一个重要的例子是<strong>循环群</strong>的分解：一个<strong>rs阶</strong>的<strong>循环群</strong> $C_{rs}$ 可以被<strong>分解</strong>成 $C_r \times C_s$，当且仅当 $r$ 和 $s$ <strong>互素</strong>。这个例子通过构造一个<strong>生成元</strong>，证明了 $C_2 \times C_3$ 确实是一个<strong>6阶循环群</strong>，从而与 $C_6$ <strong>同构</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是通过一个具体且有点出人意料的例子 ($C_6$ 的分解)，来展示<strong>群的分解</strong>这一想法的威力和可行性。它不仅阐述了分解的愿望，还实际操作了一遍，为后面更具一般性的结论（命题2.11.3）做铺垫，并引出了一个关键问题：什么时候一个<strong>群</strong>可以被<strong>分解</strong>成<strong>直积</strong>？</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一个有6个位置的旋转罗盘 ($C_6$)。你每次可以转1格、2格...</p>
+<p>再想象一个只有两个状态的开关（上下，$C_2$）和一个有三个档位的旋钮（高中低，$C_3$）。</p>
+<p>$C_6 \cong C_2 \times C_3$ 的意思是：罗盘的6个位置状态，可以和“开关状态-旋钮档位”的 $2 \times 3 = 6$ 种组合状态一一对应，并且你在罗盘上转一下，等价于在另一边对开关和旋钮进行一次对应的操作。例如，罗盘转一格，可能对应于“把开翻成关，同时把旋钮调到下一档”。这个对应关系是精确且无损的。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一条长度为6的线段，上面的整点是 $\{0, 1, 2, 3, 4, 5\}$ ($C_6$)。</p>
+<p>再想象一个 $2 \times 3$ 的网格 ($C_2 \times C_3$)。</p>
+<p>$C_6 \cong C_2 \times C_3$ 意味着你可以把这条线段“盘起来”，精确地覆盖到这个 $2 \times 3$ 网格的所有点上，并且线段上的“加1”操作（向前走一步）对应于网格上的一种特定移动方式（比如向右下方移动，并且在边界处“循环”）。这个例子中的移动方式就是 $(k \pmod 2, k \pmod 3)$。</p>
+    </div>
+</div><h4>2.2 循环群分解的普遍规律</h4><p id="original-4"><strong style="font-size: 1.3rem;">📜 [原文4]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>对于<strong>阶</strong>为 $rs$ 的<strong>循环群</strong>，只要整数 $r$ 和 $s$ 没有公因子，就有类似的陈述。</p>
+<p><strong>命题 2.11.3</strong> 令 $r$ 和 $s$ 为<strong>互素整数</strong>。<strong>阶</strong>为 $rs$ 的<strong>循环群同构</strong>于<strong>阶</strong>为 $r$ 的<strong>循环群</strong>和<strong>阶</strong>为 $s$ 的<strong>循环群</strong>的<strong>直积</strong>。$\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话将前面 $C_6$ 的例子推广成一个普遍的定理。</p>
+<ol>
+  <li> <strong>前提条件</strong>：这个命题的核心前提是 $r$ 和 $s$ 是<strong>互素整数</strong> (coprime integers)，也就是说，它们的最大公约数 $\text{gcd}(r, s) = 1$。</li>
+  <li> <strong>命题内容</strong>：如果上述条件成立，那么一个<strong>阶</strong>为 $rs$ 的<strong>循环群</strong> (记作 $C_{rs}$) 就一定和<strong>阶</strong>为 $r$ 的<strong>循环群</strong> ($C_r$) 与<strong>阶</strong>为 $s$ 的<strong>循环群</strong> ($C_s$) 的<strong>直积</strong> ($C_r \times C_s$) 是<strong>同构</strong>的。
+<ul>
+  <li>$C_{rs} \cong C_r \times C_s \iff \text{gcd}(r, s) = 1$</li>
+</ul></li>
+  <li> <strong>证明思路 (与 $C_6$ 例子完全相同)</strong>:
+<ul>
+  <li>我们想证明 $C_{rs}$ 和 $C_r \times C_s$ 是<strong>同构</strong>的。</li>
+  <li>$C_{rs}$ 是一个<strong>阶</strong>为 $rs$ 的<strong>循环群</strong>。</li>
+  <li><strong>直积群</strong> $C_r \times C_s$ 的<strong>阶</strong>是 $|C_r| \times |C_s| = r \times s = rs$。</li>
+  <li>所以，这两个<strong>群</strong>的<strong>阶</strong>是相同的。</li>
+  <li>根据群论基本定理，如果我们可以证明 $C_r \times C_s$ 也是一个<strong>循环群</strong>，那么由于两个<strong>同阶的循环群必然同构</strong>，命题就得证了。</li>
+  <li>要证明 $C_r \times C_s$ 是<strong>循环群</strong>，我们只需要在里面找到一个<strong>阶</strong>为 $rs$ 的元素。</li>
+  <li>设 $C_r$ 的生成元是 $y$（<strong>阶</strong>为 $r$），$C_s$ 的生成元是 $z$（<strong>阶</strong>为 $s$）。我们来考察<strong>直积群</strong>中的元素 $x = (y, z)$。</li>
+  <li>元素 $x$ 的<strong>阶</strong>是使得 $x^k = (y^k, z^k) = (\text{单位元}, \text{单位元})$ 成立的最小正整数 $k$。</li>
+  <li>这要求 $k$ 既是 $r$ 的倍数，又是 $s$ 的倍数。所以 $k$ 是 $r$ 和 $s$ 的<strong>公倍数</strong>。</li>
+  <li>我们找的是最小的 $k$，所以 $k = \text{lcm}(r, s)$ (最小公倍数)。</li>
+  <li>这里用到了一个关键的数论知识：对于任意两个正整数 $r, s$，有 $\text{lcm}(r, s) \times \text{gcd}(r, s) = r \times s$。</li>
+  <li>因为命题的条件是 $r, s$ <strong>互素</strong>，所以 $\text{gcd}(r, s) = 1$。</li>
+  <li>因此，$k = \text{lcm}(r, s) = (r \times s) / \text{gcd}(r, s) = rs / 1 = rs$。</li>
+  <li>我们找到了一个<strong>阶</strong>为 $rs$ 的元素 $x = (y, z)$。</li>
+  <li>在一个<strong>阶</strong>为 $rs$ 的<strong>群</strong> ($C_r \times C_s$) 中找到了一个<strong>阶</strong>为 $rs$ 的元素，这证明了 $C_r \times C_s$ 是一个<strong>循环群</strong>。</li>
+  <li>证毕。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>示例 1 (互素)</strong>:</p>
+<ul>
+  <li>$r=3, s=5$。它们<strong>互素</strong>。</li>
+  <li>命题预测：$C_{15} \cong C_3 \times C_5$。</li>
+  <li>验证：在 $C_3 \times C_5$ 中，元素 $(1, 1)$ 的阶是 $\text{lcm}(3, 5) = 15$。所以 $C_3 \times C_5$ 是<strong>15阶循环群</strong>。结论正确。</li>
+</ul>
+<p><strong>示例 2 (不互素)</strong>:</p>
+<ul>
+  <li>$r=2, s=4$。它们不互素，$\text{gcd}(2, 4) = 2$。</li>
+  <li>命题不适用。我们来看看 $C_8$ 和 $C_2 \times C_4$ 是否<strong>同构</strong>。</li>
+  <li>$C_8$ 是<strong>8阶循环群</strong>，它有<strong>8阶</strong>的元素。</li>
+  <li>在 $C_2 \times C_4$ 中，任意元素 $(a, b)$ 的阶是 $\text{lcm}(\text{ord}(a), \text{ord}(b))$。</li>
+  <li>$a \in C_2$，所以 $\text{ord}(a)$ 只能是 1 或 2。</li>
+  <li>$b \in C_4$，所以 $\text{ord}(b)$ 只能是 1, 2, 或 4。</li>
+  <li>那么 $\text{lcm}(\text{ord}(a), \text{ord}(b))$ 的最大可能值是 $\text{lcm}(2, 4) = 4$。</li>
+  <li>$C_2 \times C_4$ 中所有元素的阶最大只能是 4。它没有<strong>8阶</strong>的元素。</li>
+  <li>因此，$C_2 \times C_4$ 不是<strong>循环群</strong>，它不可能和 $C_8$ <strong>同构</strong>。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>充要条件</strong>：这个命题实际上是一个充要条件，即 $C_{rs} \cong C_r \times C_s$ 当且仅当 $\text{gcd}(r, s) = 1$。原文只强调了充分性（互素 $\implies$ 同构），但反过来也成立。如果它们不互素，直积群就不是循环群，因而不能和循环群 $C_{rs}$ 同构。</li>
+  <li><strong>推广到多个因子</strong>：这个命题可以推广。$C_{n_1 n_2 \dots n_k} \cong C_{n_1} \times C_{n_2} \times \dots \times C_{n_k}$ 当且仅当这些整数 $n_1, n_2, \dots, n_k$ 两两<strong>互素</strong>。例如，$C_{30} \cong C_2 \times C_3 \times C_5$。</li>
+  <li><strong>中国剩余定理 (Chinese Remainder Theorem)</strong>：这个命题是<strong>中国剩余定理</strong>在群论中的一个直接体现。一个关于整数 $x \pmod{rs}$ 的问题，可以分解为两个独立的问题 $x \pmod r$ 和 $x \pmod s$ 来解决，当 $r, s$ 互素时，解是唯一对应的。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>命题 2.11.3</strong> 给出了<strong>循环群</strong>可以被<strong>分解</strong>为更小的<strong>循环群</strong>的<strong>直积</strong>的精确条件：当且仅当<strong>阶</strong>的各个<strong>因子</strong>相互<strong>互素</strong>。这是<strong>群论</strong>中一个非常基本和重要的结构性定理。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个命题的目的是将前面例子的观察提升为一般性的数学真理。它为<strong>有限循环群</strong>的结构提供了一个完整的分解图景，使得任何<strong>有限循环群</strong>都可以被看作是若干个<strong>素数幂阶</strong>的<strong>循环群</strong>的<strong>直积</strong>（例如 $C_{12} \cong C_4 \times C_3$, 因为 $12=4 \times 3$ 且 $\text{gcd}(4,3)=1$）。这是<strong>有限阿贝尔群基本定理</strong>的一个特例。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象两个齿轮，一个有 $r$ 个齿，一个有 $s$ 个齿。它们啮合在一起转动。</p>
+<ol>
+  <li><strong>互素</strong>：如果 $r, s$ 互素，比如 3 和 5。你给两个齿轮都做上标记，让它们从标记对标记的位置开始转。它们需要转动 $\text{lcm}(3, 5) = 15$ 次（大齿轮转3圈，小齿轮转5圈）才能再次回到标记对标记的状态。这个系统完整地遍历了 $3 \times 5 = 15$ 个组合状态，构成了一个“大循环”。这就像 $C_{15} \cong C_3 \times C_5$。</li>
+  <li><strong>不互素</strong>：如果 $r, s$ 不互素，比如 4 和 6 ($\text{gcd}=2$)。它们只需要转动 $\text{lcm}(4, 6) = 12$ 次就能回到初始状态，而不是 $4 \times 6 = 24$ 次。这个系统无法遍历所有24个可能的组合状态，它只在一个大小为12的子循环里运动。这就像 $C_4 \times C_6$ 不是一个<strong>24阶循环群</strong>。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象在电脑屏幕上画一个 $r \times s$ 的像素网格。从左上角 $(0, 0)$ 开始，你每次移动 "向右下角一步"，即从 $(x, y)$ 移动到 $((x+1) \pmod r, (y+1) \pmod s)$。</p>
+<ol>
+  <li>如果 $r, s$ <strong>互素</strong>，你的移动轨迹会不重复地经过网格上的每一个像素点，最终在第 $rs$ 步回到起点。这形成了一个覆盖整个空间的大循环。</li>
+  <li>如果 $r, s$ <strong>不互素</strong>，你的移动轨迹会在回到起点之前，只访问所有像素点的一部分。例如 $4 \times 6$ 的网格，你会在12步后回到起点，只访问了12个点，还有12个点你永远也访问不到。</li>
+</ol>
+    </div>
+</div><h4>2.3 反例：C4的不可分解性</h4><p id="original-5"><strong style="font-size: 1.3rem;">📜 [原文5]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>另一方面，<strong>4阶循环群</strong>不<strong>同构</strong>于两个<strong>2阶循环群</strong>的<strong>直积</strong>。$C_{2} \times C_{2}$ 的每个元素的<strong>阶</strong>都是 1 或 2，而<strong>4阶循环群</strong>包含两个<strong>4阶</strong>元素。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话是<strong>命题 2.11.3</strong> 的一个关键反例，用来说明<strong>互素</strong>这个条件是绝对必要的。</p>
+<ol>
+  <li> <strong>要考察的对象</strong>：<strong>4阶循环群</strong> $C_4$。它的阶是 $4 = 2 \times 2$。这里的因子是 $r=2, s=2$。</li>
+  <li> <strong>检查条件</strong>：$r=2, s=2$ 并不是<strong>互素</strong>的，因为它们的最大公约数 $\text{gcd}(2, 2) = 2 \neq 1$。</li>
+  <li> <strong>命题的预测</strong>：由于条件不满足，<strong>命题 2.11.3</strong> 不保证 $C_4$ 和 $C_2 \times C_2$ <strong>同构</strong>。这段话的目的是证明它们确实<strong>不</strong>同构。</li>
+  <li> <strong>证明方法：寻找结构上的本质不同</strong>。要证明两个<strong>群</strong>不<strong>同构</strong>，最常用的方法是找到一个<strong>群</strong>拥有的、但另一个<strong>群</strong>不具备的、在<strong>同构</strong>映射下应该保持不变的性质。<strong>元素的阶</strong>的分布情况就是一个这样的关键性质。</li>
+  <li> <strong>分析 $C_4$</strong>：
+<ul>
+  <li>$C_4 = \{0, 1, 2, 3\}$ (模4加法)。</li>
+  <li>我们来检查每个元素的<strong>阶</strong>：</li>
+  <li>$\text{ord}(0) = 1$ (单位元)。</li>
+  <li>$\text{ord}(1) = 4$ (因为 $1+1=2, 1+1+1=3, 1+1+1+1=0$)。这是一个<strong>4阶</strong>元素。</li>
+  <li>$\text{ord}(2) = 2$ (因为 $2+2=4 \equiv 0$)。这是一个<strong>2阶</strong>元素。</li>
+  <li>$\text{ord}(3) = 4$ (因为 $3+3=6 \equiv 2, 3+3+3=9 \equiv 1, 3+3+3+3=12 \equiv 0$)。这是一个<strong>4阶</strong>元素。</li>
+  <li>结论：$C_4$ 拥有<strong>4阶</strong>元素（事实上是两个）。</li>
+</ul></li>
+  <li> <strong>分析 $C_2 \times C_2$</strong>：
+<ul>
+  <li>$C_2 \times C_2 = \{(0,0), (0,1), (1,0), (1,1)\}$ (分量模2加法)。</li>
+  <li>我们来检查每个元素的<strong>阶</strong>：</li>
+  <li>$\text{ord}(0,0) = 1$ (单位元)。</li>
+  <li>$\text{ord}(0,1) = \text{lcm}(\text{ord}(0), \text{ord}(1)) = \text{lcm}(1, 2) = 2$。</li>
+  <li>$\text{ord}(1,0) = \text{lcm}(\text{ord}(1), \text{ord}(0)) = \text{lcm}(2, 1) = 2$。</li>
+  <li>$\text{ord}(1,1) = \text{lcm}(\text{ord}(1), \text{ord}(1)) = \text{lcm}(2, 2) = 2$。</li>
+  <li>结论：$C_2 \times C_2$ 中，除了<strong>单位元</strong>，所有元素的<strong>阶</strong>都是 2。它根本没有<strong>4阶</strong>元素。</li>
+</ul></li>
+  <li> <strong>得出最终结论</strong>：
+<ul>
+  <li>$C_4$ 有<strong>4阶</strong>元素。</li>
+  <li>$C_2 \times C_2$ 没有<strong>4阶</strong>元素。</li>
+  <li>如果存在一个<strong>同构映射</strong> $\phi: C_4 \to C_2 \times C_2$，它必须保持元素的<strong>阶</strong>。也就是说，如果 $g \in C_4$ 的<strong>阶</strong>是 4，那么 $\phi(g)$ 在 $C_2 \times C_2$ 中的<strong>阶</strong>也必须是 4。</li>
+  <li>但 $C_2 \times C_2$ 中没有<strong>4阶</strong>元素，所以这样的<strong>同构映射</strong>不可能存在。</li>
+  <li>因此，$C_4$ 和 $C_2 \times C_2$ 不是<strong>同构</strong>的。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>$C_4$</strong>: 就像一个正方形的四个顶点，你只能沿着边按一个方向走，必须走4步才能回到起点。</li>
+  <li><strong>$C_2 \times C_2$</strong>: 想象一个矩形的四个顶点。你站在任何一个非起始的顶点，走一步（根据这个顶点的属性，比如“横着走”或“斜着走”）就能回到起点。这个群有时被称为<strong>克莱因四元群 (Klein four-group)</strong>。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>同阶不一定同构</strong>：这是群论初学者最容易犯的错误之一。$C_4$ 和 $C_2 \times C_2$ 的<strong>阶</strong>都是4，但它们的内部结构完全不同。<strong>阶</strong>相同只是<strong>同构</strong>的必要条件，远非充分条件。</li>
+  <li><strong>关注元素阶的分布</strong>：比较两个<strong>群</strong>是否<strong>同构</strong>时，不能只看<strong>群</strong>的<strong>阶</strong>，而要看它们各自拥有多少个<strong>1阶</strong>元素，多少个<strong>2阶</strong>元素，多少个<strong>3阶</strong>元素……这个“元素<strong>阶</strong>的清单”如果不一样，两个<strong>群</strong>就一定不<strong>同构</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段通过对比 $C_4$ 和 $C_2 \times C_2$ 中元素<strong>阶</strong>的分布，清晰地证明了它们虽然<strong>同阶</strong>，但结构不同，因此不<strong>同构</strong>。这强有力地说明了<strong>命题 2.11.3</strong> 中“<strong>互素</strong>”条件的不可或缺性。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是提供一个具体的反例，以加深对<strong>命题 2.11.3</strong> 的理解。它通过展示一个失败的分解案例，从反面强调了成功的分解（如 $C_6$）背后的深刻数学原理。这有助于学习者建立更稳固、更具辨析性的知识体系。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li>$C_4$ 就像一个单行道环岛，你必须绕一整圈才能回来。</li>
+  <li>$C_2 \times C_2$ 就像一个十字路口，你从任何一个方向过来，下一步就是穿过路口，再下一步就又回来了（假设对称）。或者想象你有两个电灯开关，控制一盏灯。无论当前是什么状态，你拨动任何一个开关，灯的状态改变；再拨动一下同一个开关，灯的状态又变回来。任何操作，重复两次就回到了原点。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<ol>
+  <li>$C_4$: 一根有4个珠子的手链，珠子编号0,1,2,3。从1号珠子出发，你只能顺着走到2，再到3，再到0，最后才能回到1。这是一个长度为4的旅程。</li>
+  <li>$C_2 \times C_2$: 想象一张纸，对折一次，再对折一次，然后展开。纸上有四个区域。你可以把“穿过水平折痕”看作一个操作，$x$；把“穿过垂直折痕”看作另一个操作，$y$。从任何一个区域出发，执行两次 $x$ 操作就会回到原区域。执行两次 $y$ 操作也会回到原区域。执行 $xy$ 操作（穿过水平再穿过垂直）等于 $yx$ 操作（穿过垂直再穿过水平）。这个系统里，任何操作的<strong>阶</strong>都是2。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-3">
+    <h2><span class="section-number">3</span>识别直积的条件</h2>
+    <h4>3.1 乘法映射及其性质</h4><p id="original-6"><strong style="font-size: 1.3rem;">📜 [原文6]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>下一个<strong>命题</strong>描述了<strong>直积群</strong>。</p>
+<p><strong>命题 2.11.4</strong> 令 $H$ 和 $K$ 是<strong>群</strong> $G$ 的<strong>子群</strong>，并令 $f: H \times K \rightarrow G$ 为<strong>乘法映射</strong>，定义为 $f(h, k)=h k$。它的<strong>像</strong>是集合 $H K=\{h k \mid h \in H, k \in K\}$。</p>
+<p>(a) $f$ 是<strong>内射</strong>当且仅当 $H \cap K=\{1\}$。</p>
+<p>(b) $f$ 是从<strong>直积群</strong> $H \times K$ 到 $G$ 的<strong>同态</strong>当且仅当 $K$ 的元素与 $H$ 的元素<strong>可交换</strong>：$h k=k h$。</p>
+<p>(c) 如果 $H$ 是 $G$ 的<strong>正规子群</strong>，那么 $H K$ 是 $G$ 的<strong>子群</strong>。</p>
+<p>(d) $f$ 是从<strong>直积群</strong> $H \times K$ 到 $G$ 的<strong>同构</strong>当且仅当 $H \cap K=\{1\}$，$H K=G$，并且 $H$ 和 $K$ 都是 $G$ 的<strong>正规子群</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个命题非常重要，它回答了一个核心问题：假设我们有一个大<strong>群</strong> $G$ 和它的两个<strong>子群</strong> $H, K$，在什么条件下，我们可以说 $G$ 就等价于（<strong>同构</strong>于）$H$ 和 $K$ 的<strong>直积</strong>？这个命题从一个叫做“<strong>乘法映射</strong>”的工具入手，一步步建立起判定条件。</p>
+<p><strong>核心工具：乘法映射 f</strong></p>
+<ul>
+  <li>我们不再从外部构造<strong>直积</strong>，而是反过来，从 $G$ 内部出发。</li>
+  <li>我们取<strong>子群</strong> $H$ 和 $K$ 构造一个<strong>直积群</strong> $H \times K$ (这是一个外部的、辅助的群)。</li>
+  <li>定义一个映射 $f: H \times K \to G$，它的作用是把<strong>有序对</strong> $(h, k)$ 映射到 $G$ 中的元素 $h \cdot k$ (这里的乘法是 $G$ 中的乘法)。这个 $f$ 就叫<strong>乘法映射</strong>。</li>
+  <li>$f$ 的<strong>像</strong>，也就是所有 $hk$ 形式的元素的集合，被记为 $HK$。</li>
+</ul>
+<p><strong>命题的四个部分，层层递进：</strong></p>
+<p><strong>(a) 何时 $f$ 是内射 (一对一)？</strong></p>
+<ul>
+  <li><strong>内容</strong>：$f$ 是<strong>内射</strong>的，当且仅当 $H$ 和 $K$ 的交集里只有一个元素，就是<strong>单位元</strong> $1$。即 $H \cap K = \{1\}$。</li>
+  <li><strong>解释</strong>：</li>
+  <li>($\Rightarrow$) 如果 $H \cap K$ 里有另一个非单位元元素 $x$，那么 $x \in H$ 且 $x \in K$。同时 $x^{-1} \in H$。考虑 $f(x^{-1}, x) = x^{-1}x = 1$。再考虑 $f(1, 1) = 1 \cdot 1 = 1$。我们找到了两个不同的输入 $(x^{-1}, x)$ 和 $(1, 1)$，它们都映射到了同一个输出 $1$。所以 $f$ 不是<strong>内射</strong>的。</li>
+  <li>($\Leftarrow$) 如果 $H \cap K = \{1\}$，假设 $f(h_1, k_1) = f(h_2, k_2)$，即 $h_1k_1 = h_2k_2$。我们可以变形这个等式：$h_2^{-1}h_1 = k_2k_1^{-1}$。等式左边 ($h_2^{-1}h_1$) 是 $H$ 中的元素，右边 ($k_2k_1^{-1}$) 是 $K$ 中的元素。由于这个元素同时在 $H$ 和 $K$ 中，它必定属于它们的交集 $H \cap K$。而我们假设交集只有单位元 $\{1\}$。所以 $h_2^{-1}h_1 = 1$ 且 $k_2k_1^{-1} = 1$。这立即导出 $h_1=h_2$ 和 $k_1=k_2$。因此，输入 $(h_1, k_1)$ 和 $(h_2, k_2)$ 必须是相同的。所以 $f$ 是<strong>内射</strong>的。</li>
+  <li><strong>小结(a)</strong>：$H, K$ “除了单位元之外没有公共部分”是保证 $G$ 中的每个元素最多只能有一种 "$hk$" 写法的关键。</li>
+</ul>
+<p><strong>(b) 何时 $f$ 是同态 (保持结构)？</strong></p>
+<ul>
+  <li><strong>内容</strong>：$f$ 是一个<strong>群同态</strong>，当且仅当 $H$ 中的任意元素都与 $K$ 中的任意元素<strong>可交换</strong> (commute)，即对所有 $h \in H, k \in K$，都有 $hk=kh$。</li>
+  <li><strong>解释</strong>：</li>
+  <li>要成为<strong>同态</strong>，必须满足 $f(\text{op}_1) = f(\text{op}_2)$，即 $f((h_1,k_1) \cdot_{H \times K} (h_2,k_2)) = f(h_1,k_1) \cdot_G f(h_2,k_2)$。</li>
+  <li>左边：$f((h_1h_2, k_1k_2)) = (h_1h_2)(k_1k_2)$。</li>
+  <li>右边：$(h_1k_1)(h_2k_2)$。</li>
+  <li>要让 $h_1h_2k_1k_2 = h_1k_1h_2k_2$ 对所有的 $h_1, h_2 \in H, k_1, k_2 \in K$ 都成立，通过消去 $h_1$ 和 $k_2$，我们发现这等价于 $h_2k_1 = k_1h_2$ 对所有 $h_2 \in H, k_1 \in K$ 成立。</li>
+  <li><strong>小结(b)</strong>：$H$ 和 $K$ 的元素必须能够“和平相处”（互相交换），<strong>乘法映射</strong> $f$ 才能成为一个<strong>同态</strong>。否则，运算顺序的改变会导致结果不同，结构就被破坏了。</li>
+</ul>
+<p><strong>(c) 何时 $HK$ 是一个子群？</strong></p>
+<ul>
+  <li><strong>内容</strong>：如果 $H$ 是 $G$ 的一个<strong>正规子群</strong>，那么集合 $HK$ 自身就构成 $G$ 的一个<strong>子群</strong>。（对称地，如果 $K$ 是<strong>正规子群</strong>，结论也成立）。</li>
+  <li><strong>解释</strong>：</li>
+  <li>要证明 $HK$ 是<strong>子群</strong>，需要验证封闭性和逆元。</li>
+  <li><strong>关键步骤</strong>：证明 $HK=KH$。因为 $H$ 是<strong>正规子群</strong>，对于任何 $k \in K$，我们有 $kH = Hk$（左陪集等于右陪集）。所以 $KH = \bigcup_{k \in K} kH = \bigcup_{k \in K} Hk = HK$。</li>
+  <li><strong>封闭性</strong>：任取两个 $HK$ 中的元素 $h_1k_1$ 和 $h_2k_2$。它们的积是 $(h_1k_1)(h_2k_2) = h_1(k_1h_2)k_2$。因为 $k_1h_2 \in k_1H = Hk_1$，所以 $k_1h_2$ 可以写成某个 $h'k_1$ 的形式。但更简单的方法是利用 $HK=KH$：$(HK)(HK) = H(KH)K = H(HK)K = (HH)(KK) = HK$。所以 $HK$ 对乘法封闭。</li>
+  <li><strong>逆元</strong>：任取 $hk \in HK$。它的逆元是 $(hk)^{-1}=k^{-1}h^{-1}$。由于 $k^{-1} \in K, h^{-1} \in H$，所以 $k^{-1}h^{-1} \in KH$。因为我们已经证明了 $KH=HK$，所以逆元也在 $HK$ 中。</li>
+  <li><strong>小结(c)</strong>：只要有一个子群是<strong>正规</strong>的，它们的乘积集合 $HK$ 就是一个良定义的<strong>子群</strong>。</li>
+</ul>
+<p><strong>(d) 何时 $f$ 是同构 (完美的结构等价)？</strong></p>
+<ul>
+  <li><strong>内容</strong>：$f$ 是一个<strong>同构</strong>，当且仅当满足以下三个条件：</li>
+</ul>
+<ol>
+  <li> $H \cap K = \{1\}$  ($f$ 是<strong>内射</strong>，来自(a))</li>
+  <li> $HK = G$  ($f$ 是<strong>满射</strong>，即 $f$ 的像覆盖整个 $G$)</li>
+  <li> $H$ 和 $K$ 都是 $G$ 的<strong>正规子群</strong>。
+<ul>
+  <li><strong>解释</strong>：</li>
+  <li><strong>同构</strong> = <strong>内射</strong> + <strong>满射</strong> + <strong>同态</strong>。</li>
+  <li>$f$ <strong>内射</strong> $\iff H \cap K = \{1\}$ (来自 a)。</li>
+  <li>$f$ <strong>满射</strong> $\iff HK = G$ (根据 $f$ 的像的定义)。</li>
+  <li>$f$ <strong>同态</strong> $\iff hk=kh$ (来自 b)。</li>
+  <li>所以，初看起来，条件应该是 (1) $H \cap K=\{1\}$, (2) $HK=G$, (3) $H, K$ 元素互相交换。</li>
+  <li>命题(d)的巧妙之处在于，它用“$H, K$ 都是<strong>正规子群</strong>”这个条件替换了“元素互相交换”。它断言，在(1)和(2)成立的前提下，“$H, K$ 都是<strong>正规</strong>的”与“$H, K$ 元素互相交换”是等价的。</li>
+  <li><strong>证明这个等价性</strong>：</li>
+  <li>($\Rightarrow$) 假设 $H,K$ 都是<strong>正规子群</strong>。我们要证明 $hk=kh$。考虑<strong>交换子</strong> $hkh^{-1}k^{-1}$。</li>
+  <li>可以写成 $(hkh^{-1})k^{-1}$。因为 $K$ 是<strong>正规子群</strong>，$hkh^{-1} \in K$，所以 $(hkh^{-1})k^{-1} \in K$。</li>
+  <li>也可以写成 $h(kh^{-1}k^{-1})$。因为 $H$ 是<strong>正规子群</strong>，$kh^{-1}k^{-1} \in H$，所以 $h(kh^{-1}k^{-1}) \in H$。</li>
+  <li>所以<strong>交换子</strong> $hkh^{-1}k^{-1}$ 同时属于 $H$ 和 $K$，即属于 $H \cap K$。</li>
+  <li>因为 $H \cap K = \{1\}$，所以 $hkh^{-1}k^{-1} = 1$。</li>
+  <li>变形得到 $hk = kh$。</li>
+  <li>($\Leftarrow$) 假设 $H,K$ 元素互相交换。我们要证明它们是<strong>正规</strong>的。以 $H$ 为例，要证对任意 $g \in G$，有 $gHg^{-1}=H$。因为 $HK=G$，所以 $g$ 可以写成 $g=h_0k_0$ 的形式。</li>
+  <li>$gHg^{-1} = (h_0k_0)H(h_0k_0)^{-1} = h_0k_0Hk_0^{-1}h_0^{-1}$。</li>
+  <li>因为 $H$ 的元素和 $K$ 的元素可交换，所以 $k_0Hk_0^{-1} = H$ (即 $k_0h k_0^{-1} = h k_0 k_0^{-1} = h \in H$)。</li>
+  <li>所以 $gHg^{-1} = h_0Hh_0^{-1}$。因为 $H$ 是<strong>子群</strong>，$h_0 \in H$，所以 $h_0Hh_0^{-1}=H$。</li>
+  <li>因此 $H$ 是<strong>正规子群</strong>。同理可证 $K$ 也是<strong>正规子群</strong>。</li>
+</ul></li>
+</ol>
+<ul>
+  <li><strong>小结(d)</strong>：这是整个命题的高潮。它给出了一个<strong>群</strong> $G$ 能被“内部”<strong>分解</strong>成<strong>子群</strong> $H, K$ 的<strong>直积</strong>的充要条件。这三个条件（交集为{1}，并集为G，两者都正规）比检查元素交换律要更容易操作，因为“<strong>正规性</strong>”是群论里一个更结构化的概念。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>正规性 vs 交换性</strong>: 单个子群 $H$ 是正规的，不意味着 $H$ 的元素和 $K$ 的元素可交换。但如果 $H$ 和 $K$ 都是正规的，且交集为{1}，它们就一定可交换。</li>
+  <li><strong>HK vs H×K</strong>: $H \times K$ 是一个外部构造的、元素是<strong>有序对</strong>的群。$HK$ 是 $G$ 的一个<strong>子集</strong>（在(c,d)条件下是<strong>子群</strong>），元素是 $G$ 自己的元素。命题(d)说的就是，在特定条件下，群 $HK$（也就是 $G$）和群 $H \times K$ 的结构是一模一样的。</li>
+  <li><strong>半直积 (Semidirect Product)</strong>：如果命题(d)的条件中，只要求一个子群（比如 $H$）是正规的，而另一个不是，那么 $G$ 可能<strong>同构</strong>于一种更复杂的结构，叫做<strong>半直积</strong> $H \rtimes K$。这超出了本章范围，但说明了每个条件的重要性。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>命题 2.11.4</strong> 是一个诊断工具。它提供了一套完整的标准，用于判断一个给定的<strong>群</strong> $G$ 是否可以被看作是其两个<strong>子群</strong> $H$ 和 $K$ 的“内部<strong>直积</strong>”。这套标准包括：$H, K$ 应该只在<strong>单位元</strong>处相交，它们的乘积应该能覆盖整个<strong>群</strong> $G$，并且它们都应该是 $G$ 中的<strong>正规子群</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个命题将<strong>直积</strong>从一个外部构造工具，转变为一个内部结构分析工具。之前我们是“用 $H,K$ 建造 $H \times K$”，现在我们是“在 $G$ 里面寻找 $H,K$，来诊断 $G$ 是否是 $H \times K$”。这使得我们能够分析和<strong>分解</strong>已经存在的<strong>群</strong>，是群论结构分析的核心定理之一。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一个公司 $G$。</p>
+<ol>
+  <li>$H$ 和 $K$ 是两个部门。</li>
+  <li><strong>条件1：$H \cap K = \{1\}$</strong>。两个部门没有兼职人员，除了大老板（单位元）谁也不属于。这样职责清晰。</li>
+  <li><strong>条件2：$HK = G$</strong>。公司里任何一项任务（元素 $g$），都可以分解成一个H部门的任务（$h$）和一个K部门的任务（$k$）的组合来完成。</li>
+  <li><strong>条件3：$H, K$ 都正规</strong>。这意味着两个部门的地位是平等的，且它们的运作不受公司其他部分的影响。比如，你让全公司的人（$g$）来监督H部门的工作流程（$gHg^{-1}$），流程还是H部门自己的流程（$H$）。K部门同理。这种强大的独立性，最终导致了两个部门的工作可以完全解耦，互不干扰（$hk=kh$）。</li>
+  <li>当这三个条件满足时，这个公司 $G$ 的整体运作模式，就等价于两个完全独立运营的公司 $H$ 和 $K$ 的简单组合。要了解 $G$，只需要分别了解 $H$ 和 $K$ 就行了。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>回到二维平面 $\mathbb{R}^2$。</p>
+<ol>
+  <li>$G = \mathbb{R}^2$ (向量加法群)。</li>
+  <li>$H$ 是 x-轴，即 $\{(x, 0) | x \in \mathbb{R}\}$。</li>
+  <li>$K$ 是 y-轴，即 $\{(0, y) | y \in \mathbb{R}\}$。</li>
+  <li>我们来验证<strong>命题 2.11.4(d)</strong> 的条件：</li>
+</ol>
+<ol>
+  <li> $H \cap K = \{(0,0)\}$。x-轴和y-轴只在原点相交。满足。</li>
+  <li> $H+K = \mathbb{R}^2$。平面上任何一个向量 $(x,y)$ 都可以写成一个x-轴向量 $(x,0)$ 和一个y-轴向量 $(0,y)$ 的和。满足。</li>
+  <li> $H, K$ 都是 $\mathbb{R}^2$ 的<strong>正规子群</strong>。因为 $\mathbb{R}^2$ 是<strong>阿贝尔群</strong>，任何<strong>子群</strong>都是<strong>正规</strong>的。满足。
+<ul>
+  <li>所有条件都满足，因此命题告诉我们 $\mathbb{R}^2 \cong H \times K$。这和我们最初把 $\mathbb{R}^2$ 定义为 $\mathbb{R} \times \mathbb{R}$ 是完全一致的。这个例子展示了命题如何从内部结构反推出<strong>直积</strong>形式。</li>
+</ul></li>
+</ol>
+    </div>
+</div><h4>3.2 一个非同态的双射例子</h4><p id="original-7"><strong style="font-size: 1.3rem;">📜 [原文7]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>值得注意的是，<strong>乘法映射</strong>可能是<strong>双射</strong>，尽管它不是<strong>群同态</strong>。例如，当 $G=S_{3}$，并使用通常的表示法， $H=\langle x\rangle$ 和 $K=\langle y\rangle$ 时，就会发生这种情况。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分给出了一个重要的警示：即使<strong>乘法映射</strong> $f(h,k)=hk$ 既是<strong>内射</strong>又是<strong>满射</strong>（即<strong>双射</strong>），它也不一定是一个<strong>群同态</strong>。这意味着，即使集合 $H \times K$ 和群 $G$ 的元素可以一一对应，它们的运算结构也可能完全不同。</p>
+<ul>
+  <li><strong>背景设定</strong>：</li>
+  <li><strong>群</strong> $G = S_3$，即3个元素的置换群，它的阶是 $3! = 6$。</li>
+  <li>$S_3$ 的元素通常表示为 $\{1, x, x^2, y, yx, yx^2\}$，其中 $x$ 是一个3-循环（如 (1 2 3)），满足 $x^3=1$；$y$ 是一个对换（如 (1 2)），满足 $y^2=1$。并且它们不交换：$xy = yx^2 \neq yx$。</li>
+  <li><strong>子群选择</strong>：</li>
+  <li>$H = \langle x \rangle = \{1, x, x^2\}$。这是一个<strong>3阶循环子群</strong>。</li>
+  <li>$K = \langle y \rangle = \{1, y\}$。这是一个<strong>2阶循环子群</strong>。</li>
+  <li><strong>分析乘法映射 $f: H \times K \to S_3$</strong>：</li>
+  <li><strong>内射性</strong> (Injectivity)：根据<strong>命题 2.11.4(a)</strong>，我们需要检查 $H \cap K$。</li>
+  <li>$H=\{1, (123), (132)\}$</li>
+  <li>$K=\{1, (12)\}$</li>
+  <li>它们的交集 $H \cap K = \{1\}$。</li>
+  <li>因此，$f$ 是<strong>内射</strong>的。这意味着从 $H \times K$ 映射过来的6个元素都是不同的。</li>
+  <li><strong>满射性</strong> (Surjectivity)：我们需要检查 $HK=S_3$。</li>
+  <li>集合 $H \times K$ 有 $|H| \times |K| = 3 \times 2 = 6$ 个元素。</li>
+  <li>因为 $f$ 是<strong>内射</strong>的，它会把这6个不同的输入映射到 $S_3$ 中6个不同的输出。</li>
+  <li>由于 $S_3$ 总共也只有6个元素，所以 $f$ 的像必然覆盖了整个 $S_3$。即 $HK=S_3$。</li>
+  <li>因此，$f$ 是<strong>满射</strong>的。</li>
+  <li><strong>双射性</strong> (Bijectivity)：因为 $f$ 既是<strong>内射</strong>又是<strong>满射</strong>，所以它是一个<strong>双射</strong>。这意味着作为集合，$H \times K$ 和 $S_3$ 的元素之间存在一个一一对应关系。</li>
+  <li><strong>同态性</strong> (Homomorphism)：根据<strong>命题 2.11.4(b)</strong>，我们需要检查 $H$ 和 $K$ 的元素是否<strong>可交换</strong>。</li>
+  <li>取 $h=x \in H$, $k=y \in K$。</li>
+  <li>$hk = xy$。</li>
+  <li>$kh = yx$。</li>
+  <li>我们知道在 $S_3$ 中，$xy \neq yx$。</li>
+  <li>所以，$H$ 和 $K$ 的元素不是普遍可交换的。</li>
+  <li>因此，$f$ <strong>不是一个群同态</strong>。</li>
+</ul>
+<ul>
+  <li><strong>结论</strong>：尽管存在一个从集合 $H \times K$ 到 $S_3$ 的一一对应，但这个对应关系不保持群的运算结构。因此，$S_3$ <strong>不</strong>同构于<strong>直积群</strong> $H \times K$。由于 $H \cong C_3, K \cong C_2$，这实际上是说 $S_3 \not\cong C_3 \times C_2$。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li>$H \times K = \{ (1,1), (1,y), (x,1), (x,y), (x^2,1), (x^2,y) \}$</li>
+  <li>$S_3 = \{ 1, y, x, xy, x^2, x^2y \}$ (这是 $hk$ 的结果)</li>
+  <li>$f$ 将两者一一对应。例如 $f(x,y)=xy$。</li>
+  <li>让我们来验证非同态性：</li>
+  <li>在 $H \times K$ 中运算：$(x,1) \cdot (1,y) = (x \cdot 1, 1 \cdot y) = (x,y)$。</li>
+  <li>通过 $f$ 映射到 $S_3$：$f(x,y) = xy$。</li>
+  <li>这是路径1：先在 $H \times K$ 中运算，再映射。</li>
+  <li>现在走路径2：先分别映射，再在 $S_3$ 中运算。</li>
+  <li>$f(x,1) = x \cdot 1 = x$。</li>
+  <li>$f(1,y) = 1 \cdot y = y$。</li>
+  <li>两者在 $S_3$ 中相乘：$x \cdot y = xy$。</li>
+  <li>咦？这个例子 $f((x,1)(1,y)) = f(x,1)f(1,y)$ 居然成立了！看来需要找一个不成立的例子。</li>
+  <li>让我们换一对元素：在 $H \times K$ 中运算 $(1,y) \cdot (x,1) = (1 \cdot x, y \cdot 1) = (x,y)$。</li>
+  <li>再走路径2：</li>
+  <li>$f(1,y) = y$。</li>
+  <li>$f(x,1) = x$。</li>
+  <li>两者在 $S_3$ 中相乘：$y \cdot x = yx$。</li>
+  <li>比较两条路径的结果：$xy \neq yx$。</li>
+  <li>所以 $f((1,y)(x,1)) \neq f(1,y)f(x,1)$。<strong>同态</strong>性质被破坏。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>双射不等于同构</strong>：这是最关键的警示。在<strong>群论</strong>（以及其他代数结构中），结构的保持（<strong>同态</strong>）远比元素的一一对应（<strong>双射</strong>）重要。</li>
+  <li>$S_3$ vs $C_6$：$S_3$ 和 $C_6$ (即 $C_2 \times C_3$) 的阶都是6。但 $S_3$ 是<strong>非阿贝尔群</strong>，而 $C_6$ 是<strong>阿贝尔群</strong>，所以它们不可能<strong>同构</strong>。这个例子从<strong>乘法映射</strong>的角度解释了为什么 $S_3$ 不能被<strong>分解</strong>成 $C_3$ 和 $C_2$ 的<strong>直积</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段通过 $S_3$ 的例子，生动地展示了<strong>命题 2.11.4(d)</strong> 中<strong>正规性</strong>（或等价的<strong>交换性</strong>）条件的重要性。仅仅满足<strong>内射</strong>和<strong>满射</strong>条件，只能保证元素数量上匹配，但不能保证运算规则匹配。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个例子的目的是作为一个“反例”或“边界情况”，用来强调<strong>同构</strong>的严格性。它防止读者在看到<strong>乘法映射</strong>是<strong>双射</strong>后，就草率地得出<strong>群同构</strong>的结论。它迫使我们必须回头检查<strong>同态</strong>属性，也就是检查元素是否<strong>可交换</strong>，或者更结构化地，检查<strong>子群</strong>是否<strong>正规</strong>。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你有两套完全不同的乐高积木，$H$ 和 $K$。$H$ 有3块，$K$ 有2块。你可以把它们配对，组成 $3 \times 2 = 6$ 种组合 $(h, k)$。这构成了集合 $H \times K$。</p>
+<p>现在有一个模型 $G$（比如 $S_3$），它也是由6块积木组成的。</p>
+<p>你发现，你可以用 $H, K$ 的每一对积木 $(h,k)$ 焊接起来 ($hk$)，恰好能造出模型 $G$ 的每一块积木，不多不少（这就是<strong>双射</strong>）。</p>
+<p>但是，$G$ 这个模型有自己的组合规则（$S_3$的乘法表）。而你在 $H \times K$ 世界里的组合规则是“H的归H，K的归K，各玩各的”（分量乘法）。</p>
+<p>这个例子说明，即使你可以用原材料拼出最终模型，最终模型的内在组合规则，可能和你原材料的组合规则是完全不兼容的。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>你有红、黄、蓝三种颜色的颜料（$H$），和“亮光”、“哑光”两种调料（$K$）。你可以混合出 $3 \times 2=6$ 种不同的漆（$HK=G=S_3$）。</p>
+<p>但是，在 $H \times K$ 的世界里，操作是独立的：“把红色换成黄色”和“把亮光换成哑光”是两个不相干的操作，先后顺序无所谓。</p>
+<p>但在 $S_3$ 的世界里，操作的顺序至关重要。比如“先旋转再翻转”和“先翻转再旋转”得到的结果是不同的。</p>
+<p>因此，虽然漆的种类可以一一对应，但调制它们的操作流程（群结构）是无法对应的。</p>
+    </div>
+</div><h4>3.3 命题2.11.4的证明</h4><p id="original-8"><strong style="font-size: 1.3rem;">📜 [原文8]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>证明</strong>。(a) 如果 $H \cap K$ 包含一个元素 $x \neq 1$，那么 $x^{-1}$ 在 $H$ 中，并且 $f\left(x^{-1}, x\right)=1=f(1,1)$，所以 $f$ 不是<strong>内射</strong>。假设 $H \cap K=\{1\}$。令 $\left(h_{1}, k_{1}\right)$ 和 $\left(h_{2}, k_{2}\right)$ 为 $H \times K$ 的元素，使得 $h_{1} k_{1}=h_{2} k_{2}$。我们将此方程两边左乘 $h_{1}^{-1}$，右乘 $k_{2}^{-1}$，得到 $k_{1} k_{2}^{-1}=h_{1}^{-1} h_{2}$。左边是 $K$ 的一个元素，右边是 $H$ 的一个元素。由于 $H \cap K=\{1\}$，所以 $k_{1} k_{2}^{-1}=h_{1}^{-1} h_{2}=1$。因此 $k_{1}=k_{2}, h_{1}=h_{2}$，并且 $\left(h_{1}, k_{1}\right)=\left(h_{2}, k_{2}\right)$。</p>
+<p>(b) 令 $\left(h_{1}, k_{1}\right)$ 和 $\left(h_{2}, k_{2}\right)$ 为<strong>直积群</strong> $H \times K$ 的元素。这些元素在<strong>直积群</strong> $H \times K$ 中的<strong>直积</strong>是 $\left(h_{1} h_{2}, k_{1} k_{2}\right)$，并且 $f\left(h_{1} h_{2}, k_{1} k_{2}\right)=h_{1} h_{2} k_{1} k_{2}$，而 $f\left(h_{1}, k_{1}\right) f\left(h_{2}, k_{2}\right)=h_{1} k_{1} h_{2} k_{2}$。这些元素相等当且仅当 $h_{2} k_{1}=k_{1} h_{2}$。</p>
+<p>(c) 假设 $H$ 是一个<strong>正规子群</strong>。我们注意到 $K H$ 是 $K$ 中 $k$ 的左<strong>陪集</strong> $k H$ 的并集，并且 $H K$ 是右<strong>陪集</strong> $H k$ 的并集。由于 $H$ 是<strong>正规</strong>的， $k H=H k$，因此 $H K=K H$。$H K$ 在乘法下的<strong>封闭性</strong>随之而来，因为 $H K H K=H H K K=H K$。此外， $(h k)^{-1}=k^{-1} h^{-1}$ 在 $K H=H K$ 中。这证明了 $H K$ 在逆元下的<strong>封闭性</strong>。</p>
+<p>(d) 假设 $H$ 和 $K$ 满足给定的条件。那么 $f$ 既是<strong>内射</strong>又是<strong>满射</strong>，所以它是<strong>双射</strong>。根据 (b)，它是一个<strong>同构</strong>当且仅当对于所有 $H$ 中的 $h$ 和 $K$ 中的 $k$，有 $h k=k h$。考虑<strong>交换子</strong> $\left(h k h^{-1}\right) k^{-1}=h\left(k h^{-1} k^{-1}\right)$。由于 $K$ 是<strong>正规</strong>的，左边在 $K$ 中，由于 $H$ 是<strong>正规</strong>的，右边在 $H$ 中。由于 $H \cap K=\{1\}$，$h k h^{-1} k^{-1}=1$，所以 $h k=k h$。反之，如果 $f$ 是一个<strong>同构</strong>，则可以在<strong>同构群</strong> $H \times K$ 中而不是在 $G$ 中验证所列出的条件。$\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分是<strong>命题 2.11.4</strong> 的正式数学证明，它将我们之前通过解释和例子建立起来的直觉，用严格的逻辑语言表述出来。</p>
+<p><strong>(a) 内射性证明</strong></p>
+<ul>
+  <li><strong>目标</strong>：证明 "$f$ 内射 $\iff H \cap K = \{1\}$"。</li>
+  <li><strong>($\Leftarrow$) 方向</strong> (证明 "如果 $H \cap K = \{1\}$，那么 $f$ 内射")</li>
+</ul>
+<ol>
+  <li> 假设 $H \cap K = \{1\}$。</li>
+  <li> 要证 $f$ 内射，我们假设 $f(h_1, k_1) = f(h_2, k_2)$，目标是推出 $(h_1, k_1) = (h_2, k_2)$。</li>
+  <li> $h_1k_1 = h_2k_2$。这是一个在群 $G$ 中的等式。</li>
+  <li> 通过代数变形，把 $H$ 的元素都移到一边，$K$ 的元素都移到另一边：两边左乘 $h_2^{-1}$，右乘 $k_1^{-1}$，得到 $h_2^{-1}h_1 = k_2k_1^{-1}$。(注意：原文的推导是左乘 $h_1^{-1}$ 右乘 $k_2^{-1</li>
+</ol>
+<p>，得到 $k_{1} k_{2}^{-1}=h_{1}^{-1} h_{2}$。</p>
+<ol>
+  <li> <strong>核心论证</strong>：等式左边的 $k_1k_2^{-1}$，因为 $k_1, k_2 \in K$ 且 $K$ 是<strong>子群</strong>，所以它一定是 $K$ 的元素。等式右边的 $h_1^{-1}h_2$，因为 $h_1, h_2 \in H$ 且 $H$ 是<strong>子群</strong>，所以它一定是 $H$ 的元素。</li>
+  <li> 现在我们有一个元素，它既在 $H$ 里，又在 $K$ 里。这意味着它必须属于它们的交集 $H \cap K$。</li>
+  <li> 根据我们的初始假设，$H \cap K = \{1\}$。所以这个元素只能是<strong>单位元</strong> $1$。</li>
+  <li> 因此，$h_1^{-1}h_2 = 1$ (推出 $h_1=h_2$) 且 $k_1k_2^{-1} = 1$ (推出 $k_1=k_2$)。（注意，原文这里的小代数变形 $k_1k_2^{-1}=h_1^{-1}h_2$ 和我之前解释的 $h_2^{-1}h_1=k_2k_1^{-1}$ 只是代数操作顺序不同，本质和结论完全一样）。</li>
+  <li> 我们成功证明了 $h_1=h_2$ 和 $k_1=k_2$，这意味着输入 $(h_1, k_1)$ 和 $(h_2, k_2)$ 是同一个。</li>
+  <li>证毕，$f$ 是<strong>内射</strong>的。
+<ul>
+  <li><strong>($\Rightarrow$) 方向</strong> (证明 "如果 $f$ 内射，那么 $H \cap K = \{1\}$")</li>
+</ul></li>
+  <li> 假设 $f$ 是<strong>内射</strong>的。</li>
+  <li> 我们要证明 $H \cap K = \{1\}$。我们用反证法，假设交集里有一个非<strong>单位元</strong>的元素 $x$，即 $x \in H, x \in K$ 且 $x \neq 1$。</li>
+  <li> 因为 $x \in H$，那么它的逆元 $x^{-1}$ 也一定在 $H$ 里。</li>
+  <li> 考虑两个不同的输入：$(x^{-1}, x)$ 和 $(1, 1)$。它们是不同的，因为 $x \neq 1$。</li>
+  <li> 计算它们在 $f$ 下的像：
+<ul>
+  <li>$f(x^{-1}, x) = x^{-1}x = 1$。</li>
+  <li>$f(1, 1) = 1 \cdot 1 = 1$。</li>
+</ul></li>
+  <li> 我们找到了两个不同的输入，却得到了相同的输出。这与 $f$ 是<strong>内射</strong>的假设相矛盾。</li>
+  <li> 因此，我们最初的假设（存在非单位元 $x$）是错误的。</li>
+  <li> 结论：$H \cap K$ 中不可能有非<strong>单位元</strong>的元素，所以 $H \cap K = \{1\}$。</li>
+</ol>
+<p><strong>(b) 同态性证明</strong></p>
+<ul>
+  <li><strong>目标</strong>：证明 "$f$ 是同态 $\iff hk=kh$ 对所有 $h \in H, k \in K$ 成立"。</li>
+  <li>根据<strong>同态</strong>的定义， $f$ 是<strong>同态</strong>意味着对于 $H \times K$ 中的任意两个元素 $(h_1, k_1)$ 和 $(h_2, k_2)$，都必须满足 $f((h_1, k_1) \cdot (h_2, k_2)) = f(h_1, k_1) \cdot f(h_2, k_2)$。</li>
+  <li><strong>计算等式左边 (先在源群运算，再映射)</strong>:</li>
+</ul>
+<ol>
+  <li> 在<strong>直积群</strong> $H \times K$ 中运算：$(h_1, k_1) \cdot (h_2, k_2) = (h_1h_2, k_1k_2)$。</li>
+  <li> 应用映射 $f$：$f(h_1h_2, k_1k_2) = (h_1h_2)(k_1k_2)$。
+<ul>
+  <li><strong>计算等式右边 (先映射，再在目标群运算)</strong>:</li>
+</ul></li>
+  <li> 分别应用映射 $f$：$f(h_1, k_1) = h_1k_1$，$f(h_2, k_2) = h_2k_2$。</li>
+  <li> 在<strong>群</strong> $G$ 中运算：$(h_1k_1)(h_2k_2)$。
+<ul>
+  <li><strong>建立等价关系</strong>:</li>
+  <li>在群中，我们可以消去等式两边的相同元素。左边消去 $h_1$，右边消去 $k_2$：</li>
+  <li>因为 $h_2$ 和 $k_1$ 是 $H$ 和 $K$ 中的任意元素，所以这个条件就等价于“$H$ 中的任意元素都与 $K$ 中的任意元素<strong>可交换</strong>”。</li>
+</ul></li>
+</ol>
+<p><strong>(c) HK 是子群的证明</strong></p>
+<ul>
+  <li><strong>目标</strong>：证明如果 $H$ 是<strong>正规子群</strong>，那么 $HK$ 是 $G$ 的一个<strong>子群</strong>。</li>
+  <li><strong>关键引理：$HK = KH$</strong></li>
+</ul>
+<ol>
+  <li> $HK$ 的定义是 $\{hk \mid h \in H, k \in K\}$。它是所有右<strong>陪集</strong> $Hk$ 的并集。</li>
+  <li> $KH$ 的定义是 $\{kh \mid k \in K, h \in H\}$。它是所有左<strong>陪集</strong> $kH$ 的并集（针对 $K$ 中的元素 $k$）。</li>
+  <li> $H$ 是<strong>正规子群</strong>的定义是：对于 $G$ 中任何元素 $g$，都有 $gH=Hg$。这个性质对于 $K$ 中的元素 $k$ 自然也成立，即 $kH=Hk$ for all $k \in K$。</li>
+  <li> 因此，$KH = \bigcup_{k \in K} kH = \bigcup_{k \in K} Hk = HK$。
+<ul>
+  <li><strong>验证子群公理</strong>:</li>
+</ul></li>
+  <li> <strong>封闭性</strong>：取 $HK$ 中任意两个元素 $x_1, x_2$。$x_1=h_1k_1, x_2=h_2k_2$。
+<ul>
+  <li>它们的积为 $x_1x_2 = (h_1k_1)(h_2k_2) = h_1(k_1h_2)k_2$。</li>
+  <li>利用刚才的引理：$(HK)(HK) = H(KH)K$。因为 $KH=HK$，所以这等于 $H(HK)K$。</li>
+  <li>利用结合律，变为 $(HH)(KK)$。</li>
+  <li>因为 $H, K$ 都是<strong>子群</strong>，它们对自身的运算是封闭的，所以 $HH=H, KK=K$。</li>
+  <li>最终得到 $(HK)(HK)=HK$。这表明任意两个 $HK$ 中元素的乘积仍然在 $HK$ 中。封闭性得证。</li>
+</ul></li>
+  <li> <strong>逆元</strong>：取 $HK$ 中任意一个元素 $x=hk$。
+<ul>
+  <li>它的逆元是 $x^{-1} = (hk)^{-1} = k^{-1}h^{-1}$ (袜子-鞋子原理)。</li>
+  <li>$k^{-1} \in K$, $h^{-1} \in H$。所以 $k^{-1}h^{-1}$ 是 $KH$ 中的一个元素。</li>
+  <li>因为 $KH=HK$，所以这个逆元也一定在 $HK$ 中。逆元封闭性得证。</li>
+  <li>结论：$HK$ 满足封闭性和逆元条件，因此是 $G$ 的一个<strong>子群</strong>。</li>
+</ul></li>
+</ol>
+<p><strong>(d) 同构条件证明</strong></p>
+<ul>
+  <li><strong>目标</strong>：证明 "$f$ 是同构 $\iff H \cap K=\{1\}, HK=G, \text{ and } H, K \text{ are normal in } G$"。</li>
+  <li><strong>($\Leftarrow$) 方向 (假设三个条件成立，证明 f 是同构)</strong></li>
+</ul>
+<ol>
+  <li> <strong>内射性</strong>：条件 $H \cap K=\{1\}$ 根据 (a) 的证明，直接保证了 $f$ 是<strong>内射</strong>的。</li>
+  <li> <strong>满射性</strong>：条件 $HK=G$ 根据<strong>乘法映射</strong> $f$ 的像的定义，直接保证了 $f$ 是<strong>满射</strong>的。</li>
+  <li> <strong>双射性</strong>：由于 $f$ 既<strong>内射</strong>又<strong>满射</strong>，所以 $f$ 是一个<strong>双射</strong>。</li>
+  <li> <strong>同态性</strong>：现在我们需要证明 $f$ 是<strong>同态</strong>。根据 (b) 的证明，这等价于证明 $hk=kh$ 对所有 $h \in H, k \in K$ 成立。</li>
+  <li> <strong>证明 $hk=kh$</strong>:
+<ul>
+  <li>考虑<strong>交换子</strong>元素 $c = hkh^{-1}k^{-1}$。</li>
+  <li><strong>从 $K$ 的角度看</strong>: $c = (hkh^{-1})k^{-1}$。因为 $K$ 是<strong>正规子群</strong>，所以对于任意的 $h \in G$，都有 $hKh^{-1}=K$。这意味着 $hkh^{-1}$ 是 $K$ 中的一个元素。既然 $hkh^{-1} \in K$ 且 $k^{-1} \in K$，那么它们的乘积 $c$ 也必然在 $K$ 中。</li>
+  <li><strong>从 $H$ 的角度看</strong>: $c = h(kh^{-1}k^{-1})$。因为 $H$ 是<strong>正规子群</strong>，所以对于任意的 $k \in G$，都有 $kHk^{-1}=H$。这意味着 $kh^{-1}k^{-1}$ 是 $H$ 中的一个元素。既然 $h \in H$ 且 $kh^{-1}k^{-1} \in H$，那么它们的乘积 $c$ 也必然在 $H$ 中。</li>
+  <li><strong>得出结论</strong>: 元素 $c$ 同时属于 $H$ 和 $K$，所以它必须在它们的交集 $H \cap K$ 中。</li>
+  <li>根据条件 $H \cap K=\{1\}$，我们得出 $c=1$。</li>
+  <li>$hkh^{-1}k^{-1}=1 \implies hkh^{-1}=k \implies hk=kh$。</li>
+</ul></li>
+  <li> <strong>同态性</strong>得证。因为 $f$ 是<strong>内射</strong>、<strong>满射</strong>、<strong>同态</strong>的，所以 $f$ 是一个<strong>同构</strong>。
+<ul>
+  <li><strong>($\Rightarrow$) 方向 (假设 f 是同构，证明三个条件成立)</strong></li>
+</ul></li>
+  <li> $f$ <strong>同构</strong> $\implies f$ <strong>内射</strong> $\implies H \cap K = \{1\}$ (根据a)。</li>
+  <li> $f$ <strong>同构</strong> $\implies f$ <strong>满射</strong> $\implies HK=G$。</li>
+  <li> $f$ <strong>同构</strong> $\implies f$ <strong>同态</strong> $\implies hk=kh$ 对所有 $h \in H, k \in K$ 成立 (根据b)。</li>
+  <li> 现在我们只需要从 $hk=kh$ (以及其他两个条件) 推出 $H, K$ 是<strong>正规子群</strong>。</li>
+  <li> <strong>证明 $H$ 是正规的</strong>：
+<ul>
+  <li>要证 $H$ <strong>正规</strong>，需证对任意 $g \in G$，有 $gHg^{-1}=H$。</li>
+  <li>因为 $HK=G$，所以任意 $g$ 都可以写成 $g=h_0k_0$ 的形式，其中 $h_0 \in H, k_0 \in K$。</li>
+  <li>$gHg^{-1} = (h_0k_0)H(h_0k_0)^{-1} = h_0k_0Hk_0^{-1}h_0^{-1}$。</li>
+  <li>因为 $H, K$ 的元素<strong>可交换</strong>，所以对于任意 $h' \in H$，有 $k_0h'k_0^{-1} = h'k_0k_0^{-1} = h'$。这意味着 $k_0Hk_0^{-1}=H$。</li>
+  <li>代入上式，得到 $gHg^{-1} = h_0Hh_0^{-1}$。</li>
+  <li>因为 $h_0 \in H$ 且 $H$ 是一个<strong>子群</strong>，所以 $h_0H=H$ 且 $Hh_0^{-1}=H$。因此 $h_0Hh_0^{-1}=H$。</li>
+  <li>结论: $gHg^{-1}=H$。$H$ 是<strong>正规子群</strong>。</li>
+</ul></li>
+  <li> <strong>证明 $K$ 是正规的</strong>：证明过程完全对称，只需交换 $H, K$ 的角色即可。
+<ul>
+  <li><strong>最后的说明</strong>: "反之，如果 $f$ 是一个<strong>同构</strong>，则可以在<strong>同构群</strong> $H \times K$ 中而不是在 $G$ 中验证所列出的条件。" 这句话有些绕。它的意思是，如果 G <strong>同构</strong>于 $H \times K$ (这里的 $H,K$ 是抽象的群)，那么 $G$ 内部一定可以找到两个子群 $H' \cong H$ 和 $K' \cong K$，使得 $H', K'$ 满足命题(d)的三个条件。这是因为在<strong>直积群</strong> $H \times K$ 中，子群 $H \times \{1\}$ 和 $\{1\} \times K$ 就完美地满足这三个条件。<strong>同构</strong>会把这个漂亮的结构原封不动地搬到 $G$ 里面。</li>
+</ul></li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-4">
+    <h2><span class="section-number">4</span>4阶群的分类 (Classification of Groups of Order 4)</h2>
+    <p id="original-9"><strong style="font-size: 1.3rem;">📜 [原文9]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>我们使用此<strong>命题</strong>来<strong>分类</strong><strong>4阶群</strong>：</p>
+<p><strong>命题 2.11.5</strong> <strong>4阶群</strong>有两种<strong>同构类</strong>，即<strong>4阶循环群</strong> $C_{4}$ 的<strong>同构类</strong>和<strong>克莱因四元群</strong>的<strong>同构类</strong>，<strong>克莱因四元群同构</strong>于两个<strong>2阶群</strong>的<strong>直积</strong> $C_{2} \times C_{2}$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分是前面理论知识的一次精彩应用。目标是找出所有可能的、本质上不同的<strong>4阶群</strong>有多少种。结论是只有两种。</p>
+<ol>
+  <li> <strong>分类问题</strong>：在数学中，“<strong>分类</strong>”一个对象意味着列出所有可能的、不<strong>同构</strong>的该对象的清单。这里我们要<strong>分类</strong>所有<strong>阶</strong>为4的<strong>群</strong>。</li>
+  <li> <strong>拉格朗日定理的应用</strong>：根据<strong>拉格朗日定理</strong>，<strong>群</strong>中任何元素的<strong>阶</strong>都必须整除<strong>群</strong>的<strong>阶</strong>。对于一个<strong>4阶群</strong> $G$，其任何元素的<strong>阶</strong>只可能是1, 2, 或 4。</li>
+  <li> <strong>分类策略：按元素的最大阶数讨论</strong>。这是一个非常有效的方法。一个<strong>4阶群</strong>，它里面<strong>阶</strong>最大的元素的<strong>阶</strong>是多少？只有两种可能：要么是4，要么是2。</li>
+  <li> <strong>情况 1：群 $G$ 中包含一个4阶元素。</strong>
+<ul>
+  <li>假设 $G$ 中有一个元素 $g$，其<strong>阶</strong> $\text{ord}(g)=4$。</li>
+  <li>考虑由 $g$ 生成的<strong>循环子群</strong> $\langle g \rangle = \{1, g, g^2, g^3\}$。</li>
+  <li>这个<strong>子群</strong>的<strong>阶</strong>是4。</li>
+  <li>由于这个<strong>子群</strong> $\langle g \rangle$ 包含在 $G$ 中，并且它们的<strong>阶</strong>都是4，所以这个<strong>子群</strong>就是 $G$ 本身，即 $G = \langle g \rangle$。</li>
+  <li>这说明 $G$ 是一个<strong>4阶循环群</strong>。</li>
+  <li>所有<strong>4阶循环群</strong>都是<strong>同构</strong>的，我们通常用 $C_4$ 来代表这一类。</li>
+  <li>所以，第一种可能性就是 $C_4$。</li>
+</ul></li>
+  <li> <strong>情况 2：群 $G$ 中不包含4阶元素。</strong>
+<ul>
+  <li>在这种情况下，所有非<strong>单位元</strong>的元素的<strong>阶</strong>都只能是2。（因为阶必须整除4，又不能是4，只能是2）。</li>
+  <li>这意味着对于 $G$ 中任何非<strong>单位元</strong>的元素 $x$，都有 $x^2 = 1$，这等价于 $x = x^{-1}$ (每个元素都是自身的逆元)。</li>
+  <li><strong>证明 $G$ 是阿贝尔群</strong>：取 $G$ 中任意两个元素 $x, y$。</li>
+  <li>它们的乘积 $xy$ 也是 $G$ 中的一个元素。所以 $(xy)$ 的<strong>阶</strong>也必然是2（除非 $xy=1$）。</li>
+  <li>$(xy)^2 = 1 \implies (xy)(xy)=1$。</li>
+  <li>在这个等式两边左乘 $x$（即 $x^{-1}$），得到 $x(xyxy)=x \cdot 1 \implies (xx)yxy = x \implies 1 \cdot yxy = x \implies yxy = x$。</li>
+  <li>再在两边右乘 $y$（即 $y^{-1}$），得到 $yxyy = xy \implies yx \cdot 1 = xy \implies yx = xy$。</li>
+  <li>由于 $x,y$ 是任意的，所以 $G$ 中所有元素都<strong>可交换</strong>，$G$ 是一个<strong>阿贝尔群</strong>。</li>
+  <li><strong>应用命题 2.11.4(d)</strong>：我们想把 $G$ <strong>分解</strong>成<strong>直积</strong>。</li>
+  <li>因为 $G$ 是<strong>阿贝尔群</strong>，它的任何<strong>子群</strong>都是<strong>正规子群</strong>。这使得<strong>命题 2.11.4(d)</strong> 的第三个条件（$H,K$都正规）自动满足。</li>
+  <li>我们来寻找合适的<strong>子群</strong> $H$ 和 $K$。</li>
+  <li>在 $G$ 中任取一个非<strong>单位元</strong>的元素 $x$。令 $H = \langle x \rangle = \{1, x\}$。这是一个<strong>2阶循环子群</strong>。</li>
+  <li>由于 $|G|=4, |H|=2$，还存在元素不在 $H$ 中。任取一个 $y \in G$ 且 $y \notin H$。令 $K = \langle y \rangle = \{1, y\}$。这也是一个<strong>2阶循环子群</strong>。</li>
+  <li>现在我们来验证<strong>命题 2.11.4(d)</strong> 的另外两个条件：</li>
+</ul></li>
+  <li> <strong>$H \cap K = \{1\}$</strong>：因为 $y \notin H$，所以 $y \neq x$ 且 $y \neq 1$。所以 $H$ 和 $K$ 除了<strong>单位元</strong> 1 之外没有公共元素。条件满足。</li>
+  <li> <strong>$HK=G$</strong>：我们已经知道 $H$ 是<strong>正规</strong>的，所以 $HK$ 是一个<strong>子群</strong>。它的<strong>阶</strong>是 $|HK| = \frac{|H||K|}{|H \cap K|} = \frac{2 \times 2}{1} = 4$。一个<strong>阶</strong>为4的<strong>子群</strong>包含在一个<strong>阶</strong>为4的<strong>群</strong> $G$ 中，它只能是 $G$ 本身。所以 $HK=G$。条件满足。
+<ul>
+  <li><strong>得出结论</strong>：所有三个条件都满足，因此 $G \cong H \times K$。</li>
+  <li>因为 $H \cong C_2$，$K \cong C_2$，所以 $G \cong C_2 \times C_2$。</li>
+  <li>所以，第二种可能性就是 $C_2 \times C_2$。这个<strong>群</strong>通常被称为<strong>克莱因四元群 (Klein four-group)</strong>。</li>
+</ul></li>
+  <li> <strong>最终分类</strong>：由于以上两种情况覆盖了所有可能性，任何<strong>4阶群</strong>要么<strong>同构</strong>于 $C_4$，要么<strong>同构</strong>于 $C_2 \times C_2$。不存在第三种本质不同的<strong>4阶群</strong>。</li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>示例 1：4阶循环群 $C_4$</strong></p>
+<ul>
+  <li><strong>元素</strong>: $\{0, 1, 2, 3\}$</li>
+  <li><strong>运算</strong>: 模4加法</li>
+  <li><strong>元素阶分布</strong>:</li>
+  <li>$\text{ord}(0) = 1$ (1个)</li>
+  <li>$\text{ord}(2) = 2$ (1个)</li>
+  <li>$\text{ord}(1) = 4, \text{ord}(3) = 4$ (2个)</li>
+</ul>
+<p><strong>示例 2：克莱因四元群 $V_4 \cong C_2 \times C_2$</strong></p>
+<ul>
+  <li><strong>元素</strong>: $\{(0,0), (0,1), (1,0), (1,1)\}$</li>
+  <li><strong>运算</strong>: 分量模2加法</li>
+  <li><strong>元素阶分布</strong>:</li>
+  <li>$\text{ord}(0,0) = 1$ (1个)</li>
+  <li>$\text{ord}(0,1)=2, \text{ord}(1,0)=2, \text{ord}(1,1)=2$ (3个)</li>
+  <li><strong>几何模型</strong>: 对称群 of a rectangle (not a square). 元素是：单位操作，水平翻转，垂直翻转，旋转180度。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>关键分支</strong>：证明的关键在于，一旦确定群里没有4阶元素，就能推出所有非单位元元素都是2阶，进而推出群是<strong>阿贝尔群</strong>。这个逻辑链不能断。</li>
+  <li><strong>不要混淆</strong>：$C_4$ 和 $C_2 \times C_2$ 都是<strong>4阶阿贝尔群</strong>，但它们不<strong>同构</strong>。区分它们的最好方法就是看元素<strong>阶</strong>的分布：$C_4$ 有4阶元素，而 $C_2 \times C_2$ 没有。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>命题 2.11.5</strong> 是<strong>群论</strong>中一个基础的分类结果。它利用<strong>拉格朗日定理</strong>和刚刚建立的关于<strong>直积分解</strong>的<strong>命题 2.11.4</strong>，完美地证明了<strong>4阶群</strong>只有两种本质不同的结构。这个证明过程本身就是如何运用抽象理论解决具体问题的典范。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是展示理论的威力。前面的<strong>命题 2.11.4</strong> 看起来非常抽象，而本段用它作为关键工具，解决了一个非常具体和根本的问题：世界上到底有几种<strong>4阶群</strong>？这让学习者体会到抽象代数理论的价值和力量。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你有4个一模一样的球，你想把它们串成一个圈，使得这个圈具有<strong>群</strong>的结构。你有几种方法？</p>
+<ol>
+  <li><strong>方法1 ($C_4$)</strong>: 把4个球串成一个简单的圈。任何一个球都可以作为起点"1"，下一个是"2"，再下一个是"3"，最后一个是"0"。这是一个“单行道”，必须走4步才能回到起点。</li>
+  <li><strong>方法2 ($C_2 \times C_2$)</strong>: 想象你站在一个房间的中心，墙上有“前、后、左、右”四个位置。你可以定义操作，比如“前后交换”，“左右交换”。你会发现任何操作做两次都会回到原状，而且先“前后交换”再“左右交换”，和你先“左右交换”再“前后交换”结果一样。这是一个完全不同的结构。</li>
+</ol>
+<p>这个命题告诉你，除了这两种方式，你不可能再发明出第三种具有<strong>群</strong>结构的4球游戏。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<ol>
+  <li>$C_4$: 一个正方形的旋转对称群。包括旋转0, 90, 180, 270度。这是一个<strong>循环群</strong>。</li>
+  <li>$C_2 \times C_2$: 一个长方形的对称群。包括旋转0度，旋转180度，沿水平中轴线翻转，沿垂直中轴线翻转。这不是一个<strong>循环群</strong>，因为没有任何一个操作可以生成所有其他操作。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-5">
+    <h2><span class="section-number">5</span>行间公式索引</h2>
+    <p>1.  <div class="math-block">$$
+ \begin{equation*} \left(a, a^{\prime}\right) \cdot\left(b, b^{\prime}\right)=\left(a b, a^{\prime} b^{\prime}\right) . \tag{2.11.1} \end{equation*} 
+$$</div></p><p><strong>解释</strong>: 此公式定义了<strong>直积群</strong> $G \times G^{\prime}$ 中的<strong>分量乘法</strong>运算规则。</p><p>2.  <div class="math-block">$$
+ (1,1),(y, z),\left(1, z^{2}\right),(y, 1),(1, z),\left(y, z^{2}\right) . 
+$$</div></p><p><strong>解释</strong>: 此列表展示了由元素 $(y, z)$ 在<strong>直积群</strong> $C_2 \times C_3$ 中生成的所有六个元素，证明了 $C_2 \times C_3$ 是一个<strong>6阶循环群</strong>。</p>
+</section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>行间公式索引</p>
+    </footer>
+
+
+    <!-- 手机端点击翻页功能 -->
+    <script>
+        (function() {
+            // 点击翻页功能（在所有设备上启用）
+            
+            document.addEventListener('click', function(e) {
+                // 如果 TOC 目录面板处于打开状态，不触发翻页
+                var tocPanel = document.getElementById('tocPanel');
+                if (tocPanel && tocPanel.classList.contains('active')) {
+                    return;
+                }
+                
+                // 排除对链接、按钮、输入框等交互元素的点击
+                var target = e.target;
+                var tagName = target.tagName.toLowerCase();
+                if (tagName === 'a' || tagName === 'button' || tagName === 'input' || 
+                    tagName === 'textarea' || tagName === 'select' || 
+                    target.closest('a') || target.closest('button') ||
+                    target.closest('.toc-panel') || target.closest('.toc-toggle') ||
+                    target.closest('.toc-overlay')) {
+                    return;
+                }
+                
+                var clickY = e.clientY;
+                var windowHeight = window.innerHeight;
+                var scrollAmount = windowHeight * 0.85; // 滚动85%的屏幕高度
+                
+                if (clickY > windowHeight / 2) {
+                    // 点击下半部分：向下翻页
+                    window.scrollBy({
+                        top: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 点击上半部分：向上翻页
+                    window.scrollBy({
+                        top: -scrollAmount,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        })();
+    </script>
+
+    <!-- TOC 目录控制脚本 -->
+    <script>
+        (function() {
+            var tocToggle = document.getElementById('tocToggle');
+            var tocPanel = document.getElementById('tocPanel');
+            var tocOverlay = document.getElementById('tocOverlay');
+            
+            // 切换目录显示/隐藏
+            function toggleTOC() {
+                var isOpen = tocPanel.classList.contains('active');
+                if (isOpen) {
+                    closeTOC();
+                } else {
+                    openTOC();
+                }
+            }
+            
+            // 打开目录
+            function openTOC() {
+                tocPanel.classList.add('active');
+                tocOverlay.classList.add('active');
+                tocToggle.setAttribute('aria-label', '关闭目录');
+            }
+            
+            // 关闭目录
+            function closeTOC() {
+                tocPanel.classList.remove('active');
+                tocOverlay.classList.remove('active');
+                tocToggle.setAttribute('aria-label', '打开目录');
+            }
+            
+            // 点击按钮切换目录
+            tocToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTOC();
+            });
+            
+            // 点击遮罩层关闭目录
+            tocOverlay.addEventListener('click', function() {
+                closeTOC();
+            });
+            
+            // 点击目录项后关闭目录
+            var tocLinks = tocPanel.querySelectorAll('a');
+            tocLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    closeTOC();
+                });
+            });
+            
+            // ESC 键关闭目录
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && tocPanel.classList.contains('active')) {
+                    closeTOC();
+                }
+            });
+            
+            // 高亮当前可见的目录条目
+            function updateActiveItem() {
+                var scrollPos = window.scrollY + 150;  // 偏移量
+                var activeSection = null;
+                var activeOriginal = null;
+                
+                // 查找当前可见的 section
+                var sections = document.querySelectorAll('section[id^="section-"]');
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    if (section.offsetTop <= scrollPos) {
+                        activeSection = section.id;
+                    }
+                }
+                
+                // 查找当前可见的原文区块
+                var originals = document.querySelectorAll('[id^="original-"]');
+                for (var j = 0; j < originals.length; j++) {
+                    var original = originals[j];
+                    if (original.offsetTop <= scrollPos) {
+                        activeOriginal = original.id;
+                    }
+                }
+                
+                // 先移除所有 active 类
+                var allHeadings = tocPanel.querySelectorAll('.toc-heading');
+                for (var h = 0; h < allHeadings.length; h++) {
+                    allHeadings[h].classList.remove('active');
+                }
+                
+                var allOriginals = tocPanel.querySelectorAll('.toc-original');
+                for (var o = 0; o < allOriginals.length; o++) {
+                    allOriginals[o].classList.remove('active');
+                }
+                
+                // 只给当前活动的条目添加 active 类
+                if (activeSection) {
+                    var activeHeadingLink = tocPanel.querySelector('.toc-heading a[href="#' + activeSection + '"]');
+                    if (activeHeadingLink) {
+                        activeHeadingLink.parentElement.classList.add('active');
+                    }
+                }
+                
+                if (activeOriginal) {
+                    var activeOriginalLink = tocPanel.querySelector('.toc-original a[href="#' + activeOriginal + '"]');
+                    if (activeOriginalLink) {
+                        activeOriginalLink.parentElement.classList.add('active');
+                    }
+                }
+            }
+            
+            // 节流函数
+            var scrollTimeout;
+            function throttledUpdate() {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(function() {
+                    updateActiveItem();
+                    scrollTimeout = null;
+                }, 100);
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', throttledUpdate);
+            
+            // 打开目录时立即更新高亮
+            var originalOpenTOC = openTOC;
+            openTOC = function() {
+                originalOpenTOC();
+                updateActiveItem();
+            };
+            
+            // 初始化
+            updateActiveItem();
+        })();
+    </script>
+</body>
+</html>

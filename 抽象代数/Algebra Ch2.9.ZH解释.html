@@ -1,0 +1,2582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1. 2.9 模算术</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- MathJax v4 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            output: {
+                displayOverflow: 'linebreak',
+                linebreaks: {
+                    inline: true,
+                    width: '100%',
+                    lineleading: 0.2
+                }
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            /* 五大区块主题色 */
+            --original-color: #8b5cf6;
+            --explain-color: #0ea5e9;
+            --formula-color: #6366f1;
+            --example-color: #10b981;
+            --warning-color: #f59e0b;
+            /* Q1修复：总结、存在目的、直觉心智模型、直观想象 统一使用 #36828C 青色主题 */
+            --summary-color: #36828C;     /* 青色主题 */
+            --purpose-color: #36828C;     /* 青色主题 */
+            --intuition-color: #36828C;   /* 青色主题 */
+            --imagination-color: #36828C; /* 青色主题 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .authors {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
+        .content-section h4 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h5 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 18px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h6 {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            margin: 15px 0 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        /* ===============================
+           五大内容区块 - 统一风格不同主题色
+           =============================== */
+
+        /* 原文区 - 紫色 */
+        .original-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid var(--original-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .original-box .box-label {
+            color: var(--original-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-box .box-content {
+            font-style: italic;
+            color: #6b21a8;
+        }
+
+        /* 📜 [原文]区块内容 - 使用统一的黑色 */
+        .original-content {
+            color: #2d3748; /* 统一的深灰黑色 */
+        }
+
+        .original-content * {
+            color: #2d3748; /* 所有子元素 */
+        }
+
+        .original-content .MathJax, .original-content .MathJax * {
+            color: #2d3748 !important; /* 行内公式 */
+        }
+
+        /* 通用 .box-content 换行规则 - 确保长文本（如代码调用）能自动换行 */
+        .box-content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .box-content strong, .box-content code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            display: inline;
+        }
+
+        /* 逐步解释区 - 蓝色 */
+        .explain-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--explain-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .explain-box .box-label {
+            color: var(--explain-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explain-box .box-content {
+            color: #1a365d; /* Dark Blue */
+        }
+
+        .explain-box .box-content * {
+            color: #1a365d; /* Dark Blue - 所有子元素 */
+        }
+
+        .explain-box .box-content .MathJax, .explain-box .box-content .MathJax * {
+            color: #1a365d !important; /* Dark Blue - 行内公式 */
+        }
+
+        .explain-box ul, .explain-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .explain-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 公式拆解区 - 靛蓝色 */
+        .formula-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--formula-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .formula-box .box-label {
+            color: var(--formula-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .formula-box .box-content {
+            color: var(--text-color); /* 统一使用默认黑色，与原文区块一致 */
+            overflow-x: auto;
+        }
+
+        .formula-box .box-content * {
+            color: var(--text-color); /* 所有子元素 */
+        }
+
+        .formula-box .box-content .MathJax, .formula-box .box-content .MathJax * {
+            color: var(--text-color) !important; /* 行内公式 */
+        }
+
+        /* 数值示例区 - 绿色 */
+        .example-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--example-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .example-box .box-label {
+            color: var(--example-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-box .box-content {
+            color: #166534; /* Dark Green from edstem5 .answer-en */
+        }
+
+        .example-box .box-content * {
+            color: #166534; /* Dark Green - 所有子元素 */
+        }
+
+        .example-box .box-content .MathJax, .example-box .box-content .MathJax * {
+            color: #166534 !important; /* Dark Green - 行内公式 */
+        }
+
+        .example-box ul, .example-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .example-box li {
+            margin-bottom: 6px;
+        }
+
+        .example-box code {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* 易错点区 - 橙色 */
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .warning-box .box-label {
+            color: var(--warning-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warning-box .box-content {
+            color: #92400e;
+        }
+
+        .warning-box .box-content * {
+            color: #92400e; /* 所有子元素 */
+        }
+
+        .warning-box .box-content .MathJax, .warning-box .box-content .MathJax * {
+            color: #92400e !important; /* 行内公式 */
+        }
+
+        .warning-box ul, .warning-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .warning-box li {
+            margin-bottom: 6px;
+        }
+
+        /* 总结区 - Q1修复：使用#36828C青色主题 */
+        .summary-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--summary-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .summary-box .box-label {
+            color: var(--summary-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .summary-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .summary-box .box-content .MathJax, .summary-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 存在目的区 - Q1修复：使用#36828C青色主题 */
+        .purpose-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--purpose-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .purpose-box .box-label {
+            color: var(--purpose-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .purpose-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .purpose-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .purpose-box .box-content .MathJax, .purpose-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直觉心智模型区 - Q1修复：使用#36828C青色主题 */
+        .intuition-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--intuition-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .intuition-box .box-label {
+            color: var(--intuition-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .intuition-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .intuition-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .intuition-box .box-content .MathJax, .intuition-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直观想象区 - Q1修复：使用#36828C青色主题 */
+        .imagination-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--imagination-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .imagination-box .box-label {
+            color: var(--imagination-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .imagination-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .imagination-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .imagination-box .box-content .MathJax, .imagination-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 高亮术语 */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* 代码块 */
+        code {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            margin: 15px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 表格样式 - 紧凑型，行高列宽适应文字最小值 */
+        table {
+            border-collapse: collapse;
+            width: auto;  /* 列宽适应内容 */
+            margin: 15px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;  /* 减小padding使行高更紧凑 */
+            text-align: left;
+            white-space: nowrap;  /* 防止不必要的换行，列宽适应文字 */
+            line-height: 1.4;  /* 紧凑的行高 */
+        }
+
+        th {
+            background: #e0f7fa;
+            color: #006064;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #e2e8f0;
+        }
+
+        /* 表格对齐 */
+        .align-left {
+            text-align: left;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        /* 图例区域 */
+        .legend-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .legend-bar {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .legend-bar.original { background: #8b5cf6; }
+        .legend-bar.explain { background: #0ea5e9; }
+        .legend-bar.formula { background: #6366f1; }
+        .legend-bar.example { background: #10b981; }
+        .legend-bar.warning { background: #f59e0b; }
+        .legend-bar.summary { background: #36828C; }
+        .legend-bar.purpose { background: #36828C; }
+        .legend-bar.intuition { background: #36828C; }
+        .legend-bar.imagination { background: #36828C; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive - 移动端适配 */
+        @media (max-width: 768px) {
+            /* 容器宽度适配 */
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 20px 12px;
+                box-sizing: border-box;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+                padding: 0 15px;
+            }
+            
+            .hero {
+                padding: 50px 15px;
+            }
+            
+            .hero h1 {
+                font-size: 1.6rem;
+                word-break: break-word;
+            }
+            
+            .authors {
+                font-size: 1rem;
+            }
+            
+            /* 内容区块适配 */
+            .content-section {
+                padding: 20px 15px;
+                margin-left: 5px;
+                margin-right: 5px;
+                border-radius: 12px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.4rem;
+                flex-wrap: wrap;
+            }
+            
+            .content-section h3 {
+                font-size: 1.2rem;
+            }
+            
+            .content-section h4 {
+                font-size: 1.1rem;
+            }
+            
+            .section-number {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            /* 各区块box适配 */
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 15px 12px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .original-box .box-label,
+            .explain-box .box-label,
+            .formula-box .box-label,
+            .example-box .box-label,
+            .warning-box .box-label,
+            .summary-box .box-label,
+            .purpose-box .box-label,
+            .intuition-box .box-label,
+            .imagination-box .box-label {
+                font-size: 1.1rem;
+            }
+            
+            /* 图例区域移动端适配 */
+            .legend-section {
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
+            
+            .legend-row {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            
+            .legend-item {
+                font-size: 0.8rem;
+                gap: 5px;
+            }
+            
+            .legend-bar {
+                width: 3px;
+                height: 16px;
+            }
+            
+            /* 列表适配 */
+            ul, ol {
+                margin-left: 15px;
+                padding-left: 5px;
+            }
+            
+            /* 表格移动端适配 */
+            table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.9rem;
+                min-width: 80px;
+            }
+            
+            /* 代码块适配 */
+            pre {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            
+            /* 数学公式适配 */
+            .math-block {
+                padding: 10px 8px;
+                margin: 15px 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* MathJax公式溢出处理 - 只处理块级公式，保持行内公式inline */
+            mjx-container[jax="CHTML"][display="true"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                display: block !important;
+            }
+            
+            /* 行内公式 - 超宽时自动换行 */
+            mjx-container:not([display="true"]) {
+                display: inline-block !important;
+                max-width: 100% !important;
+                overflow-wrap: break-word !important;
+                word-wrap: break-word !important;
+            }
+            
+            /* MathJax内部元素换行支持 */
+            mjx-math {
+                white-space: normal !important;
+            }
+            
+            mjx-mrow {
+                flex-wrap: wrap !important;
+            }
+            
+            /* Footer适配 */
+            .footer {
+                padding: 25px 15px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* 超小屏幕适配 (手机竖屏) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 8px;
+            }
+            
+            .hero {
+                padding: 40px 10px;
+            }
+            
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+            
+            .content-section {
+                padding: 15px 10px;
+                margin-left: 3px;
+                margin-right: 3px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 12px 10px;
+            }
+            
+            .legend-section {
+                padding: 12px 8px;
+            }
+            
+            .legend-row {
+                gap: 8px;
+            }
+            
+            .legend-item {
+                font-size: 0.75rem;
+            }
+            
+            ul, ol {
+                margin-left: 12px;
+            }
+        }
+        
+        /* 确保所有内容不溢出 */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* ========================================
+           TOC 目录样式
+           ======================================== */
+        
+        /* TOC 触发按钮 - 左上角小方块 */
+        .toc-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(54, 130, 140, 0.5);  /* 青色 50% 透明度 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .toc-toggle:hover {
+            background: rgba(54, 130, 140, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .toc-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* TOC 目录面板 */
+        .toc-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 95vw;  /* 手机浏览器宽度的 95% */
+            height: 80vh; /* 手机浏览器高度的 80% */
+            max-width: 450px;  /* 桌面端最大宽度 */
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0 0 16px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .toc-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* TOC 头部 - 标题在图标右侧 */
+        .toc-header {
+            padding: 15px 20px 15px 80px;  /* 左侧留出按钮空间 */
+            background: linear-gradient(135deg, #36828C 0%, #2a6a72 100%);
+            color: white;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .toc-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* TOC 内容区 */
+        .toc-content {
+            flex: 1;
+            overflow-y: auto;   /* 允许垂直滚动 */
+            overflow-x: hidden; /* 禁止水平滚动 */
+            padding: 15px 0;
+        }
+        
+        /* TOC 列表 */
+        .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc-item {
+            margin: 0;
+        }
+        
+        .toc-item a {
+            display: block;
+            padding: 4px 20px;  /* 更紧凑的行间距 */
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #2d3748;
+            text-decoration: none;
+            word-wrap: break-word;   /* 自动换行 */
+            overflow-wrap: break-word;
+            white-space: normal;     /* 允许换行 */
+            line-height: 1.3;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .toc-item a:hover {
+            background: #e8f4f5;
+            color: #36828C;
+            border-left-color: #36828C;
+        }
+        
+        /* 标题项样式 */
+        .toc-heading a {
+            font-weight: 600;
+            color: #1a365d;
+            background: #f7fafc;
+        }
+        
+        .toc-heading a:hover {
+            background: #e8f4f5;
+        }
+        
+        /* 当前活动的标题项样式 */
+        .toc-heading.active a {
+            background: #d0e8ea;
+            color: #36828C;
+            border-left-color: #36828C;
+            font-weight: 700;
+        }
+        
+        /* 当前活动的原文项样式 */
+        .toc-original.active a {
+            background: #36828C;
+            color: white;
+            box-shadow: 0 3px 8px rgba(54, 130, 140, 0.35);
+        }
+        
+        /* 原文项容器 - 横向排列自动换行 */
+        .toc-originals-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 8px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* 原文项样式 - 浅青色带阴影 */
+        .toc-original {
+            margin: 0;
+        }
+        
+        .toc-original a {
+            display: inline-block;
+            width: 64px;  /* 固定宽度确保每行显示数量一致 */
+            padding: 6px 4px;
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #36828C;  /* 青色主题色 */
+            text-decoration: none;
+            text-align: center;
+            background: #e8f4f5;
+            border-radius: 6px;
+            border-left: none;
+            box-shadow: 0 2px 4px rgba(54, 130, 140, 0.2);  /* 青色阴影 */
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .toc-original a:hover {
+            background: #e0f2f4;
+            color: #36828C;
+            box-shadow: 0 3px 6px rgba(54, 130, 140, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        /* TOC 遮罩层 */
+        .toc-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .toc-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 移动端 TOC 适配 */
+        @media (max-width: 768px) {
+            .toc-toggle {
+                top: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .toc-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .toc-panel {
+                width: 90vw;
+                height: 80vh;
+                max-width: none;
+            }
+            
+            .toc-header {
+                padding: 12px 15px 12px 65px;
+            }
+            
+            .toc-header h3 {
+                font-size: 16px;
+            }
+            
+            .toc-item a {
+                padding: 4px 15px;
+                font-size: 15.5px;
+            }
+            
+            .toc-originals-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            .toc-original a {
+                padding: 5px 10px;
+                font-size: 15.5px;
+            }
+        }
+
+        /* 特殊术语着色 */
+        .spectral {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .periodicity {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .fourier {
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        /* 列表样式增强 */
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 - 已移除重复定义，使用上方第602-633行的紧凑型样式 */
+
+        /* 分隔线 */
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 30px 0;
+        }
+
+        /* 数学公式样式 - Q7: 行间公式颜色用黑色 */
+        .math-block {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            color: #000000; /* Q7: 黑色文字 */
+        }
+
+        /* Q7: 确保MathJax渲染的公式为黑色 */
+        .math-block .MathJax {
+            color: #000000 !important;
+        }
+
+        mjx-container {
+            color: #000000 !important;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- TOC 目录按钮 -->
+    <button class="toc-toggle" id="tocToggle" aria-label="打开目录">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+        </svg>
+    </button>
+    
+    <!-- TOC 遮罩层 -->
+    <div class="toc-overlay" id="tocOverlay"></div>
+    
+    <!-- TOC 目录面板 -->
+    <nav class="toc-panel" id="tocPanel">
+        <div class="toc-header">
+            <h3>📑 目录</h3>
+        </div>
+        <div class="toc-content">
+            <ul class="toc-list">
+                <li class="toc-item toc-heading"><a href="#section-1">1. 1. 2.9 模算术</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-1">原文1</a></span><span class="toc-original"><a href="#original-2">原文2</a></span><span class="toc-original"><a href="#original-3">原文3</a></span><span class="toc-original"><a href="#original-4">原文4</a></span><span class="toc-original"><a href="#original-5">原文5</a></span><span class="toc-original"><a href="#original-6">原文6</a></span><span class="toc-original"><a href="#original-7">原文7</a></span><span class="toc-original"><a href="#original-8">原文8</a></span><span class="toc-original"><a href="#original-9">原文9</a></span><span class="toc-original"><a href="#original-10">原文10</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-2">2. 行间公式索引</a></li>
+                <li class="toc-item toc-heading"><a href="#section-3">3. 2. 最终检查清单</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>1. 2.9 模算术</h1>
+            <p class="authors"></p>
+            <p class="date"></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 图例区域 -->
+        <div class="legend-section">
+            <!-- 第一行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar original"></div>
+                    <span>📜 原文</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar explain"></div>
+                    <span>📖 逐步解释</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar formula"></div>
+                    <span>∑ 公式拆解</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar example"></div>
+                    <span>💡 数值示例</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar warning"></div>
+                    <span>⚠️ 易错点</span>
+                </div>
+            </div>
+            <!-- 第二行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar summary"></div>
+                    <span>📝 总结</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar purpose"></div>
+                    <span>🎯 存在目的</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar intuition"></div>
+                    <span>🧠 直觉心智模型</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar imagination"></div>
+                    <span>💭 直观想象</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="content-section" id="section-1">
+    <h2><span class="section-number">1</span>1. 2.9 模算术</h2>
+    <p id="original-1"><strong style="font-size: 1.3rem;">📜 [原文1]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>本节简要讨论了数论中最重要的概念之一：<strong>整数同余</strong>。如果您之前没有接触过这个概念，您可能需要阅读更多相关内容。例如，参见 $[$ Stark $]$。在本节中，我们始终使用固定的正整数 $n$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本段是引言，旨在介绍即将讨论的核心主题——<strong>整数同余</strong>（<strong>integer congruence</strong>）。</p>
+<ol>
+  <li> <strong>主题定位</strong>：开宗明义地指出本节内容是关于“<strong>整数同余</strong>”。这个概念在<strong>数论</strong>（<strong>number theory</strong>）中占据着至关重要的地位。<strong>数论</strong>是纯数学的一个分支，主要研究整数的性质。</li>
+  <li> <strong>重要性强调</strong>：“最重要的概念之一”这句话说明了<strong>整数同余</strong>不是一个边缘知识点，而是构建更复杂理论的基石。学习它对于理解后续内容至关重要。</li>
+  <li> <strong>读者引导</strong>：作者贴心地考虑到部分读者可能对这个概念感到陌生（“如果您之前没有接触过这个概念”），并给出了进一步学习的建议——“您可能需要阅读更多相关内容”。这是一种负责任的教学方式，承认本节的讨论是“简要”的，并为希望深入学习的读者指明了方向。</li>
+  <li> <strong>参考文献</strong>：具体地，作者推荐了Stark编写的教材（表示为 $[$ Stark $]$）。在学术写作中，用方括号引用参考文献是标准做法。这意味着读者可以去书末的参考文献列表中找到这本书的完整信息（书名、作者、出版社等）。</li>
+  <li> <strong>核心前提设定</strong>：最后一句“在本节中，我们始终使用固定的正整数 $n$”是至关重要的技术性设定。它明确了整个讨论的上下文环境。
+<ul>
+  <li><strong>固定</strong>：意味着 $n$ 在整个讨论过程中是不会改变的。我们选定一个 $n$（比如 $n=5$ 或 $n=12$），然后所有的计算和推理都围绕这个特定的 $n$ 进行。</li>
+  <li><strong>正整数</strong>：明确了 $n$ 的取值范围。$n$ 必须是 $1, 2, 3, \ldots$ 中的一个数。它不能是负数、零、分数或无理数。这个条件对于<strong>模算术</strong>的定义是必不可少的。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p>本段没有包含数学公式，但引入了关键符号 $n$。</p>
+<ul>
+  <li><strong>$n$</strong>：</li>
+  <li><strong>含义</strong>：在<strong>模算术</strong>的语境下，这个符号被称为<strong>模数</strong>（<strong>modulus</strong>）。</li>
+  <li><strong>角色</strong>：它是一个“标尺”或“周期”，用来衡量和划分整数。所有关于“同余”的讨论都依赖于这个选定的 $n$。</li>
+  <li><strong>约束</strong>：必须是一个<strong>正整数</strong>（$n \in \{1, 2, 3, \dots\}$）。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>：如果我们在本节选择 $n=12$，那么所有的<strong>同余</strong>关系都是“<strong>模 12</strong>”的。这就好比我们讨论的时间都限定在一个12小时制的时钟上。</li>
+  <li><strong>示例2</strong>：如果我们在本节选择 $n=7$，那么所有的<strong>同余</strong>关系都是“<strong>模 7</strong>”的。这就好比我们讨论星期几，所有日期都归入星期日到星期六这7个类别中。</li>
+  <li><strong>示例3</strong>：如果 $n=1$，那么任何两个整数都是<strong>模 1 同余</strong>的，因为任何整数之差都能被1整除。这是一种平凡但有效的情况。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点</strong>：忘记 $n$ 是一个<strong>固定</strong>的数。在解决一个具体问题时，不能随意改变 $n$ 的值。</li>
+  <li><strong>边界情况</strong>：$n$ 必须是<strong>正整数</strong>。</li>
+  <li>如果 $n=0$，那么“整除”的定义会出问题（除数不能为零）。</li>
+  <li>如果 $n$ 是负数，例如 $n=-5$，虽然可以定义<strong>同余</strong>，但通常为了简化和统一理论，我们只使用<strong>正整数</strong>作为<strong>模数</strong>。$a \equiv b \pmod n$ 等价于 $a \equiv b \pmod {-n}$，所以只考虑正数不会损失一般性。</li>
+  <li>如果 $n=1$，那么 $b-a$ 总能被1整除，所以任何两个整数 $a$ 和 $b$ 都是<strong>模 1 同余</strong>的。这意味着在<strong>模 1</strong> 的世界里，所有整数都属于同一个<strong>等价类</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段作为引子，确立了本节的核心主题是<strong>整数同余</strong>，强调了其在<strong>数论</strong>中的重要性，并为初学者提供了学习指引。最关键的是，它设定了贯穿全篇的基础参数：一个固定的<strong>正整数</strong> $n$（<strong>模数</strong>）。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是为读者搭建一个清晰的认知框架。在深入技术细节之前，它告诉读者“我们要学什么”（<strong>整数同余</strong>）、“它有多重要”（基石性概念）、“如果不会怎么办”（参考其他资料）以及“基本的游戏规则是什么”（使用固定的正整数 $n$）。这有助于管理读者的学习预期，并建立讨论的共同基础。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>可以将<strong>模数</strong> $n$ 想象成一个“循环”的长度。比如，一个星期的循环长度是 $n=7$，一个时钟的循环长度是 $n=12$。本节就是要研究在这些固定的“循环世界”里，数字是如何表现的。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一条无限长的数字直线，上面标记着所有的整数 $\ldots, -3, -2, -1, 0, 1, 2, 3, \ldots$。现在，我们选择一个<strong>正整数</strong> $n$，比如 $n=5$。我们把这条直线想象成一根无限长的绳子，然后把它缠绕在一个周长为5的圆盘上，使得整数0对准圆盘上的标记“0”。那么，整数1会落在标记“1”，2落在“2”，3落在“3”，4落在“4”，而5会再次落在标记“0”上。同样，6会落在“1”，-1会落在“4”。所有落在同一个标记点上的整数，我们就可以说它们是“一类”的。这就是<strong>同余</strong>的直观感受。</p>
+    </div>
+</div><hr><h3>1.1 同余的定义与符号</h3><p id="original-2"><strong style="font-size: 1.3rem;">📜 [原文2]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>如果 $n$ 整除 $b-a$，或者如果 $b=a+n k$（其中 $k$ 为某个<strong>整数</strong>），则称两个<strong>整数</strong> $a$ 和 $b$ <strong>模</strong> $n$ <strong>同余</strong>，记作</p>
+<p><div class="math-block">$$
+a \equiv b \text { 模 } n, \tag{2.9.1}
+$$</div></p>
+<p>例如，$2 \equiv 17$ <strong>模</strong> 5。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本段给出了<strong>模 $n$ 同余</strong>（<strong>congruence modulo n</strong>）的正式定义。这个定义是理解后续所有内容的关键。</p>
+<ol>
+  <li> <strong>核心条件</strong>：定义的核心是判断两个<strong>整数</strong> $a$ 和 $b$ 是否“<strong>模 $n$ 同余</strong>”。它提供了两个等价的判断方式：
+<ul>
+  <li><strong>方式一（整除形式）</strong>：“$n$ 整除 $b-a$”。</li>
+  <li>“整除”（divides）是一个精确的数学术语。说“$n$ 整除 $b-a$”意味着 $b-a$ 除以 $n$ 的结果是一个<strong>整数</strong>，没有余数。</li>
+  <li>例如，$5$ 整除 $15$ 因为 $15 \div 5 = 3$，而3是整数。但是，$5$ 不整除 $16$ 因为 $16 \div 5 = 3.2$，不是整数。</li>
+  <li>这个形式强调了两个数之差与<strong>模数</strong> $n$ 的倍数关系。</li>
+  <li><strong>方式二（代数形式）</strong>：“$b=a+n k$（其中 $k$ 为某个<strong>整数</strong>）”。</li>
+  <li>这个形式是从另一个角度描述同一个关系。它表示 $b$ 可以通过在 $a$ 的基础上加上若干个（$k$ 个）$n$ 来得到。</li>
+  <li>这里的 $k$ 必须是<strong>整数</strong>（$\ldots, -2, -1, 0, 1, 2, \ldots$），可以是正数、负数或零。</li>
+  <li>这个形式更直观地展示了 $a$ 和 $b$ 在以 $n$ 为“步长”的网格上的关系。</li>
+  <li><strong>两种形式的等价性</strong>：如果 $n$ 整除 $b-a$，那么根据整除的定义，存在一个<strong>整数</strong> $k$ 使得 $b-a = nk$。将这个等式变形，就得到 $b = a+nk$。反之，如果 $b=a+nk$，那么 $b-a=nk$，这正好说明了 $n$ 整除 $b-a$。所以这两种说法是完全等价的。</li>
+</ul></li>
+  <li> <strong>术语和记法</strong>：
+<ul>
+  <li>如果上述条件满足，我们就说 $a$ 和 $b$ 是“<strong>模 $n$ 同余</strong>”的。</li>
+  <li>这个关系用一个特殊的符号来表示：$a \equiv b \text { 模 } n$。这个三横线的符号 $\equiv$ 读作“恒等于”或在这里读作“同余于”。</li>
+  <li>$\text{模 } n$ 是这个<strong>同余</strong>关系的上下文，有时也写作 $\pmod n$ 或 $(\text{mod } n)$。</li>
+</ul></li>
+  <li> <strong>具体示例</strong>：
+<ul>
+  <li>“$2 \equiv 17$ <strong>模</strong> 5” 是对定义的一个应用。</li>
+  <li><strong>验证方式一</strong>：$b-a = 17 - 2 = 15$。$n=5$ 能否整除 $15$？能，因为 $15 \div 5 = 3$ 是一个整数。所以它们<strong>模 5 同余</strong>。</li>
+  <li><strong>验证方式二</strong>：我们能否找到一个<strong>整数</strong> $k$ 使得 $17 = 2 + 5k$？整理得 $15 = 5k$，解得 $k=3$。因为3是一个<strong>整数</strong>，所以它们<strong>模 5 同余</strong>。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+ a \equiv b \text { 模 } n \tag{2.9.1} 
+$$</div></p>
+<ul>
+  <li><strong>$a, b$</strong>：代表任意两个<strong>整数</strong>（<strong>integers</strong>）。它们可以是正数、负数或零。</li>
+  <li><strong>$\equiv$</strong>：<strong>同余符号</strong>（<strong>congruence symbol</strong>）。它看起来像等号，但有三横。它表示一种比“相等”更宽泛的“等价”关系。在这里，它的确切含义由其后的“<strong>模 $n$</strong>”来定义。</li>
+  <li><strong>$\text{模 } n$</strong>：读作“<strong>模 $n$</strong>”（<strong>modulo n</strong>）。这部分是<strong>同余</strong>关系成立的“条件”或“环境”。它指定了用于判断的<strong>模数</strong> $n$。缺少这部分，<strong>同余符号</strong>就没有意义。</li>
+  <li><strong>整个公式的含义</strong>：这句话 "$a$ <strong>同余于</strong> $b$ <strong>模</strong> $n$"，是 "$n$ 整除 $b-a$" 或 "$b = a+nk$ 对某个整数 $k$ 成立" 的简写形式。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>：判断 $3$ 和 $24$ 是否<strong>模 7 同余</strong>。</li>
+  <li><strong>方法一（整除）</strong>：计算差值 $b-a = 24 - 3 = 21$。$n=7$ 能整除 $21$ 吗？能，因为 $21 \div 7 = 3$。所以，$3 \equiv 24 \text{ 模 } 7$。</li>
+  <li><strong>方法二（代数）</strong>：寻找整数 $k$ 使得 $24 = 3 + 7k$。移项得 $21 = 7k$，解得 $k=3$。因为 $k=3$ 是整数，所以结论成立。</li>
+</ul>
+<ul>
+  <li><strong>示例2</strong>：判断 $-8$ 和 $12$ 是否<strong>模 4 同余</strong>。</li>
+  <li><strong>方法一（整除）</strong>：计算差值 $b-a = 12 - (-8) = 12 + 8 = 20$。$n=4$ 能整除 $20$ 吗？能，因为 $20 \div 4 = 5$。所以，$-8 \equiv 12 \text{ 模 } 4$。</li>
+  <li><strong>方法二（代数）</strong>：寻找整数 $k$ 使得 $12 = -8 + 4k$。移项得 $20 = 4k$，解得 $k=5$。因为 $k=5$ 是整数，所以结论成立。</li>
+</ul>
+<ul>
+  <li><strong>示例3（不同余）</strong>：判断 $10$ 和 $3$ 是否<strong>模 5 同余</strong>。</li>
+  <li><strong>方法一（整除）</strong>：计算差值 $b-a = 3 - 10 = -7$。$n=5$ 能整除 $-7$ 吗？不能，因为 $-7 \div 5 = -1.4$ 不是整数。所以，$10 \not\equiv 3 \text{ 模 } 5$（用 $\not\equiv$ 表示不同余）。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点1：混淆 $a-b$ 和 $b-a$</strong>。$n$ 整除 $b-a$ 等价于 $n$ 整除 $a-b$，因为如果 $b-a=nk$，那么 $a-b = n(-k)$，$-k$ 也是一个整数。所以减法的顺序不影响结果。</li>
+  <li><strong>易错点2：忘记 $k$ 必须是整数</strong>。在 $b=a+nk$ 中，如果解出的 $k$ 不是整数，那么 $a$ 和 $b$ 就不是<strong>模 $n$ 同余</strong>的。</li>
+  <li><strong>易错点3：对负数的处理</strong>。<strong>同余</strong>关系对负数同样适用。关键是差值是否为 $n$ 的<strong>整数</strong>倍。例如，$7 \equiv -3 \text{ 模 } 5$，因为 $7 - (-3) = 10$，而 $10$ 是 $5$ 的倍数。</li>
+  <li><strong>边界情况：$a=b$</strong>。任何数都和自身<strong>模 $n$ 同余</strong>，即 $a \equiv a \text{ 模 } n$。因为 $a-a=0$，而任何非零整数 $n$ 都能整除 $0$（$0=n \times 0$）。这被称为<strong>自反性</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段定义了<strong>模 $n$ 同余</strong>的核心概念。两个整数 $a$ 和 $b$ <strong>模 $n$ 同余</strong>，意味着它们的差是 $n$ 的整数倍。这个关系可以用符号 $a \equiv b \text{ 模 } n$ 来简洁地表示。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是给出<strong>模算术</strong>世界中最基本的“相等”概念。在普通的算术中，我们关心的是数是否完全相等（$a=b$）。在<strong>模算术</strong>中，我们放宽了这个要求，只关心数在除以 $n$ 后的“余数”是否相同。这个定义为建立一个全新的、有限的算术系统（<strong>同余类</strong>）奠定了基础。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>“<strong>模 $n$ 同余</strong>”就是“在<strong>模 $n$</strong> 的世界里看起来相同”。这个世界就像一个只有 $n$ 个刻度（通常是 $0, 1, \ldots, n-1$）的钟面。所有落在同一个刻度上的数，都被视为“同余”。例如，在12小时制的时钟上，14点、2点和26点都指向同一个位置“2”，所以 $14 \equiv 2 \pmod{12}$ 且 $26 \equiv 2 \pmod{12}$。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>再次想象那条缠绕在周长为 $n$ 的圆盘上的整数数轴。两个整数 $a$ 和 $b$ <strong>模 $n$ 同余</strong>，当且仅当它们落在圆盘上的同一点。从 $a$ 走到 $b$（在数轴上），需要走过的距离 $b-a$ 必须是圆盘周长 $n$ 的整数倍，这样才能正好绕整数圈后回到相同的位置。</p>
+    </div>
+</div><hr><h3>1.2 同余作为等价关系与同余类</h3><p id="original-3"><strong style="font-size: 1.3rem;">📜 [原文3]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>很容易验证<strong>同余</strong>是一种<strong>等价关系</strong>，因此我们可以考虑它所定义的<strong>等价类</strong>，称为<strong>同余类</strong>。我们使用横线符号，将<strong>整数</strong> $a$ <strong>模</strong> $n$ 的<strong>同余类</strong>记作 $\bar{a}$。这个<strong>同余类</strong>是<strong>整数</strong>的集合</p>
+<p><div class="math-block">$$
+\bar{a}=\{\ldots, a-n, a, a+n, a+2 n, \ldots\} . \tag{2.9.2}
+$$</div></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本段引入了两个关键概念：<strong>等价关系</strong>（<strong>equivalence relation</strong>）和<strong>同余类</strong>（<strong>congruence class</strong>）。</p>
+<ol>
+  <li> <strong>同余是等价关系</strong>：
+<ul>
+  <li>作者说“很容易验证<strong>同余</strong>是一种<strong>等价关系</strong>”。在数学中，一个关系被称为<strong>等价关系</strong>，如果它同时满足以下三个性质：</li>
+  <li><strong>自反性 (Reflexivity)</strong>：任何元素都与自身有关系。即 $a \equiv a \pmod n$。这是成立的，因为 $a-a=0$，而 $n$ 整除 $0$。</li>
+  <li><strong>对称性 (Symmetry)</strong>：如果 $a$ 与 $b$ 有关系，那么 $b$ 也与 $a$ 有关系。即如果 $a \equiv b \pmod n$，那么 $b \equiv a \pmod n$。这也是成立的。如果 $a \equiv b \pmod n$，则 $n$ 整除 $b-a$。那么 $n$ 也必然整除 $-(b-a) = a-b$，所以 $b \equiv a \pmod n$。</li>
+  <li><strong>传递性 (Transitivity)</strong>：如果 $a$ 与 $b$ 有关系，且 $b$ 与 $c$ 有关系，那么 $a$ 与 $c$ 也有关系。即如果 $a \equiv b \pmod n$ 且 $b \equiv c \pmod n$，那么 $a \equiv c \pmod n$。这也是成立的。因为 $a \equiv b \pmod n$ 意味着 $b-a=nk_1$，$b \equiv c \pmod n$ 意味着 $c-b=nk_2$。将两式相加，得到 $(c-b)+(b-a) = nk_1 + nk_2$，即 $c-a = n(k_1+k_2)$。由于 $k_1+k_2$ 是一个整数，这表明 $n$ 整除 $c-a$，所以 $a \equiv c \pmod n$。</li>
+  <li>既然<strong>同余关系</strong>满足这三个性质，它就是一个<strong>等价关系</strong>。</li>
+</ul></li>
+  <li> <strong>等价类的引入</strong>：
+<ul>
+  <li>任何<strong>等价关系</strong>都会将一个集合划分为若干个互不相交的子集，每个子集被称为一个<strong>等价类</strong>（<strong>equivalence class</strong>）。在同一个<strong>等价类</strong>中的所有元素彼此都是等价的。</li>
+  <li>在这里，<strong>整数同余</strong>关系将所有<strong>整数</strong>的集合 $\mathbb{Z}$ 划分开。这些划分出的子集，就叫做<strong>同余类</strong>。</li>
+</ul></li>
+  <li> <strong>同余类的记法和定义</strong>：
+<ul>
+  <li>一个<strong>同余类</strong>由它的一个代表元素来命名。<strong>整数</strong> $a$ 所在的那个<strong>同余类</strong>，被记作 $\bar{a}$。这个横线符号表示我们关注的不再是单个数字 $a$，而是 $a$ 所属的整个“家族”。</li>
+  <li>这个集合 $\bar{a}$ 包含哪些元素呢？它包含所有与 $a$ <strong>模 $n$ 同余</strong>的<strong>整数</strong>。根据定义，这就是所有形如 $a+nk$（其中 $k$ 是任意整数）的数的集合。</li>
+  <li>公式 (2.9.2) 明确地写出了这个集合的样貌：它是一个无限延伸的集合，以 $a$为中心，向两边以 $n$ 为步长无限扩展。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+ \bar{a}=\{\ldots, a-n, a, a+n, a+2 n, \ldots\} \tag{2.9.2} 
+$$</div></p>
+<ul>
+  <li><strong>$\bar{a}$</strong>：</li>
+  <li><strong>含义</strong>：表示<strong>整数</strong> $a$ <strong>模 $n$</strong> 的<strong>同余类</strong>（<strong>congruence class of a modulo n</strong>）。它不是一个数，而是一个<strong>集合</strong>。</li>
+  <li><strong>角色</strong>：这是<strong>模算术</strong>中的基本“对象”。我们之后的操作（加法、乘法）都是在这些“类”之间进行的。</li>
+  <li><strong>$\{\ldots\}$</strong>：集合的表示法，花括号内列出集合的元素。</li>
+  <li><strong>$a-n, a, a+n, a+2n, \ldots$</strong>：</li>
+  <li>这是集合元素的列举。它展示了这个集合的规律。</li>
+  <li>$a$ 是这个类的<strong>代表元素</strong>（<strong>representative</strong>）。</li>
+  <li>$a+n$ 是在 $a$ 的基础上加一个 $n$ 得到的同类元素。</li>
+  <li>$a-n$ 是在 $a$ 的基础上减一个 $n$ 得到的同类元素。</li>
+  <li>省略号 "$\ldots$" 表示这个模式向左右两个方向无限延续。</li>
+  <li><strong>更紧凑的写法</strong>：这个集合可以更形式化地写作 $\bar{a} = \{b \in \mathbb{Z} \mid b \equiv a \pmod n\}$ 或者 $\bar{a} = \{a + nk \mid k \in \mathbb{Z}\}$。公式 (2.9.2) 是对后者的展开描述。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>：设 $n=5$。</li>
+  <li>我们来看看 $\bar{2}$ 这个<strong>同余类</strong>。根据定义，它包含所有与 2 <strong>模 5 同余</strong>的数。</li>
+  <li>$\bar{2} = \{\ldots, 2-5, 2, 2+5, 2+10, \ldots\} = \{\ldots, -8, -3, 2, 7, 12, \ldots\}$。</li>
+  <li>在这个集合中任取两个数，比如 $-3$ 和 $12$。它们的差是 $12 - (-3) = 15$，可以被 5 整除。</li>
+  <li><strong>注意</strong>：$\bar{2}$ 和 $\bar{7}$ 其实是同一个集合，因为 7 也在 $\bar{2}$ 里面。一个<strong>同余类</strong>可以有很多个名字（代表元素），但集合本身是唯一的。$\bar{2} = \bar{7} = \overline{-3}$。</li>
+</ul>
+<ul>
+  <li><strong>示例2</strong>：设 $n=3$。</li>
+  <li><strong>同余类</strong> $\bar{0}$：$\bar{0} = \{\ldots, -6, -3, 0, 3, 6, \ldots\}$。这是所有3的倍数的集合。</li>
+  <li><strong>同余类</strong> $\bar{1}$：$\bar{1} = \{\ldots, -5, -2, 1, 4, 7, \ldots\}$。这是所有除以3余1的数的集合。</li>
+  <li><strong>同余类</strong> $\bar{2}$：$\bar{2} = \{\ldots, -4, -1, 2, 5, 8, \ldots\}$。这是所有除以3余2的数的集合。</li>
+  <li>如果我们再看 $\bar{3}$，会发现 $\bar{3} = \{\ldots, 0, 3, 6, \ldots\} = \bar{0}$。所以实际上只有三个不同的<strong>同余类</strong>：$\bar{0}, \bar{1}, \bar{2}$。这三个集合的并集是全部整数，而且它们两两之间没有交集。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点1：将 $\bar{a}$ 误认为是一个数</strong>。$\bar{a}$ 是一个无限多个整数组成的<strong>集合</strong>。$a$ 只是这个集合的一个“代表”。</li>
+  <li><strong>易错点2：认为 $\bar{a}$ 和 $\bar{b}$ 不同，只要 $a \neq b$</strong>。这是完全错误的。只要 $a \equiv b \pmod n$，那么 $\bar{a}$ 和 $\bar{b}$ 就是完全相同的集合。例如，当 $n=10$ 时，$\bar{3} = \overline{13} = \overline{-7}$。</li>
+  <li><strong>边界情况</strong>：<strong>同余类</strong>的数量是有限的。对于<strong>模数</strong> $n$，恰好有 $n$ 个不同的<strong>同余类</strong>。这些<strong>同余类</strong>构成了对整数集 $\mathbb{Z}$ 的一个<strong>划分</strong>（<strong>partition</strong>），即每个整数都恰好属于其中一个<strong>同余类</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段阐明了<strong>同余</strong>是一种<strong>等价关系</strong>，它将整数划分为互不相交的集合，称为<strong>同余类</strong>。<strong>同余类</strong> $\bar{a}$ 是所有与 $a$ <strong>模 $n$ 同余</strong>的整数的集合。记法 $\bar{a}$ 让我们能将一整个“家族”的数当作一个单一的实体来处理。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>引入<strong>等价关系</strong>和<strong>同余类</strong>的目的是为了“化无限为有限”。整数有无限多个，处理起来很复杂。但对于一个给定的<strong>模数</strong> $n$，不同的<strong>同余类</strong>只有 $n$ 个。通过将无限的整数“装进”有限个盒子里（即<strong>同余类</strong>），我们可以定义一个全新的、只有 $n$ 个元素的算术系统。这极大地简化了许多<strong>数论</strong>问题的分析。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象有很多不同颜色的珠子（整数），我们要用 $n$ 种颜色的线把它们串起来。<strong>同余关系</strong>就是规定：如果两个珠子可以被同一种颜色的线串起来，它们就“等价”。那么，每一种颜色的线串起来的所有珠子，就构成一个<strong>同余类</strong> ($\bar{a}$)。虽然珠子无限多，但线的颜色（<strong>同余类</strong>）只有 $n$ 种。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>还是那个缠绕在圆盘上的数轴。一个<strong>同余类</strong> $\bar{a}$ 就是落在圆盘上某一个特定标记点上的所有整数的集合。例如，如果 $n=12$，圆盘有 $0, 1, \ldots, 11$ 共12个标记点。落在“2”这个点上的所有整数（$\ldots, -10, 2, 14, 26, \ldots$）就组成了<strong>同余类</strong> $\bar{2}$。</p>
+    </div>
+</div><hr><h3>1.3 同余类与陪集</h3><p id="original-4"><strong style="font-size: 1.3rem;">📜 [原文4]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>如果 $a$ 和 $b$ 是<strong>整数</strong>，则等式 $\bar{a}=\bar{b}$ 意味着 $a \equiv b$ <strong>模</strong> $n$，或者 $n$ 整除 $b-a$。<strong>同余类</strong> $\overline{0}$ 是<strong>加法群</strong> $\mathbb{Z}^{+}$的<strong>子群</strong></p>
+<p><div class="math-block">$$
+\overline{0}=\mathbb{Z} n=\{\ldots,-n, 0, n, 2 n, \ldots\}=\{k n \mid k \in \mathbb{Z}\}
+$$</div></p>
+<p>其他的<strong>同余类</strong>是这个<strong>子群</strong>的<strong>陪集</strong>。请注意 $\mathbb{Z} \boldsymbol{n}$ 不是右<strong>陪集</strong>——它是 $\mathbb{Z}^{+}$的一个<strong>子群</strong>。<strong>子群</strong> $H$ 的<strong>陪集</strong>的记号类似于 $a H$，但使用<strong>加法</strong>运算律的记号是 $a+H=\{a+h \mid h \in H\}$。为了简化记号，我们将<strong>子群</strong> $\mathbb{Z} n$ 记为 $H$。那么 $H$ 的<strong>陪集</strong>，即<strong>同余类</strong>，是集合</p>
+<p><div class="math-block">$$
+a+H=\{a+k n \mid k \in \mathbb{Z}\} . \tag{2.9.3}
+$$</div></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这一段使用<strong>群论</strong>（<strong>group theory</strong>）的语言来重新诠释<strong>同余类</strong>，将其与<strong>子群</strong>（<strong>subgroup</strong>）和<strong>陪集</strong>（<strong>coset</strong>）的概念联系起来。</p>
+<ol>
+  <li> <strong>同余类相等的意义</strong>：
+<ul>
+  <li>首先重申了上文的一个要点：$\bar{a} = \bar{b}$ 这个关于<strong>集合</strong>的等式，其内在含义就是 $a$ 和 $b$ 这两个<strong>代表元素</strong>之间满足<strong>同余关系</strong> $a \equiv b \pmod n$。这是连接<strong>集合</strong>（类）和<strong>数字</strong>（元素）的桥梁。</li>
+</ul></li>
+  <li> <strong>特殊的同余类 $\overline{0}$</strong>：
+<ul>
+  <li>我们来考察<strong>同余类</strong> $\overline{0}$。根据定义，$\overline{0} = \{0 + nk \mid k \in \mathbb{Z}\} = \{nk \mid k \in \mathbb{Z}\}$。</li>
+  <li>这个集合恰好是所有 $n$ 的倍数的集合。这个集合在<strong>群论</strong>中有个特殊的名字，记为 $\mathbb{Z}n$ 或 $n\mathbb{Z}$。</li>
+  <li>作者指出，这个集合 $\overline{0}$ 不仅仅是一个集合，它还是一个<strong>子群</strong>。要成为<strong>群</strong>，需要满足一些条件。这里的运算是<strong>加法</strong>。</li>
+  <li><strong>封闭性</strong>：任取 $\overline{0}$ 中两个元素，比如 $nk_1$ 和 $nk_2$。它们的和是 $n(k_1+k_2)$，仍然是 $n$ 的倍数，所以和依然在 $\overline{0}$ 中。</li>
+  <li><strong>单位元</strong>：加法的单位元是 $0$。$0$ 显然是 $n$ 的倍数（$0=n \times 0$），所以 $0 \in \overline{0}$。</li>
+  <li><strong>逆元</strong>：对于 $\overline{0}$ 中任意元素 $nk$，它的加法逆元是 $-nk = n(-k)$。由于 $-k$ 也是整数，所以 $-nk$ 也在 $\overline{0}$ 中。</li>
+  <li>因为 $\overline{0}$ 本身在加法下构成一个<strong>群</strong>，并且它是更大的<strong>群</strong> $\mathbb{Z}^{+}$（所有整数构成的<strong>加法群</strong>）的一个子集，所以 $\overline{0}$ 是 $\mathbb{Z}^{+}$ 的一个<strong>子群</strong>。</li>
+</ul></li>
+  <li> <strong>其他同余类作为陪集</strong>：
+<ul>
+  <li><strong>陪集</strong>是<strong>群论</strong>中的概念。对于一个<strong>群</strong> $G$ 和它的一个<strong>子群</strong> $H$，一个元素 $a \in G$ 的（左）<strong>陪集</strong> $aH$ 定义为 $\{ah \mid h \in H\}$（如果运算是乘法）或 $a+H$ 定义为 $\{a+h \mid h \in H\}$（如果运算是加法）。</li>
+  <li>本文的场景是<strong>加法群</strong> $\mathbb{Z}^{+}$ 和它的<strong>子群</strong> $H = \overline{0} = \mathbb{Z}n$。</li>
+  <li>那么，一个<strong>陪集</strong> $a+H$ 就是集合 $\{a+h \mid h \in H\}$。将 $H=\mathbb{Z}n$ 代入，就是 $\{a+kn \mid k \in \mathbb{Z}\}$。</li>
+  <li>我们惊奇地发现，这个<strong>陪集</strong>的定义和我们之前定义的<strong>同余类</strong> $\bar{a} = \{a+nk \mid k \in \mathbb{Z}\}$ 完全一样！</li>
+  <li>因此，结论是：<strong>模 $n$ 的同余类</strong> 正是 <strong>子群</strong> $\mathbb{Z}n$ 在 <strong>加法群</strong> $\mathbb{Z}^{+}$ 中的<strong>陪集</strong>。<strong>同余类</strong> $\bar{a}$ 就是<strong>陪集</strong> $a+\mathbb{Z}n$。</li>
+</ul></li>
+  <li> <strong>记号说明</strong>：
+<ul>
+  <li>作者进行了一些细致的记号辨析。在用乘法作为运算的群中，陪集写成 $aH$。但在我们这里，群的运算是加法，所以记号要相应地写成 $a+H$。</li>
+  <li>作者还澄清了一个潜在的误解：“$\mathbb{Z}n$ 不是右<strong>陪集</strong>——它是 $\mathbb{Z}^{+}$的一个<strong>子群</strong>”。这句话可能有点绕。它的意思是，$\mathbb{Z}n$ 本身就是那个特殊的、包含单位元0的<strong>陪集</strong>（$0+H$），而这个特殊的<strong>陪集</strong>恰好满足<strong>子群</strong>的全部性质。其他的<strong>陪集</strong>（如 $1+H, 2+H$ 等）通常不是<strong>子群</strong>（因为它们不包含单位元0）。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+ \overline{0}=\mathbb{Z} n=\{\ldots,-n, 0, n, 2 n, \ldots\}=\{k n \mid k \in \mathbb{Z}\} 
+$$</div></p>
+<ul>
+  <li><strong>$\overline{0}$</strong>：<strong>模 $n$</strong> 的<strong>同余类</strong>，其代表元素是0。</li>
+  <li><strong>$\mathbb{Z}n$</strong>：一个标准的数学符号，表示所有 $n$ 的整数倍构成的集合。读作 "Z n" 或 "n Z"。它是一个<strong>理想</strong>（<strong>ideal</strong>），在<strong>群论</strong>中也是一个<strong>子群</strong>。</li>
+  <li><strong>$\{\ldots,-n, 0, n, 2 n, \ldots\}$</strong>：对 $\mathbb{Z}n$ 集合元素的展开。</li>
+  <li><strong>$\{k n \mid k \in \mathbb{Z}\}$</strong>：对 $\mathbb{Z}n$ 集合最精确的定义，即“所有形如 $kn$ 的元素，其中 $k$ 是任意整数”。</li>
+</ul>
+<p><div class="math-block">$$
+ a+H=\{a+k n \mid k \in \mathbb{Z}\} \tag{2.9.3} 
+$$</div></p>
+<ul>
+  <li><strong>$a+H$</strong>：<strong>陪集</strong>的<strong>加法</strong>记号。$a$ 是一个代表元素， $H$ 是一个<strong>子群</strong>。</li>
+  <li><strong>$H$</strong>：在这里，为了简化，作者用 $H$ 来代替<strong>子群</strong> $\mathbb{Z}n$。</li>
+  <li><strong>$\{a+k n \mid k \in \mathbb{Z}\}$</strong>：<strong>陪集</strong> $a+H$ 的定义展开。将 $H$ 的元素 $h=kn$ 代入 $a+h$ 得到。这个表达式与<strong>同余类</strong> $\bar{a}$ 的定义 $\{a+nk \mid k \in \mathbb{Z}\}$ 完全相同。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>：设 $n=4$，我们来看<strong>群</strong> $\mathbb{Z}^{+}$ 和它的<strong>子群</strong> $H = \mathbb{Z}4 = \{\ldots, -8, -4, 0, 4, 8, \ldots\}$。</li>
+  <li><strong>子群</strong> $H$ 本身就是<strong>同余类</strong> $\overline{0}$，也是<strong>陪集</strong> $0+H$。</li>
+  <li>我们来计算<strong>陪集</strong> $1+H$：</li>
+</ul>
+<p>$1+H = \{1+h \mid h \in H\} = \{1+kn \mid k \in \mathbb{Z} \text{ and } n=4\} = \{1+4k \mid k \in \mathbb{Z}\}$</p>
+<p>$1+H = \{\ldots, 1-8, 1-4, 1+0, 1+4, 1+8, \ldots\} = \{\ldots, -7, -3, 1, 5, 9, \ldots\}$</p>
+<p>这正是<strong>同余类</strong> $\bar{1}$。</p>
+<ul>
+  <li>同样地，<strong>陪集</strong> $2+H$ 就是<strong>同余类</strong> $\bar{2}$。<strong>陪集</strong> $3+H$ 就是<strong>同余类</strong> $\bar{3}$。</li>
+  <li><strong>陪集</strong> $4+H$ 呢？$4+H = \{4+4k \mid k \in \mathbb{Z}\} = \{4(1+k) \mid k \in \mathbb{Z}\}$。因为 $1+k$ 也可以取遍所有整数，所以这个集合就是所有4的倍数的集合，即 $H$ 本身。所以 $4+H = 0+H = H$。这和 $\bar{4}=\bar{0}$ 是同一个意思。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点</strong>：不熟悉<strong>群论</strong>的读者可能会对<strong>子群</strong>、<strong>陪集</strong>这些术语感到困惑。关键要抓住核心思想：这里的“<strong>陪集</strong>”只是给“<strong>同余类</strong>”换了一个来自不同数学分支的“名字”和视角。两者描述的是同一个对象。</li>
+  <li><strong>易错点</strong>：陪集的运算符号。因为我们讨论的是整数<strong>加法群</strong>，所以是 $a+H$，而不是 $aH$。</li>
+  <li><strong>边界情况</strong>：只有包含单位元（这里是0）的那个<strong>陪集</strong>（即 $0+H=H$）本身才是一个<strong>子群</strong>。其他的<strong>陪集</strong>（如 $1+H$）不是<strong>子群</strong>，因为它们不包含加法单位元0。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段从<strong>群论</strong>的角度，将<strong>同余类</strong>与<strong>陪集</strong>建立了深刻的联系。它指出，<strong>同余类</strong> $\overline{0}$（所有 $n$ 的倍数）构成了整数<strong>加法群</strong> $\mathbb{Z}^{+}$ 的一个<strong>子群</strong> $H=\mathbb{Z}n$。而其他的<strong>同余类</strong> $\bar{a}$，恰好就是这个<strong>子群</strong> $H$ 在 $\mathbb{Z}^{+}$ 中的<strong>陪集</strong> $a+H$。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是为了揭示不同数学概念之间的内在统一性。通过将<strong>数论</strong>中的<strong>同余类</strong>与<strong>抽象代数</strong>中的<strong>陪集</strong>联系起来，可以让已经学习过<strong>群论</strong>的读者更好地理解<strong>同余类</strong>的结构。这也为后续引入“<strong>商群</strong>”（<strong>quotient group</strong>）的概念（即 $\mathbb{Z}/\mathbb{Z}n$）铺平了道路，因为<strong>商群</strong>的元素正是由<strong>陪集</strong>构成的。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一个巨大的无限网格代表所有整数 $\mathbb{Z}$。<strong>子群</strong> $H=\mathbb{Z}n$ 是穿过原点 $0$ 的一条特殊的“主干道”，上面有 $0, n, 2n, \ldots$ 这些点。而其他的<strong>陪集</strong> $a+H$，就像是与这条主干道平行的、过点 $a$ 的其他道路。整个网格被这些互相平行且等距的道路（<strong>陪集/同余类</strong>）完全覆盖，每一条道路就是一个<strong>同余类</strong>。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个公寓楼（代表 $\mathbb{Z}$），<strong>子群</strong> $H=\mathbb{Z}n$ 是所有楼层号为 $n$ 的倍数的楼层（$0, n, 2n, \ldots$）。这是一个特殊的“公共设施层”集合。那么，<strong>陪集</strong> $1+H$ 就是所有楼层号形如 $1, 1+n, 1+2n, \ldots$ 的楼层集合，它们都在每栋楼的“1号位置”。$a+H$ 就是所有在“$a$ 号位置”的楼层的集合。整个公寓楼被这些不同“位置”的楼层集合完美地划分了。</p>
+    </div>
+</div><hr><h3>1.4 同余类的数量与指数</h3><p id="original-5"><strong style="font-size: 1.3rem;">📜 [原文5]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>$n$ 个<strong>整数</strong> $0,1, \ldots, n-1$ 是 $n$ 个<strong>同余类</strong>的代表元素。</p>
+<p><strong>命题</strong> 2.9.4 <strong>模</strong> $n$ 有 $n$ 个<strong>同余类</strong>，即 $\overline{0}, \overline{1}, \ldots, \overline{n-1}$。<strong>子群</strong> $\mathbb{Z} n$ 在 $\mathbb{Z}$ 中的<strong>指数</strong> $[\mathbb{Z}: \mathbb{Z} n]$ 是 $n$。$\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本段明确了<strong>模 $n$</strong> 的世界里到底有多少个不同的<strong>同余类</strong>，并引入了<strong>群论</strong>中的“<strong>指数</strong>”概念。</p>
+<ol>
+  <li> <strong>代表元素的选择</strong>：
+<ul>
+  <li>我们已经知道，一个<strong>同余类</strong>可以用它里面的任何一个元素来命名。例如，当 $n=5$ 时，$\bar{2}, \bar{7}, \overline{-3}$ 都是同一个集合。</li>
+  <li>为了方便和统一，我们需要为每个<strong>同余类</strong>挑选一个“标准”的代表。最自然、最常用的选择是使用<strong>整数</strong>除以 $n$ 可能得到的<strong>余数</strong>。</li>
+  <li>根据<strong>带余除法</strong>（<strong>Division Algorithm</strong>），任何一个<strong>整数</strong> $a$ 都可以唯一地写成 $a = qn + r$ 的形式，其中 $q$ 是商， $r$ 是余数，并且 $0 \le r &lt; n$。</li>
+  <li>这个式子 $a-r=qn$ 恰好说明了 $a \equiv r \pmod n$。这意味着任何<strong>整数</strong> $a$ 都与一个在 $\{0, 1, \ldots, n-1\}$ 集合中的数 $r$ <strong>同余</strong>。</li>
+  <li>因此，任何<strong>同余类</strong> $\bar{a}$ 都等于某个 $\bar{r}$，其中 $r \in \{0, 1, \ldots, n-1\}$。</li>
+  <li>这说明 $\{0, 1, \ldots, n-1\}$ 这 $n$ 个数足以作为所有<strong>同余类</strong>的代表。</li>
+</ul></li>
+  <li> <strong>命题 2.9.4 的内容</strong>：
+<ul>
+  <li><strong>第一部分</strong>：“<strong>模</strong> $n$ 有 $n$ 个<strong>同余类</strong>，即 $\overline{0}, \overline{1}, \ldots, \overline{n-1}$”。</li>
+  <li>这正式确认了<strong>同余类</strong>的数量。不仅 $\{0, 1, \ldots, n-1\}$ 是一个完备的代表元素集，而且由它们代表的这 $n$ 个<strong>同余类</strong>是互不相同的。</li>
+  <li>为什么它们互不相同？假设 $\bar{r_1} = \bar{r_2}$，其中 $0 \le r_1, r_2 &lt; n$。这意味着 $r_1 \equiv r_2 \pmod n$，所以 $n$ 整除 $r_2-r_1$。但由于 $0 \le r_1, r_2 &lt; n$，它们的差 $r_2-r_1$ 满足 $-n &lt; r_2-r_1 &lt; n$。在这个范围内唯一能被 $n$ 整除的数就是 $0$。所以 $r_2-r_1=0$，即 $r_1=r_2$。这证明了只要代表元素 $r$ 不同，它们所代表的<strong>同余类</strong>就一定不同。</li>
+  <li>因此，恰好有 $n$ 个不同的<strong>同余类</strong>。</li>
+  <li><strong>第二部分</strong>：“<strong>子群</strong> $\mathbb{Z} n$ 在 $\mathbb{Z}$ 中的<strong>指数</strong> $[\mathbb{Z}: \mathbb{Z} n]$ 是 $n$”。</li>
+  <li>这是用<strong>群论</strong>的术语重述了同一个事实。</li>
+  <li>在<strong>群论</strong>中，一个<strong>子群</strong> $H$ 在一个<strong>群</strong> $G$ 中的<strong>指数</strong>（<strong>index</strong>），记作 $[G:H]$，定义为 $H$ 在 $G$ 中不同<strong>陪集</strong>的数目。</li>
+  <li>我们已经知道，<strong>同余类</strong>就是<strong>子群</strong> $\mathbb{Z}n$ 在 $\mathbb{Z}$ 中的<strong>陪集</strong>。</li>
+  <li>既然有 $n$ 个不同的<strong>同余类</strong>，那就意味着有 $n$ 个不同的<strong>陪集</strong>。</li>
+  <li>所以，根据定义，<strong>子群</strong> $\mathbb{Z}n$ 在 $\mathbb{Z}$ 中的<strong>指数</strong>就是 $n$。</li>
+</ul></li>
+  <li> <strong>证明结束符号</strong>：
+<ul>
+  <li>符号 $\square$ 是一个数学惯例，表示一个命题或定理的证明已经结束。这里虽然没有给出详细的证明过程（因为作者认为它比较直接），但这个符号标志着这个命题的陈述完毕。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p>本段没有复杂的公式，但有一个重要的记号：</p>
+<ul>
+  <li><strong>$[\mathbb{Z}: \mathbb{Z} n]$</strong>：</li>
+  <li><strong>含义</strong>：<strong>子群</strong> $\mathbb{Z}n$ 在<strong>群</strong> $\mathbb{Z}$ 中的<strong>指数</strong>。</li>
+  <li><strong>定义</strong>：它等于<strong>子群</strong> $\mathbb{Z}n$ 在 $\mathbb{Z}$ 中不同<strong>陪集</strong>的数量。</li>
+  <li><strong>计算</strong>：由于<strong>陪集</strong>就是<strong>同余类</strong>，而<strong>同余类</strong>有 $n$ 个，所以 $[\mathbb{Z}: \mathbb{Z} n] = n$。</li>
+  <li>这个符号是<strong>拉格朗日定理</strong>（<strong>Lagrange's Theorem</strong>）的推广。对于有限群，群的阶等于子群的阶乘以子群的指数。对于无限群，这个概念依然有效。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>：设 $n=4$。</li>
+  <li><strong>带余除法</strong>告诉我们，任何整数除以4的余数只能是0, 1, 2, 3。</li>
+  <li>所以，任何整数都与0, 1, 2, 3中的某一个<strong>模 4 同余</strong>。</li>
+  <li>因此，所有的<strong>同余类</strong>都可以由这四个数代表：$\overline{0}, \overline{1}, \overline{2}, \overline{3}$。</li>
+  <li>这四个<strong>同余类</strong>是：</li>
+  <li>$\overline{0} = \{\ldots, -4, 0, 4, \ldots\}$</li>
+  <li>$\overline{1} = \{\ldots, -3, 1, 5, \ldots\}$</li>
+  <li>$\overline{2} = \{\ldots, -2, 2, 6, \ldots\}$</li>
+  <li>$\overline{3} = \{\ldots, -1, 3, 7, \ldots\}$</li>
+  <li>它们是互不相交的，并且它们的并集覆盖了所有整数。因此，<strong>模 4</strong> 恰好有4个<strong>同余类</strong>。</li>
+  <li>用<strong>群论</strong>的话说，<strong>子群</strong> $\mathbb{Z}4$ 在 $\mathbb{Z}$ 中的<strong>指数</strong> $[\mathbb{Z}: \mathbb{Z}4]$ 等于4。</li>
+</ul>
+<ul>
+  <li><strong>示例2</strong>：设 $n=2$。</li>
+  <li>余数只能是0, 1。</li>
+  <li>因此，只有两个<strong>同余类</strong>：</li>
+  <li>$\overline{0} = \{\ldots, -2, 0, 2, 4, \ldots\}$ (所有偶数)</li>
+  <li>$\overline{1} = \{\ldots, -3, -1, 1, 3, \ldots\}$ (所有奇数)</li>
+  <li><strong>模 2</strong> 恰好有2个<strong>同余类</strong>。</li>
+  <li><strong>子群</strong> $\mathbb{Z}2$ (偶数集) 在 $\mathbb{Z}$ 中的<strong>指数</strong> $[\mathbb{Z}: \mathbb{Z}2]$ 等于2。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点</strong>：认为代表元素只能从 $\{0, 1, \ldots, n-1\}$ 中选取。不是的，任何整数都可以作为代表元素，只是用这 $n$ 个数作为“标准代表”最方便，因为它们保证了不重复、不遗漏。例如，<strong>模 5</strong> 的同余类也可以用 $\{-2, -1, 0, 1, 2\}$ 来代表。</li>
+  <li><strong>边界情况</strong>：当 $n=1$ 时，余数只能是0。所以只有一个<strong>同余类</strong> $\overline{0}$，它包含了所有整数。此时 $[\mathbb{Z}: \mathbb{Z}1]=1$。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段的核心结论是：对于一个给定的<strong>正整数</strong> $n$，存在且仅存在 $n$ 个不同的<strong>模 $n$ 同余类</strong>。这 $n$ 个<strong>同余类</strong>可以方便地由 $\{0, 1, \ldots, n-1\}$ 这 $n$ 个整数来代表。这个数量 $n$ 在<strong>群论</strong>中被称为<strong>子群</strong> $\mathbb{Z}n$ 在 $\mathbb{Z}$ 中的<strong>指数</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是量化<strong>模算术</strong>世界的大小。它告诉我们，通过引入<strong>同余关系</strong>，我们成功地从一个无限的系统（整数集 $\mathbb{Z}$）构建出了一个有限的系统（由 $n$ 个<strong>同余类</strong>组成的集合）。这个“有限性”是<strong>模算术</strong>具有强大应用价值的根本原因之一，例如在密码学、计算机科学和错误校验码中。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一个有 $n$ 个房间的圆形走廊，房间编号为 $0, 1, \ldots, n-1$。所有整数都被分配到这些房间里，分配的规则是：整数 $a$ 进入编号为 $a \pmod n$（$a$ 除以 $n$ 的余数）的房间。这个命题告诉我们，这样的房间恰好有 $n$ 个，不多也不少。每个房间（<strong>同余类</strong>）都装满了无限多的整数。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>回到缠绕在圆盘上的数轴的想象。圆盘上有 $n$ 个标记点，从 $0$ 到 $n-1$。这个命题说明，数轴上的每一个整数，都必然会落在且仅落在其中一个标记点上。因此，这些标记点（代表元素）定义了所有可能的类别（<strong>同余类</strong>），总数不多不少，正好是 $n$ 个。</p>
+    </div>
+</div><hr><h3>1.5 同余类上的运算</h3><p id="original-6"><strong style="font-size: 1.3rem;">📜 [原文6]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>设 $\bar{a}$ 和 $\bar{b}$ 是由<strong>整数</strong> $a$ 和 $b$ 表示的<strong>同余类</strong>。它们的<strong>和</strong>定义为 $a+b$ 的<strong>同余类</strong>，它们的<strong>积</strong>定义为 $ab$ 的<strong>同余类</strong>。换句话说，根据定义，</p>
+<p><div class="math-block">$$
+\bar{a}+\bar{b}=\overline{a+b} \text { 且 } \bar{a} \bar{b}=\overline{a b} \text { 。 } \tag{2.9.5}
+$$</div></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本段定义了如何在<strong>同余类</strong>这个新建立的集合上进行<strong>加法</strong>和<strong>乘法</strong>运算。</p>
+<ol>
+  <li> <strong>运算的对象</strong>：我们的运算不再是针对单个数字，而是针对<strong>同余类</strong>（即那些无限的整数集合）。我们要定义 $\bar{a}$ 这个集合和 $\bar{b}$ 这个集合相加或相乘的结果是什么。</li>
+  <li> <strong>定义的策略</strong>：定义非常巧妙，它借助了<strong>同余类</strong>的<strong>代表元素</strong>。
+<ul>
+  <li><strong>加法定义</strong>：要计算 $\bar{a} + \bar{b}$，我们不直接操作这两个无限集合。而是：</li>
+</ul></li>
+  <li> 从 $\bar{a}$ 中取出代表元素 $a$。</li>
+  <li> 从 $\bar{b}$ 中取出代表元素 $b$。</li>
+  <li> 在普通的整数世界里计算它们的和 $a+b$。</li>
+  <li> 然后找到 $a+b$ 这个新整数所属的<strong>同余类</strong> $\overline{a+b}$。</li>
+  <li> 我们就把这个 $\overline{a+b}$ <strong>定义</strong>为 $\bar{a} + \bar{b}$ 的结果。
+<ul>
+  <li><strong>乘法定义</strong>：同样地，要计算 $\bar{a} \bar{b}$：</li>
+</ul></li>
+  <li> 取出代表元素 $a$ 和 $b$。</li>
+  <li> 计算它们的乘积 $ab$。</li>
+  <li> 找到 $ab$ 所属的<strong>同余类</strong> $\overline{ab}$。</li>
+  <li> 将 $\overline{ab}$ <strong>定义</strong>为 $\bar{a} \bar{b}$ 的结果。</li>
+  <li> <strong>公式化表达</strong>：公式(2.9.5)就是上述定义的数学语言表达。它精确地告诉我们，对<strong>同余类</strong>的运算，可以“降维”到对它们的<strong>代表元素</strong>进行普通整数运算，然后再将结果“升维”回<strong>同余类</strong>。</li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+ \bar{a}+\bar{b}=\overline{a+b} \text { 且 } \bar{a} \bar{b}=\overline{a b} \text { 。 } \tag{2.9.5} 
+$$</div></p>
+<ul>
+  <li><strong>$\bar{a}, \bar{b}$</strong>：这是两个<strong>同余类</strong>，是我们运算的输入。</li>
+  <li><strong>$+$ (在左边)</strong>：这是我们正在<strong>定义</strong>的<strong>同余类加法</strong>。它是一个作用于<strong>集合</strong>（同余类）上的新运算。</li>
+  <li><strong>$\times$ (在左边，省略了符号)</strong>：这是我们正在<strong>定义</strong>的<strong>同余类乘法</strong>。</li>
+  <li><strong>$=$</strong>：定义符号。</li>
+  <li><strong>$\overline{a+b}$</strong>：这是运算的结果。这里的 $a+b$ 是普通的整数加法。整个表达式代表“整数 $a+b$ 所在的那个同余类”。</li>
+  <li><strong>$\overline{ab}$</strong>：同样，这里的 $ab$ 是普通的整数乘法。整个表达式代表“整数 $ab$ 所在的那个同余类”。</li>
+</ul>
+<p><strong>整个公式的含义</strong>：这个公式是<strong>定义式</strong>。它声明，两个<strong>同余类</strong>的和（积），等于它们的代表元素相加（相乘）后得到的新数所对应的<strong>同余类</strong>。这个定义将新运算（类与类之间）与我们熟知的旧运算（数与数之间）联系了起来。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>：设 $n=7$。我们来计算 $\bar{3} + \bar{6}$。</li>
+</ul>
+<ol>
+  <li> 代表元素分别是 $a=3, b=6$。</li>
+  <li> 计算整数和：$a+b = 3+6 = 9$。</li>
+  <li> 找到结果所属的类：我们需要找到 $\bar{9}$。因为 $9 \equiv 2 \pmod 7$ ( $9=1 \times 7 + 2$ )，所以 $\bar{9} = \bar{2}$。</li>
+  <li> 因此，我们定义 $\bar{3} + \bar{6} = \bar{2}$。</li>
+</ol>
+<ul>
+  <li><strong>示例2</strong>：设 $n=5$。我们来计算 $\bar{4} \times \bar{3}$。</li>
+</ul>
+<ol>
+  <li> 代表元素分别是 $a=4, b=3$。</li>
+  <li> 计算整数积：$a \times b = 4 \times 3 = 12$。</li>
+  <li> 找到结果所属的类：我们需要找到 $\overline{12}$。因为 $12 \equiv 2 \pmod 5$ ( $12=2 \times 5 + 2$ )，所以 $\overline{12} = \bar{2}$。</li>
+  <li> 因此，我们定义 $\bar{4} \times \bar{3} = \bar{2}$。</li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>最重要的易错点/疑点</strong>：这个定义是否<strong>合理</strong>（<strong>well-defined</strong>）？一个<strong>同余类</strong>可以有多个代表元素。如果我换用不同的代表元素，计算结果会不会不同？如果结果不同，那这个定义就是无效的。</li>
+  <li>例如，在 $n=7$ 时，$\bar{3}=\overline{10}$，$\bar{6}=\overline{-1}$。我们用新代表来计算 $\overline{10} + \overline{-1}$。</li>
+  <li>$a'=10, b'=-1$。</li>
+  <li>$a'+b' = 10 + (-1) = 9$。</li>
+  <li>结果的类是 $\bar{9}$，也就是 $\bar{2}$。</li>
+  <li>这个结果和我们用 $a=3, b=6$ 计算出的结果 $\bar{2}$ 完全相同！</li>
+  <li>这表明，至少在这个例子里，定义是合理的。下一段的<strong>引理</strong>将证明，这种合理性对于所有情况都成立。这是保证<strong>模算术</strong>能够成立的<strong>关键</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段定义了<strong>同余类</strong>之间的加法和乘法。其核心思想是：<strong>对“类”的运算，通过其“代表元素”的运算来完成</strong>。即，先从每个<strong>同余类</strong>中取一个代表数，对这些数进行普通的加法或乘法，然后看得到的结果属于哪个<strong>同余类</strong>，这个<strong>同余类</strong>就是最终的答案。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是赋予由 $n$ 个<strong>同余类</strong>构成的集合以代数结构。仅仅有一个包含 $n$ 个元素的集合是不够的，我们希望能在上面做算术。这个定义使得集合 $\{\overline{0}, \overline{1}, \ldots, \overline{n-1}\}$ 不再仅仅是一个列表，而变成了一个可以进行加法和乘法的系统，这为它成为一个<strong>环</strong>（<strong>ring</strong>）奠定了基础。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你在开会，有 $n$ 个代表团（<strong>同余类</strong>），每个代表团有很多人（无限个整数）。现在要决定“代表团A”和“代表团B”的联合立场。一个简单的方法是，从代表团A中派出一位代表（$a$），从代表团B中派出一位代表（$b$）。这两位代表商量出一个结果（$a+b$）。然后我们看这个结果（$a+b$）属于哪个代表团（$\overline{a+b}$），这个代表团就被宣布为A和B的联合立场。这个过程要想有效，就必须保证无论A和B派出哪两位代表，他们商量出的结果最终都指向同一个代表团。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>在那个有 $n$ 个刻度（$0$ 到 $n-1$）的“时钟”上。计算 $\bar{a} + \bar{b}$ 就像：</p>
+<ol>
+  <li> 找到指针指向 $a$ 的位置。</li>
+  <li> 从这个位置开始，再向前拨动 $b$ 个刻度。</li>
+  <li> 看指针最后停在哪个位置，那个位置对应的<strong>同余类</strong>就是答案。</li>
+</ol>
+<p>例如，在12小时时钟上计算 $\bar{8} + \bar{5}$：从8点位置开始，再过5个小时，指针会指向1点。所以 $\bar{8} + \bar{5} = \overline{13} = \bar{1}$。这个物理过程天然地保证了结果与你如何称呼“8点”（比如称它为“-4点”）无关。</p>
+    </div>
+</div><hr><h3>1.6 运算的合理性证明</h3><p id="original-7"><strong style="font-size: 1.3rem;">📜 [原文7]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>这个定义需要一些<strong>合理性证明</strong>，因为同一个<strong>同余类</strong>可以由许多不同的<strong>整数</strong>表示。任何<strong>模</strong> $n$ <strong>同余</strong>于 $a$ 的<strong>整数</strong> $a^{\prime}$ 都与 $a$ 表示同一个<strong>类</strong>。因此，如果 $a^{\prime} \equiv a$ 且 $b^{\prime} \equiv b$，那么 $a^{\prime}+b^{\prime} \equiv a+b$ 且 $a^{\prime} b^{\prime} \equiv a b$ 最好是成立的。幸运的是，这确实如此。</p>
+<p><strong>引理</strong> 2.9.6 如果 $a^{\prime} \equiv a$ 且 $b^{\prime} \equiv b$ <strong>模</strong> $n$，那么 $a^{\prime}+b^{\prime} \equiv a+b$ 且 $a^{\prime} b^{\prime} \equiv a b$ <strong>模</strong> $n$。</p>
+<p><strong>证明</strong>。假设 $a^{\prime} \equiv a$ 且 $b^{\prime} \equiv b$，因此 $a^{\prime}=a+r n$ 且 $b^{\prime}=b+s n$（其中 $r$ 和 $s$ 为某些<strong>整数</strong>）。那么 $a^{\prime}+b^{\prime}=a+b+(r+s) n$。这表明 $a^{\prime}+b^{\prime} \equiv a+b$。类似地，$a^{\prime} b^{\prime}=(a+r n)(b+s n)=a b+(a s+r b+r n s) n$，所以 $a^{\prime} b^{\prime} \equiv a b$。$\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本部分是整个<strong>模算术</strong>大厦的逻辑基石。它证明了上一节定义的<strong>同余类运算</strong>是<strong>合理</strong>的（<strong>well-defined</strong>）。</p>
+<ol>
+  <li> <strong>问题的提出（合理性证明）</strong>：
+<ul>
+  <li>作者明确指出了上一节定义的潜在问题：定义依赖于<strong>代表元素</strong>的选取。</li>
+  <li>$\bar{a}$ 和 $\overline{a'}$ 是同一个集合（如果 $a \equiv a' \pmod n$）。</li>
+  <li>$\bar{b}$ 和 $\overline{b'}$ 是同一个集合（如果 $b \equiv b' \pmod n$）。</li>
+  <li>我们定义 $\bar{a}+\bar{b} = \overline{a+b}$。但如果我用 $a'$ 和 $b'$ 来计算，得到的结果是 $\overline{a'+b'}$。</li>
+  <li>为了使定义有意义，我们必须保证 $\overline{a+b}$ 和 $\overline{a'+b'}$ 是同一个集合。也就是说，我们必须证明 $a+b \equiv a'+b' \pmod n$。</li>
+  <li>同理，对于乘法，我们必须证明 $ab \equiv a'b' \pmod n$。</li>
+  <li>这个问题在数学上被称为<strong>验证定义是否与代表元的选择无关</strong>（checking if the definition is independent of the choice of representatives）。</li>
+</ul></li>
+  <li> <strong>引理 2.9.6 的陈述</strong>：
+<ul>
+  <li>这个<strong>引理</strong>（<strong>Lemma</strong>）正是我们需要的结论。<strong>引理</strong>通常是用于证明更重要定理的辅助性命题。</li>
+  <li>它说：如果两个数 $a'$ 和 $a$ 同余，另外两个数 $b'$ 和 $b$ 同余（在同一个<strong>模数</strong> $n$ 下），那么它们的和 $a'+b'$ 与 $a+b$ 也同余，它们的积 $a'b'$ 与 $ab$ 也同余。</li>
+  <li>这个<strong>引理</strong>从根本上保证了，无论你从两个<strong>同余类</strong>中挑选哪两个代表元素来进行加法或乘法，其结果的<strong>同余类</strong>总是一样的。</li>
+</ul></li>
+  <li> <strong>证明过程的拆解</strong>：
+<ul>
+  <li><strong>前提假设</strong>：证明始于<strong>引理</strong>的条件。</li>
+  <li>$a' \equiv a \pmod n$ 意味着 $a' - a$ 是 $n$ 的整数倍。用代数形式写就是 $a' = a + rn$，其中 $r$ 是某个整数。</li>
+  <li>$b' \equiv b \pmod n$ 意味着 $b' - b$ 是 $n$ 的整数倍。用代数形式写就是 $b' = b + sn$，其中 $s$ 是某个整数。</li>
+  <li><strong>证明加法部分</strong>：</li>
+  <li>目标是证明 $a'+b' \equiv a+b \pmod n$，即证明 $(a'+b')-(a+b)$ 是 $n$ 的整数倍。</li>
+  <li>将 $a'$ 和 $b'$ 的代数形式代入 $a'+b'$：</li>
+  <li>重新组合各项：</li>
+  <li>提出公因子 $n$：</li>
+  <li>这个等式完全符合<strong>同余</strong>的代数定义 $B = A + nk$（这里 $B=a'+b'$, $A=a+b$, $k=r+s$）。由于 $r$ 和 $s$ 是整数，它们的和 $r+s$ 也必然是整数。</li>
+  <li>因此，结论成立：$a'+b' \equiv a+b \pmod n$。</li>
+  <li><strong>证明乘法部分</strong>：</li>
+  <li>目标是证明 $a'b' \equiv ab \pmod n$，即证明 $a'b' - ab$ 是 $n$ 的整数倍。</li>
+  <li>将 $a'$ 和 $b'$ 的代数形式代入 $a'b'$：</li>
+  <li>展开这个乘积（使用 FOIL 法则）：</li>
+  <li>将后面三项的公因子 $n$ 提出：</li>
+  <li>这个等式也完全符合<strong>同余</strong>的代数定义 $B=A+nk$。这里的 $B=a'b'$, $A=ab$, $k=as+rb+rsn$。由于 $a,b,r,s,n$ 都是整数，所以 $k$ 也必然是一个整数。</li>
+  <li>因此，结论成立：$a'b' \equiv ab \pmod n$。</li>
+  <li><strong>证明结束</strong>：由于加法和乘法两个部分的结论都已得证，整个<strong>引理</strong>的证明完成，用 $\square$ 标记结束。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p>本段证明中使用的都是基本的代数变形，核心是利用 $a' = a+rn$ 和 $b' = b+sn$ 进行代换。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1（加法）</strong>：设 $n=5$。</li>
+  <li>我们知道 $\bar{2} = \bar{7}$ (因为 $7=2+1\cdot 5$) 和 $\bar{4} = \overline{-1}$ (因为 $-1=4-1\cdot 5$)。</li>
+  <li><strong>计算1（用 2 和 4）</strong>: $\bar{2}+\bar{4} = \overline{2+4} = \bar{6} = \bar{1}$。</li>
+  <li><strong>计算2（用 7 和 -1）</strong>: $\bar{7}+\overline{-1} = \overline{7+(-1)} = \bar{6} = \bar{1}$。</li>
+  <li>结果相同！这验证了<strong>引理</strong>的加法部分。$a=2, b=4, a'=7, b'=-1$。$a+b=6, a'+b'=6$。$6 \equiv 6 \pmod 5$，显然成立。</li>
+</ul>
+<ul>
+  <li><strong>示例2（乘法）</strong>：设 $n=8$。</li>
+  <li>我们知道 $\bar{3} = \overline{11}$ (因为 $11=3+1\cdot 8$) 和 $\bar{5} = \overline{-3}$ (因为 $-3=5-1\cdot 8$)。</li>
+  <li><strong>计算1（用 3 和 5）</strong>: $\bar{3}\bar{5} = \overline{3 \times 5} = \overline{15}$。因为 $15 = 1 \cdot 8 + 7$，所以 $\overline{15} = \bar{7}$。</li>
+  <li><strong>计算2（用 11 和 -3）</strong>: $\overline{11}\cdot\overline{-3} = \overline{11 \times (-3)} = \overline{-33}$。为了找到它的标准代表，我们做带余除法：$-33 = (-5) \times 8 + 7$。所以 $\overline{-33} = \bar{7}$。</li>
+  <li>结果再次相同！这验证了<strong>引理</strong>的乘法部分。$ab=15, a'b'=-33$。$15 - (-33) = 48$。$48$ 可以被 $8$ 整除 ($48 = 6 \times 8$)。所以 $15 \equiv -33 \pmod 8$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点</strong>：对证明过程感到畏惧或跳过不读。这个证明是理解为什么<strong>模算术</strong>可行的核心，必须搞懂。它的逻辑非常直接：把<strong>同余</strong>关系翻译成代数表达式，然后进行简单的代数运算。</li>
+  <li><strong>易错点</strong>：在乘法展开时出错，特别是 $a'b'=(a+rn)(b+sn)$ 的展开。</li>
+  <li><strong>边界情况</strong>：这个<strong>引理</strong>对任何<strong>正整数</strong> $n$ 和任何<strong>整数</strong> $a, b, a', b'$ 都成立，没有特殊的边界情况需要担心。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段通过一个关键的<strong>引理</strong>及其证明，消除了<strong>同余类运算</strong>定义中的模糊性。<strong>引理 2.9.6</strong> 保证了<strong>同余类</strong>的和与积的计算结果与所选取的<strong>代表元素</strong>无关。这一坚实的逻辑基础，使得我们能够放心地在<strong>同余类</strong>的集合上进行算术运算。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是提供数学上的严谨性。在数学中，任何一个定义，特别是依赖于代表元素选择的定义，都必须经过“<strong>well-defined</strong>”检验。本段就是完成这个至关重要的检验步骤，确保了整个<strong>模算术</strong>理论体系不是建立在流沙之上。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>回到代表团的例子。这个<strong>引理</strong>证明的是：只要代表A'和代表A来自同一个代表团，代表B'和代表B来自同一个代表团，那么无论是由(A, B)这对代表商量的结果，还是由(A', B')这对代表商量的结果，最终都会指向同一个最终的代表团。这个机制保证了代表团之间的协商是稳定和有意义的。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>在时钟上，这个<strong>引理</strong>的意思是：</p>
+<ol>
+  <li><strong>加法</strong>：从“2点钟”位置再过“3小时”，会到达“5点钟”。如果我把“2点钟”看作“14点钟”，把“3小时”看作“15小时”，那么从“14点钟”位置再过“15小时”，会到达“29点钟”。而“29点钟”在12小时制的时钟上恰好就是“5点钟”的位置。最终位置是一样的。</li>
+  <li><strong>乘法</strong>：这个在时钟上不太好直观想象，但代数证明的普适性告诉我们它同样成立。</li>
+</ol>
+    </div>
+</div><hr><h3>1.7 模算术的代数定律</h3><p id="original-8"><strong style="font-size: 1.3rem;">📜 [原文8]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>同余类</strong>的<strong>加法</strong>和<strong>乘法</strong>满足<strong>结合律</strong>、<strong>交换律</strong>和<strong>分配律</strong>，因为它们在<strong>整数</strong>的<strong>加法</strong>和<strong>乘法</strong>中成立。例如，<strong>分配律</strong>的验证如下：</p>
+<p><div class="math-block">$$
+\begin{aligned}
+\bar{a}(\bar{b}+\bar{c}) &amp; =\bar{a}(\overline{b+c})=\overline{a(b+c)} &amp; &amp; (\text { 根据同余类的 } + \text { 和 } \times \text { 的定义 }) \\
+&amp; =\overline{a b+a c} &amp; &amp; (\text { 整数中的分配律 }) \\
+&amp; =\overline{a b}+\overline{a c}=\bar{a} \bar{b}+\bar{a} \bar{c} &amp; &amp; (\text { 根据同余类的 } + \text { 和 } \times \text { 的定义 }) 。
+\end{aligned}
+$$</div></p>
+<p>其他<strong>定律</strong>的验证是类似的，我们在此省略。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本段说明了我们熟悉的算术定律（<strong>结合律</strong>、<strong>交换律</strong>、<strong>分配律</strong>）在<strong>同余类</strong>的新运算中依然成立，并演示了如何证明这一点。</p>
+<ol>
+  <li> <strong>定律的继承</strong>：
+<ul>
+  <li>核心思想是：<strong>同余类</strong>的运算性质，是由<strong>整数</strong>的运算性质“<strong>继承</strong>”而来的。</li>
+  <li>我们定义的<strong>同余类</strong>运算 $\bar{a}+\bar{b}=\overline{a+b}$ 本质上是把问题“外包”给了整数运算。因此，如果整数运算满足某个定律，<strong>同余类</strong>运算也很可能满足。</li>
+  <li>这些定律包括：</li>
+  <li><strong>加法交换律</strong>: $\bar{a}+\bar{b} = \bar{b}+\bar{a}$</li>
+  <li><strong>加法结合律</strong>: $(\bar{a}+\bar{b})+\bar{c} = \bar{a}+(\bar{b}+\bar{c})$</li>
+  <li><strong>乘法交换律</strong>: $\bar{a}\bar{b} = \bar{b}\bar{a}$</li>
+  <li><strong>乘法结合律</strong>: $(\bar{a}\bar{b})\bar{c} = \bar{a}(\bar{b}\bar{c})$</li>
+  <li><strong>分配律</strong>: $\bar{a}(\bar{b}+\bar{c}) = \bar{a}\bar{b} + \bar{a}\bar{c}$</li>
+</ul></li>
+  <li> <strong>分配律的证明演示</strong>：
+<ul>
+  <li>作者选择<strong>分配律</strong>作为例子来展示证明的思路。这个证明过程是一系列等式变换，每一步都有清晰的依据。</li>
+  <li><strong>第一步</strong>: $\bar{a}(\bar{b}+\bar{c}) = \bar{a}(\overline{b+c})$</li>
+  <li><strong>依据</strong>: 根据<strong>同余类加法</strong>的定义 ($\bar{x}+\bar{y}=\overline{x+y}$)。我们首先计算括号里的 $\bar{b}+\bar{c}$。</li>
+  <li><strong>第二步</strong>: $\bar{a}(\overline{b+c}) = \overline{a(b+c)}$</li>
+  <li><strong>依据</strong>: 根据<strong>同余类乘法</strong>的定义 ($\bar{x}\bar{y}=\overline{xy}$)。这里 $\bar{x}$ 是 $\bar{a}$，$\bar{y}$ 是 $\overline{b+c}$，其代表元素是 $b+c$。</li>
+  <li><strong>第三步</strong>: $\overline{a(b+c)} = \overline{ab+ac}$</li>
+  <li><strong>依据</strong>: 这是证明的核心。等号两边的横线表示“...所在的<strong>同余类</strong>”。由于 $a(b+c)$ 和 $ab+ac$ 这两个<strong>整数</strong>是完全相等的（这是整数的<strong>分配律</strong>），它们必然属于同一个<strong>同余类</strong>。所以 $\overline{a(b+c)}$ 和 $\overline{ab+ac}$ 是同一个集合。</li>
+  <li><strong>第四步</strong>: $\overline{ab+ac} = \overline{ab}+\overline{ac}$</li>
+  <li><strong>依据</strong>: 再次使用<strong>同余类加法</strong>的定义，但这次是反向使用 ($\overline{x+y}=\bar{x}+\bar{y}$)。</li>
+  <li><strong>第五步</strong>: $\overline{ab}+\overline{ac} = \bar{a}\bar{b}+\bar{a}\bar{c}$</li>
+  <li><strong>依据</strong>: 两次使用<strong>同余类乘法</strong>的定义 ($\overline{xy}=\bar{x}\bar{y}$)。</li>
+  <li><strong>结论</strong>: 将这一系列等式串起来，我们就证明了 $\bar{a}(\bar{b}+\bar{c}) = \bar{a}\bar{b}+\bar{a}\bar{c}$。</li>
+</ul></li>
+  <li> <strong>其他定律的省略</strong>：
+<ul>
+  <li>作者指出，其他定律（如交换律和结合律）的证明方法与此完全类似，都是通过“降维”到整数运算，利用整数的相应定律，再“升维”回<strong>同余类</strong>来完成。因此，为了简洁，不再赘述。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+\begin{aligned}
+\bar{a}(\bar{b}+\bar{c}) &amp; =\bar{a}(\overline{b+c})=\overline{a(b+c)} &amp; &amp; (\text { 根据同余类的 } + \text { 和 } \times \text { 的定义 }) \\
+&amp; =\overline{a b+a c} &amp; &amp; (\text { 整数中的分配律 }) \\
+&amp; =\overline{a b}+\overline{a c}=\bar{a} \bar{b}+\bar{a} \bar{c} &amp; &amp; (\text { 根据同余类的 } + \text { 和 } \times \text { 的定义 }) 。
+\end{aligned}
+$$</div></p>
+<p>这个多行公式展示了证明<strong>分配律</strong>的完整逻辑链。每一步变换都严格依赖于之前建立的定义或已知的整数性质。这体现了数学推理的严密性。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例：验证分配律</strong>，设 $n=6$。令 $\bar{a}=\bar{3}, \bar{b}=\bar{4}, \bar{c}=\bar{5}$。</li>
+  <li><strong>计算左边</strong>: $\bar{a}(\bar{b}+\bar{c}) = \bar{3}(\bar{4}+\bar{5})$</li>
+</ul>
+<ol>
+  <li> 先算括号内：$\bar{4}+\bar{5} = \overline{4+5} = \bar{9} = \bar{3}$ (因为 $9 \equiv 3 \pmod 6$)。</li>
+  <li> 再算乘法：$\bar{3} \times \bar{3} = \overline{3 \times 3} = \bar{9} = \bar{3}$。
+<ul>
+  <li>所以，左边的结果是 $\bar{3}$。</li>
+  <li><strong>计算右边</strong>: $\bar{a}\bar{b}+\bar{a}\bar{c} = \bar{3}\bar{4}+\bar{3}\bar{5}$</li>
+</ul></li>
+  <li> 先算乘法：
+<ul>
+  <li>$\bar{3}\bar{4} = \overline{3 \times 4} = \overline{12} = \bar{0}$ (因为 $12 \equiv 0 \pmod 6$)。</li>
+  <li>$\bar{3}\bar{5} = \overline{3 \times 5} = \overline{15} = \bar{3}$ (因为 $15 \equiv 3 \pmod 6$)。</li>
+</ul></li>
+  <li> 再算加法：$\bar{0} + \bar{3} = \overline{0+3} = \bar{3}$。
+<ul>
+  <li>所以，右边的结果也是 $\bar{3}$。</li>
+  <li>左边 = 右边，<strong>分配律</strong>在此例中成立。</li>
+</ul></li>
+</ol>
+<ul>
+  <li><strong>示例：验证加法结合律</strong>，设 $n=8$。令 $\bar{a}=\bar{5}, \bar{b}=\bar{6}, \bar{c}=\bar{7}$。</li>
+  <li><strong>计算左边</strong>: $(\bar{5}+\bar{6})+\bar{7} = (\overline{11})+\bar{7} = \bar{3}+\bar{7} = \overline{10} = \bar{2}$。</li>
+  <li><strong>计算右边</strong>: $\bar{5}+(\bar{6}+\bar{7}) = \bar{5}+(\overline{13}) = \bar{5}+\bar{5} = \overline{10} = \bar{2}$。</li>
+  <li>结果相同，<strong>加法结合律</strong>成立。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点</strong>：误以为证明是平凡的而忽略其逻辑。关键在于理解每一步都是一个逻辑转换，特别是 $\overline{a(b+c)} = \overline{ab+ac}$ 这一步，它依赖的是<strong>整数相等</strong>则<strong>同余类相等</strong>这一事实。</li>
+  <li><strong>重要区别</strong>：虽然这些基本定律得以保留，但<strong>模算术</strong>世界里有一些非常不同的性质。例如，<strong>乘法消去律</strong>（如果 $ab=ac$ 且 $a \neq 0$，则 $b=c$）在<strong>同余类</strong>中<strong>不一定成立</strong>。比如在<strong>模 6</strong>下，$\bar{2}\bar{3} = \bar{6} = \bar{0}$ 且 $\bar{4}\bar{3} = \overline{12} = \bar{0}$。我们有 $\bar{2}\bar{3} = \bar{4}\bar{3}$，但我们不能消去 $\bar{3}$ 得到 $\bar{2}=\bar{4}$（这是错误的）。这个问题与“<strong>零因子</strong>”有关。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段的核心结论是，我们为<strong>同余类</strong>定义的加法和乘法运算，继承了整数运算的<strong>结合律</strong>、<strong>交换律</strong>和<strong>分配律</strong>。其证明的通用模式是：利用<strong>同余类运算</strong>的定义，将问题转化为对代表元素的整数运算，应用整数世界的定律，再将结果转化回<strong>同余类</strong>。这使得由<strong>同余类</strong>构成的系统（称为<strong>商环</strong> $\mathbb{Z}/n\mathbb{Z}$）表现出非常良好和熟悉的代数结构。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是为了确认<strong>同余类</strong>系统是一个“行为良好”的代数系统。有了这些基本定律的保障，我们才能像处理普通数字一样，对<strong>同余类</strong>进行代数变形和计算，比如展开、合并、提取公因式等。这为在<strong>模算术</strong>中解决方程、进行推导提供了合法性。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像我们发明了一种新的“计算器”，它的屏幕上只能显示 $0, 1, \ldots, n-1$ 这些数。这个计算器内部做运算时，还是用普通整数的方式，但每次显示结果前，都会自动计算结果除以 $n$ 的余数。因为内部的整数运算遵循那些定律，所以最终显示在屏幕上的数字运算也遵循这些定律。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>在时钟算术中，这些定律也显得很自然。</p>
+<ol>
+  <li><strong>交换律</strong>：从2点再过3小时，和从3点再过2小时，都是到达5点。</li>
+  <li><strong>结合律</strong>：（从2点过3小时）再过4小时，和从2点过（3+4）小时，最终都指向9点。</li>
+</ol>
+<p>这些定律的成立，使得<strong>同余类</strong>的世界成为一个结构稳定、可预测的数学对象。</p>
+    </div>
+</div><hr><h3>1.8 计算实践与简化</h3><p id="original-9"><strong style="font-size: 1.3rem;">📜 [原文9]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>模</strong> $n$ 的<strong>同余类</strong>集合可以用符号 $\mathbb{Z} / \mathbb{Z} n, \mathbb{Z} / n \mathbb{Z}$ 或 $\mathbb{Z} /(n)$ 中的任何一个来表示。$\mathbb{Z} / \mathbb{Z} n$ 中的<strong>加法</strong>、<strong>减法</strong>和<strong>乘法</strong>可以通过<strong>整数</strong>运算并在除以 $n$ 后取<strong>余数</strong>来明确化。这正是公式 (2.9.5) 的含义。它们告诉我们，将<strong>整数</strong> $a$ 映射到其<strong>同余类</strong> $\bar{a}$ 的映射</p>
+<p><div class="math-block">$$
+\mathbb{Z} \rightarrow \mathbb{Z} / \mathbb{Z} n \tag{2.9.7}
+$$</div></p>
+<p>与<strong>加法</strong>和<strong>乘法</strong>是兼容的。因此，<strong>计算</strong>可以在<strong>整数</strong>中进行，然后在最后<strong>转换</strong>到 $\mathbb{Z} / \mathbb{Z} n$。然而，如果数字保持较小，<strong>计算</strong>会更简单。这可以通过在<strong>计算</strong>的某个部分完成后<strong>计算余数</strong>来完成。</p>
+<p>因此，如果 $n=29$，使得 $\mathbb{Z} / \mathbb{Z} n=\{\overline{0}, \overline{1}, \overline{2}, \ldots, \overline{28}\}$，则 $(\overline{35})(\overline{17}+\overline{7})$ 可以<strong>计算</strong>为 $\overline{35} \cdot \overline{24}=\overline{6} \cdot(-\overline{5})=-\overline{30}=-\overline{1}$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本段介绍了<strong>同余类集合</strong>的正式记号，并讨论了进行<strong>模算术</strong>计算的两种实用策略。</p>
+<ol>
+  <li> <strong>集合的正式名称和记号</strong>：
+<ul>
+  <li>由所有<strong>模 $n$ 同余类</strong>组成的集合，是一个非常重要的数学对象，被称为<strong>模n整数环</strong>或<strong>商环</strong>。</li>
+  <li>作者给出了三种常见的记号：</li>
+  <li><strong>$\mathbb{Z} / \mathbb{Z} n$</strong> 或 <strong>$\mathbb{Z} / n \mathbb{Z}$</strong>：这个记号来自<strong>群论</strong>，读作 "Z mod nZ"。它直观地表示用整数群 $\mathbb{Z}$“除以”它的子群 $\mathbb{Z}n$ 得到的<strong>商群</strong>（<strong>quotient group</strong>）。“除”的意义就是把子群 $\mathbb{Z}n$ 的所有元素“视作”0，从而形成了<strong>陪集</strong>（即<strong>同余类</strong>）。</li>
+  <li><strong>$\mathbb{Z} / (n)$</strong>：这个记号来自<strong>环论</strong>。$(n)$ 表示由 $n$ 生成的<strong>理想</strong>（<strong>ideal</strong>），这在加法群中等同于子群 $\mathbb{Z}n$。$\mathbb{Z}/(n)$ 表示<strong>商环</strong>（<strong>quotient ring</strong>）。</li>
+  <li>这些记号都指代同一个东西：集合 $\{\overline{0}, \overline{1}, \ldots, \overline{n-1}\}$ 以及其上的加法和乘法结构。</li>
+</ul></li>
+  <li> <strong>自然映射及其性质</strong>：
+<ul>
+  <li>考虑一个从<strong>整数</strong> $\mathbb{Z}$ 到<strong>同余类</strong> $\mathbb{Z}/\mathbb{Z}n$ 的映射（函数），它把每个整数 $a$ 送到它自己所属的<strong>同余类</strong> $\bar{a}$。这个映射被称为<strong>自然映射</strong>或<strong>典范投影</strong>。</li>
+  <li>公式 (2.9.7) 就是在描述这个映射。</li>
+  <li>“与<strong>加法</strong>和<strong>乘法</strong>是兼容的”这句话非常重要，它的专业术语是说这个映射是一个<strong>同态</strong>（<strong>homomorphism</strong>）。具体来说：</li>
+  <li><strong>加法兼容</strong>：$a+b$ 映射到 $\overline{a+b}$。而 $\bar{a}+\bar{b}$ 也等于 $\overline{a+b}$。所以，先在 $\mathbb{Z}$ 中相加再映射，和先映射到 $\mathbb{Z}/\mathbb{Z}n$ 再相加，结果相同。</li>
+  <li><strong>乘法兼容</strong>：$ab$ 映射到 $\overline{ab}$。而 $\bar{a}\bar{b}$ 也等于 $\overline{ab}$。同样，先乘后映与先映后乘结果相同。</li>
+</ul></li>
+  <li> <strong>两种计算策略</strong>：
+<ul>
+  <li><strong>策略一：最后取余</strong>。利用<strong>同态</strong>性质，我们可以在普通的整数世界里完成所有复杂的计算，直到得出最终的整数结果，然后只在最后一步求这个结果<strong>模 $n$</strong> 的<strong>同余类</strong>。</li>
+  <li>优点：思路直接，不用反复思考<strong>模</strong>运算。</li>
+  <li>缺点：中间过程可能产生非常大的数字，计算起来很困难或容易出错。</li>
+  <li><strong>策略二：随时取余</strong>。由于<strong>引理 2.9.6</strong> 保证了运算与代表元素选择无关，我们可以在计算的任何一步，将一个数替换为与它<strong>同余</strong>的任何其他数（通常是更小的余数）。</li>
+  <li>优点：始终让计算中涉及的数字保持在较小的范围内（通常是 $0$到 $n-1$之间），大大简化了心算或手算。这是实践中进行<strong>模算术</strong>的标准方法。</li>
+</ul></li>
+  <li> <strong>计算示例演示</strong>：
+<ul>
+  <li>问题：在 $n=29$ 的情况下，计算 $(\overline{35})(\overline{17}+\overline{7})$。</li>
+  <li><strong>策略一（最后取余）</strong>：</li>
+</ul></li>
+  <li> 整数计算：$(35)(17+7) = 35 \times 24 = 840$。</li>
+  <li> 最后取余：$840 \div 29 = 28$ 余 $28$。所以 $840 \equiv 28 \pmod{29}$。因为 $28 \equiv -1 \pmod{29}$，所以结果是 $\overline{-1}$。
+<ul>
+  <li><strong>策略二（随时取余，即作者的演示）</strong>：</li>
+</ul></li>
+  <li> $\overline{35}$: $35 \equiv 6 \pmod{29}$。所以 $\overline{35}$ 替换为 $\bar{6}$。</li>
+  <li> $\overline{17}+\overline{7}$: 计算和 $\overline{17+7}=\overline{24}$。</li>
+  <li> 问题变成计算 $\bar{6} \cdot \overline{24}$。</li>
+  <li> 这里作者用了一个技巧：$\overline{24}$ 可以看作 $\overline{24-29} = \overline{-5}$。这样数字更小。</li>
+  <li> 问题变成 $\bar{6} \cdot (\overline{-5}) = \overline{6 \times (-5)} = \overline{-30}$。</li>
+  <li> 最后对 $\overline{-30}$ 化简：$-30 \equiv -1 \pmod{29}$ (因为 $-30 = -1 \times 29 - 1$)。</li>
+  <li> 最终结果是 $\overline{-1}$。
+<ul>
+  <li>两种策略结果一致，但策略二的计算量明显更小（$6 \times (-5)$ vs $35 \times 24$）。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+ \mathbb{Z} \rightarrow \mathbb{Z} / \mathbb{Z} n \tag{2.9.7} 
+$$</div></p>
+<ul>
+  <li><strong>$\mathbb{Z}$</strong>：整数集合，是映射的<strong>定义域</strong>（<strong>domain</strong>）。</li>
+  <li><strong>$\rightarrow$</strong>：表示一个映射（函数）。</li>
+  <li><strong>$\mathbb{Z} / \mathbb{Z} n$</strong>：<strong>模 $n$ 同余类</strong>的集合，是映射的<strong>到达域</strong>（<strong>codomain</strong>）。</li>
+  <li><strong>整个公式的含义</strong>：它描述了一个函数，这个函数的输入是一个整数，输出是这个整数所在的<strong>同余类</strong>。这个函数是一个<strong>环同态</strong>。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>：计算 $123 \times 456 \pmod{10}$。</li>
+  <li><strong>策略一（最后取余）</strong>：$123 \times 456 = 56088$。$56088$ 的个位数是8，所以 $56088 \equiv 8 \pmod{10}$。</li>
+  <li><strong>策略二（随时取余）</strong>：</li>
+</ul>
+<ol>
+  <li> $123 \equiv 3 \pmod{10}$。</li>
+  <li> $456 \equiv 6 \pmod{10}$。</li>
+  <li> $123 \times 456 \equiv 3 \times 6 \pmod{10}$。</li>
+  <li> $3 \times 6 = 18$。</li>
+  <li> $18 \equiv 8 \pmod{10}$。
+<ul>
+  <li>结果相同，策略二简单得多。</li>
+</ul></li>
+</ol>
+<ul>
+  <li><strong>示例2</strong>：计算 $(98 + 101) \times 203 \pmod{100}$。</li>
+  <li><strong>策略二</strong>：</li>
+</ul>
+<ol>
+  <li> $98 \equiv -2 \pmod{100}$。</li>
+  <li> $101 \equiv 1 \pmod{100}$。</li>
+  <li> $203 \equiv 3 \pmod{100}$。</li>
+  <li> 原式 $\equiv (-2 + 1) \times 3 \pmod{100}$。</li>
+  <li> $(-1) \times 3 = -3$。</li>
+  <li> $-3 \equiv 97 \pmod{100}$。
+<ul>
+  <li>最终结果是97。如果用策略一，需要计算 $199 \times 203$，复杂得多。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点</strong>：在使用“随时取余”策略时，对负数的处理。例如，在 $\pmod{29}$ 中，$\overline{24} = \overline{-5}$ 是因为 $24 - (-5) = 29$ 能被29整除。熟悉 $a \equiv a-n \pmod n$ 这个技巧很有用。</li>
+  <li><strong>易错点</strong>：减法。$\bar{a}-\bar{b}$ 定义为 $\overline{a-b}$。例如，在 $\pmod{10}$ 中，$\bar{3}-\bar{8} = \overline{3-8} = \overline{-5} = \bar{5}$。</li>
+  <li><strong>边界情况</strong>：在除法上要特别小心！<strong>同余类</strong>集合不总是能进行“除法”。例如，在 $\mathbb{Z}/6\mathbb{Z}$ 中，$\bar{2} \cdot \bar{x} = \bar{4}$ 的解是什么？$\bar{x}=\bar{2}$ 是一个解，但 $\bar{x}=\bar{5}$ 也是一个解（$\bar{2}\cdot\bar{5}=\overline{10}=\bar{4}$）。除法可能没有唯一解，甚至没有解。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段为<strong>模 $n$ 同余类</strong>集合赋予了正式的代数名称（如 $\mathbb{Z}/\mathbb{Z}n$），并阐明了其运算的核心是<strong>同态</strong>性质。这引出了两种计算策略：“最后取余”和“随时取余”。在实践中，“随时取余”是保持计算简单的关键，它允许我们在计算的任何中间步骤将数字替换为其等价的、更小的<strong>余数</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是从理论过渡到实践。它告诉我们，在建立了稳固的理论基础之后，我们应该如何在纸上或头脑中高效、正确地进行<strong>模算术</strong>计算。通过将复杂的整数运算转化为对小范围数字的运算，<strong>模算术</strong>成为了一个强大的计算工具。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像在处理金钱。你可以用总金额（比如 12345 分）来计算，也可以在每一步都把它换算成更方便的单位（123元4角5分）来处理。策略二是说，我们可以在计算的任何时候，把一个大数（比如35）换成和它等价的更方便的数（比如在模29下是6），这不会影响最终结果的“<strong>同余类</strong>”。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>在时钟上计算 $(\overline{15})(\overline{10}+\overline{8})$ <strong>模 12</strong>。</p>
+<ol>
+  <li> 随时化简：$\overline{15} = \bar{3}$。</li>
+  <li> 括号内：$\overline{10}+\overline{8} = \overline{18} = \bar{6}$。</li>
+  <li> 计算 $\bar{3} \times \bar{6} = \overline{18} = \bar{6}$。</li>
+</ol>
+<p>这就像，把“15点”看作“3点”，把“10小时后过8小时”看作“18小时后”即“6小时后”。那么“3点钟方向的6倍”是什么？这在物理上不好想象，但代数上是 $\overline{18} = \bar{6}$。而“随时化简”的思想，就是在钟面上，任何数字都可以用它最终落脚的那个 $0-11$ 的刻度来代替。</p>
+    </div>
+</div><hr><h3>1.9 省略横线与展望</h3><p id="original-10"><strong style="font-size: 1.3rem;">📜 [原文10]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>长远来看，数字上的横线会成为一种麻烦。它们常常被省略。省略横线时，只需记住这条规则：</p>
+<p><div class="math-block">$$
+\text { 在 } \mathbb{Z} / \mathbb{Z} n \text { 中说 } a=b \text { 意味着 } a \equiv b \text { 模 } n \text { 。 } \tag{2.9.8}
+$$</div></p>
+<p><strong>模素数</strong>的<strong>同余</strong>具有特殊性质，我们将在下一章的开头讨论。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本段是本节的收尾，它引入了一种更简洁的记法，并预告了后续内容。</p>
+<ol>
+  <li> <strong>记法的简化</strong>：
+<ul>
+  <li>在前面的讨论中，我们一直使用 $\bar{a}$ 来严格区分<strong>同余类</strong>（集合）和<strong>整数</strong>（数字）。</li>
+  <li>然而，一直写这个横线是很繁琐的。在数学家们熟悉了上下文之后，他们倾向于使用更简洁的记法。</li>
+  <li>这里的简化方法就是：直接省略横线，用整数 $a$ 来代表它所在的<strong>同余类</strong> $\bar{a}$。</li>
+  <li>例如，在 $\mathbb{Z}/5\mathbb{Z}$ 中，我们可能会写 $2+4=1$，而不是写 $\bar{2}+\bar{4}=\bar{1}$。</li>
+</ul></li>
+  <li> <strong>新记法下的等号含义</strong>：
+<ul>
+  <li>省略横线带来了一个潜在的混淆：等号 <strong>=</strong> 的含义变了。</li>
+  <li>在普通的整数世界里，$a=b$ 意味着 $a$ 和 $b$ 是同一个数。</li>
+  <li>但在 $\mathbb{Z}/\mathbb{Z}n$ 的上下文中，如果我们写 $a=b$，它的真实含义是 $\bar{a}=\bar{b}$，也就是说，$a \equiv b \pmod n$。</li>
+  <li>公式 (2.9.8) 就是对这个新“游戏规则”的明确警告和定义。它强调，当我们声明在 $\mathbb{Z}/\mathbb{Z}n$ 这个环境里两个数“相等”时，我们实际上是在说它们“<strong>模 $n$ 同余</strong>”。</li>
+</ul></li>
+  <li> <strong>上下文的重要性</strong>：
+<ul>
+  <li>这种记法的简化，高度依赖于读者和作者之间对当前工作环境（即<strong>模数</strong> $n$ 是多少）的共识。如果没有明确指出是在 $\mathbb{Z}/\mathbb{Z}n$ 中，那么 $a=b$ 仍然是其通常的含义。</li>
+</ul></li>
+  <li> <strong>内容预告</strong>：
+<ul>
+  <li>最后一句“<strong>模素数</strong>的<strong>同余</strong>具有特殊性质”，为下一章的内容埋下伏笔。</li>
+  <li>它暗示，当<strong>模数</strong> $n$ 是一个<strong>素数</strong>（prime number，如 2, 3, 5, 7, 11, ...）时，<strong>同余类</strong>构成的系统 $\mathbb{Z}/\mathbb{Z}p$（其中 $p$ 是素数）会拥有比普通合数模数下更强大、更优美的性质。</li>
+  <li>一个最重要的特殊性质是：当 $n=p$ 是素数时，$\mathbb{Z}/\mathbb{Z}p$ 是一个<strong>域</strong>（<strong>field</strong>）。在<strong>域</strong>中，任何非零元素都有<strong>乘法逆元</strong>，这意味着“除法”总是可以干净地进行（除了不能除以0）。这在 $n$ 是合数时通常是不成立的。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+ \text { 在 } \mathbb{Z} / \mathbb{Z} n \text { 中说 } a=b \text { 意味着 } a \equiv b \text { 模 } n \text { 。 } \tag{2.9.8} 
+$$</div></p>
+<ul>
+  <li><strong>这是一个“元语言”规则，而不是一个数学公式</strong>。它在解释数学符号应该如何被解读。</li>
+  <li><strong>"在 $\mathbb{Z} / \mathbb{Z} n$ 中"</strong>: 这句话设定了上下文环境，是这条规则生效的前提。</li>
+  <li><strong>"$a=b$"</strong>: 这是被解释的对象。这里的 <strong>=</strong> 是一个“被重载的”符号。</li>
+  <li><strong>"意味着"</strong>: 连接符号和它的真实含义。</li>
+  <li><strong>"$a \equiv b \text { 模 } n$"</strong>: 这是 <strong>=</strong> 在此上下文中的真正、严格的数学意义。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>：在 $\mathbb{Z}/7\mathbb{Z}$ 中：</li>
+  <li>我们可以写 $5+5=3$。</li>
+  <li><strong>真实含义</strong>：$\bar{5}+\bar{5} = \overline{10} = \bar{3}$，即 $10 \equiv 3 \pmod 7$。</li>
+  <li>我们也可以写 $2 \times 4 = 1$。</li>
+  <li><strong>真实含义</strong>：$\bar{2} \times \bar{4} = \bar{8} = \bar{1}$，即 $8 \equiv 1 \pmod 7$。</li>
+</ul>
+<ul>
+  <li><strong>示例2</strong>：在 $\mathbb{Z}/12\mathbb{Z}$ 中（时钟算术）：</li>
+  <li>有人写下方程 $4x=8$。</li>
+  <li><strong>真实含义</strong>：$\bar{4}\bar{x} = \bar{8}$，即 $4x \equiv 8 \pmod{12}$。</li>
+  <li>这个方程的解是什么？</li>
+  <li>$x=2$ 是一个解，因为 $4 \times 2 = 8 \equiv 8 \pmod{12}$。</li>
+  <li>$x=5$ 也是一个解，因为 $4 \times 5 = 20 \equiv 8 \pmod{12}$。</li>
+  <li>$x=8$ 还是一个解，因为 $4 \times 8 = 32 \equiv 8 \pmod{12}$。</li>
+  <li>所以在 $\mathbb{Z}/12\mathbb{Z}$ 中，方程 $4x=8$ 的解集是 $\{2, 5, 8\}$ (即 $\bar{2}, \bar{5}, \bar{8}$)。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点</strong>：在不同的上下文之间切换时，忘记 <strong>=</strong> 的含义已经改变。如果在解决一个<strong>模算术</strong>问题时，突然把它当作普通等式来处理，就会导致严重错误。</li>
+  <li><strong>易错点</strong>：看到 $a=b$ in $\mathbb{Z}/\mathbb{Z}n$ 就认为 $a$ 和 $b$ 这两个数字必须相等。不，它们只需要<strong>同余</strong>。$14=2$ 在 $\mathbb{Z}/12\mathbb{Z}$ 中是完全正确的陈述。</li>
+  <li><strong>关于素数模</strong>：预告中提到的特殊性质非常关键。例如，在 $\mathbb{Z}/7\mathbb{Z}$ 中，方程 $4x=1$ 有唯一解 $x=2$ (因为 $4 \times 2 = 8 \equiv 1$)。但在 $\mathbb{Z}/6\mathbb{Z}$ 中，方程 $4x=1$ 无解，因为 $4x$ 只能是 $4, 8\equiv 2, 12\equiv 0, 16\equiv 4, \ldots$ 永远不可能同余于1。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段引入了在<strong>模算术</strong>中省略<strong>同余类</strong>横线的简便记法，并强调了在这种记法下，等号 <strong>=</strong> 的含义被重新定义为<strong>模 $n$ 同余</strong>。这是专业数学讨论中常见的做法。最后，本段通过预告<strong>素数模</strong>的特殊性，为后续更深入的代数结构（<strong>域</strong>）的学习提供了引子。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是为了让读者适应数学文献中更常见、更高效的记法，并培养根据上下文理解符号含义的能力。同时，通过引出<strong>素数模</strong>的重要性，它激发了读者继续学习的兴趣，并暗示了<strong>模算术</strong>这个工具在不同场景下（$n$ 为素数 vs 合数）会有不同的威力。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像给好朋友起昵称。一开始为了明确，你总叫他全名“张伟”。熟悉了以后，你直接叫他“小伟”。你们俩都知道“小伟”指的就是“张伟”。这里的横线就像姓氏“张”，熟悉了以后就可以省略，直接用名字“伟”来指代，只要你们都知道谈论的是同一个人。但是和一个不熟的人也这么说，就可能产生误解。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>在时钟上，我们通常不会说“现在是$\overline{14}$点”，而是直接说“现在是2点”。我们已经默认了这个“模12”的环境，并自动将数字转换到 $1-12$ 的范围内。省略横线的记法就是将这种日常的直观操作，形式化为数学语言。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-2">
+    <h2><span class="section-number">2</span>行间公式索引</h2>
+    <p>1.  <strong>同余定义</strong>:</p><p><div class="math-block">$$
+ a \equiv b \text { 模 } n, \tag{2.9.1} 
+$$</div></p><p>这个公式定义了两个整数 $a$ 和 $b$ 在模 $n$ 意义下是同余的，即它们的差 $b-a$ 能被 $n$ 整除。</p><p>2.  <strong>同余类集合</strong>:</p><p><div class="math-block">$$
+ \bar{a}=\{\ldots, a-n, a, a+n, a+2 n, \ldots\} . \tag{2.9.2} 
+$$</div></p><p>这个公式展示了整数 $a$ 的同余类，它包含了所有与 $a$ 模 $n$ 同余的整数所组成的无限集合。</p><p>3.  <strong>同余类作为陪集</strong>:</p><p><div class="math-block">$$
+ a+H=\{a+k n \mid k \in \mathbb{Z}\} . \tag{2.9.3} 
+$$</div></p><p>这个公式从群论的角度将同余类 $\bar{a}$ 解释为子群 $H=\mathbb{Z}n$ 在整数加法群 $\mathbb{Z}$ 中的一个陪集。</p><p>4.  <strong>同余类运算的定义</strong>:</p><p><div class="math-block">$$
+ \bar{a}+\bar{b}=\overline{a+b} \text { 且 } \bar{a} \bar{b}=\overline{a b} \text { 。 } \tag{2.9.5} 
+$$</div></p><p>这个公式定义了两个同余类之间的加法和乘法，其方法是通过它们的代表元素进行相应的整数运算，然后取结果所在的同余类。</p><p>5.  <strong>自然映射</strong>:</p><p><div class="math-block">$$
+ \mathbb{Z} \rightarrow \mathbb{Z} / \mathbb{Z} n \tag{2.9.7} 
+$$</div></p><p>这个公式描述了一个从整数集到模 $n$ 同余类集的自然映射（环同态），它将每个整数 $a$ 映射到其所属的同余类 $\bar{a}$。</p><p>6.  <strong>简化记法的规则</strong>:</p><p><div class="math-block">$$
+ \text { 在 } \mathbb{Z} / \mathbb{Z} n \text { 中说 } a=b \text { 意味着 } a \equiv b \text { 模 } n \text { 。 } \tag{2.9.8} 
+$$</div></p><p>这条规则解释了在省略同余类横线的简化记法下，等号 <strong>=</strong> 的含义被重新定义为“模 $n$ 同余”。</p>
+</section>
+
+<section class="content-section" id="section-3">
+    <h2><span class="section-number">3</span>2. 最终检查清单</h2>
+    <h3>2.1 行间公式完整性</h3><p>*   <strong>状态</strong>：已完成</p><p>*   <strong>检查过程</strong>：</p><p>1.  从源文件 <strong>Algebra Ch2.9.ZH.md</strong> 中提取所有行间公式。共计 6 个，标签分别为 (2.9.1), (2.9.2), (2.9.3), (2.9.5), (2.9.7), (2.9.8)。</p><p>2.  在生成的解释内容中，检查每个公式是否都已包含在 <strong>[公式与符号逐项拆解和推导]</strong> 或证明部分。</p><p>3.  在末尾的 <strong># 行间公式索引</strong> 部分，逐一核对并编号列出了源文件中的所有 6 个行间公式，并附上了一句话解释。</p><p>*   <strong>结论</strong>：所有行间公式均已包含并索引，无遗漏。</p><h3>2.2 字数超越</h3><p>*   <strong>状态</strong>：已完成</p><p>*   <strong>检查过程</strong>：</p><p>1.  <strong>源文件字数</strong> (粗略统计 <strong>Algebra Ch2.9.ZH.md</strong> 的中文字符和公式字符)：约 1200字。</p><p>2.  <strong>解释内容字数</strong> (粗略统计生成内容的字数)：远超源文件字数，估计在 10000字以上。</p><p>*   <strong>结论</strong>：解释内容的字数显著多于源文件，满足“更长更详细”的要求。</p><h3>2.3 段落结构映射</h3><p>*   <strong>状态</strong>：已完成</p><p>*   <strong>检查过程</strong>：</p><p>1.  源文件只有一个主标题 <strong>## 2.9 <strong>模算术</strong></strong>。</p><p>2.  解释内容将其映射为 <strong># 1. 2.9 <strong>模算术</strong></strong>。</p><p>3.  源文件中的每个逻辑段落（如定义、引理、证明、示例等）都被拆分并映射到了一个独立的、带层级编号的子标题下（如 <strong>1.1 <strong>同余的定义与符号</strong></strong>, <strong>1.2 <strong>同余作为等价关系与同余类</strong></strong> 等），共计 9 个子标题。</p><p>4.  标题编号 <strong>1.1</strong> 到 <strong>1.9</strong> 连续，准确反映了原文的逻辑递进结构。</p><p>*   <strong>结论</strong>：段落结构映射正确、清晰，且更具层次感。</p><h3>2.4 阅读友好性</h3><p>*   <strong>状态</strong>：已完成</p><p>*   <strong>检查过程</strong>：</p><p>1.  <strong>结构模板</strong>：严格遵循 <strong>[原文]</strong>, <strong>[逐步解释]</strong>, <strong>[公式与符号逐项拆解和推导]</strong>, <strong>[具体数值示例]</strong>, <strong>[易错点与边界情况]</strong>, <strong>[总结]</strong>, <strong>[存在目的]</strong>, <strong>[直觉心智模型]</strong>, <strong>[直观想象]</strong> 的结构，使每个部分的解释都非常全面。</p><p>2.  <strong>示例</strong>：为每个抽象概念提供了至少2个具体的数值示例，便于理解。</p><p>3.  <strong>心智模型/直观想象</strong>：提供了“时钟”、“缠绕的数轴”、“代表团”等多种比喻，帮助建立直观感受。</p><p>4.  <strong>术语</strong>：对<strong>数论</strong>和<strong>群论</strong>中的关键术语（如<strong>同余</strong>、<strong>同余类</strong>、<strong>子群</strong>、<strong>陪集</strong>、<strong>指数</strong>、<strong>同态</strong>）都进行了加粗和详细解释。</p><p>5.  <strong>公式索引</strong>：末尾的 <strong>行间公式索引</strong> 方便读者快速回顾和定位核心公式。</p><p>*   <strong>结论</strong>：解释内容组织结构清晰，内容丰富，易于不同背景的读者阅读和理解。</p>
+</section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>1. 2.9 模算术</p>
+    </footer>
+
+
+    <!-- 手机端点击翻页功能 -->
+    <script>
+        (function() {
+            // 点击翻页功能（在所有设备上启用）
+            
+            document.addEventListener('click', function(e) {
+                // 如果 TOC 目录面板处于打开状态，不触发翻页
+                var tocPanel = document.getElementById('tocPanel');
+                if (tocPanel && tocPanel.classList.contains('active')) {
+                    return;
+                }
+                
+                // 排除对链接、按钮、输入框等交互元素的点击
+                var target = e.target;
+                var tagName = target.tagName.toLowerCase();
+                if (tagName === 'a' || tagName === 'button' || tagName === 'input' || 
+                    tagName === 'textarea' || tagName === 'select' || 
+                    target.closest('a') || target.closest('button') ||
+                    target.closest('.toc-panel') || target.closest('.toc-toggle') ||
+                    target.closest('.toc-overlay')) {
+                    return;
+                }
+                
+                var clickY = e.clientY;
+                var windowHeight = window.innerHeight;
+                var scrollAmount = windowHeight * 0.85; // 滚动85%的屏幕高度
+                
+                if (clickY > windowHeight / 2) {
+                    // 点击下半部分：向下翻页
+                    window.scrollBy({
+                        top: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 点击上半部分：向上翻页
+                    window.scrollBy({
+                        top: -scrollAmount,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        })();
+    </script>
+
+    <!-- TOC 目录控制脚本 -->
+    <script>
+        (function() {
+            var tocToggle = document.getElementById('tocToggle');
+            var tocPanel = document.getElementById('tocPanel');
+            var tocOverlay = document.getElementById('tocOverlay');
+            
+            // 切换目录显示/隐藏
+            function toggleTOC() {
+                var isOpen = tocPanel.classList.contains('active');
+                if (isOpen) {
+                    closeTOC();
+                } else {
+                    openTOC();
+                }
+            }
+            
+            // 打开目录
+            function openTOC() {
+                tocPanel.classList.add('active');
+                tocOverlay.classList.add('active');
+                tocToggle.setAttribute('aria-label', '关闭目录');
+            }
+            
+            // 关闭目录
+            function closeTOC() {
+                tocPanel.classList.remove('active');
+                tocOverlay.classList.remove('active');
+                tocToggle.setAttribute('aria-label', '打开目录');
+            }
+            
+            // 点击按钮切换目录
+            tocToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTOC();
+            });
+            
+            // 点击遮罩层关闭目录
+            tocOverlay.addEventListener('click', function() {
+                closeTOC();
+            });
+            
+            // 点击目录项后关闭目录
+            var tocLinks = tocPanel.querySelectorAll('a');
+            tocLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    closeTOC();
+                });
+            });
+            
+            // ESC 键关闭目录
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && tocPanel.classList.contains('active')) {
+                    closeTOC();
+                }
+            });
+            
+            // 高亮当前可见的目录条目
+            function updateActiveItem() {
+                var scrollPos = window.scrollY + 150;  // 偏移量
+                var activeSection = null;
+                var activeOriginal = null;
+                
+                // 查找当前可见的 section
+                var sections = document.querySelectorAll('section[id^="section-"]');
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    if (section.offsetTop <= scrollPos) {
+                        activeSection = section.id;
+                    }
+                }
+                
+                // 查找当前可见的原文区块
+                var originals = document.querySelectorAll('[id^="original-"]');
+                for (var j = 0; j < originals.length; j++) {
+                    var original = originals[j];
+                    if (original.offsetTop <= scrollPos) {
+                        activeOriginal = original.id;
+                    }
+                }
+                
+                // 先移除所有 active 类
+                var allHeadings = tocPanel.querySelectorAll('.toc-heading');
+                for (var h = 0; h < allHeadings.length; h++) {
+                    allHeadings[h].classList.remove('active');
+                }
+                
+                var allOriginals = tocPanel.querySelectorAll('.toc-original');
+                for (var o = 0; o < allOriginals.length; o++) {
+                    allOriginals[o].classList.remove('active');
+                }
+                
+                // 只给当前活动的条目添加 active 类
+                if (activeSection) {
+                    var activeHeadingLink = tocPanel.querySelector('.toc-heading a[href="#' + activeSection + '"]');
+                    if (activeHeadingLink) {
+                        activeHeadingLink.parentElement.classList.add('active');
+                    }
+                }
+                
+                if (activeOriginal) {
+                    var activeOriginalLink = tocPanel.querySelector('.toc-original a[href="#' + activeOriginal + '"]');
+                    if (activeOriginalLink) {
+                        activeOriginalLink.parentElement.classList.add('active');
+                    }
+                }
+            }
+            
+            // 节流函数
+            var scrollTimeout;
+            function throttledUpdate() {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(function() {
+                    updateActiveItem();
+                    scrollTimeout = null;
+                }, 100);
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', throttledUpdate);
+            
+            // 打开目录时立即更新高亮
+            var originalOpenTOC = openTOC;
+            openTOC = function() {
+                originalOpenTOC();
+                updateActiveItem();
+            };
+            
+            // 初始化
+            updateActiveItem();
+        })();
+    </script>
+</body>
+</html>

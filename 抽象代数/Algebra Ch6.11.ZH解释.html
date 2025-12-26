@@ -1,0 +1,2317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行间公式索引</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- MathJax v4 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            output: {
+                displayOverflow: 'linebreak',
+                linebreaks: {
+                    inline: true,
+                    width: '100%',
+                    lineleading: 0.2
+                }
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            /* 五大区块主题色 */
+            --original-color: #8b5cf6;
+            --explain-color: #0ea5e9;
+            --formula-color: #6366f1;
+            --example-color: #10b981;
+            --warning-color: #f59e0b;
+            /* Q1修复：总结、存在目的、直觉心智模型、直观想象 统一使用 #36828C 青色主题 */
+            --summary-color: #36828C;     /* 青色主题 */
+            --purpose-color: #36828C;     /* 青色主题 */
+            --intuition-color: #36828C;   /* 青色主题 */
+            --imagination-color: #36828C; /* 青色主题 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .authors {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
+        .content-section h4 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h5 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 18px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h6 {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            margin: 15px 0 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        /* ===============================
+           五大内容区块 - 统一风格不同主题色
+           =============================== */
+
+        /* 原文区 - 紫色 */
+        .original-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid var(--original-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .original-box .box-label {
+            color: var(--original-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-box .box-content {
+            font-style: italic;
+            color: #6b21a8;
+        }
+
+        /* 📜 [原文]区块内容 - 使用统一的黑色 */
+        .original-content {
+            color: #2d3748; /* 统一的深灰黑色 */
+        }
+
+        .original-content * {
+            color: #2d3748; /* 所有子元素 */
+        }
+
+        .original-content .MathJax, .original-content .MathJax * {
+            color: #2d3748 !important; /* 行内公式 */
+        }
+
+        /* 通用 .box-content 换行规则 - 确保长文本（如代码调用）能自动换行 */
+        .box-content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .box-content strong, .box-content code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            display: inline;
+        }
+
+        /* 逐步解释区 - 蓝色 */
+        .explain-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--explain-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .explain-box .box-label {
+            color: var(--explain-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explain-box .box-content {
+            color: #1a365d; /* Dark Blue */
+        }
+
+        .explain-box .box-content * {
+            color: #1a365d; /* Dark Blue - 所有子元素 */
+        }
+
+        .explain-box .box-content .MathJax, .explain-box .box-content .MathJax * {
+            color: #1a365d !important; /* Dark Blue - 行内公式 */
+        }
+
+        .explain-box ul, .explain-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .explain-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 公式拆解区 - 靛蓝色 */
+        .formula-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--formula-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .formula-box .box-label {
+            color: var(--formula-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .formula-box .box-content {
+            color: var(--text-color); /* 统一使用默认黑色，与原文区块一致 */
+            overflow-x: auto;
+        }
+
+        .formula-box .box-content * {
+            color: var(--text-color); /* 所有子元素 */
+        }
+
+        .formula-box .box-content .MathJax, .formula-box .box-content .MathJax * {
+            color: var(--text-color) !important; /* 行内公式 */
+        }
+
+        /* 数值示例区 - 绿色 */
+        .example-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--example-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .example-box .box-label {
+            color: var(--example-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-box .box-content {
+            color: #166534; /* Dark Green from edstem5 .answer-en */
+        }
+
+        .example-box .box-content * {
+            color: #166534; /* Dark Green - 所有子元素 */
+        }
+
+        .example-box .box-content .MathJax, .example-box .box-content .MathJax * {
+            color: #166534 !important; /* Dark Green - 行内公式 */
+        }
+
+        .example-box ul, .example-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .example-box li {
+            margin-bottom: 6px;
+        }
+
+        .example-box code {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* 易错点区 - 橙色 */
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .warning-box .box-label {
+            color: var(--warning-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warning-box .box-content {
+            color: #92400e;
+        }
+
+        .warning-box .box-content * {
+            color: #92400e; /* 所有子元素 */
+        }
+
+        .warning-box .box-content .MathJax, .warning-box .box-content .MathJax * {
+            color: #92400e !important; /* 行内公式 */
+        }
+
+        .warning-box ul, .warning-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .warning-box li {
+            margin-bottom: 6px;
+        }
+
+        /* 总结区 - Q1修复：使用#36828C青色主题 */
+        .summary-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--summary-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .summary-box .box-label {
+            color: var(--summary-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .summary-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .summary-box .box-content .MathJax, .summary-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 存在目的区 - Q1修复：使用#36828C青色主题 */
+        .purpose-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--purpose-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .purpose-box .box-label {
+            color: var(--purpose-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .purpose-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .purpose-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .purpose-box .box-content .MathJax, .purpose-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直觉心智模型区 - Q1修复：使用#36828C青色主题 */
+        .intuition-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--intuition-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .intuition-box .box-label {
+            color: var(--intuition-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .intuition-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .intuition-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .intuition-box .box-content .MathJax, .intuition-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直观想象区 - Q1修复：使用#36828C青色主题 */
+        .imagination-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--imagination-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .imagination-box .box-label {
+            color: var(--imagination-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .imagination-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .imagination-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .imagination-box .box-content .MathJax, .imagination-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 高亮术语 */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* 代码块 */
+        code {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            margin: 15px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 表格样式 - 紧凑型，行高列宽适应文字最小值 */
+        table {
+            border-collapse: collapse;
+            width: auto;  /* 列宽适应内容 */
+            margin: 15px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;  /* 减小padding使行高更紧凑 */
+            text-align: left;
+            white-space: nowrap;  /* 防止不必要的换行，列宽适应文字 */
+            line-height: 1.4;  /* 紧凑的行高 */
+        }
+
+        th {
+            background: #e0f7fa;
+            color: #006064;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #e2e8f0;
+        }
+
+        /* 表格对齐 */
+        .align-left {
+            text-align: left;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        /* 图例区域 */
+        .legend-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .legend-bar {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .legend-bar.original { background: #8b5cf6; }
+        .legend-bar.explain { background: #0ea5e9; }
+        .legend-bar.formula { background: #6366f1; }
+        .legend-bar.example { background: #10b981; }
+        .legend-bar.warning { background: #f59e0b; }
+        .legend-bar.summary { background: #36828C; }
+        .legend-bar.purpose { background: #36828C; }
+        .legend-bar.intuition { background: #36828C; }
+        .legend-bar.imagination { background: #36828C; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive - 移动端适配 */
+        @media (max-width: 768px) {
+            /* 容器宽度适配 */
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 20px 12px;
+                box-sizing: border-box;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+                padding: 0 15px;
+            }
+            
+            .hero {
+                padding: 50px 15px;
+            }
+            
+            .hero h1 {
+                font-size: 1.6rem;
+                word-break: break-word;
+            }
+            
+            .authors {
+                font-size: 1rem;
+            }
+            
+            /* 内容区块适配 */
+            .content-section {
+                padding: 20px 15px;
+                margin-left: 5px;
+                margin-right: 5px;
+                border-radius: 12px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.4rem;
+                flex-wrap: wrap;
+            }
+            
+            .content-section h3 {
+                font-size: 1.2rem;
+            }
+            
+            .content-section h4 {
+                font-size: 1.1rem;
+            }
+            
+            .section-number {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            /* 各区块box适配 */
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 15px 12px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .original-box .box-label,
+            .explain-box .box-label,
+            .formula-box .box-label,
+            .example-box .box-label,
+            .warning-box .box-label,
+            .summary-box .box-label,
+            .purpose-box .box-label,
+            .intuition-box .box-label,
+            .imagination-box .box-label {
+                font-size: 1.1rem;
+            }
+            
+            /* 图例区域移动端适配 */
+            .legend-section {
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
+            
+            .legend-row {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            
+            .legend-item {
+                font-size: 0.8rem;
+                gap: 5px;
+            }
+            
+            .legend-bar {
+                width: 3px;
+                height: 16px;
+            }
+            
+            /* 列表适配 */
+            ul, ol {
+                margin-left: 15px;
+                padding-left: 5px;
+            }
+            
+            /* 表格移动端适配 */
+            table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.9rem;
+                min-width: 80px;
+            }
+            
+            /* 代码块适配 */
+            pre {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            
+            /* 数学公式适配 */
+            .math-block {
+                padding: 10px 8px;
+                margin: 15px 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* MathJax公式溢出处理 - 只处理块级公式，保持行内公式inline */
+            mjx-container[jax="CHTML"][display="true"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                display: block !important;
+            }
+            
+            /* 行内公式 - 超宽时自动换行 */
+            mjx-container:not([display="true"]) {
+                display: inline-block !important;
+                max-width: 100% !important;
+                overflow-wrap: break-word !important;
+                word-wrap: break-word !important;
+            }
+            
+            /* MathJax内部元素换行支持 */
+            mjx-math {
+                white-space: normal !important;
+            }
+            
+            mjx-mrow {
+                flex-wrap: wrap !important;
+            }
+            
+            /* Footer适配 */
+            .footer {
+                padding: 25px 15px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* 超小屏幕适配 (手机竖屏) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 8px;
+            }
+            
+            .hero {
+                padding: 40px 10px;
+            }
+            
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+            
+            .content-section {
+                padding: 15px 10px;
+                margin-left: 3px;
+                margin-right: 3px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 12px 10px;
+            }
+            
+            .legend-section {
+                padding: 12px 8px;
+            }
+            
+            .legend-row {
+                gap: 8px;
+            }
+            
+            .legend-item {
+                font-size: 0.75rem;
+            }
+            
+            ul, ol {
+                margin-left: 12px;
+            }
+        }
+        
+        /* 确保所有内容不溢出 */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* ========================================
+           TOC 目录样式
+           ======================================== */
+        
+        /* TOC 触发按钮 - 左上角小方块 */
+        .toc-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(54, 130, 140, 0.5);  /* 青色 50% 透明度 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .toc-toggle:hover {
+            background: rgba(54, 130, 140, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .toc-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* TOC 目录面板 */
+        .toc-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 95vw;  /* 手机浏览器宽度的 95% */
+            height: 80vh; /* 手机浏览器高度的 80% */
+            max-width: 450px;  /* 桌面端最大宽度 */
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0 0 16px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .toc-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* TOC 头部 - 标题在图标右侧 */
+        .toc-header {
+            padding: 15px 20px 15px 80px;  /* 左侧留出按钮空间 */
+            background: linear-gradient(135deg, #36828C 0%, #2a6a72 100%);
+            color: white;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .toc-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* TOC 内容区 */
+        .toc-content {
+            flex: 1;
+            overflow-y: auto;   /* 允许垂直滚动 */
+            overflow-x: hidden; /* 禁止水平滚动 */
+            padding: 15px 0;
+        }
+        
+        /* TOC 列表 */
+        .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc-item {
+            margin: 0;
+        }
+        
+        .toc-item a {
+            display: block;
+            padding: 4px 20px;  /* 更紧凑的行间距 */
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #2d3748;
+            text-decoration: none;
+            word-wrap: break-word;   /* 自动换行 */
+            overflow-wrap: break-word;
+            white-space: normal;     /* 允许换行 */
+            line-height: 1.3;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .toc-item a:hover {
+            background: #e8f4f5;
+            color: #36828C;
+            border-left-color: #36828C;
+        }
+        
+        /* 标题项样式 */
+        .toc-heading a {
+            font-weight: 600;
+            color: #1a365d;
+            background: #f7fafc;
+        }
+        
+        .toc-heading a:hover {
+            background: #e8f4f5;
+        }
+        
+        /* 当前活动的标题项样式 */
+        .toc-heading.active a {
+            background: #d0e8ea;
+            color: #36828C;
+            border-left-color: #36828C;
+            font-weight: 700;
+        }
+        
+        /* 当前活动的原文项样式 */
+        .toc-original.active a {
+            background: #36828C;
+            color: white;
+            box-shadow: 0 3px 8px rgba(54, 130, 140, 0.35);
+        }
+        
+        /* 原文项容器 - 横向排列自动换行 */
+        .toc-originals-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 8px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* 原文项样式 - 浅青色带阴影 */
+        .toc-original {
+            margin: 0;
+        }
+        
+        .toc-original a {
+            display: inline-block;
+            width: 64px;  /* 固定宽度确保每行显示数量一致 */
+            padding: 6px 4px;
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #36828C;  /* 青色主题色 */
+            text-decoration: none;
+            text-align: center;
+            background: #e8f4f5;
+            border-radius: 6px;
+            border-left: none;
+            box-shadow: 0 2px 4px rgba(54, 130, 140, 0.2);  /* 青色阴影 */
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .toc-original a:hover {
+            background: #e0f2f4;
+            color: #36828C;
+            box-shadow: 0 3px 6px rgba(54, 130, 140, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        /* TOC 遮罩层 */
+        .toc-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .toc-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 移动端 TOC 适配 */
+        @media (max-width: 768px) {
+            .toc-toggle {
+                top: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .toc-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .toc-panel {
+                width: 90vw;
+                height: 80vh;
+                max-width: none;
+            }
+            
+            .toc-header {
+                padding: 12px 15px 12px 65px;
+            }
+            
+            .toc-header h3 {
+                font-size: 16px;
+            }
+            
+            .toc-item a {
+                padding: 4px 15px;
+                font-size: 15.5px;
+            }
+            
+            .toc-originals-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            .toc-original a {
+                padding: 5px 10px;
+                font-size: 15.5px;
+            }
+        }
+
+        /* 特殊术语着色 */
+        .spectral {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .periodicity {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .fourier {
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        /* 列表样式增强 */
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 - 已移除重复定义，使用上方第602-633行的紧凑型样式 */
+
+        /* 分隔线 */
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 30px 0;
+        }
+
+        /* 数学公式样式 - Q7: 行间公式颜色用黑色 */
+        .math-block {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            color: #000000; /* Q7: 黑色文字 */
+        }
+
+        /* Q7: 确保MathJax渲染的公式为黑色 */
+        .math-block .MathJax {
+            color: #000000 !important;
+        }
+
+        mjx-container {
+            color: #000000 !important;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- TOC 目录按钮 -->
+    <button class="toc-toggle" id="tocToggle" aria-label="打开目录">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+        </svg>
+    </button>
+    
+    <!-- TOC 遮罩层 -->
+    <div class="toc-overlay" id="tocOverlay"></div>
+    
+    <!-- TOC 目录面板 -->
+    <nav class="toc-panel" id="tocPanel">
+        <div class="toc-header">
+            <h3>📑 目录</h3>
+        </div>
+        <div class="toc-content">
+            <ul class="toc-list">
+                <li class="toc-item toc-heading"><a href="#section-1">1. 6.11 置换表示</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-1">原文1</a></span><span class="toc-original"><a href="#original-2">原文2</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-2">1. 3 命题 6.11.2：运算与表示的对应关系</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-3">原文3</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-3">1. 4 命题 6.11.2 的证明</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-4">原文4</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-4">1. 5 应用示例：二面体群</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-5">原文5</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-5">1. 6 推广到任意集合</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-6">原文6</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-6">1. 7 忠实运算</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-7">原文7</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-7">1. 8 实例：等距群</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-8">原文8</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-8">1. 9 置换表示的满射性</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-9">原文9</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-9">1. 10 示例 6.11.5：$GL_2(\mathbb{F}_2)$ 与 $S_3$ 的同构</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-10">原文10</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-10">2. 行间公式索引</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>行间公式索引</h1>
+            <p class="authors"></p>
+            <p class="date"></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 图例区域 -->
+        <div class="legend-section">
+            <!-- 第一行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar original"></div>
+                    <span>📜 原文</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar explain"></div>
+                    <span>📖 逐步解释</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar formula"></div>
+                    <span>∑ 公式拆解</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar example"></div>
+                    <span>💡 数值示例</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar warning"></div>
+                    <span>⚠️ 易错点</span>
+                </div>
+            </div>
+            <!-- 第二行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar summary"></div>
+                    <span>📝 总结</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar purpose"></div>
+                    <span>🎯 存在目的</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar intuition"></div>
+                    <span>🧠 直觉心智模型</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar imagination"></div>
+                    <span>💭 直观想象</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="content-section" id="section-1">
+    <h2><span class="section-number">1</span>6.11 置换表示</h2>
+    <h4>1.1 引言</h4><p id="original-1"><strong style="font-size: 1.3rem;">📜 [原文1]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>在本节中，我们将分析群 $G$ 作用于集合 $S$ 的各种方式。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本节的标题是 <strong>置换表示</strong> (Permutation Representation)。在进入具体定义之前，作者首先点明了本节的核心主题：研究一个 <strong>群</strong> $G$ 如何作用在一个 <strong>集合</strong> $S$ 上。在之前的章节中，我们已经学习了 <strong>群作用</strong> (Group Action) 的概念，即一个 <strong>群</strong> 中的元素可以像 “动作” 一样施加于一个 <strong>集合</strong> 中的元素，并得到该 <strong>集合</strong> 中的另一个元素。本节的目标是为这种 “作用方式” 提供一种新的视角和分析工具，也就是 <strong>置换表示</strong>。简单来说，我们要把抽象的 <strong>群作用</strong> “翻译” 成一种更具体、更便于计算和理解的形式—— <strong>置换</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这句引言的作用是设定本节的讨论范围和核心目标。它告诉读者，接下来的一切都将围绕“<strong>群</strong>如何作用于<strong>集合</strong>”这一中心思想展开。它像一个路标，指明了本节内容是建立在 <strong>群作用</strong> 概念之上的深化和具体化。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一下，你有一组“动作指令”（这就是 <strong>群</strong> $G$），比如“向左转90度”、“向右转90度”、“翻转”等。你还有一个需要操作的对象集合（这就是 <strong>集合</strong> $S$），比如一个正方形的四个顶点 {A, B, C, D}。本节就是要系统地研究你这套“动作指令”是如何让这些顶点的位置发生变化的。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>我们手里有一个魔方，<strong>群</strong> $G$ 就是所有可能的转动操作（比如转动红色面、蓝色面等）。<strong>集合</strong> $S$ 可以是魔方上的所有小方块。当我们执行一个转动操作（<strong>群</strong>中的一个元素）时，小方块的位置就会发生改变（作用于<strong>集合</strong>）。本节就是要找到一种标准化的方式来描述这些位置变化。</p>
+    </div>
+</div><hr><h4>1.2 置换表示的定义</h4><p id="original-2"><strong style="font-size: 1.3rem;">📜 [原文2]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ul>
+  <li>群 $G$ 的<strong>置换表示</strong>是从该群到对称群的同态：</li>
+</ul>
+<p><div class="math-block">$$
+\begin{equation*}
+\varphi: G \rightarrow S_{n} . \tag{6.11.1}
+\end{equation*}
+$$</div></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这句话给出了 <strong>置换表示</strong> 的核心定义。让我们把它拆解开来，从头理解：</p>
+<ol>
+  <li> <strong>群 (Group) $G$</strong>：这是一个我们熟悉的代数结构，包含一个 <strong>集合</strong> 和一个满足<strong>封闭性</strong>、<strong>结合律</strong>、有<strong>单位元</strong>和<strong>逆元</strong>的二元运算。你可以把它看作一组“对称操作”的集合。</li>
+  <li> <strong>对称群 (Symmetric Group) $S_n$</strong>：这是另一个非常重要的 <strong>群</strong>。它的元素是作用于一个包含 $n$ 个元素的 <strong>集合</strong>（通常是 $\{1, 2, \dots, n\}$）上的所有 <strong>置换</strong> (Permutations)。一个 <strong>置换</strong> 就是一个从该 <strong>集合</strong> 到自身的 <strong>双射</strong>（既是<strong>单射</strong>又是<strong>满射</strong>的函数），通俗地说，就是对这 $n$ 个元素的一次“重新排列”或“洗牌”。$S_n$ 的运算是 <strong>函数复合</strong>。例如，$S_3$ 包含了对三个元素的所有6种排列方式。</li>
+  <li> <strong>同态 (Homomorphism)</strong>：这是一个保持结构不变的映射。对于一个从 <strong>群</strong> $G$ (运算为 $*$) 到 <strong>群</strong> $H$ (运算为 $\circ$) 的 <strong>同态</strong> $\varphi$，它必须满足性质：对于 $G$ 中任意两个元素 $g_1, g_2$，都有 $\varphi(g_1 * g_2) = \varphi(g_1) \circ \varphi(g_2)$。这意味着，在 $G$ 中先进行运算再通过 $\varphi$ 映射过去，得到的结果与先分别映射到 $H$ 中再进行运算的结果是相同的。它在 <strong>群</strong> 之间架起了一座“结构的桥梁”。</li>
+</ol>
+<p>现在，把这三点结合起来：<strong>群 $G$ 的置换表示</strong> 就是一个 <strong>同态</strong> $\varphi$，这个 <strong>同态</strong> 将 <strong>群</strong> $G$ 中的每一个元素 $g$ 都映射到 <strong>对称群</strong> $S_n$ 中的一个 <strong>置换</strong> $\varphi(g)$。并且，这个映射过程保留了 <strong>群</strong> 的运算结构。也就是说，<strong>群</strong> $G$ 中两个元素的乘积 $g_1 g_2$ 所对应的 <strong>置换</strong>，正好是 $g_1$ 对应的 <strong>置换</strong> 和 $g_2$ 对应的 <strong>置换</strong> 的复合。</p>
+<p>这个定义的美妙之处在于，它将一个抽象的 <strong>群</strong> $G$ “表示” 成了一个具体的、由 <strong>置换</strong> 组成的 <strong>群</strong>（$S_n$ 的一个 <strong>子群</strong>）。我们对 <strong>置换</strong> 非常熟悉，因为它们就是对物体的排列，所以这种表示方法让抽象的 <strong>群</strong> 变得直观可见。</p>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+\varphi: G \rightarrow S_{n}
+$$</div></p>
+<ul>
+  <li>$\varphi$ (phi)：这是一个函数的名称，在这里特指一个 <strong>同态映射</strong>。它就像一个翻译器，把 <strong>群</strong> $G$ 的语言翻译成 <strong>群</strong> $S_n$ 的语言。</li>
+  <li>$G$：源 <strong>群</strong> (source group)，即我们想要研究和“表示”的那个抽象的 <strong>群</strong>。</li>
+  <li>$\rightarrow$：表示一个映射关系，从左边的定义域（domain）映射到右边的到达域（codomain）。</li>
+  <li>$S_n$：目标 <strong>群</strong> (target group)，特指包含 $n$ 个元素的 <strong>集合</strong> 上的 <strong>对称群</strong>。这里的 $n$ 通常是 <strong>群</strong> $G$ 所作用的 <strong>集合</strong> 的元素个数。</li>
+</ul>
+<p>这个公式完整地表达了：存在一个名为 $\varphi$ 的映射，它将 <strong>群</strong> $G$ 中的每个元素都对应到 <strong>对称群</strong> $S_n$ 中的一个元素（一个 <strong>置换</strong>），并且这个映射 $\varphi$ 是一个 <strong>群同态</strong>。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>示例1：$G = \mathbb{Z}_2 = (\{0, 1\}, +_2)$</strong></p>
+<p>这是一个只有两个元素的 <strong>群</strong>，单位元是 $0$，运算是模2加法。我们让它作用于一个包含两个元素的 <strong>集合</strong> $S = \{A, B\}$。我们可以定义一个 <strong>置换表示</strong> $\varphi: \mathbb{Z}_2 \rightarrow S_2$。$S_2$ 有两个元素：<strong>恒等置换</strong> $e = (1)$（什么都不做）和 <strong>对换</strong> $(12)$（交换1和2）。</p>
+<p>我们来定义映射 $\varphi$：</p>
+<ul>
+  <li>$\varphi(0) = e$ (恒等置换)。将 <strong>单位元</strong> 映射到 <strong>单位元</strong> 是 <strong>同态</strong> 的基本要求。</li>
+  <li>$\varphi(1) = (12)$ (对换)。</li>
+</ul>
+<p>现在检查这是否是 <strong>同态</strong>：我们需要验证 $\varphi(g_1 + g_2) = \varphi(g_1) \circ \varphi(g_2)$。</p>
+<ul>
+  <li>$\varphi(1+1) = \varphi(0) = e$。</li>
+  <li>$\varphi(1) \circ \varphi(1) = (12) \circ (12) = e$ (交换两次等于没交换)。</li>
+</ul>
+<p>两者相等，所以这是一个合法的 <strong>置换表示</strong>。我们成功地把抽象的模2加法群“表示”成了交换两个物体的操作。</p>
+<p><strong>示例2：$G$ 是克莱因四元群 $V_4 = \{e, a, b, c\}$</strong></p>
+<p>该群的运算规则是 $a^2=b^2=c^2=e$ 以及 $ab=c, bc=a, ca=b$。我们让它作用于一个有4个元素的 <strong>集合</strong> $\{1, 2, 3, 4\}$。我们可以定义一个到 $S_4$ 的 <strong>置换表示</strong> $\varphi$:</p>
+<ul>
+  <li>$\varphi(e) = (1)$ (恒等置换)</li>
+  <li>$\varphi(a) = (12)(34)$ (同时交换1和2，3和4)</li>
+  <li>$\varphi(b) = (13)(24)$ (同时交换1和3，2和4)</li>
+  <li>$\varphi(c) = (14)(23)$ (同时交换1和4，2和3)</li>
+</ul>
+<p>我们来验证同态性质，例如 $ab=c$：</p>
+<ul>
+  <li>$\varphi(a) \circ \varphi(b) = ((12)(34)) \circ ((13)(24))$。我们来看这个复合置换如何作用于数字：</li>
+  <li>$1 \xrightarrow{(13)(24)} 3 \xrightarrow{(12)(34)} 4$</li>
+  <li>$2 \xrightarrow{(13)(24)} 4 \xrightarrow{(12)(34)} 3$</li>
+  <li>$3 \xrightarrow{(13)(24)} 1 \xrightarrow{(12)(34)} 2$</li>
+  <li>$4 \xrightarrow{(13)(24)} 2 \xrightarrow{(12)(34)} 1$</li>
+</ul>
+<p>所以，复合的结果是 $(14)(23)$，这正好是 $\varphi(c)$。因此，这个映射是 <strong>同态</strong>，它是一个 <strong>置换表示</strong>。</p>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>不是任何映射都是置换表示</strong>：必须是 <strong>同态</strong>！这意味着 <strong>群</strong> 的结构必须被保留。你不能随意地把 $G$ 的元素映射到 $S_n$ 的元素。</li>
+  <li><strong>$n$ 的选择</strong>：$n$ 的大小通常由 <strong>群</strong> $G$ 所作用的 <strong>集合</strong> $S$ 的大小（基数）决定。如果 $S$ 有 $n$ 个元素，那么我们自然会考虑一个到 $S_n$ 的映射。</li>
+  <li><strong>平凡表示 (Trivial Representation)</strong>：对于任何 <strong>群</strong> $G$ 和任何 $n$，我们总可以定义一个 <strong>置换表示</strong> $\varphi(g) = e$ (对所有 $g \in G$)，其中 $e$ 是 $S_n$ 中的 <strong>恒等置换</strong>。这个映射是 <strong>同态</strong>，因为 $\varphi(g_1 g_2) = e$ 并且 $\varphi(g_1) \circ \varphi(g_2) = e \circ e = e$。这被称为 <strong>平凡表示</strong>，虽然合法，但通常信息量不大。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>置换表示</strong> 是一个 <strong>群同态</strong> $\varphi: G \rightarrow S_n$。它把一个抽象 <strong>群</strong> $G$ 中的每个元素 $g$ “翻译”成一个具体的 <strong>置换</strong> $\varphi(g) \in S_n$，同时保持了 <strong>群</strong> 的运算结构。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p><strong>置换表示</strong> 的核心目的是 <strong>具体化</strong> 和 <strong>可视化</strong>。抽象 <strong>群</strong> 理论可能非常深奥，但 <strong>置换</strong>（洗牌、重排）是我们日常生活中能直观理解的概念。通过将抽象 <strong>群</strong> 表示为 <strong>置换群</strong>，我们可以利用关于 <strong>置换</strong> 的知识和工具（如轮换分解、符号等）来研究和理解原来那个抽象的 <strong>群</strong>。这是 <strong>表示论</strong> (Representation Theory) 的基本思想之一：用我们熟悉的东西（比如 <strong>置换</strong> 或 <strong>矩阵</strong>）来“扮演”或“代表”我们不熟悉的东西（抽象 <strong>群</strong>）。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>一个 <strong>置换表示</strong> 就像是为一部戏剧（抽象 <strong>群</strong> $G$）挑选演员（<strong>置换群</strong> $S_n$）。<strong>群</strong> $G$ 中的每个成员（元素 $g$）都有自己的角色和台词（它的代数性质）。<strong>置换表示</strong> $\varphi$ 就是那个选角导演，他为 $G$ 中的每个成员 $g$ 都从 $S_n$ 这个演员公会里找到了一个合适的演员（一个 <strong>置换</strong> $\varphi(g)$）来扮演它。并且，这个选角非常成功：剧中角色之间的互动关系（$G$ 中的运算）被演员们之间的互动（$S_n$ 中的复合）完美地再现了出来。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你有一堆不同颜色的球（<strong>集合</strong> $S$，有 $n$ 个）。<strong>群</strong> $G$ 是一系列神秘的机器。每台机器 $g \in G$ 都会吃进这堆球，然后以一种新的排列方式吐出来。<strong>置换表示</strong> $\varphi$ 就是一本说明书，它告诉你每台机器 $g$ 究竟做了什么样的“洗牌”操作。例如，说明书上写着：“机器A的功能是交换1号球和2号球”，那么 $\varphi(A)$ 就是 <strong>置换</strong> $(12)$。</p>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-2">
+    <h2><span class="section-number">1</span>3 命题 6.11.2：运算与表示的对应关系</h2>
+    <p id="original-3"><strong style="font-size: 1.3rem;">📜 [原文3]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>命题 6.11.2 设 $G$ 为一个群。群 $G$ 在集合 $S=\{\mathbf{1} \ldots, \mathbf{n}\}$ 上的<strong>运算</strong>与<strong>置换表示</strong> $G \rightarrow S_{n}$ 之间存在一个双射对应关系：</p>
+<p><div class="math-block">$$
+\left[\begin{array}{c}
+G \text{ 在 } S \text{ 上的} \\
+\text{运算}
+\end{array}\right] \longleftrightarrow\left[\begin{array}{c}
+\text{置换} \\
+\text{表示}
+\end{array}\right] .
+$$</div></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个命题建立了一个至关重要的联系：<strong>群作用</strong> (Group Action) 和 <strong>置换表示</strong> (Permutation Representation) 这两个概念本质上是同一枚硬币的两面。</p>
+<ul>
+  <li><strong>群 $G$ 在集合 $S$ 上的运算</strong>（即 <strong>群作用</strong>）：回忆一下定义，这是一个映射 $G \times S \rightarrow S$，记作 $(g, s) \mapsto g \cdot s$，满足两个条件：</li>
+</ul>
+<ol>
+  <li> <strong>单位元律</strong>：$1_G \cdot s = s$ (单位元作用于任何元素，元素不变)。</li>
+  <li> <strong>兼容性/结合律</strong>：$(g_1 g_2) \cdot s = g_1 \cdot (g_2 \cdot s)$ (先组合动作再作用，等于依次作用)。
+<ul>
+  <li><strong>置换表示</strong>：正如我们刚刚定义的，是一个 <strong>同态</strong> $\varphi: G \rightarrow S_n$。</li>
+</ul></li>
+</ol>
+<p>命题所说的 <strong>双射对应关系</strong> (bijective correspondence) 意味着：</p>
+<ol>
+  <li> 每一种 <strong>群作用</strong> 的方式，都唯一地对应着一种 <strong>置换表示</strong>。</li>
+  <li> 反过来，每一种 <strong>置换表示</strong>，也唯一地对应着一种 <strong>群作用</strong> 的方式。</li>
+</ol>
+<p>这意味着，如果你给我一个 <strong>群作用</strong>，我能把它“翻译”成一个 <strong>置换表示</strong>；如果你给我一个 <strong>置换表示</strong>，我也能把它“翻译”回一个 <strong>群作用</strong>。这两个概念是可以相互转换的，它们提供了描述同一现象的两种不同语言。</p>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+\left[\begin{array}{c}
+G \text{ 在 } S \text{ 上的} \\
+\text{运算}
+\end{array}\right] \longleftrightarrow\left[\begin{array}{c}
+\text{置换} \\
+\text{表示}
+\end{array}\right] .
+$$</div></p>
+<ul>
+  <li><strong>左侧</strong>: 代表了所有可能的“<strong>群</strong> $G$ 作用于<strong>集合</strong> $S$ 的 <strong>运算</strong>”的集合。</li>
+  <li><strong>右侧</strong>: 代表了所有可能的“从 <strong>群</strong> $G$ 到 <strong>对称群</strong> $S_n$ 的 <strong>置换表示</strong>”的集合。</li>
+  <li>$\longleftrightarrow$: 这是一个表示 <strong>双射</strong> 的符号。它由一个左箭头和一个右箭头组成，形象地表示了两个集合之间的元素可以一一对应，既可以从左到右建立对应，也可以从右到左建立对应。</li>
+</ul>
+<p>这个图示是对命题核心思想的一个高度概括，即这两个看似不同的概念集合之间存在着完美的、一对一的匹配。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>示例：$G = D_3$ (等边三角形的对称群)，$S = \{v_1, v_2, v_3\}$ (三个顶点)</strong></p>
+<p>$D_3 = \{e, r, r^2, s, sr, sr^2\}$，其中 $e$ 是恒等， $r$ 是旋转120度，$s$ 是关于通过 $v_1$ 的对称轴的翻转。</p>
+<ol>
+  <li> <strong>从群作用到置换表示</strong>：
+<ul>
+  <li><strong>群作用</strong> 是已知的：我们知道旋转和翻转如何移动顶点。</li>
+  <li>$e$ 作用：$v_1 \to v_1, v_2 \to v_2, v_3 \to v_3$。</li>
+  <li>$r$ 作用：$v_1 \to v_2, v_2 \to v_3, v_3 \to v_1$。</li>
+  <li>$s$ 作用：$v_1 \to v_1, v_2 \to v_3, v_3 \to v_2$。</li>
+  <li><strong>构建置换表示</strong> $\varphi: D_3 \rightarrow S_3$：我们将每个 <strong>群</strong> 元素引起的顶点变化写成一个 <strong>置换</strong>。把 $v_1, v_2, v_3$ 编号为 $1, 2, 3$。</li>
+  <li>$e$ 的作用是 $1 \to 1, 2 \to 2, 3 \to 3$，所以 $\varphi(e) = (1)$ (恒等置换)。</li>
+  <li>$r$ 的作用是 $1 \to 2, 2 \to 3, 3 \to 1$，所以 $\varphi(r) = (123)$ (一个3-轮换)。</li>
+  <li>$s$ 的作用是 $1 \to 1, 2 \to 3, 3 \to 2$，所以 $\varphi(s) = (23)$ (一个对换)。</li>
+  <li>我们可以继续计算出其他元素的表示，例如 $sr$：</li>
+  <li>$sr$ 的作用：$v_1 \xrightarrow{r} v_2 \xrightarrow{s} v_3$, $v_2 \xrightarrow{r} v_3 \xrightarrow{s} v_2$, $v_3 \xrightarrow{r} v_1 \xrightarrow{s} v_1$。即 $1 \to 3, 2 \to 2, 3 \to 1$。</li>
+  <li>所以 $\varphi(sr) = (13)$。</li>
+  <li>同时，在 $S_3$ 中计算 $\varphi(s) \circ \varphi(r) = (23) \circ (123) = (13)$。两者吻合，验证了 <strong>同态</strong> 性质。</li>
+</ul></li>
+  <li> <strong>从置换表示到群作用</strong>：
+<ul>
+  <li>假设我们只知道 <strong>置换表示</strong> $\varphi: D_3 \rightarrow S_3$，例如我们已知 $\varphi(r) = (123)$ 和 $\varphi(s)=(23)$。</li>
+  <li><strong>定义群作用</strong>：我们可以利用这个 <strong>置换表示</strong> 来定义一个 <strong>群作用</strong> $D_3 \times S \rightarrow S$。</li>
+  <li>$r \cdot v_1$ 是什么？我们查找 $\varphi(r) = (123)$。这个 <strong>置换</strong> 把 $1$ 映到 $2$，所以我们定义 $r \cdot v_1 = v_2$。</li>
+  <li>$s \cdot v_2$ 是什么？我们查找 $\varphi(s) = (23)$。这个 <strong>置换</strong> 把 $2$ 映到 $3$，所以我们定义 $s \cdot v_2 = v_3$。</li>
+  <li>通过这种方式，我们可以利用 <strong>置换表示</strong> 中的每个 <strong>置换</strong> 来完整地重建出整个 <strong>群作用</strong> 的规则。</li>
+</ul></li>
+</ol>
+<p>这个例子清晰地展示了两者之间的双向转换关系。</p>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li>混淆 <strong>群作用</strong> 和 <strong>置换表示</strong> 的定义。要记住：<strong>群作用</strong> 是一个映射 $G \times S \rightarrow S$，它描述了“如何做”；<strong>置换表示</strong> 是一个 <strong>同态</strong> $G \rightarrow S_n$，它描述了“做的结果是什么样的排列”。</li>
+  <li>忘记 <strong>双射</strong> 的含义。它不仅仅是说“有关联”，而是说这种关联是“完美的、一对一的”。不存在一个 <strong>群作用</strong> 对应多个 <strong>置换表示</strong>，也不存在一个 <strong>置换表示</strong> 对应多个 <strong>群作用</strong> 的情况。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>命题6.11.2的核心思想是：<strong>群作用</strong> 和 <strong>置换表示</strong> 是描述同一个代数现象的两种等价的语言。它们之间可以自由、唯一地相互转换。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个命题是理论的基石。它正式确立了本节研究的合理性。通过证明这种 <strong>双射</strong> 关系，我们可以放心地使用 <strong>置换表示</strong> 作为研究 <strong>群作用</strong> 的工具，因为我们知道我们没有丢失或歪曲任何信息。它使得我们可以根据便利性在两种视角之间切换：当需要直观理解“作用”时，我们思考 <strong>群作用</strong>；当需要进行具体计算和利用 <strong>对称群</strong> 的性质时，我们切换到 <strong>置换表示</strong>。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像是同一个菜谱，可以用中文写，也可以用英文写。</p>
+<ol>
+  <li><strong>群作用</strong> 就像是中文菜谱，用描述性的语言告诉你：“把鸡蛋和面粉混合在一起”。</li>
+  <li><strong>置换表示</strong> 就像是英文菜谱，用更形式化的语言说：“Combine <strong>ingredient_1</strong> and <strong>ingredient_2</strong>”。</li>
+</ol>
+<p>虽然语言不同，但它们描述的是同一个烹饪过程，并且可以精确地相互翻译。命题6.11.2就是那本证明了这两种语言可以完美互译的词典。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个灯光控制台（<strong>群</strong> $G$）和舞台上的一排彩灯（<strong>集合</strong> $S$，有 $n$ 盏）。</p>
+<ol>
+  <li><strong>群作用</strong>：你按下控制台上的一个按钮 $g$，舞台上的灯光状态就发生一次变化。你知道每个按钮的具体功能（比如“按钮A让1号灯和2号灯交换颜色”）。</li>
+  <li><strong>置换表示</strong>：你有一张表格 $\varphi$。表格的每一行对应控制台的一个按钮 $g$，这一行记录了这个按钮按下后，所有 $n$ 盏灯的最终颜色排列相比初始排列发生了怎样的变化。</li>
+</ol>
+<p>命题说的是，你知道所有按钮的具体功能（<strong>群作用</strong>），就等价于你拥有那张完整的变化结果表（**置</p>
+<p>换表示**），反之亦然。</p>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-3">
+    <h2><span class="section-number">1</span>4 命题 6.11.2 的证明</h2>
+    <p id="original-4"><strong style="font-size: 1.3rem;">📜 [原文4]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>证明. 这非常简单，尽管初次接触时可能会感到困惑。如果给定 $G$ 在 $S$ 上的一个<strong>运算</strong>，我们通过设置 $\varphi(g)=m_{g}$（用 $g$ 进行乘法，(6.7.2)）来定义一个<strong>置换表示</strong> $\varphi$。结合律 $g(h \mathbf{i})=(g h) \mathbf{i}$ 表明</p>
+<p><div class="math-block">$$
+m_{g}\left(m_{h} \mathbf{i}\right)=g(h \mathbf{i})=(g h) \mathbf{i}=m_{g h} \mathbf{i} .
+$$</div></p>
+<p>因此 $\varphi$ 是一个<strong>同态</strong>。反之，如果 $\varphi$ 是一个<strong>置换表示</strong>，则相同的公式定义了 $G$ 在 $S$ 上的一个<strong>运算</strong>。 $\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个证明过程非常简洁，它清晰地构造了两个概念之间的双向映射。</p>
+<p><strong>第一部分：从“群作用”到“置换表示”</strong></p>
+<ol>
+  <li> <strong>出发点</strong>：我们手头有一个 <strong>群</strong> $G$ 在 <strong>集合</strong> $S = \{1, 2, ..., n\}$ 上的 <strong>作用</strong>（文中称为<strong>运算</strong>）。这意味着对于任意的 $g \in G$ 和 $i \in S$，我们都知道 $g \cdot i$ 的结果是什么。</li>
+  <li> <strong>定义映射</strong>：对于 <strong>群</strong> $G$ 中的每一个元素 $g$，我们可以定义一个函数 $m_g: S \rightarrow S$，它的功能就是让 $g$ 作用于 $S$ 中的元素。即，对于任意 $i \in S$，$m_g(i) = g \cdot i$。</li>
+  <li> <strong>$m_g$ 是一个置换</strong>：为什么 $m_g$ 是 $S_n$ 中的一个元素呢？因为 <strong>群作用</strong> 的定义保证了这一点。对于一个 $g$，它的 <strong>逆元</strong> $g^{-1}$ 也在 $G$ 中。我们可以定义一个映射 $m_{g^{-1}}$。对于任意 $i \in S$，我们有 $m_g(m_{g^{-1}}(i)) = g \cdot (g^{-1} \cdot i) = (g g^{-1}) \cdot i = 1_G \cdot i = i$。同理 $m_{g^{-1}}(m_g(i)) = i$。这表明 $m_g$ 和 $m_{g^{-1}}$ 互为 <strong>逆函数</strong>。一个函数有 <strong>逆函数</strong>，当且仅当它是一个 <strong>双射</strong>。而 $S_n$ 正是由 $S$ 到 $S$ 的所有 <strong>双射</strong> 组成的 <strong>集合</strong>。所以，$m_g \in S_n$。</li>
+  <li> <strong>定义置换表示</strong> $\varphi$：我们现在可以定义一个从 $G$ 到 $S_n$ 的映射 $\varphi$，就是把每个 $g$ 映射到我们刚刚定义的那个 <strong>置换</strong> $m_g$。即 $\varphi(g) = m_g$。</li>
+  <li> <strong>验证 $\varphi$ 是同态</strong>：这是最关键的一步。我们需要证明 $\varphi(gh) = \varphi(g) \circ \varphi(h)$。
+<ul>
+  <li>等式左边：$\varphi(gh)$ 就是 $m_{gh}$。它作用于 $i$ 的结果是 $m_{gh}(i) = (gh) \cdot i$。</li>
+  <li>等式右边：$\varphi(g) \circ \varphi(h)$ 就是 $m_g \circ m_h$。这是一个 <strong>函数复合</strong>，它作用于 $i$ 的结果是 $m_g(m_h(i))$。根据定义，这等于 $g \cdot (h \cdot i)$。</li>
+  <li><strong>群作用</strong> 的 <strong>结合律/兼容性</strong> 公理正好是 $(gh) \cdot i = g \cdot (h \cdot i)$。</li>
+  <li>所以，$m_{gh}(i) = m_g(m_h(i))$ 对所有 $i$ 都成立。这意味着函数 $m_{gh}$ 和函数 $m_g \circ m_h$ 是同一个函数。</li>
+  <li>因此，$\varphi(gh) = \varphi(g) \circ \varphi(h)$ 成立，$\varphi$ 是一个 <strong>同态</strong>，即一个 <strong>置换表示</strong>。</li>
+</ul></li>
+</ol>
+<p><strong>第二部分：从“置换表示”到“群作用”</strong></p>
+<ol>
+  <li> <strong>出发点</strong>：我们手头有一个 <strong>置换表示</strong> $\varphi: G \rightarrow S_n$。这意味着对于每个 $g \in G$，$\varphi(g)$ 是 $S_n$ 中的一个 <strong>置换</strong>。</li>
+  <li> <strong>定义群作用</strong>：我们来定义一个 <strong>运算</strong> $G \times S \rightarrow S$。对于 $g \in G$ 和 $i \in S$，我们定义 $g \cdot i = (\varphi(g))(i)$。也就是说，“$g$ 作用于 $i$”被定义为“$g$ 对应的那个 <strong>置换</strong> $\varphi(g)$ 作用于 $i$”。</li>
+  <li> <strong>验证群作用公理</strong>：
+<ul>
+  <li><strong>单位元律</strong>：$1_G \cdot i = (\varphi(1_G))(i)$。因为 $\varphi$ 是 <strong>同态</strong>，它必须把 $G$ 的 <strong>单位元</strong> $1_G$ 映射到 $S_n$ 的 <strong>单位元</strong>（即 <strong>恒等置换</strong> $e$）。所以 $(\varphi(1_G))(i) = e(i) = i$。单位元律 $1_G \cdot i = i$ 成立。</li>
+  <li><strong>兼容性/结合律</strong>：我们需要验证 $(gh) \cdot i = g \cdot (h \cdot i)$。</li>
+  <li>左边：$(gh) \cdot i = (\varphi(gh))(i)$。</li>
+  <li>右边：$g \cdot (h \cdot i) = g \cdot ((\varphi(h))(i))$。设 $j = (\varphi(h))(i)$，则右边等于 $(\varphi(g))(j) = (\varphi(g))((\varphi(h))(i))$。</li>
+  <li>因为 $\varphi$ 是 <strong>同态</strong>，所以 $\varphi(gh) = \varphi(g) \circ \varphi(h)$。</li>
+  <li>因此，$(\varphi(gh))(i) = (\varphi(g) \circ \varphi(h))(i) = (\varphi(g))((\varphi(h))(i))$。</li>
+  <li>左右两边相等，兼容性成立。</li>
+  <li>所以，这个定义确实构成了一个合法的 <strong>群作用</strong>。</li>
+</ul></li>
+</ol>
+<p><strong>结论</strong>：证明清晰地展示了如何从任一方构造出另一方，并且这个构造过程是唯一的。因此，两者之间存在 <strong>双射</strong> 关系。</p>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+m_{g}\left(m_{h} \mathbf{i}\right)=g(h \mathbf{i})=(g h) \mathbf{i}=m_{g h} \mathbf{i} .
+$$</div></p>
+<p>这个公式链是证明的第一部分的核心，让我们逐个等号分析：</p>
+<ul>
+  <li>$m_{g}(m_{h} \mathbf{i})$：这是 <strong>复合函数</strong> $m_g \circ m_h$ 作用于元素 $\mathbf{i}$ 的定义。</li>
+  <li>$m_{g}(m_{h} \mathbf{i}) = g(h \mathbf{i})$：第一个等号。这是根据 $m_g$ 和 $m_h$ 的定义。$m_h \mathbf{i}$ 就是 $h$ 作用在 $\mathbf{i}$ 上（原文写作 $h\mathbf{i}$），结果是 $h\mathbf{i}$。然后 $m_g$ 作用在这个新元素上，就是 $g(h\mathbf{i})$。</li>
+  <li>$g(h \mathbf{i}) = (gh) \mathbf{i}$：第二个等号。这是 <strong>群作用</strong> 的 <strong>兼容性/结合律</strong> 公理，是已知条件。</li>
+  <li>$(gh) \mathbf{i} = m_{gh} \mathbf{i}$：第三个等号。这是根据 $m_{gh}$ 的定义。</li>
+  <li><strong>结论</strong>：从头到尾，$m_{g}(m_{h} \mathbf{i}) = m_{gh} \mathbf{i}$。因为这对所有 $\mathbf{i}$ 都成立，所以函数 $m_g \circ m_h$ 和函数 $m_{gh}$ 是完全相同的。这正是 <strong>同态</strong> 的定义 $\varphi(g) \circ \varphi(h) = \varphi(gh)$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>对 $m_g$ 的理解</strong>：$m_g$ 本身是一个函数（一个 <strong>置换</strong>），它来自 $S_n$。而 $g$ 是 <strong>群</strong> $G$ 中的一个抽象元素。不要混淆 $g$ 和 $m_g$。$m_g$ 是 $g$ 在 <strong>置换</strong> 世界里的“化身”。</li>
+  <li><strong>函数复合的顺序</strong>：在 $m_g \circ m_h$ 中，是 $m_h$ 先作用。在 <strong>群作用</strong> $g \cdot (h \cdot i)$ 中，是 $h$ 先作用。两者顺序是一致的，这是证明能够成立的基础。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>证明通过明确的构造性步骤，展示了 <strong>群作用</strong> 的公理（特别是结合律）如何直接“翻译”为 <strong>置换表示</strong> 的 <strong>同态</strong> 性质，反之亦然。这个证明是严谨且具有启发性的，它揭示了两种形式化语言之下的共同结构。</p>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-4">
+    <h2><span class="section-number">1</span>5 应用示例：二面体群</h2>
+    <p id="original-5"><strong style="font-size: 1.3rem;">📜 [原文5]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>例如，<strong>二面体群</strong> $D_{n}$ 在正 $n$ 边形的顶点 $\left(v_{1}, \ldots, v_{n}\right)$ 上的<strong>运算</strong>定义了一个<strong>同态</strong> $\varphi: D_{n} \rightarrow S_{n}$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这里给出了一个非常经典和直观的例子来阐述命题6.11.2。</p>
+<ul>
+  <li><strong>二面体群 $D_n$</strong>：这是正 $n$ 边形的所有 <strong>对称</strong>（Symmetries）组成的 <strong>群</strong>。一个对称操作是指，对这个 $n$ 边形进行某种刚体运动（旋转或翻转），使得它运动后看起来和运动前一模一样，完全重合。$D_n$ 共有 $2n$ 个元素：$n$ 个旋转（包括旋转0度）和 $n$ 个翻转。</li>
+  <li><strong>集合 $S$</strong>：这里的 <strong>集合</strong> $S$ 就是正 $n$ 边形的 $n$ 个顶点，记为 $\{v_1, v_2, \dots, v_n\}$。</li>
+  <li><strong>群作用</strong>：$D_n$ 中的每个对称操作（<strong>群</strong> 元素）都会使顶点的位置发生改变。例如，将正方形 $v_1v_2v_3v_4$ 顺时针旋转90度，那么原来在 $v_1$ 位置的顶点会跑到 $v_2$ 的位置， $v_2$ 的跑到 $v_3$ 的位置，以此类推。这就是一个 <strong>群作用</strong>。</li>
+  <li><strong>置换表示</strong>：根据命题6.11.2，这个 <strong>群作用</strong> 自然地就定义了一个 <strong>置换表示</strong> $\varphi: D_n \rightarrow S_n$。具体来说，对于 $D_n$ 中的任意一个对称操作 $g$，它都会引起顶点们的一次重新排列。这个排列就是一个 <strong>置-   </strong>置换表示<strong>：根据命题6.11.2，这个 </strong>群作用<strong> 自然地就定义了一个 </strong>置换表示<strong> $\varphi: D_n \rightarrow S_n$。具体来说，对于 $D_n$ 中的任意一个对称操作 $g$，它都会引起顶点们的一次重新排列。这个排列就是一个 </strong>置换<strong>，我们把它记作 $\varphi(g)$。例如，旋转90度的操作对应的 </strong>置换<strong> 就是 $(v_1 v_2 v_3 v_4)$，用数字表示就是 $(1234)$。这个映射 $\varphi$ 就是一个 </strong>置换表示**。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>示例：$D_4$ (正方形的对称群) 作用于顶点 $\{1, 2, 3, 4\}$</strong></p>
+<p>设顶点按逆时针顺序编号为1, 2, 3, 4。</p>
+<ul>
+  <li><strong>群元素 $g_1$</strong>：逆时针旋转90度，记为 $r$。</li>
+  <li><strong>群作用</strong>：$1 \to 2, 2 \to 3, 3 \to 4, 4 \to 1$。</li>
+  <li><strong>对应的置换</strong>：$\varphi(r) = (1234)$。</li>
+  <li><strong>群元素 $g_2$</strong>：关于通过顶点1和3的对角线的翻转，记为 $s$。</li>
+  <li><strong>群作用</strong>：$1 \to 1, 2 \to 4, 3 \to 3, 4 \to 2$。</li>
+  <li><strong>对应的置换</strong>：$\varphi(s) = (24)$。</li>
+  <li><strong>验证同态性质</strong>：我们来考虑复合操作 $s \circ r$（先旋转90度，再翻转）。</li>
+  <li><strong>群作用</strong>：$1 \xrightarrow{r} 2 \xrightarrow{s} 4$, $2 \xrightarrow{r} 3 \xrightarrow{s} 3$, $3 \xrightarrow{r} 4 \xrightarrow{s} 2$, $4 \xrightarrow{r} 1 \xrightarrow{s} 1$。</li>
+  <li><strong>对应的置换</strong>：$\varphi(sr) = (14)(23)$。</li>
+  <li><strong>在 $S_4$ 中计算</strong>：$\varphi(s) \circ \varphi(r) = (24) \circ (1234) = (14)(23)$。</li>
+  <li>结果一致，表明这确实是一个 <strong>同态</strong>。</li>
+</ul>
+<p>这个例子完美地体现了如何将一个几何上的对称操作群，转化为一个代数上的 <strong>置换群</strong> 的 <strong>子群</strong> 来进行研究。</p>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-5">
+    <h2><span class="section-number">1</span>6 推广到任意集合</h2>
+    <p id="original-6"><strong style="font-size: 1.3rem;">📜 [原文6]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>命题 6.11.2 与它作用于索引集的事实无关。如果 $\operatorname{Perm}(S)$ 是任意集合 $S$ 的<strong>置换群</strong>，我们也将<strong>同态</strong> $\varphi: G \rightarrow \operatorname{Perm}(S)$ 称为 $G$ 的<strong>置换表示</strong>。</p>
+<p>推论 6.11.3 设 $\operatorname{Perm}(S)$ 表示集合 $S$ 的<strong>置换群</strong>，设 $G$ 为一个群。群 $G$ 在 $S$ 上的<strong>运算</strong>与<strong>置换表示</strong> $\varphi: G \rightarrow \operatorname{Perm}(S)$ 之间存在一个双射对应关系：</p>
+<p><div class="math-block">$$
+\left[\begin{array}{c}
+G \text{ 在 } S \text{ 上的} \\
+\text{运算}
+\end{array}\right] \longleftrightarrow\left[\begin{array}{c}
+\text{同态} \\
+G \rightarrow \operatorname{Perm}(S)
+\end{array}\right] .
+$$</div></p>
+<p>$\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分内容是对前面概念的自然推广。</p>
+<ul>
+  <li>之前的讨论集中在 <strong>集合</strong> $S = \{1, 2, \dots, n\}$ 上，这使得我们可以方便地将目标 <strong>群</strong> 写成 $S_n$。</li>
+  <li>但是，<strong>群作用</strong> 的 <strong>集合</strong> $S$ 可以是任何 <strong>集合</strong>，比如一个无限集合（如平面上的所有点），或者一个没有自然编号的有限集合（如一个分子的所有原子）。</li>
+  <li><strong>$\operatorname{Perm}(S)$ 的定义</strong>：对于任意一个 <strong>集合</strong> $S$（无论有限还是无限），我们可以定义它的 <strong>置换群</strong> $\operatorname{Perm}(S)$（有时也记作 $S_S$）。这个 <strong>群</strong> 的元素是所有从 $S$ 到 $S$ 的 <strong>双射</strong> 函数，运算是 <strong>函数复合</strong>。当 $S = \{1, 2, \dots, n\}$ 时，$\operatorname{Perm}(S)$ 就是我们熟悉的 $S_n$。</li>
+  <li><strong>推广置换表示</strong>：因此，<strong>置换表示</strong> 的定义可以更一般化，即一个从 <strong>群</strong> $G$ 到 $\operatorname{Perm}(S)$ 的 <strong>同态</strong>。</li>
+  <li><strong>推论 6.11.3</strong>：这个推论就是把命题 6.11.2 中的 $S_n$ 替换为更一般的 $\operatorname{Perm}(S)$。其内容和证明的逻辑与命题 6.11.2 完全一样，只是符号表达上更具普遍性。它说明了，对于任意 <strong>集合</strong> $S$，<strong>群</strong> $G$ 在 $S$ 上的 <strong>作用</strong> 和到 $\operatorname{Perm}(S)$ 的 <strong>置换表示</strong> 之间仍然存在着完美的 <strong>双射</strong> 关系。</li>
+</ul>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+\left[\begin{array}{c}
+G \text{ 在 } S \text{ 上的} \\
+\text{运算}
+\end{array}\right] \longleftrightarrow\left[\begin{array}{c}
+\text{同态} \\
+G \rightarrow \operatorname{Perm}(S)
+\end{array}\right] .
+$$</div></p>
+<p>这个图示与之前的几乎一样，唯一的区别在于右侧：</p>
+<ul>
+  <li>$\operatorname{Perm}(S)$: 代替了之前的 $S_n$。它代表了作用在任意 <strong>集合</strong> $S$ 上的所有 <strong>置换</strong>（双射）所构成的 <strong>群</strong>。这个符号的适用范围更广。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>示例：$G = (\mathbb{Z}, +)$ 作用于 $S = \mathbb{R}$</strong></p>
+<p>这是一个无限群作用于一个无限集的例子。</p>
+<ul>
+  <li><strong>群作用</strong>：我们定义整数 <strong>群</strong> $(\mathbb{Z}, +)$ 在实数轴 $\mathbb{R}$ 上的 <strong>作用</strong> 为平移。即，对于 $n \in \mathbb{Z}$ 和 $x \in \mathbb{R}$，定义 $n \cdot x = x+n$。</li>
+  <li><strong>单位元</strong>：$0 \cdot x = x+0 = x$。</li>
+  <li><strong>兼容性</strong>：$(m+n) \cdot x = x+(m+n) = (x+n)+m = m \cdot (x+n) = m \cdot (n \cdot x)$。这是一个合法的 <strong>群作用</strong>。</li>
+  <li><strong>置换表示</strong>：根据推论，这个 <strong>群作用</strong> 对应一个 <strong>置换表示</strong> $\varphi: \mathbb{Z} \rightarrow \operatorname{Perm}(\mathbb{R})$。</li>
+  <li>对于任意整数 $n \in \mathbb{Z}$，$\varphi(n)$ 是 $\operatorname{Perm}(\mathbb{R})$ 中的一个 <strong>置换</strong>（一个从 $\mathbb{R}$ 到 $\mathbb{R}$ 的 <strong>双射</strong>）。</li>
+  <li>这个 <strong>双射</strong> 是什么呢？它就是平移函数 $T_n: \mathbb{R} \rightarrow \mathbb{R}$，定义为 $T_n(x) = x+n$。</li>
+  <li>所以 $\varphi(n) = T_n$。</li>
+  <li><strong>同态</strong> 验证：$\varphi(m+n) = T_{m+n}$。而 $T_{m+n}(x) = x+m+n$。</li>
+  <li>$\varphi(m) \circ \varphi(n) = T_m \circ T_n$。 $T_m \circ T_n(x) = T_m(T_n(x)) = T_m(x+n) = (x+n)+m = x+m+n$。</li>
+  <li>两者结果相同，因此这是一个 <strong>置换表示</strong>。</li>
+</ul>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个推广的目的是为了理论的完整性和普适性。它告诉我们，<strong>群作用</strong> 和 <strong>置换表示</strong> 之间的美妙对应关系，并不仅仅局限于有限的、带编号的 <strong>集合</strong>，而是适用于任何 <strong>群</strong> 在任何 <strong>集合</strong> 上的 <strong>作用</strong>。这大大扩展了该理论的应用范围。</p>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-6">
+    <h2><span class="section-number">1</span>7 忠实运算</h2>
+    <p id="original-7"><strong style="font-size: 1.3rem;">📜 [原文7]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>置换表示</strong> $G \rightarrow \operatorname{Perm}(S)$ 不一定是<strong>内射</strong>的。如果它恰好是<strong>内射</strong>的，则称相应的<strong>运算</strong>是<strong>忠实的</strong>。要成为<strong>忠实的</strong>，<strong>运算</strong>必须具有以下性质：只有当 $g=1$ 时，由 $g$ 引起的乘法 $m_{g}$ 才是<strong>恒等映射</strong>：</p>
+</div><h3>如果一个运算具有以下性质，则它是忠实的：</h3><p>对于 $S$ 中的每一个 $s$，使得 $g s=s$ 的唯一群 $G$ 的元素 $g$ 是<strong>单位元</strong>。</p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分引入了一个非常重要的概念：<strong>忠实性 (Faithfulness)</strong>。</p>
+<ol>
+  <li> <strong>置换表示不一定是内射的</strong>：
+<ul>
+  <li><strong>内射 (Injective)</strong> 的含义是“一对一”。一个映射 $\varphi: G \rightarrow H$ 是 <strong>内射</strong> 的，如果不同的输入总是有不同的输出，即若 $g_1 \neq g_2$，则 $\varphi(g_1) \neq \varphi(g_2)$。</li>
+  <li>对于一个 <strong>置换表示</strong> $\varphi: G \rightarrow \operatorname{Perm}(S)$，它不一定是 <strong>内射</strong> 的。这意味着，可能存在两个不同的 <strong>群</strong> 元素 $g_1, g_2 \in G$ ($g_1 \neq g_2$)，它们在 $S$ 上的作用效果是完全一样的，即它们被映射到了同一个 <strong>置换</strong> 上：$\varphi(g_1) = \varphi(g_2)$。</li>
+  <li><strong>同态的核 (Kernel)</strong>：对于任何 <strong>同态</strong> $\varphi$，它的 <strong>核</strong> $\operatorname{ker}(\varphi)$ 是 $G$ 中所有被映射到目标 <strong>群</strong> <strong>单位元</strong> 的元素的 <strong>集合</strong>。即 $\operatorname{ker}(\varphi) = \{g \in G \mid \varphi(g) = \text{id}_S\}$，其中 $\text{id}_S$ 是 $S$ 上的 <strong>恒等置换</strong>。一个 <strong>同态</strong> 是 <strong>内射</strong> 的，当且仅当它的 <strong>核</strong> 只包含 <strong>单位元</strong>，即 $\operatorname{ker}(\varphi) = \{1_G\}$。</li>
+</ul></li>
+  <li> <strong>忠实 (Faithful) 的定义</strong>：
+<ul>
+  <li>如果一个 <strong>置换表示</strong> $\varphi$ 是 <strong>内射</strong> 的，我们就称这个 <strong>表示</strong> 是 <strong>忠实</strong> 的。</li>
+  <li>由于 <strong>群作用</strong> 和 <strong>置换表示</strong> 是一一对应的，我们同样可以说这个 <strong>群作用</strong> 是 <strong>忠实</strong> 的。</li>
+  <li><strong>“忠实”</strong> 这个词非常形象。它意味着这个 <strong>表示</strong>（或 <strong>作用</strong>）“忠实地”反映了原 <strong>群</strong> $G$ 的所有细节。没有两个不同的 <strong>群</strong> 元素被混淆成同一个动作。如果你观察这个 <strong>群作用</strong>，你可以区分出 $G$ 中的每一个元素。</li>
+</ul></li>
+  <li> <strong>忠实的等价条件</strong>：
+<ul>
+  <li>一个 <strong>置换表示</strong> $\varphi$ 是 <strong>内射</strong> 的，等价于说它的 <strong>核</strong> $\operatorname{ker}(\varphi)$ 是平凡的 $\{1_G\}$。</li>
+  <li>$\operatorname{ker}(\varphi)$ 的定义是 $\{g \in G \mid \varphi(g) = \text{id}_S\}$。</li>
+  <li>$\varphi(g) = m_g$，而 $m_g$ 是 <strong>恒等映射</strong> $\text{id}_S$ 意味着，对于 $S$ 中的所有元素 $s$，都有 $m_g(s) = s$，也就是 $g \cdot s = s$。</li>
+  <li>所以，<strong>忠实</strong> 就等价于：唯一能让 <strong>集合</strong> $S$ 中 <em>所有元素</em> 都保持不变的 <strong>群</strong> 元素，只有 <strong>单位元</strong> $1_G$。</li>
+  <li>这就是原文中给出的判定条件：“对于 $S$ 中的每一个 $s$，使得 $g s=s$ 的唯一群 $G$ 的元素 $g$ 是<strong>单位元</strong>。”</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>示例1：一个忠实的运算</strong></p>
+<ul>
+  <li>$G = D_3 = \{e, r, r^2, s, sr, sr^2\}$ 作用于顶点 $S=\{1, 2, 3\}$。</li>
+  <li>我们之前已经看到，这个 <strong>作用</strong> 对应的 <strong>置换表示</strong> $\varphi: D_3 \rightarrow S_3$ 是：</li>
+  <li>$\varphi(e) = (1)$</li>
+  <li>$\varphi(r) = (123)$, $\varphi(r^2) = (132)$</li>
+  <li>$\varphi(s) = (23)$, $\varphi(sr) = (13)$, $\varphi(sr^2) = (12)$</li>
+  <li>$D_3$ 中6个不同的元素，被映射到了 $S_3$ 中6个不同的 <strong>置换</strong>。因此，这个映射是 <strong>内射</strong> 的。</li>
+  <li><strong>核</strong> 是什么？只有 $\varphi(e) = (1)$，所以 $\operatorname{ker}(\varphi) = \{e\}$。</li>
+  <li>所以，$D_3$ 在其顶点上的 <strong>作用</strong> 是 <strong>忠实</strong> 的。没有任何一个非单位元的对称操作能让所有三个顶点都待在原地不动。</li>
+</ul>
+<p><strong>示例2：一个不忠实的运算 (A Non-faithful action)</strong></p>
+<ul>
+  <li>考虑一个 <strong>群</strong> $G = \mathbb{Z}_4 = \{0, 1, 2, 3\}$。</li>
+  <li>考虑一个 <strong>集合</strong> $S = \{-1, 1\}$。</li>
+  <li>定义一个 <strong>群作用</strong>：$g \cdot s = s \cdot (-1)^g$。</li>
+  <li>$0 \cdot s = s \cdot (-1)^0 = s$</li>
+  <li>$1 \cdot s = s \cdot (-1)^1 = -s$</li>
+  <li>$2 \cdot s = s \cdot (-1)^2 = s$</li>
+  <li>$3 \cdot s = s \cdot (-1)^3 = -s$</li>
+  <li>我们来构建 <strong>置换表示</strong> $\varphi: \mathbb{Z}_4 \rightarrow S_2$。$S_2$ 有两个 <strong>置换</strong>：恒等 $e$ 和 对换 $(12)$。</li>
+  <li>作用为 $s \to s$ 对应 <strong>恒等置换</strong> $e$。</li>
+  <li>作用为 $s \to -s$ 对应 <strong>对换</strong> $(12)$ (如果我们把-1和1编号为1和2)。</li>
+  <li>$\varphi(0) = e$</li>
+  <li>$\varphi(1) = (12)$</li>
+  <li>$\varphi(2) = e$</li>
+  <li>$\varphi(3) = (12)$</li>
+  <li>这个 <strong>表示</strong> 不是 <strong>内射</strong> 的。例如，$\varphi(0) = \varphi(2)$，但 $0 \neq 2$。</li>
+  <li>这个 <strong>作用</strong> 是 <strong>不忠实</strong> 的。</li>
+  <li><strong>核</strong> 是什么？$\operatorname{ker}(\varphi) = \{g \in \mathbb{Z}_4 \mid \varphi(g) = e\} = \{0, 2\}$。因为 <strong>核</strong> 不止 <strong>单位元</strong> 0，所以 <strong>作用</strong> 不忠实。</li>
+  <li>我们用判别条件来验证：是哪些 <strong>群</strong> 元素 $g$ 能让所有 $s \in S$ 都保持不变（即 $g \cdot s = s$）？从上面的计算可以看到，$g=0$ 和 $g=2$ 都可以。因为除了 <strong>单位元</strong> 0 之外，还有非单位元 2 也满足条件，所以这个 <strong>作用</strong> 是 <strong>不忠实</strong> 的。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>“对于每一个s” vs “对于某一个s”</strong>：<strong>忠实性</strong> 的条件是，一个非单位元的 $g$ <em>不能固定所有</em> 的 $s$。但它完全可以固定 <em>某一些</em> $s$。例如，在 $D_3$ 的例子中，翻转 $s$ 固定了顶点1，但它没有固定顶点2和3，所以它不是 <strong>恒等置换</strong>，这个 <strong>作用</strong> 依然是 <strong>忠实</strong> 的。</li>
+  <li><strong>不忠实不代表没用</strong>：不忠实的 <strong>表示</strong> 意味着我们丢失了原 <strong>群</strong> 的一些信息（<strong>核</strong> 里的信息被“压缩”掉了）。但这并不代表它没有用。实际上，根据 <strong>第一同态定理</strong>，这个 <strong>表示</strong> 给出了一个从 <strong>商群</strong> $G/\operatorname{ker}(\varphi)$ 到 $\operatorname{Perm}(S)$ 的 <strong>忠实表示</strong>。它揭示了 $G$ 的一部分结构。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>一个 <strong>群作用</strong>（或 <strong>置换表示</strong>）是 <strong>忠实</strong> 的，当且仅当它对应的 <strong>同态</strong> 是 <strong>内射</strong> 的。其直观意义是，不同的 <strong>群</strong> 元素会引起不同的 <strong>置换</strong>，没有任何非 <strong>单位元</strong> 素能让 <strong>集合</strong> 中的所有元素都保持不动。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p><strong>忠实性</strong> 是衡量一个 <strong>表示</strong> 能在多大程度上“保留”原 <strong>群</strong> 信息的重要指标。如果一个 <strong>表示</strong> 是 <strong>忠实</strong> 的，那么根据 <strong>凯莱定理</strong> 的思想，我们可以把抽象 <strong>群</strong> $G$ 就看作是它在 $\operatorname{Perm}(S)$ 中的那个 <strong>同构</strong> 的 <strong>子群</strong> $\varphi(G)$。研究这个具体的 <strong>置换子群</strong> 就等价于研究 $G$ 本身。这是一种威力强大的简化方法。如果 <strong>表示</strong> 不忠实，我们也能通过研究其 <strong>核</strong> 和 <strong>像</strong> 来分析 $G$ 的结构。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>回到戏剧选角的比喻：</p>
+<ol>
+  <li>一个 <strong>忠实</strong> 的 <strong>表示</strong> 意味着选角导演为剧本里的每一个不同角色都找到了一个不同的演员。观众可以通过观察演员的表演来区分剧本里的每一个角色。</li>
+  <li>一个 <strong>不忠实</strong> 的 <strong>表示</strong> 意味着选角导演让两个或多个不同的角色由同一个演员来扮演了（可能因为这几个角色的戏份在舞台上看起来效果一样）。这样一来，观众就无法仅通过表演来区分这几个角色了，关于他们之间区别的信息就丢失了。</li>
+</ol>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-7">
+    <h2><span class="section-number">1</span>8 实例：等距群</h2>
+    <p id="original-8"><strong style="font-size: 1.3rem;">📜 [原文8]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>等距群</strong> $M$ 在平面上的<strong>等边三角形</strong>集合 $S$ 上的<strong>运算</strong>是<strong>忠实的</strong>，因为唯一将每个<strong>等边三角形</strong>映射到其自身的<strong>等距</strong>是<strong>恒等映射</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是一个关于 <strong>忠实性</strong> 的例子，涉及到一个作用于无限集合上的无限群。</p>
+<ul>
+  <li><strong>群 $G$</strong>：这里的 <strong>群</strong> 是 <strong>等距群</strong> $M$ (Isometry Group)。它是平面上所有保持距离不变的变换（<strong>等距变换</strong>）组成的 <strong>群</strong>。这些变换包括平移、旋转、反射。</li>
+  <li><strong>集合 $S$</strong>：这里的 <strong>集合</strong> 不是点的集合，而是平面上所有 <strong>等边三角形</strong> 的 <strong>集合</strong>。这是一个无限集。</li>
+  <li><strong>群作用</strong>：一个 <strong>等距变换</strong> $g \in M$（比如平移或旋转）作用在一个 <strong>等边三角形</strong> $T \in S$ 上，会得到一个新的 <strong>等边三角形</strong> $g(T)$。例如，将一个三角形平移一段距离，会得到另一个全等的三角形。</li>
+  <li><strong>判断忠实性</strong>：我们要判断这个 <strong>作用</strong> 是否是 <strong>忠实</strong> 的。根据定义，我们需要看，是哪个（或哪些） <strong>等距变换</strong> $g \in M$ 能够让 <em>所有</em> 的 <strong>等边三角形</strong> 都保持在原来的位置？即，对于 <em>任意</em> <strong>等边三角形</strong> $T \in S$，都有 $g(T)=T$。</li>
+  <li><strong>论证</strong>：</li>
+</ul>
+<ol>
+  <li> 假设存在一个非恒等的 <strong>等距变换</strong> $g$ 满足 $g(T)=T$ 对所有 $T$ 成立。</li>
+  <li> 考虑平面上任意一个点 $P$。我们总可以找到一个以 $P$ 为顶点的 <strong>等边三角形</strong> $T_1$。根据假设，$g(T_1)=T_1$，这意味着 $g$ 把 $T_1$ 的三个顶点置换了，但点集没变。所以 $g(P)$ 必须是 $T_1$ 的三个顶点之一。</li>
+  <li> 我们还可以找到另一个以 $P$ 为顶点，但与 $T_1$ 不完全重合的 <strong>等边三角形</strong> $T_2$。同样，$g(T_2)=T_2$，所以 $g(P)$ 也必须是 $T_2$ 的三个顶点之一。</li>
+  <li> $g(P)$ 必须同时在 $T_1$ 的顶点集和 $T_2$ 的顶点集中。如果 $T_1$ 和 $T_2$ 的顶点集只有 $P$ 这一个公共点，那么必然有 $g(P)=P$。</li>
+  <li> 由于 $P$ 是平面上任意一点，我们得出结论：这个变换 $g$ 必须固定平面上的每一点。</li>
+  <li> 唯一能固定平面上所有点的 <strong>等距变换</strong> 只有 <strong>恒等变换</strong> (identity map)。
+<ul>
+  <li><strong>结论</strong>：因此，唯一能让 <em>所有</em> <strong>等边三角形</strong> 都回到原来位置的 <strong>等距变换</strong> 就是 <strong>恒等变换</strong>。根据 <strong>忠实性</strong> 的定义，这个 <strong>作用</strong> 是 <strong>忠实</strong> 的。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p>这个例子是概念性的，不太适合用数值来展示。但我们可以用反例来思考：</p>
+<ul>
+  <li><strong>思考一个非等距变换</strong>：比如一个均匀缩放变换 $g$，将平面上所有点的坐标都乘以2（以原点为中心）。这个变换作用于任何一个三角形 $T$，都会得到一个更大的三角形 $g(T)$。显然 $g(T) \neq T$。所以这个变换不会固定任何三角形。</li>
+  <li><strong>思考一个只固定一个三角形的变换</strong>：考虑一个特定的等边三角形 $T_0$，它的对称群是 $D_3$。$D_3$ 中非恒等的旋转 $r$ 会使得 $r(T_0)=T_0$。但是，如果平面上还有另一个不与 $T_0$ 重合的等边三角形 $T_1$，那么 $r(T_1)$ 通常不等于 $T_1$。所以，旋转 $r$ 只固定了特定的三角形，但没有固定 <em>所有</em> 的三角形。因此 $r$ 在这个 <strong>作用</strong> 中不属于 <strong>核</strong>。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li>关键在于理解 <strong>集合</strong> $S$ 的元素是 <strong>三角形</strong>，而不是 <strong>点</strong>。<strong>群作用</strong> 是在 <strong>三角形</strong> 之间移动，而不是在 <strong>点</strong> 之间移动。</li>
+  <li>必须是对于 <em>所有</em> 的 $T \in S$ 都成立 $g(T)=T$，而不仅仅是某一个或某几个。这是 <strong>核</strong> 的定义所要求的。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>等距群</strong> $M$ 在 <strong>等边三角形</strong> 集合 $S$ 上的 <strong>作用</strong> 是 <strong>忠实</strong> 的，因为没有任何非恒等的 <strong>等距变换</strong> 能同时让平面上所有的 <strong>等边三角形</strong> 都保持原位不动。</p>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-8">
+    <h2><span class="section-number">1</span>9 置换表示的满射性</h2>
+    <p id="original-9"><strong style="font-size: 1.3rem;">📜 [原文9]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>置换表示</strong> $\varphi: G \rightarrow \operatorname{Perm}(S)$ 很少是<strong>满射</strong>的，因为 $\operatorname{Perm}(S)$ 的阶通常非常大。但下一个例子中给出了一个特例。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>满射 (Surjective)</strong>：一个映射 $\varphi: G \rightarrow H$ 是 <strong>满射</strong> 的，如果 $H$ 中的每一个元素都至少是 $G$ 中一个元素的像。换句话说，像集 $\operatorname{Im}(\varphi)$ 等于整个到达域 $H$。</li>
+  <li><strong>置换表示很少是满射</strong>：对于一个 <strong>置换表示</strong> $\varphi: G \rightarrow S_n$，它很少是 <strong>满射</strong> 的。这意味着，通常情况下，$S_n$ 中存在一些 <strong>置换</strong>，它们不是 $G$ 中任何元素的“动作结果”。$\varphi(G)$（$G$ 的像）只是 $S_n$ 的一个 <strong>子群</strong>，并且通常是一个<strong>真子群</strong>。</li>
+  <li><strong>原因</strong>：作者给出了直观的解释——阶数（群的元素个数）的差异。</li>
+  <li>$|G|$ 是 <strong>群</strong> $G$ 的阶。</li>
+  <li>$|S_n|$ 是 <strong>对称群</strong> $S_n$ 的阶，它等于 $n! = n \times (n-1) \times \dots \times 1$。</li>
+  <li>$n!$ 的增长速度非常快。例如，$|S_5| = 120$，$|S_6| = 720$。</li>
+  <li>一个 <strong>群</strong> $G$ 的阶通常远远小于它所作用的 <strong>集合</strong> 对应的 <strong>对称群</strong> 的阶。</li>
+  <li>如果 $|G| &lt; |S_n|$，那么根据简单的基数原理，从 $G$ 到 $S_n$ 的映射绝对不可能是 <strong>满射</strong> 的，因为 $G$ 中没有足够的元素来覆盖 $S_n$ 中的所有元素。</li>
+  <li><strong>特例</strong>：虽然很少见，但确实存在 <strong>满射</strong> 的情况。这通常发生在 $|G| \ge |S_n|$ 的时候。如果一个 <strong>置换表示</strong> $\varphi: G \rightarrow S_n$ 是 <strong>满射</strong> 的，这意味着这个抽象的 <strong>群</strong> $G$ 的行为复杂到足以产生对 $n$ 个元素的所有可能的排列。下一个例子将展示一个 $|G|=|S_3|$ 且映射是 <strong>双射</strong>（既 <strong>内射</strong> 又 <strong>满射</strong>，即 <strong>同构</strong>）的罕见情况。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>$D_4$ 作用于顶点 $\{1,2,3,4\}$</strong></li>
+  <li>$|D_4| = 8$。</li>
+  <li>$|S_4| = 4! = 24$。</li>
+  <li>由于 $8 &lt; 24$，从 $D_4$ 到 $S_4$ 的 <strong>置换表示</strong> 绝对不可能是 <strong>满射</strong> 的。$S_4$ 中有很多 <strong>置换</strong>（例如一个3-轮换 $(123)$）是无法通过正方形的对称操作得到的。</li>
+  <li><strong>$S_n$ 作用于 $\{1,2,...,n\}$</strong></li>
+  <li>这是一个平凡的例子。让 <strong>群</strong> $G=S_n$ 本身作用于 <strong>集合</strong> $S=\{1,2,...,n\}$。</li>
+  <li><strong>作用</strong> 定义为 $g \cdot s = g(s)$（一个 <strong>置换</strong> 作用在一个数字上）。</li>
+  <li>对应的 <strong>置换表示</strong> $\varphi: S_n \rightarrow S_n$ 就是 <strong>恒等映射</strong> $\varphi(g)=g$。</li>
+  <li>这个 <strong>表示</strong> 显然是 <strong>满射</strong> 的（也是 <strong>忠实</strong> 的，因此是 <strong>同构</strong>）。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li>不要假设 <strong>置换表示</strong> 都是 <strong>满射</strong> 的。这是一个非常强的条件。在大多数应用中，我们实际上是利用 <strong>置换表示</strong> 将 $G$ 嵌入到 $S_n$ 中，并研究它作为 $S_n$ 的一个 <strong>子群</strong> 的性质。</li>
+  <li>当一个 <strong>置换表示</strong> 是 <strong>满射</strong> 时，它揭示了一个深刻的结构联系：<strong>群</strong> $G$ 在某种意义上“含有”了整个 <strong>对称群</strong> $S_n$ 的结构（通过 <strong>第一同态定理</strong>，$G/\operatorname{ker}(\varphi) \cong S_n$）。</li>
+</ol>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-9">
+    <h2><span class="section-number">1</span>10 示例 6.11.5：$GL_2(\mathbb{F}_2)$ 与 $S_3$ 的同构</h2>
+    <p id="original-10"><strong style="font-size: 1.3rem;">📜 [原文10]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>示例 6.11.5 <strong>模</strong> 2 <strong>系数</strong>的<strong>可逆矩阵群</strong> $G L_{2}\left(\mathbb{F}_{2}\right)$ <strong>同构</strong>于<strong>对称群</strong> $S_{3}$。</p>
+<p>我们将<strong>域</strong> $\mathbb{F}_{2}$ 记为 $F$，将群 $G L_{2}\left(\mathbb{F}_{2}\right)$ 记为 $G$。<strong>列向量</strong>空间 $F^{2}$ 包含四个<strong>向量</strong>：</p>
+<p><div class="math-block">$$
+0=\left[\begin{array}{l}
+0 \\
+0
+\end{array}\right], \quad e_{1}=\left[\begin{array}{l}
+1 \\
+0
+\end{array}\right], \quad e_{2}=\left[\begin{array}{l}
+0 \\
+1
+\end{array}\right], \quad e_{1}+e_{2}=\left[\begin{array}{l}
+1 \\
+1
+\end{array}\right] .
+$$</div></p>
+<p>群 $G$ 作用于三个<strong>非零向量</strong>的集合 $S=\left\{e_{1}, e_{2}, e_{1}+e_{2}\right\}$，这给了我们一个<strong>置换表示</strong> $\varphi: G \rightarrow S_{3}$。<strong>单位矩阵</strong>是唯一同时固定 $e_{1}$ 和 $e_{2}$ 的<strong>矩阵</strong>，因此 $G$ 在 $S$ 上的<strong>运算</strong>是<strong>忠实的</strong>，并且 $\varphi$ 是<strong>内射</strong>的。<strong>可逆矩阵</strong>的<strong>列</strong>必须是 $S$ 中<strong>不同元素</strong>的<strong>有序对</strong>。有六个这样的<strong>有序对</strong>，所以 $|G|=6$。由于 $S_{3}$ 的<strong>阶</strong>也是六，因此 $\varphi$ 是一个<strong>同构</strong>。 $\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是一个非常精彩的例子，它展示了来自完全不同领域的两个 <strong>群</strong>（一个是 <strong>矩阵群</strong>，一个是 <strong>置换群</strong>）可以是 <strong>同构</strong> 的。证明的核心就是利用 <strong>置换表示</strong>。</p>
+<ol>
+  <li> <strong>定义群 $G$</strong>：
+<ul>
+  <li>$G = GL_2(\mathbb{F}_2)$ 是 <strong>一般线性群</strong> (General Linear Group)。</li>
+  <li><strong>域</strong> $\mathbb{F}_2 = \{0, 1\}$，运算是模2加法和乘法。</li>
+  <li>$GL_2(\mathbb{F}_2)$ 的元素是所有系数来自 $\mathbb{F}_2$ 的 $2 \times 2$ <strong>可逆矩阵</strong>。一个矩阵可逆，当且仅当它的行列式非零。在 $\mathbb{F}_2$ 中，非零的只有 $1$。</li>
+  <li>所以 $G = \left\{ A = \begin{pmatrix} a &amp; b \\ c &amp; d \end{pmatrix} \mid a,b,c,d \in \{0,1\}, ad-bc=1 \pmod 2 \right\}$。</li>
+</ul></li>
+  <li> <strong>定义集合 $S$</strong>：
+<ul>
+  <li>$G$ 自然地通过 <strong>矩阵乘法</strong> 作用于 <strong>向量空间</strong> $\mathbb{F}_2^2$。</li>
+  <li>$\mathbb{F}_2^2$ 中有 $2^2=4$ 个 <strong>向量</strong>，如原文所列。</li>
+  <li>任何 <strong>可逆矩阵</strong> 都会把 <strong>非零向量</strong> 映射为 <strong>非零向量</strong>，并且把 <strong>零向量</strong> 映射为 <strong>零向量</strong> ($A\mathbf{0}=\mathbf{0}$)。</li>
+  <li>因此，<strong>群</strong> $G$ 作用在由三个 <strong>非零向量</strong> 组成的 <strong>集合</strong> $S=\{e_1, e_2, e_1+e_2\}$ 上。这是一个 <strong>群作用</strong>。</li>
+</ul></li>
+  <li> <strong>建立置换表示</strong>：
+<ul>
+  <li>根据推论 6.11.3，这个 <strong>群作用</strong> 对应一个 <strong>置换表示</strong> $\varphi: G \rightarrow \operatorname{Perm}(S)$。</li>
+  <li>由于 <strong>集合</strong> $S$ 有3个元素，$\operatorname{Perm}(S)$ 与 $S_3$ <strong>同构</strong>。所以我们得到了一个 <strong>置换表示</strong> $\varphi: G \rightarrow S_3$。</li>
+</ul></li>
+  <li> <strong>证明 $\varphi$ 是内射 (忠实) 的</strong>：
+<ul>
+  <li>我们要证明 $\operatorname{ker}(\varphi) = \{I\}$，其中 $I$ 是 <strong>单位矩阵</strong>。</li>
+  <li>$\operatorname{ker}(\varphi)$ 中的矩阵 $A$ 必须固定 $S$ 中的所有元素，即 $Ae_1=e_1$, $Ae_2=e_2$, $A(e_1+e_2)=e_1+e_2$。</li>
+  <li>$A=\begin{pmatrix} a &amp; b \\ c &amp; d \end{pmatrix}$。</li>
+  <li>$Ae_1 = \begin{pmatrix} a &amp; b \\ c &amp; d \end{pmatrix} \begin{pmatrix} 1 \\ 0 \end{pmatrix} = \begin{pmatrix} a \\ c \end{pmatrix}$。$Ae_1=e_1$ 意味着 $\begin{pmatrix} a \\ c \end{pmatrix} = \begin{pmatrix} 1 \\ 0 \end{pmatrix}$，所以 $a=1, c=0$。</li>
+  <li>$Ae_2 = \begin{pmatrix} a &amp; b \\ c &amp; d \end{pmatrix} \begin{pmatrix} 0 \\ 1 \end{pmatrix} = \begin{pmatrix} b \\ d \end{pmatrix}$。$Ae_2=e_2$ 意味着 $\begin{pmatrix} b \\ d \end{pmatrix} = \begin{pmatrix} 0 \\ 1 \end{pmatrix}$，所以 $b=0, d=1$。</li>
+  <li>因此，唯一能同时固定 $e_1$ 和 $e_2$ 的矩阵是 $A = \begin{pmatrix} 1 &amp; 0 \\ 0 &amp; 1 \end{pmatrix} = I$。</li>
+  <li>由于线性性，$A(e_1+e_2) = Ae_1+Ae_2 = e_1+e_2$ 自然成立。</li>
+  <li>所以，<strong>核</strong> 中只有 <strong>单位矩阵</strong>，该 <strong>表示</strong> 是 <strong>内射</strong> 的（<strong>作用</strong> 是 <strong>忠实</strong> 的）。</li>
+</ul></li>
+  <li> <strong>计算群的阶</strong>：
+<ul>
+  <li>方法一（原文）：一个 $2 \times 2$ <strong>可逆矩阵</strong> 的两列必须是 <strong>线性无关</strong> 的 <strong>向量</strong>。在 $\mathbb{F}_2^2$ 中，这意味着两列必须是 $S$ 中两个不同的 <strong>向量</strong>。</li>
+  <li>第一列有3种选择（$e_1, e_2, e_1+e_2$）。</li>
+  <li>一旦选定第一列（例如 $e_1$），第二列就只有2种选择（$e_2, e_1+e_2$），因为它不能是 <strong>零向量</strong> 或与第一列相同。</li>
+  <li>所以总共有 $3 \times 2 = 6$ 个这样的矩阵。$|G|=6$。</li>
+  <li>方法二（直接列举）：</li>
+  <li>$|S_3| = 3! = 6$。</li>
+</ul></li>
+  <li> <strong>得出结论</strong>：
+<ul>
+  <li>我们有一个 <strong>内射同态</strong> $\varphi: G \rightarrow S_3$。</li>
+  <li>两个 <strong>群</strong> 的阶都是6。</li>
+  <li>一个从有限群到同阶有限群的 <strong>内射映射</strong> 必然是 <strong>满射</strong> 的，因此是 <strong>双射</strong>。</li>
+  <li>一个 <strong>双射</strong> 的 <strong>同态</strong> 就是 <strong>同构</strong> (Isomorphism)。</li>
+  <li>结论：$GL_2(\mathbb{F}_2) \cong S_3$。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p>让我们把 $S$ 中的三个向量编号：$v_1=e_1=\begin{pmatrix} 1 \\ 0 \end{pmatrix}$, $v_2=e_2=\begin{pmatrix} 0 \\ 1 \end{pmatrix}$, $v_3=e_1+e_2=\begin{pmatrix} 1 \\ 1 \end{pmatrix}$。</p>
+<p>我们来看几个矩阵的作用：</p>
+<ul>
+  <li>$A_1 = \begin{pmatrix} 0 &amp; 1 \\ 1 &amp; 0 \end{pmatrix}$</li>
+  <li>$A_1 v_1 = \begin{pmatrix} 0 \\ 1 \end{pmatrix} = v_2$</li>
+  <li>$A_1 v_2 = \begin{pmatrix} 1 \\ 0 \end{pmatrix} = v_1$</li>
+  <li>$A_1 v_3 = \begin{pmatrix} 1 \\ 1 \end{pmatrix} = v_3$</li>
+  <li>这个矩阵交换了 $v_1, v_2$，固定了 $v_3$。所以 $\varphi(A_1) = (12)$。</li>
+  <li>$A_2 = \begin{pmatrix} 1 &amp; 1 \\ 1 &amp; 0 \end{pmatrix}$</li>
+  <li>$A_2 v_1 = \begin{pmatrix} 1 \\ 1 \end{pmatrix} = v_3$</li>
+  <li>$A_2 v_2 = \begin{pmatrix} 1 \\ 0 \end{pmatrix} = v_1$</li>
+  <li>$A_2 v_3 = \begin{pmatrix} 0 \\ 1 \end{pmatrix} = v_2$</li>
+  <li>这个矩阵造成了 $v_1 \to v_3 \to v_2 \to v_1$ 的轮换。所以 $\varphi(A_2) = (132)$。</li>
+</ul>
+<p>通过这种方式，我们可以为 $GL_2(\mathbb{F}_2)$ 中的6个矩阵一一找到它们在 $S_3$ 中的对应 <strong>置换</strong>，从而完整地建立起这个 <strong>同构</strong>。</p>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这个例子通过构造一个 <strong>忠实</strong> 的 <strong>置换表示</strong>，并结合阶数分析，巧妙地证明了 <strong>矩阵群</strong> $GL_2(\mathbb{F}_2)$ 和 <strong>对称群</strong> $S_3$ 是 <strong>同构</strong> 的。这是 <strong>置换表示</strong> 理论威力的一次绝佳展示。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-10">
+    <h2><span class="section-number">2</span>行间公式索引</h2>
+    <p>1.  $$</p><p>\begin{equation*}</p><p>\varphi: G \rightarrow S_{n} . \tag{6.11.1}</p><p>\end{equation*}</p><p><div class="math-block">$$
+    **解释**：这定义了置换表示是一个从群 $G$ 到对称群 $S_n$ 的同态。
+
+2.  
+$$</div></p><p>\left[\begin{array}{c}</p><p>G \text{ 在 } S \text{ 上的} \\</p><p>\text{运算}</p><p>\end{array}\right] \longleftrightarrow\left[\begin{array}{c}</p><p>\text{置换} \\</p><p>\text{表示}</p><p>\end{array}\right] .</p><p><div class="math-block">$$
+    **解释**：这图示了群在集合上的运算（群作用）与置换表示之间存在一一对应的双射关系。
+
+3.  
+$$</div></p><p>m_{g}\left(m_{h} \mathbf{i}\right)=g(h \mathbf{i})=(g h) \mathbf{i}=m_{g h} \mathbf{i} .</p><p><div class="math-block">$$
+    **解释**：这个等式链证明了由群作用诱导的映射 $g \mapsto m_g$ 确实是一个群同态。
+
+4.  
+$$</div></p><p>\left[\begin{array}{c}</p><p>G \text{ 在 } S \text{ 上的} \\</p><p>\text{运算}</p><p>\end{array}\right] \longleftrightarrow\left[\begin{array}{c}</p><p>\text{同态} \\</p><p>G \rightarrow \operatorname{Perm}(S)</p><p>\end{array}\right] .</p><p><div class="math-block">$$
+    **解释**：这是对双射关系的更一般化的表述，适用于任意集合 $S$ 而非特指 $\{1, ..., n\}$。
+
+5.  
+$$</div></p><p>0=\left[\begin{array}{l}</p><p>0 \\</p><p>0</p><p>\end{array}\right], \quad e_{1}=\left[\begin{array}{l}</p><p>1 \\</p><p>0</p><p>\end{array}\right], \quad e_{2}=\left[\begin{array}{l}</p><p>0 \\</p><p>1</p><p>\end{array}\right], \quad e_{1}+e_{2}=\left[\begin{array}{l}</p><p>1 \\</p><p>1</p><p>\end{array}\right] .</p><p><div class="math-block">$$
+    **解释**：这列出了二元域 $\mathbb{F}_2$ 上的二维向量空间 $\mathbb{F}_2^2$ 中全部四个向量。
+### **2. 全节总结与核心思想**
+
+本节“6.11 置换表示”是群论中一个承上启下的关键章节，它为我们理解和研究抽象群提供了一套强大而直观的工具。本节的核心思想在于**具体化**：将一个抽象的、可能难以捉摸的群，通过其在某个集合上的作用，“翻译”成一个由具体、可计算的“排列”或“洗牌”操作（即**置换**）组成的群。这种翻译过程，如果忠实，便意味着我们可以通过研究这个具体的**置换群**来完全理解原来的抽象群。
+
+#### **2.1 核心概念回顾**
+
+1.  **置换表示 (Permutation Representation)**：
+    -   **是什么**：一个从抽象群 $G$ 到一个具体对称群 $S_n$（或更一般的 $\operatorname{Perm}(S)$）的**群同态** $\varphi: G \rightarrow \operatorname{Perm}(S)$。
+    -   **做什么**：它为 $G$ 中的每一个元素 $g$ 都指派了一个在集合 $S$ 上的**置换** $\varphi(g)$，并且这个指派过程保持了群的运算结构。
+
+2.  **群作用与置换表示的等价性**：
+    -   **核心论断**：本节最重要的理论基石是命题 6.11.2 和推论 6.11.3，它们指出“群 $G$ 在集合 $S$ 上的作用”和“从 $G$ 到 $\operatorname{Perm}(S)$ 的置换表示”之间存在一个完美的**一一对应**关系。
+    -   **意义**：这两个概念是同一数学现象的两种不同描述语言。我们可以根据需要自由地在“作用”的动态过程视角和“表示”的静态结构视角之间切换，而不会丢失任何信息。
+
+3.  **忠实性 (Faithfulness)**：
+    -   **是什么**：一个作用（或表示）是**忠实**的，如果其对应的**同态**是**内射**的（一对一的）。
+    -   **等价条件**：唯一能够让作用集合 $S$ 中 *所有* 元素都保持不变的群元素 $g$ 只有**单位元** $1_G$。
+    -   **意义**：一个**忠实**的表示完整地保留了原群 $G$ 的所有信息。不同的群元素总是对应不同的置换。这使得群 $G$ 和它在 $\operatorname{Perm}(S)$ 中的像 $\varphi(G)$ 是**同构**的。
+
+#### **2.2 理论联系与深层意义**
+
+1.  **与凯莱定理 (Cayley's Theorem) 的关系**：
+    -   凯莱定理指出“任何群 $G$ 都同构于一个置换群的子群”。本节内容可以看作是凯莱定理的推广和深化。
+    -   凯莱定理本身就是通过构造一个特定的**置换表示**来证明的：让群 $G$ 作用于其自身的元素集合 $S=G$（通过左乘）。这个作用总是**忠实**的，因此 $G$ 同构于 $S_{|G|}$ 的一个子群。
+    -   本节将这一思想从作用于群自身，推广到了作用于任意集合 $S$ 上，为寻找更小、更高效的置换表示（例如，作用于一个比 $|G|$ 小得多的集合上）提供了理论框架。
+
+2.  **轨道-稳定子定理的视角**：
+    -   一个置换表示 $\varphi: G \rightarrow \operatorname{Perm}(S)$ 的**核** $\operatorname{ker}(\varphi)$，正是作用在 $S$ 上所有元素的**稳定子** (stabilizers) 的交集：$\operatorname{ker}(\varphi) = \bigcap_{s \in S} G_s$。
+    -   一个作用是**忠实**的，当且仅当这个**核**是平凡的，即 $\bigcap_{s \in S} G_s = \{1_G\}$。这意味着没有任何一个非单位元元素能够同时“稳定住”集合中的所有元素。
+
+3.  **第一同态定理的应用**：
+    -   即使一个表示不忠实，它依然很有价值。根据**群的第一同态定理**，我们有 $G/\operatorname{ker}(\varphi) \cong \operatorname{Im}(\varphi)$。
+    -   $\operatorname{Im}(\varphi)$ 是 $\operatorname{Perm}(S)$ 的一个子群，它表示了群 $G$ 在集合 $S$ 上实际能产生的所有不同“动作效果”。
+    -   这个同构关系告诉我们，通过研究置换表示的**核**与**像**，我们可以将群 $G$ 分解，理解其结构：$G$ 在某种程度上是由“隐藏的、无所作为”的部分（**核**）和“可见的、在 $S$ 上产生实际动作”的部分（由 $G/\operatorname{ker}(\varphi)$ 体现）构成的。
+
+#### **2.3 应用价值与直观理解**
+
+-   **化抽象为具体**：置换表示是连接抽象群论和具体、组合化世界的桥梁。研究一个抽象群的性质（如其子群结构、正规子群等），可以转化为研究一个具体的置换群，后者通常更容易用计算机进行计算和分析。
+-   **几何与代数的交汇**：如 $D_n$ 的例子所示，几何对象的对称性群可以通过其对顶点、边或面的作用，被表示为置换群，从而用纯代数的方法来研究几何问题。
+-   **发现意外的联系**：如 $GL_2(\mathbb{F}_2) \cong S_3$ 的例子所示，置换表示可以揭示出在表面上毫无关联的两个代数结构（矩阵群与置换群）之间深刻的内在一致性。这在数学中是寻找普适模式和统一理论的关键一步。
+
+总之，**置换表示**不仅是一个定义，更是一种强大的思维方式。它教会我们将群视为一个“动态”的实体，通过观察它的“表演”（作用），来推断其“内心世界”（代数结构）。
+
+
+$$</div></p>
+</section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>行间公式索引</p>
+    </footer>
+
+
+    <!-- 手机端点击翻页功能 -->
+    <script>
+        (function() {
+            // 点击翻页功能（在所有设备上启用）
+            
+            document.addEventListener('click', function(e) {
+                // 如果 TOC 目录面板处于打开状态，不触发翻页
+                var tocPanel = document.getElementById('tocPanel');
+                if (tocPanel && tocPanel.classList.contains('active')) {
+                    return;
+                }
+                
+                // 排除对链接、按钮、输入框等交互元素的点击
+                var target = e.target;
+                var tagName = target.tagName.toLowerCase();
+                if (tagName === 'a' || tagName === 'button' || tagName === 'input' || 
+                    tagName === 'textarea' || tagName === 'select' || 
+                    target.closest('a') || target.closest('button') ||
+                    target.closest('.toc-panel') || target.closest('.toc-toggle') ||
+                    target.closest('.toc-overlay')) {
+                    return;
+                }
+                
+                var clickY = e.clientY;
+                var windowHeight = window.innerHeight;
+                var scrollAmount = windowHeight * 0.85; // 滚动85%的屏幕高度
+                
+                if (clickY > windowHeight / 2) {
+                    // 点击下半部分：向下翻页
+                    window.scrollBy({
+                        top: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 点击上半部分：向上翻页
+                    window.scrollBy({
+                        top: -scrollAmount,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        })();
+    </script>
+
+    <!-- TOC 目录控制脚本 -->
+    <script>
+        (function() {
+            var tocToggle = document.getElementById('tocToggle');
+            var tocPanel = document.getElementById('tocPanel');
+            var tocOverlay = document.getElementById('tocOverlay');
+            
+            // 切换目录显示/隐藏
+            function toggleTOC() {
+                var isOpen = tocPanel.classList.contains('active');
+                if (isOpen) {
+                    closeTOC();
+                } else {
+                    openTOC();
+                }
+            }
+            
+            // 打开目录
+            function openTOC() {
+                tocPanel.classList.add('active');
+                tocOverlay.classList.add('active');
+                tocToggle.setAttribute('aria-label', '关闭目录');
+            }
+            
+            // 关闭目录
+            function closeTOC() {
+                tocPanel.classList.remove('active');
+                tocOverlay.classList.remove('active');
+                tocToggle.setAttribute('aria-label', '打开目录');
+            }
+            
+            // 点击按钮切换目录
+            tocToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTOC();
+            });
+            
+            // 点击遮罩层关闭目录
+            tocOverlay.addEventListener('click', function() {
+                closeTOC();
+            });
+            
+            // 点击目录项后关闭目录
+            var tocLinks = tocPanel.querySelectorAll('a');
+            tocLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    closeTOC();
+                });
+            });
+            
+            // ESC 键关闭目录
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && tocPanel.classList.contains('active')) {
+                    closeTOC();
+                }
+            });
+            
+            // 高亮当前可见的目录条目
+            function updateActiveItem() {
+                var scrollPos = window.scrollY + 150;  // 偏移量
+                var activeSection = null;
+                var activeOriginal = null;
+                
+                // 查找当前可见的 section
+                var sections = document.querySelectorAll('section[id^="section-"]');
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    if (section.offsetTop <= scrollPos) {
+                        activeSection = section.id;
+                    }
+                }
+                
+                // 查找当前可见的原文区块
+                var originals = document.querySelectorAll('[id^="original-"]');
+                for (var j = 0; j < originals.length; j++) {
+                    var original = originals[j];
+                    if (original.offsetTop <= scrollPos) {
+                        activeOriginal = original.id;
+                    }
+                }
+                
+                // 先移除所有 active 类
+                var allHeadings = tocPanel.querySelectorAll('.toc-heading');
+                for (var h = 0; h < allHeadings.length; h++) {
+                    allHeadings[h].classList.remove('active');
+                }
+                
+                var allOriginals = tocPanel.querySelectorAll('.toc-original');
+                for (var o = 0; o < allOriginals.length; o++) {
+                    allOriginals[o].classList.remove('active');
+                }
+                
+                // 只给当前活动的条目添加 active 类
+                if (activeSection) {
+                    var activeHeadingLink = tocPanel.querySelector('.toc-heading a[href="#' + activeSection + '"]');
+                    if (activeHeadingLink) {
+                        activeHeadingLink.parentElement.classList.add('active');
+                    }
+                }
+                
+                if (activeOriginal) {
+                    var activeOriginalLink = tocPanel.querySelector('.toc-original a[href="#' + activeOriginal + '"]');
+                    if (activeOriginalLink) {
+                        activeOriginalLink.parentElement.classList.add('active');
+                    }
+                }
+            }
+            
+            // 节流函数
+            var scrollTimeout;
+            function throttledUpdate() {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(function() {
+                    updateActiveItem();
+                    scrollTimeout = null;
+                }, 100);
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', throttledUpdate);
+            
+            // 打开目录时立即更新高亮
+            var originalOpenTOC = openTOC;
+            openTOC = function() {
+                originalOpenTOC();
+                updateActiveItem();
+            };
+            
+            // 初始化
+            updateActiveItem();
+        })();
+    </script>
+</body>
+</html>

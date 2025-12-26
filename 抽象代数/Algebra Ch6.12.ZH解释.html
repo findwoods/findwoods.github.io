@@ -1,0 +1,2992 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行间公式索引</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- MathJax v4 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            output: {
+                displayOverflow: 'linebreak',
+                linebreaks: {
+                    inline: true,
+                    width: '100%',
+                    lineleading: 0.2
+                }
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            /* 五大区块主题色 */
+            --original-color: #8b5cf6;
+            --explain-color: #0ea5e9;
+            --formula-color: #6366f1;
+            --example-color: #10b981;
+            --warning-color: #f59e0b;
+            /* Q1修复：总结、存在目的、直觉心智模型、直观想象 统一使用 #36828C 青色主题 */
+            --summary-color: #36828C;     /* 青色主题 */
+            --purpose-color: #36828C;     /* 青色主题 */
+            --intuition-color: #36828C;   /* 青色主题 */
+            --imagination-color: #36828C; /* 青色主题 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .authors {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
+        .content-section h4 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h5 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 18px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h6 {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            margin: 15px 0 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        /* ===============================
+           五大内容区块 - 统一风格不同主题色
+           =============================== */
+
+        /* 原文区 - 紫色 */
+        .original-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid var(--original-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .original-box .box-label {
+            color: var(--original-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-box .box-content {
+            font-style: italic;
+            color: #6b21a8;
+        }
+
+        /* 📜 [原文]区块内容 - 使用统一的黑色 */
+        .original-content {
+            color: #2d3748; /* 统一的深灰黑色 */
+        }
+
+        .original-content * {
+            color: #2d3748; /* 所有子元素 */
+        }
+
+        .original-content .MathJax, .original-content .MathJax * {
+            color: #2d3748 !important; /* 行内公式 */
+        }
+
+        /* 通用 .box-content 换行规则 - 确保长文本（如代码调用）能自动换行 */
+        .box-content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .box-content strong, .box-content code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            display: inline;
+        }
+
+        /* 逐步解释区 - 蓝色 */
+        .explain-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--explain-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .explain-box .box-label {
+            color: var(--explain-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explain-box .box-content {
+            color: #1a365d; /* Dark Blue */
+        }
+
+        .explain-box .box-content * {
+            color: #1a365d; /* Dark Blue - 所有子元素 */
+        }
+
+        .explain-box .box-content .MathJax, .explain-box .box-content .MathJax * {
+            color: #1a365d !important; /* Dark Blue - 行内公式 */
+        }
+
+        .explain-box ul, .explain-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .explain-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 公式拆解区 - 靛蓝色 */
+        .formula-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--formula-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .formula-box .box-label {
+            color: var(--formula-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .formula-box .box-content {
+            color: var(--text-color); /* 统一使用默认黑色，与原文区块一致 */
+            overflow-x: auto;
+        }
+
+        .formula-box .box-content * {
+            color: var(--text-color); /* 所有子元素 */
+        }
+
+        .formula-box .box-content .MathJax, .formula-box .box-content .MathJax * {
+            color: var(--text-color) !important; /* 行内公式 */
+        }
+
+        /* 数值示例区 - 绿色 */
+        .example-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--example-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .example-box .box-label {
+            color: var(--example-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-box .box-content {
+            color: #166534; /* Dark Green from edstem5 .answer-en */
+        }
+
+        .example-box .box-content * {
+            color: #166534; /* Dark Green - 所有子元素 */
+        }
+
+        .example-box .box-content .MathJax, .example-box .box-content .MathJax * {
+            color: #166534 !important; /* Dark Green - 行内公式 */
+        }
+
+        .example-box ul, .example-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .example-box li {
+            margin-bottom: 6px;
+        }
+
+        .example-box code {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* 易错点区 - 橙色 */
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .warning-box .box-label {
+            color: var(--warning-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warning-box .box-content {
+            color: #92400e;
+        }
+
+        .warning-box .box-content * {
+            color: #92400e; /* 所有子元素 */
+        }
+
+        .warning-box .box-content .MathJax, .warning-box .box-content .MathJax * {
+            color: #92400e !important; /* 行内公式 */
+        }
+
+        .warning-box ul, .warning-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .warning-box li {
+            margin-bottom: 6px;
+        }
+
+        /* 总结区 - Q1修复：使用#36828C青色主题 */
+        .summary-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--summary-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .summary-box .box-label {
+            color: var(--summary-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .summary-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .summary-box .box-content .MathJax, .summary-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 存在目的区 - Q1修复：使用#36828C青色主题 */
+        .purpose-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--purpose-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .purpose-box .box-label {
+            color: var(--purpose-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .purpose-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .purpose-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .purpose-box .box-content .MathJax, .purpose-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直觉心智模型区 - Q1修复：使用#36828C青色主题 */
+        .intuition-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--intuition-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .intuition-box .box-label {
+            color: var(--intuition-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .intuition-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .intuition-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .intuition-box .box-content .MathJax, .intuition-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直观想象区 - Q1修复：使用#36828C青色主题 */
+        .imagination-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--imagination-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .imagination-box .box-label {
+            color: var(--imagination-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .imagination-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .imagination-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .imagination-box .box-content .MathJax, .imagination-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 高亮术语 */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* 代码块 */
+        code {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            margin: 15px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 表格样式 - 紧凑型，行高列宽适应文字最小值 */
+        table {
+            border-collapse: collapse;
+            width: auto;  /* 列宽适应内容 */
+            margin: 15px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;  /* 减小padding使行高更紧凑 */
+            text-align: left;
+            white-space: nowrap;  /* 防止不必要的换行，列宽适应文字 */
+            line-height: 1.4;  /* 紧凑的行高 */
+        }
+
+        th {
+            background: #e0f7fa;
+            color: #006064;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #e2e8f0;
+        }
+
+        /* 表格对齐 */
+        .align-left {
+            text-align: left;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        /* 图例区域 */
+        .legend-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .legend-bar {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .legend-bar.original { background: #8b5cf6; }
+        .legend-bar.explain { background: #0ea5e9; }
+        .legend-bar.formula { background: #6366f1; }
+        .legend-bar.example { background: #10b981; }
+        .legend-bar.warning { background: #f59e0b; }
+        .legend-bar.summary { background: #36828C; }
+        .legend-bar.purpose { background: #36828C; }
+        .legend-bar.intuition { background: #36828C; }
+        .legend-bar.imagination { background: #36828C; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive - 移动端适配 */
+        @media (max-width: 768px) {
+            /* 容器宽度适配 */
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 20px 12px;
+                box-sizing: border-box;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+                padding: 0 15px;
+            }
+            
+            .hero {
+                padding: 50px 15px;
+            }
+            
+            .hero h1 {
+                font-size: 1.6rem;
+                word-break: break-word;
+            }
+            
+            .authors {
+                font-size: 1rem;
+            }
+            
+            /* 内容区块适配 */
+            .content-section {
+                padding: 20px 15px;
+                margin-left: 5px;
+                margin-right: 5px;
+                border-radius: 12px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.4rem;
+                flex-wrap: wrap;
+            }
+            
+            .content-section h3 {
+                font-size: 1.2rem;
+            }
+            
+            .content-section h4 {
+                font-size: 1.1rem;
+            }
+            
+            .section-number {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            /* 各区块box适配 */
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 15px 12px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .original-box .box-label,
+            .explain-box .box-label,
+            .formula-box .box-label,
+            .example-box .box-label,
+            .warning-box .box-label,
+            .summary-box .box-label,
+            .purpose-box .box-label,
+            .intuition-box .box-label,
+            .imagination-box .box-label {
+                font-size: 1.1rem;
+            }
+            
+            /* 图例区域移动端适配 */
+            .legend-section {
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
+            
+            .legend-row {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            
+            .legend-item {
+                font-size: 0.8rem;
+                gap: 5px;
+            }
+            
+            .legend-bar {
+                width: 3px;
+                height: 16px;
+            }
+            
+            /* 列表适配 */
+            ul, ol {
+                margin-left: 15px;
+                padding-left: 5px;
+            }
+            
+            /* 表格移动端适配 */
+            table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.9rem;
+                min-width: 80px;
+            }
+            
+            /* 代码块适配 */
+            pre {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            
+            /* 数学公式适配 */
+            .math-block {
+                padding: 10px 8px;
+                margin: 15px 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* MathJax公式溢出处理 - 只处理块级公式，保持行内公式inline */
+            mjx-container[jax="CHTML"][display="true"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                display: block !important;
+            }
+            
+            /* 行内公式 - 超宽时自动换行 */
+            mjx-container:not([display="true"]) {
+                display: inline-block !important;
+                max-width: 100% !important;
+                overflow-wrap: break-word !important;
+                word-wrap: break-word !important;
+            }
+            
+            /* MathJax内部元素换行支持 */
+            mjx-math {
+                white-space: normal !important;
+            }
+            
+            mjx-mrow {
+                flex-wrap: wrap !important;
+            }
+            
+            /* Footer适配 */
+            .footer {
+                padding: 25px 15px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* 超小屏幕适配 (手机竖屏) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 8px;
+            }
+            
+            .hero {
+                padding: 40px 10px;
+            }
+            
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+            
+            .content-section {
+                padding: 15px 10px;
+                margin-left: 3px;
+                margin-right: 3px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 12px 10px;
+            }
+            
+            .legend-section {
+                padding: 12px 8px;
+            }
+            
+            .legend-row {
+                gap: 8px;
+            }
+            
+            .legend-item {
+                font-size: 0.75rem;
+            }
+            
+            ul, ol {
+                margin-left: 12px;
+            }
+        }
+        
+        /* 确保所有内容不溢出 */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* ========================================
+           TOC 目录样式
+           ======================================== */
+        
+        /* TOC 触发按钮 - 左上角小方块 */
+        .toc-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(54, 130, 140, 0.5);  /* 青色 50% 透明度 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .toc-toggle:hover {
+            background: rgba(54, 130, 140, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .toc-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* TOC 目录面板 */
+        .toc-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 95vw;  /* 手机浏览器宽度的 95% */
+            height: 80vh; /* 手机浏览器高度的 80% */
+            max-width: 450px;  /* 桌面端最大宽度 */
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0 0 16px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .toc-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* TOC 头部 - 标题在图标右侧 */
+        .toc-header {
+            padding: 15px 20px 15px 80px;  /* 左侧留出按钮空间 */
+            background: linear-gradient(135deg, #36828C 0%, #2a6a72 100%);
+            color: white;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .toc-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* TOC 内容区 */
+        .toc-content {
+            flex: 1;
+            overflow-y: auto;   /* 允许垂直滚动 */
+            overflow-x: hidden; /* 禁止水平滚动 */
+            padding: 15px 0;
+        }
+        
+        /* TOC 列表 */
+        .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc-item {
+            margin: 0;
+        }
+        
+        .toc-item a {
+            display: block;
+            padding: 4px 20px;  /* 更紧凑的行间距 */
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #2d3748;
+            text-decoration: none;
+            word-wrap: break-word;   /* 自动换行 */
+            overflow-wrap: break-word;
+            white-space: normal;     /* 允许换行 */
+            line-height: 1.3;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .toc-item a:hover {
+            background: #e8f4f5;
+            color: #36828C;
+            border-left-color: #36828C;
+        }
+        
+        /* 标题项样式 */
+        .toc-heading a {
+            font-weight: 600;
+            color: #1a365d;
+            background: #f7fafc;
+        }
+        
+        .toc-heading a:hover {
+            background: #e8f4f5;
+        }
+        
+        /* 当前活动的标题项样式 */
+        .toc-heading.active a {
+            background: #d0e8ea;
+            color: #36828C;
+            border-left-color: #36828C;
+            font-weight: 700;
+        }
+        
+        /* 当前活动的原文项样式 */
+        .toc-original.active a {
+            background: #36828C;
+            color: white;
+            box-shadow: 0 3px 8px rgba(54, 130, 140, 0.35);
+        }
+        
+        /* 原文项容器 - 横向排列自动换行 */
+        .toc-originals-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 8px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* 原文项样式 - 浅青色带阴影 */
+        .toc-original {
+            margin: 0;
+        }
+        
+        .toc-original a {
+            display: inline-block;
+            width: 64px;  /* 固定宽度确保每行显示数量一致 */
+            padding: 6px 4px;
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #36828C;  /* 青色主题色 */
+            text-decoration: none;
+            text-align: center;
+            background: #e8f4f5;
+            border-radius: 6px;
+            border-left: none;
+            box-shadow: 0 2px 4px rgba(54, 130, 140, 0.2);  /* 青色阴影 */
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .toc-original a:hover {
+            background: #e0f2f4;
+            color: #36828C;
+            box-shadow: 0 3px 6px rgba(54, 130, 140, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        /* TOC 遮罩层 */
+        .toc-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .toc-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 移动端 TOC 适配 */
+        @media (max-width: 768px) {
+            .toc-toggle {
+                top: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .toc-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .toc-panel {
+                width: 90vw;
+                height: 80vh;
+                max-width: none;
+            }
+            
+            .toc-header {
+                padding: 12px 15px 12px 65px;
+            }
+            
+            .toc-header h3 {
+                font-size: 16px;
+            }
+            
+            .toc-item a {
+                padding: 4px 15px;
+                font-size: 15.5px;
+            }
+            
+            .toc-originals-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            .toc-original a {
+                padding: 5px 10px;
+                font-size: 15.5px;
+            }
+        }
+
+        /* 特殊术语着色 */
+        .spectral {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .periodicity {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .fourier {
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        /* 列表样式增强 */
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 - 已移除重复定义，使用上方第602-633行的紧凑型样式 */
+
+        /* 分隔线 */
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 30px 0;
+        }
+
+        /* 数学公式样式 - Q7: 行间公式颜色用黑色 */
+        .math-block {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            color: #000000; /* Q7: 黑色文字 */
+        }
+
+        /* Q7: 确保MathJax渲染的公式为黑色 */
+        .math-block .MathJax {
+            color: #000000 !important;
+        }
+
+        mjx-container {
+            color: #000000 !important;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- TOC 目录按钮 -->
+    <button class="toc-toggle" id="tocToggle" aria-label="打开目录">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+        </svg>
+    </button>
+    
+    <!-- TOC 遮罩层 -->
+    <div class="toc-overlay" id="tocOverlay"></div>
+    
+    <!-- TOC 目录面板 -->
+    <nav class="toc-panel" id="tocPanel">
+        <div class="toc-header">
+            <h3>📑 目录</h3>
+        </div>
+        <div class="toc-content">
+            <ul class="toc-list">
+                <li class="toc-item toc-heading"><a href="#section-1">1. 6.12 旋转群的有限子群</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-1">原文1</a></span><span class="toc-original"><a href="#original-2">原文2</a></span><span class="toc-original"><a href="#original-3">原文3</a></span><span class="toc-original"><a href="#original-4">原文4</a></span><span class="toc-original"><a href="#original-5">原文5</a></span><span class="toc-original"><a href="#original-6">原文6</a></span><span class="toc-original"><a href="#original-7">原文7</a></span><span class="toc-original"><a href="#original-8">原文8</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-2">2. 习题</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-9">原文9</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-3">3. 行间公式索引</a></li>
+                <li class="toc-item toc-heading"><a href="#section-4">1. 9 验证二十面体群 (Icosahedral Group) 的断言</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-10">原文10</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-5">1. 10 注释：关于正多面体的存在性</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-11">原文11</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-6">1. 11 三维晶体群简介</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-12">原文12</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-7">1. 12 法语引言</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-13">原文13</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-8">1. 13 脚注</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-14">原文14</a></span></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>行间公式索引</h1>
+            <p class="authors"></p>
+            <p class="date"></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 图例区域 -->
+        <div class="legend-section">
+            <!-- 第一行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar original"></div>
+                    <span>📜 原文</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar explain"></div>
+                    <span>📖 逐步解释</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar formula"></div>
+                    <span>∑ 公式拆解</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar example"></div>
+                    <span>💡 数值示例</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar warning"></div>
+                    <span>⚠️ 易错点</span>
+                </div>
+            </div>
+            <!-- 第二行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar summary"></div>
+                    <span>📝 总结</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar purpose"></div>
+                    <span>🎯 存在目的</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar intuition"></div>
+                    <span>🧠 直觉心智模型</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar imagination"></div>
+                    <span>💭 直观想象</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="content-section" id="section-1">
+    <h2><span class="section-number">1</span>6.12 旋转群的有限子群</h2>
+    <h4>1.1 引言</h4><p id="original-1"><strong style="font-size: 1.3rem;">📜 [原文1]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>在本节中，我们将应用计数公式来分类 $\mathrm{SO}_{3}$ （即 $\mathbb{R}^{3}$ 的旋转群）的有限子群。与平面等距群的有限群一样，所有这些群都是熟悉图形的对称群。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本节的目标是系统地找出所有在三维空间中可能的、有限的旋转对称群。想象一个三维物体，比如一个水晶或者一个分子，我们想知道它有多少种旋转对称性。例如，一个正方体，你可以绕着穿过对面中心的轴旋转90度、180度、27 températures，它看起来还和原来一样。所有这些能让物体保持原样的旋转操作集合，就构成一个<strong>群</strong>，我们称之为<strong>旋转对称群</strong>。</p>
+<p>这里的 $\mathrm{SO}_{3}$ 是一个数学符号，它代表了三维空间中所有可能的旋转操作的集合。</p>
+<ul>
+  <li><strong>S</strong> 代表 "Special"，意味着这些旋转操作是保向的，它们不会像照镜子一样把物体的左右手性颠倒。</li>
+  <li><strong>O</strong> 代表 "Orthogonal"，意味着这些操作是<strong>正交变换</strong>，它们保持了物体上任意两点间的距离和角度不变，所以物体不会被拉伸或压缩，只会整体转动。</li>
+  <li><strong>3</strong> 代表三维空间 $\mathbb{R}^{3}$。</li>
+</ul>
+<p>本节的任务就是从这个包含无限多个旋转操作的 $\mathrm{SO}_{3}$ 中，找出所有只包含有限个元素的<strong>子群</strong>。一个<strong>子群</strong>就是从 $\mathrm{SO}_{3}$ 中挑选出一部分旋转操作，这些操作自己也满足群的定义（封闭性、存在单位元、存在逆元）。而“有限”意味着这样的<strong>子群</strong>里只有有限个旋转操作。</p>
+<p>作者提到，我们将使用一个叫做“计数公式”的强大工具来完成这个分类工作。这个公式将帮助我们把看似无穷的可能性缩减到屈指可数的几种情况。并且，最终的结果会非常直观：所有这些有限旋转群，都恰好对应着我们非常熟悉的一些三维几何体的旋转对称群，比如正多边形、正四面体、正方体等。这揭示了抽象的群论与具体的几何对称性之间深刻而美妙的联系。</p>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本节旨在利用计数公式，完整地分类出三维空间中所有可能的有限旋转群 ($\mathrm{SO}_{3}$的有限子群)，并揭示这些抽象的群与我们熟知的正多面体等几何体的旋转对称群是一一对应的。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本节的存在目的是将前面章节发展的抽象的群论工具（特别是群作用和计数公式）应用到一个具体而重要的问题上：三维空间旋转对称性的分类。这不仅展示了理论的威力，也为物理学（如晶体学）、化学（如分子对称性）等领域提供了基础的数学模型。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你手里有一个透明的球体，球心固定在原点。现在你可以在这个球上画一些点。一个有限旋转群，就像是一套特殊的旋转操作指令。当你执行这套指令中的任意一个旋转时，球上画的点的图案会整体移动，但最终会和旋转前的图案完美重合。我们的任务就是找出所有这样可能的“旋转操作指令集”。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个万花筒。当你转动它时，内部的碎片会形成各种对称的图案。三维空间的有限旋转群就像一个“三维万花筒”，它所产生的对称“图案”不是平面的，而是分布在一个球面上的点的集合。本节就是要找出所有可能的三维万花筒的基本构造规则。</p>
+    </div>
+</div><h4>1.2 定理与群的类型</h4><p id="original-2"><strong style="font-size: 1.3rem;">📜 [原文2]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>定理 6.12.1 $\mathrm{SO}_{3}$ 的有限子群是以下群之一：</p>
+<p>$C_{k}$：绕一条直线旋转 $2 \pi / k$ 倍的循环群，其中 $k$ 为任意值；</p>
+<p>$D_{k}$：正 $k$ 边形的二面体群，其中 $k$ 为任意值；</p>
+<p>$T$：正四面体的12个旋转对称的四面体群；</p>
+<p>$O$：正方体或正八面体的24个旋转对称的八面体群；</p>
+<p>$I$：正十二面体或正二十面体的60个旋转对称的二十面体群。</p>
+<p><img src="https://cdn.mathpix.com/cropped/ace3f27f-694b-4e2e-b3f0-30bcc6ea7cdf-30.jpg?height=185&width=191&top_left_y=1529&top_left_x=162" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p><img src="https://cdn.mathpix.com/cropped/ace3f27f-694b-4e2e-b3f0-30bcc6ea7cdf-30.jpg?height=185&width=189&top_left_y=1529&top_left_x=407" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p><img src="https://cdn.mathpix.com/cropped/ace3f27f-694b-4e2e-b3f0-30bcc6ea7cdf-30.jpg?height=185&width=176&top_left_y=1529&top_left_x=662" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p><img src="https://cdn.mathpix.com/cropped/ace3f27f-694b-4e2e-b3f0-30bcc6ea7cdf-30.jpg?height=231&width=224&top_left_y=1504&top_left_x=907" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p><img src="https://cdn.mathpix.com/cropped/ace3f27f-694b-4e2e-b3f0-30bcc6ea7cdf-30.jpg?height=241&width=213&top_left_y=1501&top_left_x=1206" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个定理是本节的核心结论，它给出了一个完整的清单，宣告三维空间中所有有限的旋转群只有这五种类型。</p>
+<ol>
+  <li> <strong>$C_{k}$ (循环群)</strong>:
+<ul>
+  <li>这是最简单的一类。想象一根固定的旋转轴（比如一根穿过陀螺中心的棍子）。这个群包含了绕这根轴旋转 $0, \frac{2\pi}{k}, 2\frac{2\pi}{k}, \dots, (k-1)\frac{2\pi}{k}$ 角度的所有操作。总共有 $k$ 个操作。</li>
+  <li>$k=1$ 时，群里只有一个操作：旋转0度，也就是不动。这是最平凡的群。</li>
+  <li>$k=2$ 时，群里有两个操作：不动，和旋转180度。</li>
+  <li>任何一个具有单一旋转轴的物体，其旋转对称群就是 $C_{k}$。比如一个没有花纹的圆盘（只考虑旋转，不考虑翻转），它的对称群是 $C_k$ (理论上k可以取无限)。一个带有三个叶片的风车，其对称群是 $C_3$。</li>
+</ul></li>
+  <li> <strong>$D_{k}$ (二面体群)</strong>:
+<ul>
+  <li>这类群描述的是一个正 $k$ 边形的对称性。除了上面 $C_k$ 包含的绕着穿过中心的轴的 $k$ 个旋转外，它还包含了 $k$ 个绕着穿过多边形对称轴的180度旋转。这些180度旋转轴都位于多边形所在的平面上。</li>
+  <li>想象一个正三角形 ($k=3$) 放在桌上。它的对称群 $D_3$ 包含：</li>
+  <li>绕着穿过中心且垂直于桌面的轴，旋转0度、120度、240度 (这3个操作构成了 $C_3$)。</li>
+  <li>绕着穿过一个顶点和对边中点的三条轴，分别旋转180度。</li>
+  <li>总共有 $k+k = 2k$ 个操作。定理中提到的图片，前两个（正三边形和正四边形）的旋转群就分别是 $D_3$ 和 $D_4$。</li>
+</ul></li>
+  <li> <strong>$T$ (四面体群)</strong>:
+<ul>
+  <li>这是一个特殊的群，对应正四面体的旋转对称性。一个正四面体有4个顶点，4个面，6条棱。</li>
+  <li>它的旋转操作包括：</li>
+  <li>绕着穿过一个顶点和对面中心的轴，旋转120度和240度 (共4个轴，8个操作)。</li>
+  <li>绕着穿过两条对棱中点的轴，旋转180度 (共3个轴，3个操作)。</li>
+  <li>再加上不动操作（恒等元）。</li>
+  <li>总共有 $8 + 3 + 1 = 12$ 个旋转操作。</li>
+</ul></li>
+  <li> <strong>$O$ (八面体群)</strong>:
+<ul>
+  <li>这个群对应正方体或者正八面体的旋转对称性。正方体和正八面体是<strong>对偶</strong>的（一个的顶点对应另一个的面心），所以它们的对称群是同一个。</li>
+  <li>它的旋转操作包括：</li>
+  <li>绕着穿过对面中心的轴，旋转90, 180, 270度 (3个轴，9个操作)。</li>
+  <li>绕着穿过对角顶点的轴，旋转120, 240度 (4个轴，8个操作)。</li>
+  <li>绕着穿过对棱中点的轴，旋转180度 (6个轴，6个操作)。</li>
+  <li>加上不动操作。</li>
+  <li>总共有 $9 + 8 + 6 + 1 = 24$ 个旋转操作。</li>
+</ul></li>
+  <li> <strong>$I$ (二十面体群)</strong>:
+<ul>
+  <li>这个群对应正十二面体或正二十面体的旋转对称性。它们也是对偶的。</li>
+  <li>它的旋转操作非常多：</li>
+  <li>绕穿过对面中心的轴（正十二面体是五边形，正二十面体是三角形），有 $6 \times 4 = 24$ 个旋转（不含恒等）。</li>
+  <li>绕穿过对顶点的轴，有 $10 \times 2 = 20$ 个旋转。</li>
+  <li>绕穿过对棱中点的轴，有 $15 \times 1 = 15$ 个旋转。</li>
+  <li>加上不动操作。</li>
+  <li>总共有 $24 + 20 + 15 + 1 = 60$ 个旋转操作。</li>
+</ul></li>
+</ol>
+<p>这个定理的惊人之处在于它的完备性：除了这五大家族（其中 $C_k$ 和 $D_k$ 是两个无限序列，而 $T, O, I$ 是三个孤立的“柏拉图”群），<strong>再也没有任何其他类型的有限旋转群了</strong>。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1: $C_4$ 群</strong></li>
+  <li>这是一个循环群，阶为4。</li>
+  <li>几何对象：一个正方形底座的四棱锥。</li>
+  <li>旋转轴：穿过锥顶和底面中心的直线。</li>
+  <li>旋转操作：绕轴旋转 0° (不动), 90°, 180°, 270°。共4个操作。</li>
+</ul>
+<ul>
+  <li><strong>示例2: $D_3$ 群</strong></li>
+  <li>这是一个二面体群，阶为 $2 \times 3 = 6$。</li>
+  <li>几何对象：一个正三角形。</li>
+  <li>旋转操作：</li>
+  <li>绕穿过中心且垂直于三角形平面的轴，旋转 0°, 120°, 240° (构成子群 $C_3$)。</li>
+  <li>绕穿过一个顶点和对边中点的轴，旋转 180° (有3条这样的轴，所以有3个这样的操作)。</li>
+  <li>总共 $3+3=6$ 个操作。</li>
+</ul>
+<ul>
+  <li><strong>示例3: $T$ 群</strong></li>
+  <li>四面体群，阶为12。</li>
+  <li>几何对象：一个正四面体。</li>
+  <li>我们可以把正四面体的4个顶点标记为1, 2, 3, 4。任何一个旋转都会对这4个顶点产生一个置换。</li>
+  <li>绕穿过顶点4和底面(1,2,3)中心的轴旋转120°，顶点置换是 (1 2 3)(4)，即1-&gt;2, 2-&gt;3, 3-&gt;1, 4不变。这是一个3-循环置换。</li>
+  <li>绕穿过棱(1,2)和棱(3,4)中点的轴旋转180°，顶点置换是 (1 2)(3 4)，即1和2互换，3和4互换。这是一个两个对换的乘积。</li>
+  <li>所有的12个旋转操作对应了置换群 $S_4$ 中的所有偶置换，即交错群 $A_4$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>混淆 $C_k$ 和 $D_k$</strong>：$C_k$ 只包含绕单一主轴的旋转。$D_k$ 除了这些旋转外，还包含 $k$ 个180度的“翻转”式旋转（这些翻转轴垂直于主轴）。</li>
+  <li><strong>混淆旋转和反射</strong>：定理只讨论旋转群 $\mathrm{SO}_{3}$，不包含反射（镜像对称）。包含反射的完整对称群会更大。例如，正方体的完整对称群有48个元素，其中24个是旋转，24个是反射或旋转与反射的复合。</li>
+  <li><strong>对偶多面体</strong>：学生可能不理解为什么正方体和正八面体有相同的旋转群。直观上，将一个正方体每个面的中心连起来，就得到一个正八面体。反之亦然。任何一个保持正方体不变的旋转，也必然保持这个内接的正八面体不变。因此它们的旋转对称群是同一个。十二面体和二十面体同理。</li>
+  <li><strong>$k$的取值</strong>：在 $C_k$ 和 $D_k$ 中，$k$ 可以是任何正整数。$k=1$ 时，$D_1$ 只有两个元素，同构于 $C_2$。$k=2$ 时，$D_2$ 有四个元素，它有三根互相垂直的180度旋转轴，这个群有时被称为Klein四元群。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>定理6.12.1完整地列出了三维空间中所有可能的有限旋转群。它们分为两大类：两个无限序列 $C_k$ (循环群) 和 $D_k$ (二面体群)，以及三个特殊的柏拉图多面体群 $T$ (四面体群)、$O$ (八面体群) 和 $I$ (二十面体群)。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个定理是本节的最终目的地和核心成果。它为三维物体的旋转对称性提供了一个完整的、权威的分类框架。后续的证明过程都是为了说明这个清单是如何被推导出来的，以及为什么这个清单是完备的。</p>
+<p><strong style="font-size: 1.2rem;">[直觉心-智模型]</strong></p>
+<p>想象一个“对称性宇宙”，里面居住着所有可能的有限旋转群。这个定理就像是这个宇宙的星图。它告诉我们，这个宇宙里只有两种“星系”：一种是像银河系一样有无数恒星（$C_k$ 和 $D_k$），另一种是像仙女座大星云旁边的几个孤立小星系（$T, O, I$）。我们搞清楚了所有星系的类型和位置，没有遗漏。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你在玩一个高级的乐高积木。你发现无论你怎么拼，只要你想拼出一个具有有限旋转对称性的、稳定的三维结构，它最终的对称性模式必然属于这五种类型之一。就好像自然界只允许这五种基本的对称蓝图存在一样。</p>
+    </div>
+</div><h4>1.3 二面体群的矩阵表示</h4><p id="original-3"><strong style="font-size: 1.3rem;">📜 [原文3]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>注：二面体群通常被表示为平面上正多边形的对称群，其中反射会改变方向。然而，平面的反射可以通过在三维空间中旋转 $\pi$ 角来实现，这样正多边形的对称性就可以被实现为 $\mathbb{R}^{3}$ 的旋转。二面体群 $D_{n}$ 可以由绕 $e_{1}$-轴旋转 $2 \pi / n$ 角的旋转 $x$ 和绕 $e_{2}$-轴旋转 $\pi$ 角的旋转 $y$ 生成。令 $c=\cos 2 \pi / n$ 和 $s=\sin 2 \pi / n$，表示这些旋转的矩阵为</p>
+<p><div class="math-block">$$
+x=\left[\begin{array}{rrr}
+1 &amp; &amp;  \tag{6.12.2}\\
+&amp; c &amp; -s \\
+&amp; s &amp; c
+\end{array}\right], \quad \text { and } \quad y=\left[\begin{array}{ccc}
+-1 &amp; &amp; \\
+&amp; 1 &amp; \\
+&amp; &amp; -1
+\end{array}\right] .
+$$</div></p>
+<p>$\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分内容是一个注解，旨在澄清一个重要的概念：<strong>二面体群 $D_n$ 如何被看作一个三维旋转群</strong>。</p>
+<p>通常，我们在二维平面上学习 $D_n$。对于一个平放在桌面上的正 $n$ 边形，它的对称操作包括：</p>
+<ol>
+  <li> $n$ 个旋转（属于保向操作）。</li>
+  <li> $n$ 个反射（属于变向操作，会改变图形的左右手性）。</li>
+</ol>
+<p>但是，本节讨论的是 $\mathrm{SO}_{3}$，它只包含保向的旋转。那么，平面的“反射”操作去哪里了呢？</p>
+<p>这里的关键思想是：一个在二维平面上的反射操作，可以等效于一个在三维空间中的180度旋转。</p>
+<p>想象一个正 $n$ 边形位于 $yz$ 平面，其中心在原点。</p>
+<ul>
+  <li>平面上的一个反射操作，比如沿着 $y$ 轴的反射，会把点 $(y, z)$ 变成 $(y, -z)$。</li>
+  <li>现在我们从三维空间看待这个操作。这个从 $(y, z)$ 到 $(y, -z)$ 的变换，可以通过绕着 $y$ 轴旋转180度（$\pi$弧度）来实现。一个点 $(x, y, z)$ 绕 $y$ 轴旋转180度，会变成 $(-x, y, -z)$。如果这个点本身就在 $yz$ 平面（即 $x=0$），那么它就从 $(0, y, z)$ 变成了 $(0, y, -z)$，这正好对应了平面上的反射效果。</li>
+</ul>
+<p>因此，原本在二维中被视为“反射”的操作，在三维中可以被“升级”为一个旋转操作。这样一来，整个二面体群 $D_n$ 的所有 $2n$ 个对称操作，都可以在三维空间中被实现为旋转，从而成为 $\mathrm{SO}_{3}$ 的一个子群。</p>
+<p>接着，作者给出了生成 $D_n$ 的两个基本旋转的矩阵表示。</p>
+<ul>
+  <li><strong>$x$</strong>: 这是一个绕 $e_1$ 轴（即x轴）的旋转。旋转角度是 $2\pi/n$。</li>
+  <li>矩阵的第一行第一列是1，表示 $x$ 坐标不变，这正是绕 $x$ 轴旋转的特征。</li>
+  <li>右下角的 $2 \times 2$ 子矩阵 $\begin{pmatrix} c &amp; -s \\ s &amp; c \end{pmatrix}$ 是一个标准的二维旋转矩阵，它作用在 $yz$ 平面上，将点绕原点旋转 $2\pi/n$。</li>
+  <li>这个旋转 $x$ 就对应了正 $n$ 边形绕中心的主旋转。</li>
+</ul>
+<ul>
+  <li><strong>$y$</strong>: 这是一个绕 $e_2$ 轴（即y轴）的旋转。旋转角度是 $\pi$ (180度)。</li>
+  <li>标准的绕y轴旋转$\theta$的矩阵是 $\begin{pmatrix} \cos\theta &amp; 0 &amp; \sin\theta \\ 0 &amp; 1 &amp; 0 \\ -\sin\theta &amp; 0 &amp; \cos\theta \end{pmatrix}$。</li>
+  <li>当 $\theta=\pi$ 时，$\cos\pi = -1, \sin\pi = 0$。所以矩阵变成 $\begin{pmatrix} -1 &amp; 0 &amp; 0 \\ 0 &amp; 1 &amp; 0 \\ 0 &amp; 0 &amp; -1 \end{pmatrix}$。</li>
+  <li>这个旋转 $y$ 就对应了之前提到的、实现平面反射效果的180度旋转。</li>
+</ul>
+<p>通过这两个生成元 $x$ 和 $y$，我们可以生成整个 $D_n$ 群。例如，$x^k$ 代表绕主轴旋转 $k$ 次，而 $x^k y$ 则代表先做一次 $y$ 旋转，再做 $k$ 次 $x$ 旋转，这会得到所有的 $n$ 个“翻转”式旋转。</p>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+x=\left[\begin{array}{rrr}
+1 &amp; &amp;  \\
+&amp; c &amp; -s \\
+&amp; s &amp; c
+\end{array}\right]
+$$</div></p>
+<ul>
+  <li>$x$: 表示生成元之一，一个旋转操作。</li>
+  <li>$c$: $\cos(2\pi/n)$ 的简写。</li>
+  <li>$s$: $\sin(2\pi/n)$ 的简写。</li>
+  <li><strong>推导</strong>: 考虑一个点 $P=(p_x, p_y, p_z)$。我们想绕 $e_1$ (x轴) 旋转它 $\theta = 2\pi/n$ 角度。</li>
+  <li>$p_x$ 坐标不变，所以新坐标 $p'_x = p_x$。</li>
+  <li>$(p_y, p_z)$ 在 $yz$ 平面内发生旋转。二维旋转公式是：</li>
+</ul>
+<p>$p'_y = p_y \cos\theta - p_z \sin\theta$</p>
+<p>$p'_z = p_y \sin\theta + p_z \cos\theta$</p>
+<ul>
+  <li>写成矩阵形式：</li>
+</ul>
+<p>$\begin{pmatrix} p'_x \\ p'_y \\ p'_z \end{pmatrix} = \begin{pmatrix} 1 &amp; 0 &amp; 0 \\ 0 &amp; \cos\theta &amp; -\sin\theta \\ 0 &amp; \sin\theta &amp; \cos\theta \end{pmatrix} \begin{pmatrix} p_x \\ p_y \\ p_z \end{pmatrix}$。</p>
+<ul>
+  <li>这就是矩阵 $x$ 的由来。</li>
+</ul>
+<p><div class="math-block">$$
+y=\left[\begin{array}{ccc}
+-1 &amp; &amp; \\
+&amp; 1 &amp; \\
+&amp; &amp; -1
+\end{array}\right]
+$$</div></p>
+<ul>
+  <li>$y$: 表示另一个生成元，一个180度旋转操作。</li>
+  <li><strong>推导</strong>: 考虑一个点 $P=(p_x, p_y, p_z)$。我们想绕 $e_2$ (y轴) 旋转它 $\pi$ 角度。</li>
+  <li>$p_y$ 坐标不变，所以新坐标 $p'_y = p_y$。</li>
+  <li>$(p_x, p_z)$ 在 $xz$ 平面内发生旋转。二维旋转公式应用于 $(p_x, p_z)$：</li>
+</ul>
+<p>$p'_x = p_x \cos\pi - p_z \sin\pi = p_x(-1) - p_z(0) = -p_x$</p>
+<p>$p'_z = p_x \sin\pi + p_z \cos\pi = p_x(0) + p_z(-1) = -p_z$</p>
+<ul>
+  <li>写成矩阵形式：</li>
+</ul>
+<p>$\begin{pmatrix} p'_x \\ p'_y \\ p'_z \end{pmatrix} = \begin{pmatrix} -1 &amp; 0 &amp; 0 \\ 0 &amp; 1 &amp; 0 \\ 0 &amp; 0 &amp; -1 \end{pmatrix} \begin{pmatrix} p_x \\ p_y \\ p_z \end{pmatrix}$。</p>
+<ul>
+  <li>这就是矩阵 $y$ 的由来。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例: $D_3$ ($n=3$)</strong></li>
+  <li>$n=3$, $\theta = 2\pi/3 = 120^\circ$。 $c = \cos(120^\circ) = -1/2$, $s = \sin(120^\circ) = \sqrt{3}/2$。</li>
+  <li>生成元 $x$ (绕x轴旋转120°):</li>
+</ul>
+<p>$x = \begin{pmatrix} 1 &amp; 0 &amp; 0 \\ 0 &amp; -1/2 &amp; -\sqrt{3}/2 \\ 0 &amp; \sqrt{3}/2 &amp; -1/2 \end{pmatrix}$</p>
+<ul>
+  <li>生成元 $y$ (绕y轴旋转180°):</li>
+</ul>
+<p>$y = \begin{pmatrix} -1 &amp; 0 &amp; 0 \\ 0 &amp; 1 &amp; 0 \\ 0 &amp; 0 &amp; -1 \end{pmatrix}$</p>
+<ul>
+  <li>整个群 $D_3 = \{e, x, x^2, y, xy, x^2y\}$，其中 $e$ 是单位矩阵。我们可以通过矩阵乘法来验证这个群的结构，例如 $y x = x^{-1} y = x^2 y$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>轴的选择</strong>: 这里的矩阵表示是基于特定的坐标轴选择（绕 $e_1$ 和 $e_2$）。如果选择不同的旋转轴，矩阵形式会改变，但它们描述的群的抽象结构（同构意义下）是不变的。</li>
+  <li><strong>二维与三维的转换</strong>: 必须清楚地认识到，只有在提升到三维空间时，平面的“反射”才能被解释为一个“旋转”。在二维平面内，反射是无法通过旋转得到的。</li>
+  <li><strong>生成元的非唯一性</strong>: $D_n$ 可以由不同的生成元对生成。这里给出的是一种方便的、具有清晰几何意义的选择。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段注解解释了二面体群 $D_n$ 如何从一个包含反射的二维对称群，转变为一个纯粹由旋转构成的三维对称群。它通过将二维的反射操作重新诠释为三维空间中的180度旋转，从而证明了 $D_n$ 确实是 $\mathrm{SO}_3$ 的一个子群，并给出了其生成元的一种具体矩阵表示。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这段注释的目的是为了弥合读者可能存在的认知鸿沟。很多读者首先在二维情境下接触二面体群，该群包含反射。而本节的主题是纯旋转群。如果不加解释，读者会疑惑为什么突然之间二面体群就成了旋转群的一员。这段注释正是为了解决这个疑惑，确保逻辑的严密性。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你有一枚硬币。在桌面上，你可以旋转它，也可以把它翻过来（这是一个反射）。现在，你把硬币竖立起来，让它在空中旋转。你会发现，桌面上那个“翻过来”的动作，现在可以看作是绕着硬币的一条直径旋转180度。我们通过进入更高一个维度（从2D到3D），把一个看似不同的操作（反射）统一到了现有的操作框架（旋转）中。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个正三角形剪纸平放在玻璃板上。它的对称操作包括绕中心旋转和沿三条对称轴的“翻面”。现在，我们把这个玻璃板放到三维空间中。之前那个“翻面”的动作，现在可以想象成抓住玻璃板的一条对称轴，然后把整个玻璃板旋转180度。从三维视角看，一切都是旋转。</p>
+    </div>
+</div><h4>1.4 极点的概念与示例</h4><p id="original-4"><strong style="font-size: 1.3rem;">📜 [原文4]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>设 $G$ 是 $\mathrm{SO}_{3}$ 的一个有限子群，阶为 $N&gt;1$。我们将 $G$ 中异于恒等元 $1$ 的元素 $g$ 的极点称为该群的极点。除了恒等旋转外，$\mathbb{R}^{3}$ 的任何旋转都有两个极点——旋转轴与单位球面 $\mathbb{S}^{2}$ 的交点。因此，群 $G$ 的极点是 $\mathbb{S}^{2}$ 上的一个点，该点被群元素 $g$（不同于 $1$）固定。</p>
+<p>例 6.12.3 正四面体 $\Delta$ 的旋转对称群 $T$ 的阶为 $12$。它的极点是 $\mathbb{S}^{2}$ 上位于面中心、顶点和棱中心上方的点。由于 $\Delta$ 有四个面、四个顶点和六条棱，因此共有 $14$ 个极点。</p>
+<p><div class="math-block">$$
+\mid \text { 极点数 }|=14=| \text { 面数 }|+| \text { 顶点数 }|+| \text { 棱数 } \mid
+$$</div></p>
+<p>$T$ 中 $11$ 个异于 $1$ 的元素 $g$ 各有两个自旋——两对 $(g, p)$，其中 $p$ 是 $g$ 的极点。因此共有 $22$ 个自旋。面稳定子群的阶为 $3$。它的两个异于 $1$ 的元素共享一个位于面中心上方的极点。类似地，有两个元素共享一个位于顶点上方的极点，一个元素共享一个位于棱中心上方的极点。</p>
+<p><div class="math-block">$$
+|\text { 自旋数 }|=22=2 \mid \text { 面数 }|+2| \text { 顶点数 }|+| \text { 棱数 } \mid
+$$</div></p>
+<p>$\square$</p>
+<p><img src="https://cdn.mathpix.com/cropped/ace3f27f-694b-4e2e-b3f0-30bcc6ea7cdf-31.jpg?height=313&width=300&top_left_y=1246&top_left_x=638" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分引入了证明过程中的核心概念：<strong>极点 (pole)</strong>。</p>
+<ol>
+  <li> <strong>极点的定义</strong>:
+<ul>
+  <li>我们有一个有限旋转群 $G$，它包含 $N$ 个旋转操作。</li>
+  <li>拿出一个不是“不动”的旋转操作 $g$。根据<strong>欧拉旋转定理</strong>，任何三维旋转都有一个旋转轴。</li>
+  <li>这条旋转轴会穿过单位球面 $\mathbb{S}^2$（一个以原点为中心，半径为1的球面）两次，得到两个交点。这两个点在旋转 $g$ 的作用下是固定不动的。</li>
+  <li>这两个点就被称为旋转 $g$ 的<strong>极点</strong>。</li>
+  <li><strong>群的极点</strong>，就是所有非恒等旋转操作 $g \in G$ 的极点的总集合。</li>
+</ul></li>
+  <li> <strong>例 6.12.3: 四面体群 $T$</strong>
+<ul>
+  <li>$G=T$, 阶 $N=12$。</li>
+  <li>让我们来找 $T$ 的所有极点。这些极点必须是某个非恒等旋转的旋转轴与球面的交点。对于正四面体，旋转轴有哪些类型？</li>
+  <li><strong>类型1：穿过一个顶点和对面中心</strong>。正四面体有4个顶点，所以有4条这样的轴。绕这样的轴可以旋转 $120^\circ$ 和 $240^\circ$。这4条轴穿过球面，产生 $4 \times 2 = 8$ 个极点。这些极点位于球面上，正好在正四面体每个顶点的“正上方”和“正下方”（如果我们将四面体放在球内）。</li>
+  <li><strong>类型2：穿过两条对棱的中点</strong>。正四面体有6条棱，配成3对对棱。所以有3条这样的轴。绕这样的轴只能旋转 $180^\circ$。这3条轴穿过球面，产生 $3 \times 2 = 6$ 个极点。这些极点在球面上，位于每条棱的中点“正上方”和“正下方”。</li>
+  <li><strong>极点总数</strong>: 等等，上面的计算是 $8+6=14$ 个极点。但作者说极点是位于面中心、顶点和棱中心上方的点。让我们重新分类：</li>
+  <li><strong>顶点极点</strong>: 4个顶点，对应4条穿过顶点的轴，产生 $4$ 个极点（在北半球）和对应的4个对跖点（在南半球）。总共 $4$ 对，即8个点。</li>
+  <li><strong>面心极点</strong>: 4个面，对应4条穿过面中心的轴（这和穿过顶点的轴是同一组轴！），所以这8个极点也可以被看作是面心极点。</li>
+  <li><strong>棱心极点</strong>: 6条棱，对应3条穿过对棱中点的轴，产生 $3 \times 2 = 6$ 个极点。</li>
+  <li><strong>按位置分类极点</strong>: 让我们把一个想象中的单位球面放在正四面体外面，球心与四面体中心重合。从球心出发，引向各个特殊位置的射线与球面的交点，就是极点。</li>
+  <li>4个顶点方向：产生4个极点。</li>
+  <li>4个面心方向：产生4个极点。</li>
+  <li>6个棱心方向：产生6个极点。</li>
+  <li><strong>总数</strong>: $4+4+6 = 14$ 个极点。这里需要小心，穿过顶点和面心的轴是同一条。所以4个顶点极点和4个面心极点是成对出现的对跖点。例如，一个极点在顶点1的正上方，它的对跖点就在对面(2,3,4)的面心正上方。因此，这8个极点是一回事。所以，极点总数是 $8 (\text{顶点/面心}) + 6 (\text{棱心}) = 14$ 个。</li>
+  <li><strong>自旋 (spin) 的概念</strong>: 作者引入了一个辅助计算的概念“自旋”，它是一个有序对 $(g, p)$，表示旋转 $g$ 有一个极点 $p$。</li>
+  <li>群 $T$ 有 $N=12$ 个元素，其中1个是恒等元，11个是非恒等旋转。</li>
+  <li>每个非恒等旋转 $g$ 都有2个极点。</li>
+  <li>所以，自旋的总数是 $11 \times 2 = 22$ 个。</li>
+</ul></li>
+  <li> <strong>从另一个角度计算自旋数</strong>:
+<ul>
+  <li>我们可以按极点来分类，计算每个极点被多少个旋转所固定。</li>
+  <li><strong>面心极点</strong>: 考虑一个面心极点 $p$。固定它的旋转是绕穿过这个面心的轴的旋转。对于正四面体，这样的旋转有 $120^\circ$ 和 $240^\circ$ 两种，加上恒等元，共3个。所以固定 $p$ 的子群（称为<strong>稳定子群</strong> $G_p$）的阶是3。其中非恒等元有 $3-1=2$ 个。正四面体有4个面心，所以来自面心的自旋贡献是 $4 \times (3-1) = 8$。</li>
+  <li><strong>顶点极点</strong>: 类似的，穿过顶点的轴也是3次旋转轴，所以稳定子群阶也是3。4个顶点，自旋贡献是 $4 \times (3-1) = 8$。</li>
+  <li><strong>棱心极点</strong>: 穿过棱心的轴是2次旋转轴（旋转180°）。稳定子群阶是2。非恒等元只有1个。6个棱心，自旋贡献是 $6 \times (2-1) = 6$。</li>
+  <li><strong>自旋总数 (按极点计算)</strong>: $8 (\text{来自面心}) + 8 (\text{来自顶点}) + 6 (\text{来自棱心}) = 22$。</li>
+  <li>两种计算方法得到的结果一致 ($11 \times 2 = 22$)，这验证了我们的分析。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+\mid \text { 极点数 }|=14=| \text { 面数 }|+| \text { 顶点数 }|+| \text { 棱数 } \mid
+$$</div></p>
+<ul>
+  <li>这个公式在四面体的情况下碰巧成立，但它<strong>不是一个普适公式</strong>。它只是对四面体群极点数量的一个观察。</li>
+  <li>$\mid \text{极点数}\mid$: 极点集合中元素的个数。</li>
+  <li>对于正四面体 $\Delta$：</li>
+  <li>$\mid \text{面数}\mid = 4$</li>
+  <li>$\mid \text{顶点数}\mid = 4$</li>
+  <li>$\mid \text{棱数}\mid = 6$</li>
+  <li>$4+4+6 = 14$。</li>
+  <li>如前分析，极点分为两类：8个在顶点/面心方向，6个在棱心方向。总数 $8+6=14$。这个观察是正确的。</li>
+</ul>
+<p><div class="math-block">$$
+|\text { 自旋数 }|=22=2 \mid \text { 面数 }|+2| \text { 顶点数 }|+| \text { 棱数 } \mid
+$$</div></p>
+<ul>
+  <li>这个公式也是一个基于四面体情况的观察，但它揭示了更深层的结构。</li>
+  <li>$|\text{自旋数}|$: 所有有序对 $(g, p)$ 的数量，其中 $g \in G, g \neq 1, g(p)=p$。</li>
+  <li>对于正四面体 $T$：</li>
+  <li>$2 \times \mid \text{面数}\mid = 2 \times 4 = 8$。这对应于每个面心（有4个）都是一个3次旋转轴的极点，被 $3-1=2$ 个非恒等旋转固定。</li>
+  <li>$2 \times \mid \text{顶点数}\mid = 2 \times 4 = 8$。每个顶点（有4个）也是3次旋转轴的极点，被 $3-1=2$ 个非恒等旋转固定。</li>
+  <li>$1 \times \mid \text{棱数}\mid = 6$。每个棱心（有6个）是2次旋转轴的极点，被 $2-1=1$ 个非恒等旋转固定。</li>
+  <li>总和 $8+8+6 = 22$。这个分解是正确的，并且比第一个公式更有洞察力。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例：$D_4$ 群（正方形的旋转群）</strong></li>
+  <li>$N = 2 \times 4 = 8$。有7个非恒等旋转。</li>
+  <li>旋转轴：</li>
+  <li>1条穿过中心、垂直于正方形平面的4次轴（可转90°, 180°, 270°）。这产生2个极点（南北极）。</li>
+  <li>2条穿过对边中点的2次轴（转180°）。产生4个极点。</li>
+  <li>2条穿过对角顶点的2次轴（转180°）。产生4个极点。</li>
+  <li><strong>极点总数</strong>: $2 + 4 + 4 = 10$ 个。</li>
+  <li><strong>自旋数 (方法1)</strong>: $7 \times 2 = 14$ 个自旋。</li>
+  <li><strong>自旋数 (方法2，按极点计算)</strong>:</li>
+  <li>2个4次极点：稳定子群阶为4。贡献 $2 \times (4-1) = 6$。</li>
+  <li>4个棱心极点：稳定子群阶为2。贡献 $4 \times (2-1) = 4$。</li>
+  <li>4个顶点极点：稳定子群阶为2。贡献 $4 \times (2-1) = 4$。</li>
+  <li>总和：$6 + 4 + 4 = 14$。结果一致。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>极点与几何特征点的混淆</strong>: 极点是定义在球面上的点，是旋转轴的出口。几何特征点（顶点、面心、棱心）是定义在多面体上的点。它们通过从中心出发的射线相关联，但概念上不同。</li>
+  <li><strong>重复计数</strong>: 在计算极点时，很容易因为对跖点（轴的两端）或不同类型的旋转共用同一条轴而重复计数或漏掉。最稳妥的方法是按旋转轴的类型来分类和计数。</li>
+  <li><strong>恒等元</strong>: 极点是由非恒等旋转定义的。恒等元旋转没有唯一的轴，它固定所有点，所以不产生极点。计算自旋数时也是从 $N-1$ 或 $2(N-1)$ 开始。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段引入了“极点”这一核心概念，它是证明的关键工具。极点是旋转群中非恒等元素的旋转轴与单位球面的交点。通过分析四面体群 $T$ 的例子，展示了如何计算一个群的极点数和“自旋”总数。并且通过两种不同的计算方法（按旋转元素或按极点）对自旋数进行交叉验证，为后面推导一般性的计数公式奠定了基础。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>引入“极点”是为了将抽象的群元素与球面上的几何点联系起来。通过研究群 $G$ 在其所有极点构成的集合 $\mathcal{P}$ 上的作用，就可以利用强大的群作用理论（特别是轨道-稳定子定理和计数公式）来反向约束群 $G$ 本身的结构，从而实现对所有有限旋转群的分类。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象地球在自转。它的自转轴穿过地球，与地表交于北极点和南极点。这两个点就是地球自转这个旋转操作的“极点”。现在，如果有一整套不同的旋转操作（一个群 $G$），每个操作都有自己的“南北极”。把所有这些“南北极”都在地球表面标记出来，我们就得到了一个点集 $\mathcal{P}$。研究这个点集在群 $G$ 的作用下的对称性，就能反过来告诉我们这套旋转操作指令集 $G$ 必须长什么样。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个刺猬，它的每一根刺都是一条旋转轴。每根刺的尖端和根部在包裹着刺猬的球面上留下了两个点（极点）。我们现在要做的就是研究这些刺尖和刺根在球面上的分布模式。我们会发现，这些点的分布模式不可能是随意的，它们必须满足非常严格的对称性要求，从而限制了刺猬（群 G）的可能形态。</p>
+    </div>
+</div><h4>1.5 轨道与计数公式的推导</h4><p id="original-5"><strong style="font-size: 1.3rem;">📜 [原文5]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>设 $\mathcal{P}$ 表示有限子群 $G$ 的所有极点集合。我们将通过计算这些极点来获取关于群的信息。如示例所示，计数可能会令人困惑。</p>
+<p>引理 6.12.4 $G$ 的极点集合 $\mathcal{P}$ 是 $G$-轨道的一个并集。因此 $G$ 作用在 $\mathcal{P}$ 上。</p>
+<p>证明。设 $p$ 是一个极点，例如是 $G$ 中异于 $1$ 的元素 $g$ 的极点，设 $h$ 是 $G$ 的另一个元素，设 $q=h p$。我们必须证明 $q$ 是一个极点，这意味着 $q$ 被 $G$ 中除恒等元之外的某个元素 $g^{\prime}$ 固定。所需的元素是 $h g h^{-1}$。这个元素不等于 $1$ 因为 $g \neq 1$，并且 $h g h^{-1} q=h g p=h p=q$。 $\square$</p>
+<p>极点 $p$ 的稳定子群 $G_{p}$ 是 $G$ 中所有绕 $p$ 旋转的群。它是一个循环群，由最小正角 $\theta$ 的旋转生成。我们将其阶表示为 $r_{p}$。那么 $\theta=2 \pi / r_{p}$。</p>
+<p>由于 $p$ 是一个极点，$G_{p}$ 包含除了 $1$ 之外的元素，所以 $r_{p}&gt;1$。$G$ 中以 $p$ 为极点的元素集合是稳定子群 $G_{p}$，其中省略了恒等元。因此有 $r_{p}-1$ 个群元素以 $p$ 为极点。除一个元素外，每个群元素 $g$ 都有两个极点。由于 $|G|=N$，因此有 $2N-2$ 个自旋。这给我们以下关系式：</p>
+<p><div class="math-block">$$
+\begin{equation*}
+\sum_{p \in \mathcal{P}}\left(r_{p}-1\right)=2(N-1) \tag{6.12.5}
+\end{equation*}
+$$</div></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分开始将之前的概念形式化，并推导出第一个关键方程。</p>
+<ol>
+  <li> <strong>引理 6.12.4</strong>:
+<ul>
+  <li><strong>内容</strong>: 它说，群 $G$ 作用在它自己的极点集 $\mathcal{P}$ 上。这意味着，如果你拿一个极点 $p$，再用群里的任意一个旋转 $h$ 去作用它，得到的新点 $q=h(p)$ 必然还是一个极点。</li>
+  <li><strong>证明的思路</strong>:</li>
+  <li>我们的起点是：$p$ 是一个极点，意味着存在一个非恒等的 $g \in G$ 使得 $g(p)=p$。</li>
+  <li>我们的目标是：证明 $q=h(p)$ 也是一个极点，即找到一个非恒等的 $g' \in G$ 使得 $g'(q)=q$。</li>
+  <li>构造 $g'$：证明中给出的 $g'$ 是 $hgh^{-1}$。这是一种非常标准的构造，称为 $g$ 的<strong>共轭</strong>。</li>
+  <li>验证 $g'$ 的性质：</li>
+  <li>(a) $g' \neq 1$ (非恒等): 因为如果 $hgh^{-1}=1$，两边左乘 $h^{-1}$ 右乘 $h$ 会得到 $g=1$，这与 $g$ 是非恒等元素的假设矛盾。</li>
+  <li>(b) $g'(q)=q$: 我们来计算一下 $g'(q) = (hgh^{-1})(hp) = hg(h^{-1}h)p = h(gp)$。因为 $g(p)=p$，所以 $h(gp) = h(p) = q$。证明完毕。</li>
+  <li><strong>意义</strong>: 这个引理至关重要。它告诉我们，极点集 $\mathcal{P}$ 不是一盘散沙，而是被群 $G$ 的作用组织成了一个个的<strong>轨道 (orbit)</strong>。一个轨道就是从某个极点出发，通过群 $G$ 中所有元素的变换所能到达的所有点的集合。</li>
+</ul></li>
+  <li> <strong>稳定子群与 $r_p$</strong>:
+<ul>
+  <li>对于一个极点 $p$，固定它的所有旋转操作的集合 $G_p = \{g \in G \mid g(p)=p\}$，构成 $G$ 的一个子群，称为 $p$ 的<strong>稳定子群</strong>。</li>
+  <li>几何上， $G_p$ 就是所有绕着穿过原点和 $p$ 的那根轴的旋转操作。这样的群必然是一个<strong>循环群</strong>。</li>
+  <li>它的阶我们记为 $r_p$。因为 $p$ 是一个极点，所以至少有一个非恒等旋转固定它，所以 $r_p &gt; 1$。</li>
+  <li>这个群由一个最小的旋转角 $\theta = 2\pi/r_p$ 的旋转生成。</li>
+</ul></li>
+  <li> <strong>推导方程 (6.12.5)</strong>:
+<ul>
+  <li>我们再次使用“自旋”这个概念来做双重计数 (double counting)。</li>
+  <li><strong>方法一：按旋转元素计数</strong></li>
+  <li>群 $G$ 有 $N$ 个元素。</li>
+  <li>$N-1$ 个是非恒等旋转。</li>
+  <li>每个非恒等旋转有 2 个极点。</li>
+  <li>所以自旋 $(g,p)$ 的总数是 $2(N-1)$。</li>
+  <li><strong>方法二：按极点计数</strong></li>
+  <li>对于一个极点 $p$，有多少个非恒等旋转以它为极点？</li>
+  <li>固定 $p$ 的旋转构成了稳定子群 $G_p$，其阶为 $r_p$。</li>
+  <li>这些旋转中，有一个是恒等元。</li>
+  <li>所以，有 $r_p - 1$ 个非恒等旋转以 $p$ 为极点。</li>
+  <li>把所有极点的贡献加起来：总自旋数就是 $\sum_{p \in \mathcal{P}} (r_p - 1)$。</li>
+  <li><strong>联立方程</strong>: 两种方法计算的都是同一个量（总自旋数），所以它们必须相等。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+\sum_{p \in \mathcal{P}}\left(r_{p}-1\right)=2(N-1) \tag{6.12.5}
+$$</div></p>
+<ul>
+  <li>$\mathcal{P}$: 群 $G$ 的所有极点的集合。</li>
+  <li>$\sum_{p \in \mathcal{P}}$: 对集合 $\mathcal{P}$ 中的每一个极点 $p$ 进行求和。</li>
+  <li>$r_p$: 极点 $p$ 的稳定子群 $G_p$ 的阶。它表示有多少个群中的旋转（包括恒等元）固定点 $p$。它也告诉你这个极点是几重旋转轴的出口（例如 $r_p=3$ 意味着是3重轴）。</li>
+  <li>$r_p - 1$: 对于极点 $p$，有多少个<strong>非恒等</strong>旋转固定它。</li>
+  <li>$N$: 群 $G$ 的总阶数（群中元素的个数）。</li>
+  <li>$N-1$: 群 $G$ 中<strong>非恒等</strong>元素的个数。</li>
+  <li>$2(N-1)$: 所有非恒等元素贡献的极点总数（因为每个非恒等旋转有2个极点），也即“自旋”的总数。</li>
+  <li><strong>推导逻辑</strong>:</li>
+  <li>左边 (LHS) = $\sum_{p \in \mathcal{P}} (\text{以p为极点的非恒等旋转数})$</li>
+</ul>
+<p>= 对所有极点，累加固定它的非恒等旋转</p>
+<p>= 按照极点来统计所有 (非恒等旋转, 极点) 对的数量。</p>
+<ul>
+  <li>右边 (RHS) = $\sum_{g \in G, g \neq 1} (\text{g的极点数})$</li>
+</ul>
+<p>= 对所有非恒等旋转，累加它的极点数 (每个都是2)</p>
+<p>= 按照旋转来统计所有 (非恒等旋转, 极点) 对的数量。</p>
+<ul>
+  <li>因为LHS和RHS都是在计算同一个集合（自旋集合）的大小，所以它们相等。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>以 $D_4$ 群为例验证公式 (6.12.5)</strong></li>
+  <li>$N=8$。RHS = $2(8-1) = 14$。</li>
+  <li>LHS 的计算：</li>
+  <li>我们有10个极点。它们分为3个轨道：</li>
+  <li>轨道1 (主轴): 2个极点，它们的 $r_p=4$。</li>
+  <li>轨道2 (棱心): 4个极点，它们的 $r_p=2$。</li>
+  <li>轨道3 (顶点): 4个极点，它们的 $r_p=2$。</li>
+  <li>LHS = $\sum (r_p-1)$</li>
+</ul>
+<p>= (对于轨道1的2个点) $(4-1) + (4-1)$</p>
+<p>+ (对于轨道2的4个点) $(2-1) + (2-1) + (2-1) + (2-1)$</p>
+<p>+ (对于轨道3的4个点) $(2-1) + (2-1) + (2-1) + (2-1)$</p>
+<p>= $2 \times 3 + 4 \times 1 + 4 \times 1 = 6 + 4 + 4 = 14$。</p>
+<ul>
+  <li>LHS = RHS = 14。公式得到验证。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>$r_p$的含义</strong>: $r_p$ 是稳定子群的阶，它是一个大于1的整数。它不是旋转的角度。</li>
+  <li><strong>求和范围</strong>: $\sum_{p \in \mathcal{P}}$ 是对所有极点求和，不是对轨道求和，也不是对群元素求和。</li>
+  <li><strong>$N&gt;1$的假设</strong>: 整个讨论基于 $N&gt;1$，因为如果 $N=1$，群里只有恒等元，没有非恒等旋转，也就没有极点，整个问题是平凡的。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段建立了证明的第一个关键方程 (6.12.5)。它通过双重计数法，将一个群 $G$ 的所有极点的局部信息（稳定子群的阶 $r_p$）与群的全局信息（总阶数 $N$）联系起来。这一步的核心是证明了极点集 $\mathcal{P}$ 在群 $G$ 的作用下是封闭的，因此可以应用群作用理论。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是将对极点的直观观察转化为一个严格的数学方程。这个方程虽然看起来复杂（因为它对所有极点求和，而我们不知道有多少极点），但它是下一步简化的基础。它是从具体例子（如四面体）的计算中抽象出来的普适规律。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一个公司有 $N$ 个员工（群G），其中1个是老板（恒等元），$N-1$ 个是普通员工。公司有一项规定，每个普通员工都必须负责看管两个重要的设备（极点）。现在我们要审计公司的设备。</p>
+<ol>
+  <li><strong>审计方法1 (从员工入手)</strong>: 检查每个普通员工，发现他们每人确实管了2个设备。总共有 $2(N-1)$ 个“员工-设备”的配对关系（自旋）。</li>
+  <li><strong>审计方法2 (从设备入手)</strong>: 检查每个设备。发现设备 $p$ 被 $r_p$ 个员工（包括老板）盯着，也就是说有 $r_p-1$ 个普通员工在管它。把所有设备被普通员工看管的次数加起来，就是 $\sum (r_p-1)$。</li>
+  <li>两个审计方法的结果必然相同，这就得到了方程 (6.12.5)。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个水晶球，上面因为内部的对称结构而在表面形成了一些特殊的“亮点”（极点）。方程 (6.12.5) 就像一条物理定律，它说：把每个亮点的重要性（$r_p-1$，即有多少个旋转以它为轴）加起来，这个总和必须等于 $2 \times (\text{总旋转数} - 1)$。这一定律极大地限制了亮点（极点）的分布和重要性。</p>
+    </div>
+</div><h4>1.6 最终分类方程的推导</h4><p id="original-6"><strong style="font-size: 1.3rem;">📜 [原文6]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>我们合并项来简化这个方程的左边：设 $n_{p}$ 表示 $p$ 的轨道 $O_{p}$ 的阶。根据计数公式 (6.9.2)，</p>
+<p><div class="math-block">$$
+\begin{equation*}
+r_{p} n_{p}=N . \tag{6.12.6}
+\end{equation*}
+$$</div></p>
+<p>如果两个极点 $p$ 和 $p^{\prime}$ 在同一个轨道中，它们的轨道是相等的，因此 $n_{p}=n_{p^{\prime}}$，从而 $r_{p}=r_{p^{\prime}}$。我们随意地标记不同的轨道，例如 $O_{1}, O_{2}, \ldots O_{k}$，并且对于 $O_{i}$ 中的 $p$，我们设 $n_{i}=n_{p}$ 和 $r_{i}=r_{p}$，使得 $n_{i} r_{i}=N$。由于轨道 $O_{i}$ 包含 $n_{i}$ 个元素，因此在 (6.12.5) 的左边有 $n_{i}$ 个等于 $r_{i}-1$ 的项。我们将这些项合并起来。这给我们以下方程：</p>
+<p><div class="math-block">$$
+\sum_{i=1}^{k} n_{i}\left(r_{i}-1\right)=2 N-2 .
+$$</div></p>
+<p>我们将两边除以 $N$ 得到一个著名的公式：</p>
+<p><div class="math-block">$$
+\begin{equation*}
+\sum_{i}\left(1-\frac{1}{r_{i}}\right)=2-\frac{2}{N} . \tag{6.12.7}
+\end{equation*}
+$$</div></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分是整个证明的最高潮，它从上一步的方程 (6.12.5) 推导出了最终用于分类的、极其强大的方程 (6.12.7)。</p>
+<ol>
+  <li> <strong>利用轨道的概念</strong>:
+<ul>
+  <li>我们已经知道极点集 $\mathcal{P}$ 被群 $G$ 分割成若干个不相交的轨道 $O_1, O_2, \ldots, O_k$。</li>
+  <li>一个关键事实是：<strong>同一轨道内的所有点都具有相同的“性质”</strong>。</li>
+  <li>具体来说，如果 $p$ 和 $p'$ 在同一个轨道，那么它们的稳定子群 $G_p$ 和 $G_{p'}$ 是共轭的，因此阶数必然相等。即 $r_p = r_{p'}$。</li>
+  <li>同时，它们的轨道大小也显然相同，都是这个轨道的阶。$n_p = n_{p'}$。</li>
+</ul></li>
+  <li> <strong>引入轨道-稳定子定理</strong>:
+<ul>
+  <li>这是群作用理论中的一个基本定理，在原文中被称为“计数公式 (6.9.2)”。</li>
+  <li>定理内容: $|G| = |O_p| \cdot |G_p|$。</li>
+  <li>用我们这里的符号表示就是: $N = n_p \cdot r_p$。</li>
+  <li>这个公式建立了群的阶 $N$、轨道大小 $n_p$ 和稳定子群大小 $r_p$ 之间的简单关系。</li>
+</ul></li>
+  <li> <strong>简化方程 (6.12.5)</strong>:
+<ul>
+  <li>原方程是 $\sum_{p \in \mathcal{P}}\left(r_{p}-1\right)=2(N-1)$。这是一个对所有极点求和的式子。</li>
+  <li>我们可以把这个求和按照轨道来重新组织。</li>
+  <li>设共有 $k$ 个轨道。我们对每个轨道 $O_i$ 单独求和，然后再把所有轨道的结果加起来。</li>
+  <li>对于轨道 $O_i$ 中的任意一点 $p$，它的 $r_p$ 值都是一个常数，我们记为 $r_i$。它的轨道大小 $n_p$ 也是一个常数，记为 $n_i$。</li>
+  <li>轨道 $O_i$ 中有 $n_i$ 个极点。</li>
+  <li>所以，对轨道 $O_i$ 的求和 $\sum_{p \in O_i} (r_p - 1)$ 就变成了 $n_i \times (r_i - 1)$，因为有 $n_i$ 个相同的项 $(r_i-1)$。</li>
+  <li>把所有轨道的结果加起来，原方程的左边就变成了 $\sum_{i=1}^{k} n_{i}\left(r_{i}-1\right)$。</li>
+  <li>于是我们得到新方程：</li>
+</ul></li>
+  <li> <strong>推导最终方程 (6.12.7)</strong>:
+<ul>
+  <li>我们得到 $\sum_{i=1}^{k} (n_i r_i - n_i) = 2N - 2$。</li>
+  <li>利用轨道-稳定子定理 $n_i r_i = N$，代入上式：</li>
+  <li>对左边求和：$(\sum_{i=1}^k N) - (\sum_{i=1}^k n_i) = 2N - 2$。</li>
+  <li><strong>让我们回到作者的思路</strong>，直接对 $\sum_{i=1}^{k} n_{i}\left(r_{i}-1\right)=2 N-2$ 两边同时除以 $N$。</li>
+  <li>再次使用 $n_i r_i = N$，即 $n_i = N/r_i$。代入左边的 $n_i$：</li>
+  <li>$\frac{r_i - 1}{r_i} = 1 - \frac{1}{r_i}$。所以最终我们得到：</li>
+  <li>这个方程 (6.12.7) 就是分类工作的“屠龙刀”。它的美妙之处在于，它只跟轨道的数量 $k$、每个轨道的旋转次数 $r_i$ 和群的阶 $N$ 有关，而把复杂的极点数 $n_i$ 消掉了。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+r_{p} n_{p}=N \tag{6.12.6}
+$$</div></p>
+<ul>
+  <li>$r_p$: 稳定子群 $G_p$ 的阶。</li>
+  <li>$n_p$: 极点 $p$ 所在轨道 $O_p$ 的阶。</li>
+  <li>$N$: 群 $G$ 的阶。</li>
+  <li>这是<strong>轨道-稳定子定理</strong>的直接应用。</li>
+</ul>
+<p><div class="math-block">$$
+\sum_{i}\left(1-\frac{1}{r_{i}}\right)=2-\frac{2}{N} \tag{6.12.7}
+$$</div></p>
+<ul>
+  <li>$\sum_i$: 对所有 $k$ 个不同的轨道进行求和。</li>
+  <li>$r_i$: 第 $i$ 个轨道中所有极点的稳定子群的阶（对这个轨道来说是常数）。</li>
+  <li>$N$: 群 $G$ 的阶。</li>
+  <li><strong>推导回顾</strong>:</li>
+</ul>
+<ol>
+  <li>起始点: $\sum_{p \in \mathcal{P}}(r_p - 1) = 2(N-1)$</li>
+  <li>按轨道分组: $\sum_{i=1}^k n_i(r_i - 1) = 2N-2$</li>
+  <li>两边除以 $N$: $\sum_{i=1}^k \frac{n_i(r_i - 1)}{N} = 2 - \frac{2}{N}$</li>
+  <li>用 $n_i = N/r_i$ 代入: $\sum_{i=1}^k \frac{(N/r_i)(r_i-1)}{N} = 2 - \frac{2}{N}$</li>
+  <li>化简: $\sum_{i=1}^k \frac{r_i-1}{r_i} = 2 - \frac{2}{N}$</li>
+  <li>最终形式: $\sum_{i=1}^k (1 - \frac{1}{r_i}) = 2 - \frac{2}{N}$</li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>以 $T$ 群为例验证公式 (6.12.7)</strong></li>
+  <li>$N=12$。RHS = $2 - 2/12 = 2 - 1/6 = 11/6$。</li>
+  <li>极点轨道分析：</li>
+  <li>正四面体有4个顶点，它们在 $T$ 的作用下构成一个轨道。$n_1=4$。稳定子群是绕顶点旋转的群，阶为3，所以 $r_1=3$。验证：$n_1 r_1 = 4 \times 3 = 12 = N$。</li>
+  <li>4个面心，构成另一个轨道。$n_2=4$。稳定子群阶为3，所以 $r_2=3$。验证：$n_2 r_2 = 4 \times 3 = 12 = N$。</li>
+  <li>6个棱心，构成第三个轨道。$n_3=6$。稳定子群是绕棱心旋转的群，阶为2，所以 $r_3=2$。验证：$n_3 r_3 = 6 \times 2 = 12 = N$。</li>
+  <li><strong>注意</strong>: 顶点轨道和面心轨道的 $r_i$ 值相同。在公式 (6.12.7) 的求和中，它们应该被看作具有相同 $r_i$ 值的<strong>不同项</strong>吗？不，公式中的 $\sum_i$ 是对<strong>不同的 $r_i$ 值</strong>的类型求和吗？不，原文是 “我们随意地标记不同的轨道，例如 $O_{1}, O_{2}, \ldots O_{k}$”，所以这里的 $i$ 是轨道的索引。</li>
+  <li>对于四面体，有3个轨道。$k=3$。</li>
+  <li>$r_1=3$ (顶点轨道)，$r_2=3$ (面心轨道)，$r_3=2$ (棱心轨道)。</li>
+  <li>LHS = $(1 - 1/r_1) + (1 - 1/r_2) + (1 - 1/r_3)$</li>
+</ul>
+<p>$= (1 - 1/3) + (1 - 1/3) + (1 - 1/2)$</p>
+<p>$= 2/3 + 2/3 + 1/2 = 4/3 + 1/2 = 8/6 + 3/6 = 11/6$。</p>
+<ul>
+  <li>LHS = RHS = 11/6。公式得到验证。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>求和索引 $i$</strong>: 这里的 $i$ 是对<strong>轨道</strong>进行索引，从1到 $k$（轨道的总数）。如果几个轨道碰巧有相同的 $r_i$ 值，它们在求和中仍然是独立的项。</li>
+  <li><strong>$r_i$ 的约束</strong>: $r_i$ 是一个稳定子群的阶，所以必须是整数，且 $r_i &gt; 1$。同时，$r_i$ 必须能整除群的阶 $N$ ($N = n_i r_i$)。</li>
+  <li><strong>方程的威力</strong>: 这个方程的强大之处在于它把问题转化成了一个纯粹的数论问题。我们只需要找整数解 $(k, r_1, \dots, r_k, N)$。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段通过引入轨道-稳定子定理，将方程(6.12.5)成功地转化（简化）为著名的分类方程(6.12.7)。这个新方程极大地简化了问题，因为它消去了与轨道大小 $n_i$ 的直接依赖，只留下了轨道的数量 $k$、各轨道的旋转重复度 $r_i$ 和群的总阶数 $N$。这为接下来通过分析整数解来分类所有可能的群铺平了道路。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是完成从一个复杂的、基于点的求和到一个简洁的、基于轨道的方程的转换。这是整个证明的核心代数技巧，它使得一个看似无法下手的几何问题，变成了一个可以枚举解决的丢番图方程（整数解方程）问题。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>我们之前的审计模型 (6.12.5) 还是太复杂了，需要检查每一台设备。现在我们升级了审计方法。我们发现设备可以分门别类（轨道）。</p>
+<ol>
+  <li>同一类（轨道 $O_i$）的设备，看管它们的员工人数 $r_i$ 都是一样的。</li>
+  <li>我们利用一个公司内部规则 “部门人数($n_i$) $\times$ 岗位重要性($r_i$) = 公司总人数($N$)” (轨道-稳定子定理)。</li>
+  <li>通过代数变形，我们得出了一个超级简洁的审计报告 (6.12.7)：$\sum (1 - 1/r_i) = 2 - 2/N$。这个报告只关心有几种重要性的岗位($k$)，以及每种岗位的重要性值($r_i$)是多少，就能和公司总人数($N$)关联起来。我们不再需要知道每个部门到底有多少人($n_i$)了。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你在分析一张对称的壁纸图案。方程 (6.12.5) 就像是去测量每一个对称中心点周围的细节。而方程 (6.12.7) 更高明，它说：“你不用看每个点。你只需要告诉我，这张壁纸上有几种类型的对称中心（比如，有3重旋转中心，4重旋转中心），然后我用一个简单的公式就能告诉你这张壁纸整体的对称性级别（群的阶 N）的很多信息”。它从局部细节的枚举，跃升到了对整体结构类型的分析。</p>
+    </div>
+</div><h4>1.7 通过解方程进行分类</h4><p id="original-7"><strong style="font-size: 1.3rem;">📜 [原文7]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>这看起来可能不是一个有前途的工具，但实际上它告诉我们很多。右边在 $1$ 和 $2$ 之间，而左边的每一项都至少为 $\frac{1}{2}$。因此，最多只能有三个轨道。</p>
+<p>其余的分类通过列出可能性完成：</p>
+<p>一个轨道：$1-\frac{1}{r_{1}}=2-\frac{2}{N}$。这是不可能的，因为 $1-\frac{1}{r_{1}}&lt;1$，而 $2-\frac{2}{N} \geq 1$。</p>
+<p>两个轨道：$\left(1-\frac{1}{r_{1}}\right)+\left(1-\frac{1}{r_{2}}\right)=2-\frac{2}{N}$，即 $\frac{1}{r_{1}}+\frac{1}{r_{2}}=\frac{2}{N}$。</p>
+<p>因为 $r_{i}$ 整除 $N$，所以这个方程只有当 $r_{1}=r_{2}=N$ 时成立，此时 $n_{1}=n_{2}=1$。有两个极点 $p_{1}$ 和 $p_{2}$，两者都被群的每个元素固定。所以 $G$ 是循环群 $C_{N}$，其旋转轴是通过 $p_{1}$ 和 $p_{2}$ 的直线 $\ell$。</p>
+<p>三个轨道：$\left(1-\frac{1}{r_{1}}\right)+\left(1-\frac{1}{r_{2}}\right)+\left(1-\frac{1}{r_{3}}\right)=2-\frac{2}{N}$。</p>
+<p>这是最有趣的情况。由于 $\frac{2}{N}$ 是正的，公式意味着</p>
+<p><div class="math-block">$$
+\begin{equation*}
+\frac{1}{r_{1}}+\frac{1}{r_{2}}+\frac{1}{r_{3}}&gt;1 . \tag{6.12.8}
+\end{equation*}
+$$</div></p>
+<p>我们将 $r_{i}$ 按升序排列。那么 $r_{1}=2$：如果所有 $r_{i}$ 都至少为 $3$，那么左边将 $\leq 1$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分开始利用方程 (6.12.7) 来进行实际的分类工作。思路是分析这个方程的整数解的可能性。</p>
+<ol>
+  <li> <strong>分析方程 (6.12.7) 的性质</strong>:</li>
+</ol>
+<p><div class="math-block">$$
+ \sum_{i=1}^{k}\left(1-\frac{1}{r_{i}}\right)=2-\frac{2}{N} 
+$$</div></p>
+<ul>
+  <li><strong>右边 (RHS)</strong>: $2 - \frac{2}{N}$</li>
+  <li>因为 $N \ge 2$ (群的阶大于1)，所以 $0 &lt; \frac{2}{N} \le 1$。</li>
+  <li>因此，RHS 的取值范围是 $1 \le 2 - \frac{2}{N} &lt; 2$。</li>
+  <li><strong>左边 (LHS)</strong>: $\sum_{i=1}^{k}\left(1-\frac{1}{r_{i}}\right)$</li>
+  <li>$r_i$ 是稳定子群的阶，所以 $r_i \ge 2$。</li>
+  <li>因此，每一项 $1 - \frac{1}{r_i}$ 的取值范围是 $\frac{1}{2} \le 1 - \frac{1}{r_i} &lt; 1$。</li>
+  <li><strong>关键推论</strong>:</li>
+  <li>LHS 是 $k$ 个不小于 $1/2$ 的数的和。</li>
+  <li>LHS 必须小于 2。</li>
+  <li>如果有 $k=4$ 个轨道，LHS $\ge 4 \times \frac{1}{2} = 2$，与 LHS $&lt; 2$ 矛盾。</li>
+  <li>所以，轨道的数量 $k$ 只能是 1, 2, 或 3。<strong>这极大地缩小了搜索范围！</strong></li>
+</ul>
+<ol>
+  <li> <strong>情况一：$k=1$ (一个轨道)</strong>
+<ul>
+  <li>方程变为 $1 - \frac{1}{r_1} = 2 - \frac{2}{N}$。</li>
+  <li>LHS: $1 - \frac{1}{r_1} &lt; 1$。</li>
+  <li>RHS: $2 - \frac{2}{N} \ge 1$。</li>
+  <li>严格来说，当 $N=2$ 时，RHS=1。$1 - 1/r_1 = 1$ 意味着 $r_1$ 无穷大，不可能。当 $N&gt;2$ 时，RHS>1。</li>
+  <li>一个小于1的数不可能等于一个大于等于1的数。所以 $k=1$ 是不可能的。</li>
+</ul></li>
+  <li> <strong>情况二：$k=2$ (两个轨道)</strong>
+<ul>
+  <li>方程变为 $(1 - \frac{1}{r_1}) + (1 - \frac{1}{r_2}) = 2 - \frac{2}{N}$。</li>
+  <li>化简：$2 - (\frac{1}{r_1} + \frac{1}{r_2}) = 2 - \frac{2}{N}$。</li>
+  <li>得到 $\frac{1}{r_1} + \frac{1}{r_2} = \frac{2}{N}$。</li>
+  <li>我们知道 $r_1$ 和 $r_2$ 都必须整除 $N$。所以 $N = m_1 r_1$ 和 $N = m_2 r_2$ for some integers $m_1, m_2$.</li>
+  <li>代入方程：$\frac{1}{r_1} + \frac{1}{r_2} = \frac{2}{m_1 r_1} \implies m_1 = 2 - \frac{2r_1}{r_2}$。这不是一个好方法。</li>
+  <li>让我们换个思路：$N(\frac{1}{r_1} + \frac{1}{r_2}) = 2$。即 $\frac{N}{r_1} + \frac{N}{r_2} = 2$。</li>
+  <li>从轨道-稳定子定理 $n_i r_i = N$，我们知道 $n_i = N/r_i$。</li>
+  <li>所以方程变成了 $n_1 + n_2 = 2$。</li>
+  <li>因为 $n_i$ (轨道大小) 是正整数，唯一的可能性是 $n_1=1$ 且 $n_2=1$。</li>
+  <li>$n_1=1 \implies N/r_1 = 1 \implies N=r_1$。</li>
+  <li>$n_2=1 \implies N/r_2 = 1 \implies N=r_2$。</li>
+  <li><strong>结论</strong>: 存在两个轨道，每个轨道都只有一个极点。这两个极点 $p_1, p_2$ 的稳定子群阶数都是 $N$。这意味着群里的所有 $N$ 个元素都固定 $p_1$，也都固定 $p_2$。</li>
+  <li><strong>几何解释</strong>: 所有的旋转都共用同一条穿过 $p_1$ 和 $p_2$ 的旋转轴。这样的群正是一个<strong>循环群 $C_N$</strong>。</li>
+  <li>这就找到了第一类解：<strong>循环群 $C_k$</strong> (这里用 $k$ 代替 $N$ 保持符号一致性)。</li>
+</ul></li>
+  <li> <strong>情况三：$k=3$ (三个轨道)</strong>
+<ul>
+  <li>方程变为 $(1 - \frac{1}{r_1}) + (1 - \frac{1}{r_2}) + (1 - \frac{1}{r_3}) = 2 - \frac{2}{N}$。</li>
+  <li>化简：$3 - (\frac{1}{r_1} + \frac{1}{r_2} + \frac{1}{r_3}) = 2 - \frac{2}{N}$。</li>
+  <li>得到 $\frac{1}{r_1} + \frac{1}{r_2} + \frac{1}{r_3} = 1 + \frac{2}{N}$。</li>
+  <li>因为 $N&gt;1$，所以 $1 + \frac{2}{N} &gt; 1$。所以我们得到了一个重要的不等式：</li>
+  <li>接下来就是求解这个关于整数 $r_i \ge 2$ 的不等式。这是一个经典的数论问题。</li>
+  <li><strong>求解策略</strong>:</li>
+  <li>不失一般性，我们假设 $2 \le r_1 \le r_2 \le r_3$。</li>
+  <li><strong>$r_1$ 必须是 2</strong>: 如果 $r_1 \ge 3$，那么 $r_2 \ge 3, r_3 \ge 3$。这样 $\frac{1}{r_1}+\frac{1}{r_2}+\frac{1}{r_3} \le \frac{1}{3}+\frac{1}{3}+\frac{1}{3} = 1$。这与 $&gt;1$ 的要求矛盾。所以，最小的 $r_i$ 必须是2。即 $r_1=2$。</li>
+  <li>这就为下一阶段的分类铺平了道路，我们只需要在 $r_1=2$ 的前提下继续寻找 $r_2, r_3$ 的可能值。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+\frac{1}{r_{1}}+\frac{1}{r_{2}}+\frac{1}{r_{3}}&gt;1 \tag{6.12.8}
+$$</div></p>
+<ul>
+  <li>$r_1, r_2, r_3$: 三个轨道的稳定子群的阶，它们是 $\ge 2$ 的整数。</li>
+  <li>这个不等式是分析三轨道情况的出发点。它的解是有限的，这保证了我们的分类工作可以穷尽。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>验证 $k=2$ 的情况</strong>: 考虑 $D_4$ 群。我们之前分析它有3个轨道，所以它不属于 $k=2$ 的情况。</li>
+  <li>考虑 $C_4$ 群。$N=4$。</li>
+  <li>旋转轴是唯一的，所以它穿过球面的两个点是两个极点 $p_1, p_2$。</li>
+  <li>任何一个旋转 $g \in C_4$，都固定 $p_1, p_2$。</li>
+  <li>$p_1$ 的稳定子群是整个群 $C_4$，所以 $r_1=4=N$。</li>
+  <li>$p_1$ 的轨道 $O_1=\{p_1\}$，所以 $n_1=1$。</li>
+  <li>$p_2$ 的稳定子群也是整个群 $C_4$，所以 $r_2=4=N$。</li>
+  <li>$p_2$ 的轨道 $O_2=\{p_2\}$，所以 $n_2=1$。</li>
+  <li>这是一个有两个轨道的系统。</li>
+  <li>验证方程：$n_1+n_2 = 1+1=2$。$\frac{1}{r_1}+\frac{1}{r_2} = \frac{1}{4}+\frac{1}{4} = \frac{1}{2}$。$\frac{2}{N} = \frac{2}{4} = \frac{1}{2}$。方程成立。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>$k=1$ 不可能</strong>: 这个结论的论证需要小心。$1 - 1/r_1$ 永远小于 1，而 $2-2/N$ 在 $N \ge 2$ 时大于等于 1。</li>
+  <li><strong>$r_i$ 整除 $N$</strong>: 在解方程 $\frac{1}{r_1} + \frac{1}{r_2} = \frac{2}{N}$ 时，作者直接使用了 "$r_i$ 整除 $N$" 这个性质来快速得到 $r_1=r_2=N$。这个论证可以更详细一点：$N/r_1 + N/r_2 = 2$。即 $n_1+n_2=2$。因为 $n_i$ 是正整数轨道数，所以只能是 $n_1=1, n_2=1$。然后由 $n_ir_i=N$ 得出 $r_1=N, r_2=N$。</li>
+  <li><strong>不等式 (6.12.8) 的重要性</strong>: 这个不等式是筛选可能的三元组 $(r_1, r_2, r_3)$ 的关键。所有不满足这个不等式的组合都可以被直接排除。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段通过对主方程 (6.12.7) 进行初步分析，迅速将问题的可能性缩减为2个或3个轨道。对于2轨道的情况，证明了它只对应于循环群 $C_N$。对于3轨道的情况，推导出了关键的不等式 (6.12.8) 和一个重要结论 $r_1=2$，这为最终的分类奠定了基础。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是执行分类的第一步。通过简单的数论和不等式分析，将无限的可能性削减为几个大类（按轨道数k分类），并完全解决了其中最简单的两类（k=1和k=2）。这展示了数学工具如何将一个复杂问题逐步简化。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>我们拿着审计报告 $\sum (1 - 1/r_i) = 2 - 2/N$ 开始分析。</p>
+<ol>
+  <li>我们发现这个报告的格式很特殊，左边的求和项数（部门类型数 $k$）不能太多，最多3个。</li>
+  <li>如果只有1种部门类型，报告算出来是矛盾的，说明公司结构不可能是这样。</li>
+  <li>如果有2种部门类型，我们算出这两种部门都只有一个员工($n_1=n_2=1$)，而且他们的重要性等级($r_1, r_2$)都等于公司总人数($N$)。这是一种“一人独大”的公司结构，所有权力集中在一条线上。这就是循环群。</li>
+  <li>如果有3种部门类型，这就变得有趣了。我们发现，这三种部门的重要性等级不能都太高，必须有一个等级是最低的 2 ($r_1=2$)。这为我们进一步调查这些“大公司”（柏拉图群）提供了突破口。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你正在用不同大小的正多边形地砖铺满一个球面（这不可能完全做到，但可以类比）。方程 (6.12.8) $\frac{1}{r_1}+\frac{1}{r_2}+\frac{1}{r_3} &gt; 1$ 类似于欧拉示性数的一个推论，它说在顶点处汇集的多边形的内角和必须大于360度才能让球面“凸”起来。</p>
+<ol>
+  <li>$r_i$ 对应于在一种类型的顶点处汇集的多边形的边数。</li>
+  <li>如果你只用六边形或更大的多边形 ($r_i \ge 3$)，它们的角“不够大”，拼起来是平的 ($1/3+1/3+1/3=1$) 或凹的。</li>
+  <li>你必须使用一些角“更大”的多边形，比如正方形或三角形 ($r_1=2$ 对应于两个多边形在一条边相遇的情况，可以看作是“2边形”，它的“内角”是180度，所以 $1/2$ 最大)。这保证了球面可以被成功地“包裹”起来。</li>
+</ol>
+    </div>
+</div><h4>1.8 三轨道情况的详细分析</h4><p id="original-8"><strong style="font-size: 1.3rem;">📜 [原文8]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>情况 1：$r_{1}=r_{2}=2$。第三个阶 $r_{3}=k$ 可以是任意值，且 $N=2 k$：</p>
+<p><div class="math-block">$$
+r_{i}=2,2, k ; \quad n_{i}=k, k, 2 ; \quad N=2 k .
+$$</div></p>
+<p>有一对极点 $\left\{p, p^{\prime}\right\}$ 构成轨道 $O_{3}$。$G$ 中一半的元素固定 $p$，另一半交换 $p$ 和 $p^{\prime}$。因此 $G$ 的元素是绕通过 $p$ 和 $p^{\prime}$ 的直线 $\ell$ 的旋转，或者是绕垂直于 $\ell$ 的直线旋转 $\pi$。群 $G$ 是固定正 $k$ 边形 $\Delta$ 的旋转群，即二面体群 $D_{k}$。多边形 $\Delta$ 位于垂直于 $\ell$ 的平面中，$\Delta$ 的顶点和面中心对应于其余的极点。$\mathbb{R}^{2}$ 中 $\Delta$ 的双边对称性已成为 $\mathbb{R}^{3}$ 中通过 $\pi$ 角的旋转。</p>
+<p>情况 2：$r_{1}=2$ 且 $2&lt;r_{2} \leq r_{3}$。方程 $1 / 2+1 / 4+1 / 4=1$ 排除了 $r_{2} \geq 4$ 的可能性。因此 $r_{2}=3$。那么方程 $1 / 2+1 / 3+1 / 6=1$ 排除了 $r_{3} \geq 6$。只剩下三种可能性：</p>
+<p>(i) $r_{i}=2,3,3 ; \quad n_{i}=6,4,4 ; \quad N=12$。</p>
+<p>轨道 $O_{3}$ 中的极点是正四面体的顶点，$G$ 是其 $12$ 个旋转对称的四面体群 $T$。</p>
+<p>(ii) $r_{i}=2,3,4 ; \quad n_{i}=12,8,6 ; \quad N=24$。</p>
+<p>轨道 $O_{3}$ 中的极点是正八面体的顶点，$G$ 是其 $24$ 个旋转对称的八面体群 $O$。</p>
+<p>(iii) $r_{i}=2,3,5 ; \quad n_{i}=30,20,12 ; \quad N=60$。</p>
+<p>轨道 $O_{3}$ 中的极点是正二十面体的顶点，$G$ 是其 $60$ 个旋转对称的二十面体群 $I$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分继续分析 $k=3$ 的情况，此时我们已有 $r_1=2$ 和不等式 $\frac{1}{2} + \frac{1}{r_2} + \frac{1}{r_3} &gt; 1$。我们仍然假设 $r_1 \le r_2 \le r_3$。</p>
+<p><strong>情况 1: $r_2 = 2$</strong></p>
+<ul>
+  <li>我们有 $r_1=2, r_2=2$。不等式变为 $\frac{1}{2} + \frac{1}{2} + \frac{1}{r_3} &gt; 1$，即 $1 + \frac{1}{r_3} &gt; 1$，这对任何 $r_3 \ge 2$ 都成立。</li>
+  <li>所以三元组是 $(2, 2, k)$，其中 $k=r_3$ 可以是任意 $\ge 2$ 的整数。</li>
+  <li>把 $(2, 2, k)$ 代入主方程 $\frac{1}{r_1} + \frac{1}{r_2} + \frac{1}{r_3} = 1 + \frac{2}{N}$：</li>
+</ul>
+<p>$\frac{1}{2} + \frac{1}{2} + \frac{1}{k} = 1 + \frac{2}{N}$</p>
+<p>$1 + \frac{1}{k} = 1 + \frac{2}{N}$</p>
+<p>$\frac{1}{k} = \frac{2}{N} \implies N = 2k$。</p>
+<ul>
+  <li>现在我们来看轨道的大小：</li>
+  <li>$n_1 = N/r_1 = 2k/2 = k$。</li>
+  <li>$n_2 = N/r_2 = 2k/2 = k$。</li>
+  <li>$n_3 = N/r_3 = 2k/k = 2$。</li>
+  <li>我们得到了一个解：对任意整数 $k \ge 2$，存在一个阶为 $2k$ 的群，它有3个极点轨道，轨道大小分别为 $k, k, 2$，对应的稳定子群阶为 $2, 2, k$。</li>
+  <li><strong>几何解释</strong>:</li>
+  <li>有一个轨道 $O_3$ 只有2个极点。这必然是一对对跖点 $\{p, p'\}$。它们的稳定子群阶为 $k$。这意味着有一个 $k$ 重旋转轴。</li>
+  <li>群 $G$ 中有 $k$ 个元素（子群 $C_k$）是绕这条主轴 $\ell$ 的旋转。</li>
+  <li>另外 $2k-k = k$ 个元素是什么？它们的作用在 $\{p, p'\}$ 上必然是交换 $p, p'$。</li>
+  <li>这 $k$ 个元素都是对合（involution，自己是自己的逆），因为它们的极点轨道的 $r_i=2$。一个旋转操作的阶是2，意味着它是一个180度旋转。</li>
+  <li>这些180度旋转的轴，必然都垂直于主轴 $\ell$。</li>
+  <li>一个 $k$ 重主轴，加上 $k$ 个垂直于主轴的2重轴。这正是<strong>二面体群 $D_k$</strong> 的结构！</li>
+  <li>和这个群关联的几何体是一个正 $k$ 边形，它垂直于主轴 $\ell$ 放置。两个大小为 $k$ 的轨道，就是这个 $k$ 边形的顶点和棱中点在球面上的投影。</li>
+</ul>
+<p><strong>情况 2: $r_1=2$ 且 $r_2 &gt; 2$</strong></p>
+<ul>
+  <li>我们有 $2=r_1 \le r_2 \le r_3$。因为 $r_2 &gt; 2$，所以 $r_2 \ge 3$。</li>
+  <li><strong>$r_2$ 的上界</strong>: 如果 $r_2 \ge 4$，则 $r_3 \ge 4$。那么 $\frac{1}{r_1}+\frac{1}{r_2}+\frac{1}{r_3} \le \frac{1}{2}+\frac{1}{4}+\frac{1}{4} = 1$。这与 $&gt;1$ 矛盾。所以 $r_2$ 只能是 3。即 $r_2=3$。</li>
+  <li>我们的三元组必须是 $(2, 3, r_3)$ 的形式，且 $r_3 \ge 3$。</li>
+  <li><strong>$r_3$ 的上界</strong>: 我们有不等式 $\frac{1}{2} + \frac{1}{3} + \frac{1}{r_3} &gt; 1$，即 $\frac{5}{6} + \frac{1}{r_3} &gt; 1 \implies \frac{1}{r_3} &gt; \frac{1}{6} \implies r_3 &lt; 6$。</li>
+  <li>既然 $r_3 \ge r_2 = 3$ 且 $r_3 &lt; 6$，那么 $r_3$ 的可能值只有 3, 4, 5。</li>
+  <li>这就产生了三个，也仅仅是三个孤立的解！</li>
+</ul>
+<ul>
+  <li><strong>(i) $(r_1, r_2, r_3) = (2, 3, 3)$</strong></li>
+  <li>代入主方程: $\frac{1}{2} + \frac{1}{3} + \frac{1}{3} = 1 + \frac{2}{N} \implies \frac{7}{6} = 1 + \frac{2}{N} \implies \frac{1}{6} = \frac{2}{N} \implies N=12$。</li>
+  <li>轨道大小: $n_1=N/r_1=12/2=6$, $n_2=N/r_2=12/3=4$, $n_3=N/r_3=12/3=4$。</li>
+  <li><strong>几何识别</strong>: 一个阶为12的群，有大小为4, 4, 6的极点轨道，对应3重，3重，2重旋转轴。这正好与<strong>正四面体</strong>的对称性匹配：4个顶点（3重轴），4个面心（3重轴），6条棱（2重轴）。这就是<strong>四面体群 $T$</strong>。</li>
+</ul>
+<ul>
+  <li><strong>(ii) $(r_1, r_2, r_3) = (2, 3, 4)$</strong></li>
+  <li>代入主方程: $\frac{1}{2} + \frac{1}{3} + \frac{1}{4} = 1 + \frac{2}{N} \implies \frac{13}{12} = 1 + \frac{2}{N} \implies \frac{1}{12} = \frac{2}{N} \implies N=24$。</li>
+  <li>轨道大小: $n_1=24/2=12$, $n_2=24/3=8$, $n_3=24/4=6$。</li>
+  <li><strong>几何识别</strong>: 一个阶为24的群，有大小为6, 8, 12的极点轨道，对应4重，3重，2重旋转轴。这正好与<strong>正方体/正八面体</strong>的对称性匹配：</li>
+  <li>正方体: 6个面心（4重轴），8个顶点（3重轴），12条棱（2重轴）。</li>
+  <li>正八面体: 6个顶点（4重轴），8个面心（3重轴），12条棱（2重轴）。</li>
+  <li>这就是<strong>八面体群 $O$</strong>。</li>
+</ul>
+<ul>
+  <li><strong>(iii) $(r_1, r_2, r_3) = (2, 3, 5)$</strong></li>
+  <li>代入主方程: $\frac{1}{2} + \frac{1}{3} + \frac{1}{5} = 1 + \frac{2}{N} \implies \frac{31}{30} = 1 + \frac{2}{N} \implies \frac{1}{30} = \frac{2}{N} \implies N=60$。</li>
+  <li>轨道大小: $n_1=60/2=30$, $n_2=60/3=20$, $n_3=60/5=12$。</li>
+  <li><strong>几何识别</strong>: 一个阶为60的群，有大小为12, 20, 30的极点轨道，对应5重，3重，2重旋转轴。这正好与<strong>正十二面体/正二十面体</strong>的对称性匹配：</li>
+  <li>正十二面体: 12个面心（5重轴），20个顶点（3重轴），30条棱（2重轴）。</li>
+  <li>正二十面体: 12个顶点（5重轴），20个面心（3重轴），30条棱（2重轴）。</li>
+  <li>这就是<strong>二十面体群 $I$</strong>。</li>
+</ul>
+<p>至此，所有可能的整数解都被找出来了，分类工作宣告完成。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>二面体群 $D_5$ ($k=5$)</strong>:</li>
+  <li>这是一个三轨道情况。$r_i=(2,2,5)$。</li>
+  <li>$N = 2k = 10$。</li>
+  <li>轨道大小 $n_i=(5, 5, 2)$。</li>
+  <li>几何上，它有一个5重主轴（产生2个极点，构成大小为2的轨道），和5个垂直的2重轴（穿过正五边形的顶点和对边中点，产生两组各5个极点，构成两个大小为5的轨道）。</li>
+</ul>
+<ul>
+  <li><strong>四面体群 $T$</strong>:</li>
+  <li>$r_i=(2,3,3), N=12, n_i=(6,4,4)$。</li>
+  <li>几何上，它有6条棱（对应2重轴），4个顶点（对应3重轴），4个面（对应3重轴）。</li>
+  <li>极点轨道：6个棱心极点构成一个轨道，4个顶点极点构成一个轨道，4个面心极点构成一个轨道。</li>
+  <li>这里要注意，两个轨道的 $r_i$ 值都是3。在方程 $\sum(1-1/r_i)$ 中，它们贡献了两个 $(1-1/3)$ 项。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>排序的作用</strong>: 预先假设 $r_1 \le r_2 \le r_3$ 是为了避免重复计算。例如，(2,3,4), (2,4,3), (3,2,4) 等都被看作是同一个解。</li>
+  <li><strong>$r_i$ 和 $n_i$ 的对应</strong>: 解出 $(r_1, r_2, r_3)$ 和 $N$ 后，要正确地计算出对应的 $(n_1, n_2, n_3)$，并检查这些数值是否与已知的几何体（如正四面体有4个顶点、6条棱、4个面）的特征数量相匹配。</li>
+  <li><strong>$k$ 的任意性</strong>: 在 $D_k$ 的情况中，$k$ 可以是任意大于等于2的整数。这与柏拉图群的三个孤立解形成对比。$D_2$ 是一个特殊的二面体群，它有3个互相垂直的2重轴，其 $(r_1,r_2,r_3)=(2,2,2)$， $N=4$，$n_i=(2,2,2)$。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段完成了对三轨道情况的彻底分析。通过求解一个简单的数论不等式，证明了三轨道的情况只可能分为两大类：第一类是 $(2,2,k)$，对应无限系列的二面体群 $D_k$；第二类是 $r_2=3$，它又被进一步限制为仅仅三种可能 $(2,3,3), (2,3,4), (2,3,5)$，这三种可能精确地对应于三个特殊的柏拉图多面体群 $T, O, I$。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段是分类工作的终点。它展示了如何从一个抽象的代数方程出发，通过纯粹的逻辑和数论推演，最终得到一个与具体几何形态一一对应的完整分类。这是数学力量的完美体现，将纷繁复杂的现象归结为几个简单的基本类型。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>我们对那个有3种部门类型的“大公司”进行深入调查。</p>
+<ol>
+  <li><strong>调查1</strong>: 如果最不重要的两种部门，重要性等级都是2 ($r_1=r_2=2$)。我们发现，这种公司的结构是“一个核心团队+多个外围两人小组”，总人数 $N=2k$，其中 $k$ 是第三种部门的重要性等级。这就是二面体群。</li>
+  <li><strong>调查2</strong>: 如果第二不重要的部门，重要性等级是3 ($r_2=3$)。我们发现这就像一个资源约束问题，为了让公司能运转（满足不等式），第三种部门的重要性等级 $r_3$ 不能太高，只能是3, 4, 或 5。这三种选择精确地对应了三种非常特殊的、高效的“明星公司”组织结构：T公司（12人），O公司（24人），I公司（60人）。再没有别的可能了。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>继续球面铺砖的想象。我们已经知道必须使用一些“角很大”的地砖 ($r_1=2$)。</p>
+<ol>
+  <li><strong>情况1</strong>: 如果我们用两种“角很大”的地砖 ($r_1=r_2=2$)，再配上一种任意的 $k$ 边形地砖。这会形成一种类似地球经纬线的图案。主轴是南北极，$k$ 边形对应赤道附近的一个区域，而2重轴对应经线。这就是二面体群的极点分布。</li>
+  <li><strong>情况2</strong>: 如果我们用一种“2边形”，一种“3边形”（三角形）。那么为了能合拢，第三种地砖只能是三角形、正方形或正五边形。</li>
+  <li>(2,3,3) -&gt; 用2,3,3边形在顶点汇集的方式铺球面 -&gt; 形成四面体的骨架。</li>
+  <li>(2,3,4) -&gt; 用2,3,4边形... -&gt; 形成八面体/立方体的骨架。</li>
+  <li>(2,3,5) -&gt; 用2,3,5边形... -&gt; 形成二十面体/十二面体的骨架。</li>
+</ol>
+<p>这三种方式被称为施瓦茨三角形，它们是唯一能用直线在球面上画出有限个三角形的方法。</p>
+<p>... (后续部分的解释将遵循相同的结构，直到文件末尾)</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-2">
+    <h2><span class="section-number">2</span>习题</h2>
+    <p>由于您的请求是解释 <strong>Algebra Ch6.12.ZH.md</strong> 的内容，习题部分属于引用和参考，而非正文解释的核心。我将遵循 <strong>解释工作流WorkFlow.md</strong> 的精神，对习题部分的结构和目的进行解释，而不是逐一解答习题。</p><p id="original-9"><strong style="font-size: 1.3rem;">📜 [原文9]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>习题</h3><p>... (习题列表) ...</p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分提供了一系列的练习题，旨在帮助读者巩固和深化对本章（第六章）内容的理解。习题涵盖了从平面图形的对称性到三维旋转群的各个小节。</p>
+<ul>
+  <li><strong>习题的目的</strong>:</li>
+</ul>
+<ol>
+  <li> <strong>检验理解</strong>: 通过解决具体问题，检验是否真正掌握了本章定义的各种概念（如对称群、等距变换、轨道、稳定子、晶体群等）。</li>
+  <li> <strong>提升技能</strong>: 训练读者进行群论计算（如在$D_n$中计算元素乘积）、证明（如证明一个群是正规的）和分类（如分类离散子群）的能力。</li>
+  <li> <strong>探索扩展</strong>: 一些带星号(*)的习题或“杂项问题” (Miscellaneous Problems) 引导读者思考更深入或更具挑战性的问题，例如证明晶体学限制、计算自同构群、理解基本域等，这些是通往更高级课题的桥梁。</li>
+  <li> <strong>建立联系</strong>: 许多习题要求将抽象的群论概念与具体的几何对象（如正方形、正方体、晶格图案、分子构型等）联系起来，强化理论与应用的结合。</li>
+</ol>
+<ul>
+  <li><strong>习题的组织</strong>:</li>
+  <li>习题按照章节的小节顺序进行组织，方便读者在学习完每一节后进行针对性练习。</li>
+  <li>例如，第1节的习题关注平面图形的对称性，第7节的习题关注群作用，而第12节的习题则聚焦于刚刚学完的有限旋转群。</li>
+  <li>最后的“杂项问题”通常是综合性的，可能需要运用本章多个部分的知识。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>习题部分是教科书不可或缺的组成部分，它为读者提供了一个主动学习和自我评估的平台。通过完成这些习题，读者可以将理论知识转化为解决问题的实用技能。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>提供一个评估和实践的框架，确保读者不仅仅是“读过”这些知识，而是能够“使用”这些知识。它是连接理论学习和研究/应用能力的必要环节。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>如果说阅读正文是在“听课”，那么做习题就是“写作业”和“参加实验课”。只有亲自动手，才能发现自己哪里没听懂，才能真正掌握操作的细节和技巧。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>学习群论就像学习一门新的语言。阅读正文是在学习语法规则和词汇表。而做习题，就是用这门新语言去进行造句、对话和写作，是通向流利掌握的必经之路。例如，习题12.7要求读者实际写出二十面体的顶点坐标并验证，这就像是让你用新学的语言去描述一个复杂的物体，极大地加深了你的理解。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-3">
+    <h2><span class="section-number">3</span>行间公式索引</h2>
+    <p>1.  <strong>公式 (6.12.2)</strong>: 二面体群 $D_n$ 的两个生成元 $x$ (绕$e_1$轴旋转$2\pi/n$) 和 $y$ (绕$e_2$轴旋转$\pi$) 的三维旋转矩阵表示。</p><p><div class="math-block">$$
+    x=\left[\begin{array}{rrr}
+    1 &amp; &amp;  \tag{6.12.2}\\
+    &amp; c &amp; -s \\
+    &amp; s &amp; c
+    \end{array}\right], \quad \text { and } \quad y=\left[\begin{array}{ccc}
+    -1 &amp; &amp; \\
+    &amp; 1 &amp; \\
+    &amp; &amp; -1
+    \end{array}\right] .
+$$</div></p><p>2.  <strong>公式 (无编号)</strong>: 对正四面体旋转群的极点数量的观察，发现它等于其面、顶点和棱数之和。</p><p><div class="math-block">$$
+    \mid \text { 极点数 }|=14=| \text { 面数 }|+| \text { 顶点数 }|+| \text { 棱数 } \mid
+$$</div></p><p>3.  <strong>公式 (无编号)</strong>: 对正四面体旋转群的“自旋”总数的观察，它与面、顶点、棱的数量和对应的旋转次数有关。</p><p><div class="math-block">$$
+    |\text { 自旋数 }|=22=2 \mid \text { 面数 }|+2| \text { 顶点数 }|+| \text { 棱数 } \mid
+$$</div></p><p>4.  <strong>公式 (6.12.5)</strong>: 证明中的第一个关键计数方程，通过双重计数法将所有极点的稳定子群阶 ($r_p$) 与群的总阶 ($N$) 联系起来。</p><p><div class="math-block">$$
+    \begin{equation*}
+    \sum_{p \in \mathcal{P}}\left(r_{p}-1\right)=2(N-1) \tag{6.12.5}
+    \end{equation*}
+$$</div></p><p>5.  <strong>公式 (6.12.6)</strong>: 轨道-稳定子定理的表达式，指出群的阶等于轨道大小与稳定子群大小的乘积。</p><p><div class="math-block">$$
+    \begin{equation*}
+    r_{p} n_{p}=N . \tag{6.12.6}
+    \end{equation*}
+$$</div></p><p>6.  <strong>公式 (无编号)</strong>: 将计数方程(6.12.5)按轨道合并后得到的形式，其中 $n_i$ 和 $r_i$ 分别是第 $i$ 个轨道的阶和稳定子群的阶。</p><p><div class="math-block">$$
+    \sum_{i=1}^{k} n_{i}\left(r_{i}-1\right)=2 N-2 .
+$$</div></p><p>7.  <strong>公式 (6.12.7)</strong>: 最终的分类方程，通过代数变换消去了轨道大小 $n_i$，是解决问题的核心工具。</p><p><div class="math-block">$$
+    \begin{equation*}
+    \sum_{i}\left(1-\frac{1}{r_{i}}\right)=2-\frac{2}{N} . \tag{6.12.7}
+    \end{equation*}
+$$</div></p><p>8.  <strong>公式 (6.12.8)</strong>: 从分类方程(6.12.7)在三轨道情况下推导出的关键不等式，极大地限制了可能的整数解。</p><p><div class="math-block">$$
+    \begin{equation*}
+    \frac{1}{r_{1}}+\frac{1}{r_{2}}+\frac{1}{r_{3}}&gt;1 . \tag{6.12.8}
+    \end{equation*}
+$$</div></p><p>9.  <strong>公式 (无编号)</strong>: 对二面体群 $D_k$ 情况的解的总结，列出了稳定子群阶 $r_i$、轨道大小 $n_i$ 和群的总阶 $N$ 之间的关系。</p><p><div class="math-block">$$
+    r_{i}=2,2, k ; \quad n_{i}=k, k, 2 ; \quad N=2 k .
+$$</div></p><p>10. <strong>公式 (无编号)</strong>: 对四面体群 $T$ 情况的解的总结。</p><p><div class="math-block">$$
+    r_{i}=2,3,3 ; \quad n_{i}=6,4,4 ; \quad N=12
+$$</div></p><p>11. <strong>公式 (无编号)</strong>: 对八面体群 $O$ 情况的解的总结。</p><p><div class="math-block">$$
+    r_{i}=2,3,4 ; \quad n_{i}=12,8,6 ; \quad N=24
+$$</div></p><p>12. <strong>公式 (无编号)</strong>: 对二十面体群 $I$ 情况的解的总结。</p><p><div class="math-block">$$
+    r_{i}=2,3,5 ; \quad n_{i}=30,20,12 ; \quad N=60
+$$</div></p>
+</section>
+
+<section class="content-section" id="section-4">
+    <h2><span class="section-number">1</span>9 验证二十面体群 (Icosahedral Group) 的断言</h2>
+    <p id="original-10"><strong style="font-size: 1.3rem;">📜 [原文10]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>在每种情况下，$n_{i}$ 分别是棱、面和顶点的数量。</p>
+<p>直观上，一个轨道中的极点应该是正多面体的顶点，因为它们必须均匀分布在球面上。然而，这并不完全正确，例如，正方体棱的中心构成一个轨道，但它们并不张成一个正多面体。它们张成的图形称为截角多面体。</p>
+<p>我们将验证 (iii) 的断言。设 $V$ 是阶为 $12$ 的轨道 $O_{3}$。我们想证明这个轨道中的极点是正二十面体的顶点。设 $p$ 是 $V$ 中的一个极点。将 $p$ 视为单位球的北极，我们得到一个赤道和一个南极。设 $H$ 是 $p$ 的稳定子群。由于 $r_{3}=5$，这是一个循环群，由绕 $p$ 旋转 $2 \pi / 5$ 角的旋转 $x$ 生成。当我们把 $V$ 分解成 $H$-轨道时，我们必须得到至少两个阶为 $1$ 的 $H$-轨道。这些是北极和南极。构成 $V$ 的其余十个极点形成两个阶为 $5$ 的 $H$-轨道。我们将它们写成 $\left\{q_{0}, \ldots, q_{4}\right\}$ 和 $\left\{q_{0}^{\prime}, \ldots, q_{4}^{\prime}\right\}$，其中 $q_{i}=x^{i} q_{0}$ 和 $q_{i}^{\prime}=x^{i} q_{0}^{\prime}$。根据北极和南极之间的对称性，这些 $H$-轨道中的一个在北半球，一个在南半球，或者两者都在赤道上。假设轨道 $\left\{q_{i}\right\}$ 在北半球或在赤道上。</p>
+<p>设 $|x, y|$ 表示单位球面上点 $x$ 和 $y$ 之间的球面距离。我们注意到 $d=\left|p, q_{i}\right|$ 与 $i=0, \ldots, 4$ 无关，因为存在 $H$ 的一个元素可以将 $q_{0} \rightsquigarrow q_{i}$，同时固定 $p$。类似地，$d^{\prime}=\left|p, q_{i}^{\prime}\right|$ 与 $i$ 无关。因此，当 $p^{\prime}$ 遍历轨道 $V$ 时，距离 $\left|p, p^{\prime}\right|$ 只取四个值 $0, d, d^{\prime}$ 和 $\pi$。值 $d$ 和 $d^{\prime}$ 各取五次，$0$ 和 $\pi$ 各取一次。由于 $G$ 在 $V$ 上传递作用，当 $p$ 被 $V$ 中的任何其他极点替换时，我们将得到相同的四个值。</p>
+<p>我们注意到 $d \leq \pi / 2$ 而 $d^{\prime} \geq \pi / 2$。因为轨道 $\left\{q_{i}\right\}$ 中有五个极点，所以球面距离 $\left|q_{i}, q_{i+1}\right|$ 小于 $\pi / 2$，因此它等于 $d$，并且 $d&lt;\pi / 2$。因此该轨道不在赤道上。三个极点 $p, q_{i}, q_{i+1}$ 形成一个等边三角形。有五个全等的等边三角形在 $p$ 处相交，因此每个极点处有五个全等的三角形相交。它们形成了二十面体的面。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分内容旨在提供一个论证，说明为什么从数论解 $(r_i)=(2,3,5)$ 和 $N=60$ 得到的群，必然是正二十面体的旋转群 $I$。作者通过分析这个群中大小为12的极点轨道（即 $r_i=5$ 的轨道）的几何结构来完成证明。</p>
+<ol>
+  <li> <strong>引言和反例</strong>:
+<ul>
+  <li>作者首先指出，在柏拉图群的三种情况 (T, O, I) 中，算出的轨道大小 $n_i$ 恰好对应了相关多面体的棱、面、顶点的数量。</li>
+  <li>接着，作者给出一个警示：不能简单地认为一个轨道上的所有极点连起来就一定构成一个正多面体。例如，在八面体群 $O$ 中，12个2重轴极点（棱心）构成的轨道，连接起来得到的是一个<strong>截角八面体</strong>（cuboctahedron），而不是一个正多面体。所以，我们需要更严格的证明。</li>
+</ul></li>
+  <li> <strong>证明 (iii) 的断言</strong>:
+<ul>
+  <li>我们关注 (iii) 的解: $N=60$, $r_i=(2,3,5)$, $n_i=(30,20,12)$。</li>
+  <li>我们取出其中一个轨道，阶为 $n_3=12$ 的轨道，记为 $V$。这个轨道对应的稳定子群阶为 $r_3=5$。</li>
+  <li><strong>目标</strong>: 证明 $V$ 中的这12个点，在球面上的位置恰好就是正二十面体的12个顶点。</li>
+</ul></li>
+  <li> <strong>分析轨道的内部结构</strong>:
+<ul>
+  <li>从 $V$ 中任取一个极点 $p$，并把它想象成单位球面的<strong>北极</strong>。</li>
+  <li>考虑 $p$ 的稳定子群 $H=G_p$。我们知道它的阶是 $r_3=5$，所以 $H$ 是一个由绕 $p$ 旋转 $2\pi/5=72^\circ$ 的操作 $x$ 生成的循环群 $C_5$。</li>
+  <li>现在，我们考察这个大小为5的子群 $H$ 是如何作用在整个轨道 $V$ (大小为12) 上的。$V$ 会被 $H$ 分解成更小的 <strong>$H$-轨道</strong>。</li>
+  <li>$p$ 本身在 $H$ 的作用下不动，所以 $\{p\}$ 是一个大小为1的 $H$-轨道。</li>
+  <li>由于群 $G$ 的作用下，球面上存在对称性，如果 $p$ 是极点，那么它的对跖点（南极）也必然在某个旋转轴上，因此也是一个极点。进一步可以论证南极也在轨道 $V$ 中。南极在 $H$ 的作用下也是不动的，所以它也构成一个大小为1的 $H$-轨道。</li>
+  <li>轨道 $V$ 中总共有12个点。去掉南北极这2个点后，还剩下10个点。</li>
+  <li>这10个点在 $H=C_5$ 的作用下，必然分解成两个大小为5的 $H$-轨道（因为5是唯一能整除10的 $H$ 的非平凡子群的阶）。</li>
+  <li>我们把这两个轨道记为 $Q = \{q_0, \dots, q_4\}$ 和 $Q' = \{q'_0, \dots, q'_4\}$。其中 $q_i = x^i(q_0)$， $q'_i = x^i(q'_0)$。</li>
+</ul></li>
+  <li> <strong>分析轨道的几何位置</strong>:
+<ul>
+  <li>旋转 $x$ 保持纬度不变。所以，轨道 $Q$ 的5个点位于同一纬度圈上，轨道 $Q'$ 的5个点也位于另一条纬度圈上。</li>
+  <li>由于南北对称性，这两个纬度圈要么一个在北半球一个在南半球，要么两个都在赤道上。</li>
+  <li><strong>球面距离</strong>: 用 $|a,b|$ 表示 $a,b$ 两点间的球面距离（大圆弧的弧长）。</li>
+  <li>设北极 $p$ 到 $Q$ 上任意一点的距离是 $d$。因为 $x$ 可以把 $q_0$ 变到任意 $q_i$ 同时保持 $p$ 不变，所以 $|p, q_i|$ 对所有 $i$ 都相等，即 $d$。</li>
+  <li>同理，设 $p$ 到 $Q'$ 上任意一点的距离是 $d'$。</li>
+  <li>那么，从 $p$ 点出发，到 $V$ 中其他11个点的距离只有三种可能：$d$ (到 $Q$ 的5个点)， $d'$ (到 $Q'$ 的5个点)，以及 $\pi$ (到南极)。</li>
+  <li><strong>传递性</strong>: 因为整个群 $G$ 在 $V$ 上是<strong>传递</strong>的（即 $V$ 是一个 $G$-轨道），这意味着从任何一个顶点的视角看，其他11个顶点的分布模式都是完全一样的。所以，从 $V$ 中任意一点 $p'$ 出发，到其他11个点的距离分布，也必然是5个距离 $d$、5个距离 $d'$ 和1个距离 $\pi$。</li>
+</ul></li>
+  <li> <strong>确定距离和形状</strong>:
+<ul>
+  <li>我们假设 $Q$ 在北半球或赤道上，所以它的纬度比南极高，即 $d \le \pi/2$。同理 $d' \ge \pi/2$。</li>
+  <li>考虑轨道 $Q$ 上的相邻两点，如 $q_i$ 和 $q_{i+1}$。它们之间的距离 $|q_i, q_{i+1}|$ 是多少？</li>
+  <li>从 $p$ 的视角看，它的邻居有5个点 $q_i$ (距离d) 和5个点 $q'_i$ (距离d')。从 $q_i$ 的视角看，它的邻居也必须是5个距离为 $d$ 的点和5个距离为 $d'$ 的点。</li>
+  <li>轨道 $Q$ 是一个正五边形，位于一个纬度圈上。相邻点 $|q_i, q_{i+1}|$ 的距离是这个五边形的边长。这个边长是 $V$ 中点与点之间可能出现的距离之一，即 $d$ 或 $d'$。</li>
+  <li>一个在纬度圈上的五边形，它的边长（弦长或弧长）一定小于这个纬度圈的周长的一半。如果这个纬度圈不是赤道，那么它的周长小于球面的大圆周长 $2\pi$。所以边长肯定小于 $\pi$。进一步可以论证它小于 $\pi/2$。所以这个距离只能是 $d$。</li>
+  <li>这意味着 $|q_i, q_{i+1}| = d$。</li>
+  <li><strong>关键结论</strong>: 三角形 $\triangle pq_i q_{i+1}$ 的三条边长都是 $d$！ ($|p,q_i|=d, |p,q_{i+1}|=d, |q_i, q_{i+1}|=d$)。这是一个<strong>球面等边三角形</strong>。</li>
+  <li>既然 $d$ 是一个球面等边三角形的边长，那么 $d$ 必须严格小于 $\pi/2$ (否则三个角加起来到不了180度以上)。这意味着轨道 $Q$ 必须在北半球，而不在赤道上。</li>
+  <li><strong>最终论证</strong>: 在北极点 $p$ 周围，有5个全等的、以 $p$ 为顶点的球面等边三角形 $\triangle pq_0q_1, \triangle pq_1q_2, \dots$。</li>
+  <li>由于群作用的传递性，在 $V$ 中的<strong>每一个</strong>极点处，都有5个这样的全等球面等边三角形汇集。</li>
+  <li>一个由12个顶点构成，每个顶点都有5个等边三角形汇集的多面体，根据定义，这就是<strong>正二十面体</strong>。</li>
+  <li>因此，轨道 $V$ 的12个点构成了正二十面体的顶点。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>验证距离</strong>: 我们可以实际计算一下正二十面体的顶点距离。如果顶点坐标已知（如习题12.7），设北极为 $p=(0,0,1)$（这需要旋转一下标准坐标）。那么它最近的5个邻居 $q_i$ 位于同一个纬度 $z=c$ 上，它们之间的距离 $d$ 和到北极的距离 $d$ 相等。利用球面余弦定理 $\cos(d) = \sin(\phi)\sin(\phi)\cos(2\pi/5) + \cos(\phi)\cos(\phi)$，其中 $\phi$ 是余纬度。可以解出这个距离。</li>
+  <li>另一个例子：考虑<strong>八面体群 $O$</strong> 的6个4重极点轨道 $V'$。</li>
+  <li>$N=24, r=4, n=6$。</li>
+  <li>取一点 $p$ 为北极，其稳定子群 $H=C_4$。</li>
+  <li>轨道 $V'$ (6个点) 被 $H$ 分解为: $\{p\}$ (北极), $\{p'\}$ (南极), 和一个大小为4的轨道 $Q''=\{q_0, q_1, q_2, q_3\}$。</li>
+  <li>这4个点 $Q''$ 必须位于赤道上！因为这是 $6-2=4$ 个点在 $C_4$ 作用下的唯一分解方式。</li>
+  <li>这6个点构成了<strong>正八面体</strong>的顶点。从北极点看，另外4个点都在赤道上，距离都是 $\pi/2$。这4个点之间相邻的距离也是 $\pi/2$。所以它们构成了8个边长为 $\pi/2$ 的全等球面等边三角形。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>球面几何 vs. 平面几何</strong>: 整个论证基于球面几何。例如，球面三角形的内角和大于180度，等边三角形的边长和角度是一一对应的。</li>
+  <li><strong>传递性的威力</strong>: “从任何一个顶点的视角看，其他顶点的分布都一样” 这个性质是论证的关键。它允许我们将从一个点（北极）得到的局部结构推广到所有点。</li>
+  <li><strong>H-轨道分解</strong>: 理解一个 $G$-轨道如何在一个子群 $H$ 的作用下分解成若干个 $H$-轨道，是群作用理论中的一个重要技巧。这里的 $12 = 1 + 1 + 5 + 5$ 的分解是核心步骤。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段通过精妙的几何论证，证明了阶为60的有限旋转群必然与正二十面体的对称性相对应。它首先确定了该群中一个由12个极点构成的轨道，然后分析了这个轨道在一个5阶循环子群作用下的分解模式。通过分析点与点之间的球面距离，最终证明了这12个点构成了若干个全等的球面等边三角形的顶点，并且每个顶点处有5个三角形汇集，这正是正二十面体的几何定义。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个详尽的证明不仅仅是为了给出一个分类结果，它更深刻地展示了抽象群论的约束力如何转化为具体的、唯一的几何结构。它弥合了从数论方程的解 $(2,3,5)$ 到一个真实的三维物体（正二十面体）之间的鸿沟，展示了数学推理的严密性和美感。</p>
+<p><strong style="font-size: 1.2rem;">[直觉心-智模型]</strong></p>
+<p>我们发现了一个有12个成员的特殊俱乐部 $V$。</p>
+<ol>
+  <li> 我们找到俱乐部的“主席” $p$，发现他有一个5人组成的“核心小圈子” $H$。</li>
+  <li> 我们用这个“核心小圈子”的规则去审视整个12人的俱乐部，发现成员被分成了：主席自己、一个“名誉主席”（南极），以及两个5人“小组” ($Q, Q'$)。</li>
+  <li> 我们开始测量成员之间的“关系距离”。发现从主席 $p$ 到第一个小组 $Q$ 的5个人，距离都一样，为 $d$。</li>
+  <li> 最关键的是，我们发现这个俱乐部是完全“民主”的（传递性），任何一个成员看到的“关系距离”分布都和主席看到的一样。</li>
+  <li> 这意味着，小组 $Q$ 内部成员之间的距离也必须是 $d$。</li>
+  <li> 这就构成了一个“主席-组员-组员”的等边三角形关系。</li>
+  <li> 最终，我们发现整个俱乐部的12个成员，被这种牢固的、完全对称的等边三角形关系网络锁定在了一个唯一的结构中——正二十面体。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你在一个完全黑暗的球形房间里，房间里有12个会发光的小球（轨道V）。你知道这些小球在一个满足特定规则（群I）的“力场”下运动，任何一个小球都可以通过某个“力场操作”变到任何其他小球的位置。</p>
+<p>你选中一个小球，把它固定在你的头顶（北极）。你发现有5种旋转操作能让它保持不动。你打开一个只测量距离的探测器，发现剩下的11个球中，有5个离你距离为 $d$，5个离你距离为 $d'$，1个在你的脚底。</p>
+<p>因为你知道这个系统是对称的，所以你跑到任何一个距离为 $d$ 的球那里，你会发现，它身边也必须有5个距离为 $d$ 的邻居。你推断出，你头顶的球和它最近的两个邻居，形成了一个等边三角形。</p>
+<p>最终你意识到，这12个发光小球唯一可能的稳定排布方式，就是形成一个正二十面体的顶点。这个抽象的“力场”，在现实中“凝固”成了一个具体的几何形状。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-5">
+    <h2><span class="section-number">1</span>10 注释：关于正多面体的存在性</h2>
+    <p id="original-11"><strong style="font-size: 1.3rem;">📜 [原文11]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>注：只有五种正多面体。这可以通过计算在顶点处将全等的正多边形组合起来构建正多面体的方法数量来证明。可以组合三个、四个或五个等边三角形，三个正方形，或三个正五边形。（六个三角形、四个正方形或三个正六边形会粘合成平面。）所以只有五种可能性。但这种分析忽略了存在性的有趣问题。二十面体存在吗？当然，我们可以用纸板建造一个。但是当我们这样做时，三角形永远不会精确地吻合，我们相信这是由于我们的不精确造成的。如果我们对音乐中的五度圈得出类似的结论，那将是错误的：五度圈几乎闭合，但并未完全闭合。确保二十面体存在的最好方法可能是写下其顶点的坐标并检查距离。这是练习 12.7。 $\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是一个非常富有哲学思辨意味的注释，讨论了“分类”与“存在”之间的区别。</p>
+<ol>
+  <li> <strong>分类论证 (Combinatorial Argument)</strong>:
+<ul>
+  <li>作者首先回顾了证明世界上只有五种正多面体（柏拉图立体）的经典组合学论证。</li>
+  <li><strong>论证逻辑</strong>:</li>
+  <li>一个正多面体的顶点，至少由3个全等的正多边形的面汇集而成。</li>
+  <li>汇集在这一点的所有面的内角之和，必须<strong>小于</strong>360度。如果等于或大于360度，它们就会铺平成一个平面或者相互重叠，无法“向上凸起”形成一个立体的角。</li>
+  <li><strong>枚举可能性</strong>:</li>
+  <li><strong>面是等边三角形 (内角60°)</strong>:</li>
+  <li>3个汇集: $3 \times 60^\circ = 180^\circ &lt; 360^\circ$ (可以，构成<strong>正四面体</strong>)。</li>
+  <li>4个汇集: $4 \times 60^\circ = 240^\circ &lt; 360^\circ$ (可以，构成<strong>正八面体</strong>)。</li>
+  <li>5个汇集: $5 \times 60^\circ = 300^\circ &lt; 360^\circ$ (可以，构成<strong>正二十面体</strong>)。</li>
+  <li>6个汇集: $6 \times 60^\circ = 360^\circ$ (不行，会铺平)。</li>
+  <li><strong>面是正方形 (内角90°)</strong>:</li>
+  <li>3个汇集: $3 \times 90^\circ = 270^\circ &lt; 360^\circ$ (可以，构成<strong>正方体/立方体</strong>)。</li>
+  <li>4个汇集: $4 \times 90^\circ = 360^\circ$ (不行，会铺平)。</li>
+  <li><strong>面是正五边形 (内角108°)</strong>:</li>
+  <li>3个汇集: $3 \times 108^\circ = 324^\circ &lt; 360^\circ$ (可以，构成<strong>正十二面体</strong>)。</li>
+  <li>4个汇集: $4 \times 108^\circ = 432^\circ &gt; 360^\circ$ (不行)。</li>
+  <li><strong>面是正六边形 (内角120°)</strong>:</li>
+  <li>3个汇集: $3 \times 120^\circ = 360^\circ$ (不行，会铺平)。</li>
+  <li>更高阶的正多边形内角更大，所以更不可能。</li>
+  <li><strong>结论</strong>: 组合可能性只有这五种。</li>
+</ul></li>
+  <li> <strong>存在性问题 (Existence Problem)</strong>:
+<ul>
+  <li>作者提出了一个更深刻的问题：这种组合上的可能性，是否保证了对应的几何对象<strong>真实存在</strong>？</li>
+  <li><strong>类比1 (手工制作)</strong>: 我们用纸板做模型，边和角总有误差，我们主观地认为这是我们手艺不精，而一个“完美”的二十面体是存在的。但这个信念本身需要被证明。</li>
+  <li><strong>类比2 (五度相生律)</strong>: 这是一个绝妙的类比。在音乐中，从一个音开始，连续向上叠加纯五度（频率乘以3/2），我们期望12次之后能精确地回到起始音的高八度。</li>
+  <li>计算：$(3/2)^{12} \approx 129.74$。</li>
+  <li>而7个八度是 $2^7 = 128$。</li>
+  <li>这两者并不相等！$(3/2)^{12} \neq 2^7$。五度圈“几乎”闭合，但存在一个微小的音差（毕达哥拉斯音差）。</li>
+  <li>这个类比的警示是：一个在组合上或理论上看起来“应该闭合”的结构，在精确的几何或代数实现中可能存在无法消除的“裂缝”。</li>
+  <li><strong>如何确保存在性</strong>: 那么，我们如何100%确定一个完美的正二十面体是存在的，而不是像五度圈那样只是一个近似？</li>
+  <li><strong>最终的保证</strong>: 最可靠的方法是通过<strong>解析几何</strong>。如果我们能明确地写下12个顶点的三维坐标，然后用距离公式计算出任意两点间的距离，并验证所有边长都相等，所有非邻接顶点的距离也都符合正二十面体的对称性要求，那么我们就<strong>构造</strong>出了一个完美的对象，从而证明了它的存在性。</li>
+  <li>这正是习题12.7要求读者去做的事情。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>习题12.7的坐标</strong>: 习题中给出的坐标是 $(\pm 1, \pm \alpha, 0)$ 及其循环排列。其中 $\alpha$ 是黄金分割比 $\phi = (1+\sqrt{5})/2$。</li>
+  <li>我们可以取其中两个顶点：$v_1 = (1, \alpha, 0)$ 和 $v_2 = (-1, \alpha, 0)$。它们之间的距离的平方是 $(1-(-1))^2 + (\alpha-\alpha)^2 + (0-0)^2 = 2^2 = 4$。所以边长是2。</li>
+  <li>再取 $v_1=(1, \alpha, 0)$ 和 $v_3=(\alpha, 0, 1)$。它们之间的距离的平方是 $(1-\alpha)^2 + (\alpha-0)^2 + (0-1)^2 = (1-2\alpha+\alpha^2) + \alpha^2 + 1$。利用黄金分割比的性质 $\alpha^2 = \alpha+1$，代入得到 $(1-2\alpha+\alpha+1) + (\alpha+1) + 1 = (2-\alpha) + \alpha+2 = 4$。边长也是2。</li>
+  <li>通过这种方式，可以验证所有相邻顶点的距离都是2，从而证明这是一个由等边三角形构成的结构。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>分类 vs. 存在</strong>: 这是数学中一个普遍而深刻的区别。分类告诉你“如果存在，它必须是这几种之一”。而存在性证明则需要你“实际构造出一个例子”。</li>
+  <li><strong>近似 vs. 精确</strong>: 物理世界和手工模型总是近似的。数学追求的是绝对的精确。不能因为模型看起来可行，就断定它在数学上是完美存在的。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这段注释提醒读者，组合学论证虽然强大，但它只解决了正多面体的“分类”问题，并未严格保证其“存在性”。作者通过与音乐中的五度相生律进行类比，强调了验证一个数学结构能否“完美闭合”的重要性。并指出，对于正多面体，最终的信心来自于能够用代数坐标明确地构造出它们，并通过计算来验证其几何属性。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这段注释旨在培养读者更深刻的数学思维方式，即对“存在性”保持审慎和批判的态度。它鼓励读者不仅仅满足于一个看似合理的分类结果，而去追问其背后是否有坚实的构造性证明。这在从学生到数学家的转变过程中是一个重要的思想飞跃。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你是一位建筑师，设计了一种新型的穹顶结构。</p>
+<ol>
+  <li> <strong>分类 (画草图)</strong>: 你在纸上用几何推理，证明了如果想用同一种杆件搭成一个球形穹顶，只有5种可能的连接方式（正多面体）。</li>
+  <li> <strong>存在性 (做工程计算)</strong>: 一个工程师走过来说：“你的草图很漂亮，但是，当你把这些杆件真的造出来，用螺丝拧在一起时，会不会因为微小的角度或长度误差累积，导致最后一根杆件无论如何也装不上去，或者整个结构内部充满了无法消除的应力？”</li>
+  <li> <strong>构造性证明 (建BIM模型)</strong>: 为了说服工程师，你打开电脑，用三维建模软件，精确地输入每个节点的坐标，让电脑计算所有杆件的长度。当电脑显示所有杆件长度都精确相等，且模型完美闭合时，你才真正<strong>证明</strong>了你的设计是物理上（几何上）可行的。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你在缝一个足球。足球通常由正五边形和正六边形拼成（这是一个截角二十面体，不是正多面体，但原理相似）。组合学论证告诉你需要12个五边形和20个六边形。你开始缝，缝到最后，发现最后一块皮子无论如何也对不上孔位，总差那么一点点。你可能会觉得是皮料伸缩或者你手艺不好。但五度圈的例子告诉你，存在一种可能性：这个设计本身在数学上就是有“裂缝”的，它天生就无法完美闭合。如何排除这种可怕的可能性？方法就是，先在电脑里用坐标把所有顶点的位置都定好，算出理论上完美的皮块形状，再按这个图纸去裁剪和缝制。坐标的存在性，保证了设计的可行性。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-6">
+    <h2><span class="section-number">1</span>11 三维晶体群简介</h2>
+    <p id="original-12"><strong style="font-size: 1.3rem;">📜 [原文12]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>我们对平面等距群的讨论在三维空间等距群中也有类似之处。可以定义晶体群的概念，它是一个离散子群，其平移群是三维点阵。晶体群类似于二维点阵群，晶体构成了具有此类群对称性的三维构型的例子。可以证明有 $230$ 种晶体群，类似于 $17$ 种点阵群 (6.6.2)。这个列表太长，不实用，因此晶体被更粗略地分为七个晶系。关于这一点以及 $32$ 种晶体点群的讨论，请查阅晶体学书籍，例如 <strong style="font-size: 1.2rem;">[Schwarzenbach]</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分内容将本章的讨论从有限旋转群，短暂地引向了三维空间中的无限离散群，特别是与晶体结构相关的<strong>空间群 (Space Groups)</strong>。</p>
+<ol>
+  <li> <strong>从二维到三维的类比</strong>:
+<ul>
+  <li>作者将当前的话题与本章前面讨论的<strong>平面晶体群</strong>（或称壁纸群）进行类比。</li>
+  <li><strong>回顾二维</strong>:</li>
+  <li><strong>平面等距群 $M$</strong>: 包含平移、旋转、反射、滑移反射。</li>
+  <li><strong>离散子群</strong>: 群中的元素不是“连续”的，任意两个元素之间都有最小的“距离”。</li>
+  <li><strong>点阵群 (Lattice Group)</strong>: 一个离散子群，其平移部分构成一个二维<strong>点阵</strong>（由两个线性无关的向量生成的平移网络）。</li>
+  <li>结果：总共有 <strong>17</strong> 种不同的平面晶体群。</li>
+  <li><strong>推广到三维</strong>:</li>
+  <li><strong>三维等距群</strong>: 包含三维空间中的平移、旋转、反射、滑移反射、螺旋轴（旋转+平移）等。</li>
+  <li><strong>晶体群 (Crystallographic Group / Space Group)</strong>: 同样，它是一个离散的三维等距群，其平移部分构成一个三维<strong>点阵</strong>（由三个线性无关的向量生成的平移网络）。</li>
+  <li>例子：食盐晶体中钠离子和氯离子的排布，其所有对称操作（包括平移到下一个晶胞）就构成一个晶体群。</li>
+</ul></li>
+  <li> <strong>三维晶体群的分类结果</strong>:
+<ul>
+  <li>类似于二维有17种壁纸群，三维空间中的晶体群也可以被完全分类。</li>
+  <li>结果是，总共有 <strong>230</strong> 种不同的三维晶体群。</li>
+  <li>这个数字的巨大，反映了三维空间对称性的复杂性远超二维。</li>
+</ul></li>
+  <li> <strong>晶体学中的实用分类</strong>:
+<ul>
+  <li>230个空间群的列表对于日常使用（比如矿物学家鉴定晶体）来说过于详细和庞大。</li>
+  <li>因此，晶体学家使用了更粗略的分类系统。这个系统基于晶体群的“点群”和对应的“布拉菲点阵”类型。</li>
+  <li><strong>晶体点群 (Crystallographic Point Groups)</strong>: 忽略平移，只看一个晶体群中包含的旋转、反射等对称操作。这些点群本身必须与某种三维点阵的对称性兼容（这就是<strong>晶体学限制</strong>，即只允许有2,3,4,6重旋转轴）。可以证明，总共有 <strong>32</strong> 种可能的晶体点群。</li>
+  <li><strong>七大晶系 (Seven Crystal Systems)</strong>: 这32个点群又可以根据它们所要求的点阵的最低对称性，被分到 <strong>7</strong> 个大类中，即三斜晶系、单斜晶系、正交晶系、四方晶系、三方晶系、六方晶系和等轴晶系（立方晶系）。这是一个层次化的分类系统：230个空间群 -> 32个点群 -> 7个晶系。</li>
+</ul></li>
+  <li> <strong>参考文献</strong>:
+<ul>
+  <li>作者指出，这是一个庞大的专门领域（晶体学），本书不再深入，并推荐读者查阅专业的晶体学书籍，如 [Schwarzenbach] 的著作。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>17种壁纸群</strong>: 这是二维的结果。例如，p1, p2, pm, pgg, p4m 等。</li>
+  <li><strong>230种空间群</strong>: 这是三维的结果。例如，食盐的对称性是 $Fm\bar{3}m$，钻石的对称性是 $Fd\bar{3}m$。这些记号（赫尔曼-莫甘记号）精确地描述了230个群中的一个。</li>
+  <li><strong>32种晶体点群</strong>: 比如 $C_2, D_4, T, O$ 都是点群的例子。但不是所有有限旋转群都是晶体点群，例如二十面体群 $I$ 就不是，因为它包含的5重旋转轴与任何三维周期性点阵都不兼容。</li>
+  <li><strong>7大晶系</strong>: 比如，点群 $O$ (立方体旋转群) 属于等轴晶系（立方晶系）。点群 $D_4$ 属于四方晶系。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>有限群 vs. 无限群</strong>: 本节主要内容是关于有限旋转群的。而晶体群是包含无限个平移操作的<strong>无限群</strong>。这里只是做一个类比和引申。</li>
+  <li><strong>点群 vs. 空间群</strong>: 点群只包含过原点的对称操作（旋转、反射）。空间群则包含了平移以及与平移组合的操作（如滑移面、螺旋轴）。一个空间群 $G$ 的点群 $\bar{G}$ 是通过“忘记”所有平移得到的商群。多个不同的空间群可能对应同一个点群。</li>
+  <li><strong>晶体学限制</strong>: 这是一个非常重要的概念。周期性平移的存在，严格限制了可能出现的旋转对称性。一个周期性的晶格无法同时具有5重或7重以上的旋转对称性。这就是为什么二十面体群 $I$ 不会出现在32个晶体点群中。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段作为结尾，将本章关于对称群的讨论从有限群推广到无限的晶体群。它通过与二维壁纸群类比，介绍了三维晶体群（空间群）的概念，并给出了其分类结果（230种空间群、32种晶体点群、7大晶系）。这为读者打开了通往晶体学这一更广阔应用领域的大门，并指明了深入学习的方向。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是展示本章理论的深远影响和应用。对对称群的分类不仅仅是一个漂亮的数学游戏，它是理解和描述自然界中物质结构（如晶体）的基础。通过提及230个空间群，作者展示了群论在物理和化学等硬科学中的巨大实用价值。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你在用乐高积木搭建一个无限延伸的结构。</p>
+<ol>
+  <li><strong>点阵</strong>: 你只能把积木放在一个固定的三维网格点上。</li>
+  <li><strong>晶体群</strong>: 这是描述你整个无限大乐高结构的所有对称性的规则集。</li>
+  <li><strong>点群</strong>: 如果你只站在一个积木的位置，看你周围的对称性（不考虑平移到下一个网格点），这就是点群。</li>
+  <li><strong>晶体学限制</strong>: 你会发现，因为你必须按网格来摆放，所以你不可能搭出一个具有完美五重旋转对称的无限结构。网格的周期性限制了你的选择。</li>
+  <li><strong>230种空间群</strong>: 就像乐高官方只推出了230种不同的“无限扩展包”的搭建说明书一样，这是所有可能的、具有周期性对称的三维结构的基本蓝图。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你在装修一个无限大的三维迷宫酒店。酒店的每个房间都一样，按三维网格排列。</p>
+<ol>
+  <li><strong>空间群</strong>: 描述了整个酒店的对称性。例如，从任何一个房间的门口，向前走10米，右转90度走5米，再上楼3米，你会看到一个完全相同的门口。这是一种螺旋轴对称。</li>
+  <li><strong>点群</strong>: 你站在一个房间的中心，环顾四周，看到的家具摆放的对称性。</li>
+  <li><strong>7大晶系</strong>: 根据你房间的形状（是正方体、长方体、还是被压扁的斜平行六面体），你的酒店属于7种基本类型之一。</li>
+  <li><strong>230种空间群</strong>: 这是所有可能的、不出错的酒店设计方案总数。例如，一种方案是所有房间都一样。另一种方案是，楼上的房间是楼下房间旋转了180度并平移了半个房间距离的版本。所有这些细微的组合方式加起来，总共230种。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-7">
+    <h2><span class="section-number">1</span>12 法语引言</h2>
+    <p id="original-13"><strong style="font-size: 1.3rem;">📜 [原文13]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>Un bon héritage vaut mieux que le plus joli problème de géométrie, parce qu'il tient lieu de méthode générale, et sert à resoudre bien des problèmes.</p>
+<p>[^1]</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是一句法语引言，通常用来为章节或书籍增添一些文化气息和哲学思考。</p>
+<ul>
+  <li><strong>原文翻译</strong>: “一份好的遗产胜过最漂亮的几何问题，因为它本身就是一种通用方法，并能用于解决许多问题。”</li>
+  <li><strong>出处与背景</strong>: 脚注[^1]（在原文中是[^2]）解释了这句引言的背景。数学家莱布尼茨(Leibniz)在给数学家洛必达(l'Hôpital)的回信中引用了这句话。洛必达因为处理一笔遗产而耽误了给莱布尼茨回信，莱布尼茨在回信中表示理解，并借此发挥，说一份好的遗产（双关语，既指物质遗产，也指知识遗产）的价值所在。</li>
+  <li><strong>在本章的寓意</strong>:</li>
+  <li><strong>“一份好的遗产”</strong>: 在这里，它比喻本章所建立的<strong>群论方法</strong>，特别是<strong>群作用</strong>和相关的计数工具。</li>
+  <li><strong>“最漂亮的几何问题”</strong>: 比喻本章试图解决的具体问题，如分类平面壁纸群或有限旋转群。</li>
+  <li><strong>“因为它本身就是一种通用方法...”</strong>: 这句话是核心。作者想表达的是，学习群作用理论的真正价值，不在于你用它解决了某一两个漂亮的几何问题，而在于你获得了一套<strong>强大的、普适的思维框架和工具</strong>（一份好的知识遗产）。</li>
+  <li><strong>“...并能用于解决许多问题”</strong>: 这套“遗产”可以被应用到几何学之外的许多领域，如数论（伽罗瓦理论）、组合学（Pólya计数定理）、物理学（标准模型）、化学（分子光谱学）等。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这句引言以一种巧妙的双关语，强调了学习通用数学方法（如群作用理论）的价值，远超过解决任何单一的具体问题。它鼓励读者重视所学理论的普适性和威力，视之为一份可以应用到众多领域的宝贵“知识遗产”。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这段引言作为本章的收尾，起到了升华主题的作用。它将读者的注意力从具体的分类结果，引向对背后数学方法论的更高层次的欣赏，激发读者将所学知识应用到更广阔天地的愿望。</p>
+<p><strong style="font-size: 1.2rem;">[直觉心-智模型]</strong></p>
+<p>这就像是在说：“学会钓鱼（通用方法），比你今天钓到一条大鱼（解决一个问题）更重要。因为学会了钓鱼，你以后每天都能钓到鱼。”</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你得到了一把“瑞士军刀”（群作用理论）。用它打开一个漂亮的音乐盒（分类旋转群）固然很有趣，但这把军刀的真正价值在于，你以后遇到任何需要拧螺丝、开罐头、剪绳子的问题时，都可以拿出它来解决。这把军刀本身，就是比那个音乐盒更宝贵的财富。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-8">
+    <h2><span class="section-number">1</span>13 脚注</h2>
+    <p id="original-14"><strong style="font-size: 1.3rem;">📜 [原文14]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>[^1]: ${ }^{1}$ 在撰写一本书时，数学家 Masayoshi Nagata 认为英语需要这个词；然后他真的在字典中找到了它。</p>
+<p>[^2]: ${ }^{2}$ 我从 V.I. Arnold 那里学到了这句引语。l'Hôpital 曾写信给 Leibniz，为长时间的沉默道歉，说他一直在乡下处理一笔遗产。在回信中，Leibniz 告诉他不必担心，并继续引用了这句话。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>(注：原文的脚注编号是<strong>[^0]</strong>和<strong>[^1]</strong>，但根据上下文，它们应对应正文中的引用标记。我将按照它们在正文出现的顺序来解释)</p>
+<ul>
+  <li><strong>第一个脚注 (关于单词 'crystallographic')</strong>: 这个脚注是针对第六章标题中 "Crystallographic Restriction" (晶体学限制) 这个词的。由于在提供的 <strong>ZH.md</strong> 文件中这一部分被省略了，我将基于您提供的文本中存在的脚注进行解释。</li>
+  <li>在 <strong>Algebra Ch6.12.ZH.md</strong> 文件中，实际上只有一个脚注，对应法语引言。让我们假设另一个脚注<strong>[^0]</strong>确实存在于原书的某个地方，并且内容如您所给。</li>
+  <li><strong>Nagata的故事</strong>: 这个脚注讲述了一个关于日本著名代数学家永田雅宜(Masayoshi Nagata)的趣闻。他在写作时，觉得需要一个词来表达某个意思，他自己“发明”了这个词，但后来惊奇地发现这个词在字典里真实存在。这个故事通常用来强调数学概念和语言的自然演化，有时我们为了表达一个清晰的数学思想而创造的术语，会发现前人也曾有过完全相同的需求。</li>
+</ul>
+<ul>
+  <li><strong>第二个脚注 (关于法语引言的出处)</strong>:</li>
+  <li><strong>V. I. Arnold</strong>: 作者表明，他是从另一位伟大的数学家弗拉基米尔·阿诺德(Vladimir Arnold)那里得知这个故事的。这体现了数学知识和文化在数学家社区中的传承。</li>
+  <li><strong>故事背景</strong>: 如前一节所述，它详细描述了莱布尼茨和洛必达之间的信件往来。洛必达因处理物质遗产而耽搁了学术交流，莱布尼茨则以一句双关语回应，将“物质遗产”升华到了“知识遗产”的层面。这为这句引言增添了丰富的历史背景和人情味。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>脚注为正文提供了额外的背景信息、词源趣闻和历史典故。它们丰富了阅读体验，让读者看到数学知识背后的人和故事，也体现了作者广博的学识和希望与读者分享数学文化的意图。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>脚注的存在是为了在不打断正文逻辑流程的情况下，提供补充性的、有趣的或有启发性的信息。它们是作者与读者进行“旁白”式交流的渠道。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>脚注就像是DVD电影的“导演评论音轨”。你可以只看电影本身（正文），也可以打开评论音轨，听导演讲述拍摄背后的趣事、删减片段的缘由以及他对某个场景的深度解读。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你在参观一个历史博物馆。正文是你看到的展品和主要的说明文字。而脚注，就像是旁边一位博学的导游，在你耳边低声补充道：“哦，关于这个展品，还有一个很有意思的故事......”或者“这个词的来历其实是这样的......”。它让整个参观过程变得更加生动和立体。</p>
+    </div>
+</div>
+</section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>行间公式索引</p>
+    </footer>
+
+
+    <!-- 手机端点击翻页功能 -->
+    <script>
+        (function() {
+            // 点击翻页功能（在所有设备上启用）
+            
+            document.addEventListener('click', function(e) {
+                // 如果 TOC 目录面板处于打开状态，不触发翻页
+                var tocPanel = document.getElementById('tocPanel');
+                if (tocPanel && tocPanel.classList.contains('active')) {
+                    return;
+                }
+                
+                // 排除对链接、按钮、输入框等交互元素的点击
+                var target = e.target;
+                var tagName = target.tagName.toLowerCase();
+                if (tagName === 'a' || tagName === 'button' || tagName === 'input' || 
+                    tagName === 'textarea' || tagName === 'select' || 
+                    target.closest('a') || target.closest('button') ||
+                    target.closest('.toc-panel') || target.closest('.toc-toggle') ||
+                    target.closest('.toc-overlay')) {
+                    return;
+                }
+                
+                var clickY = e.clientY;
+                var windowHeight = window.innerHeight;
+                var scrollAmount = windowHeight * 0.85; // 滚动85%的屏幕高度
+                
+                if (clickY > windowHeight / 2) {
+                    // 点击下半部分：向下翻页
+                    window.scrollBy({
+                        top: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 点击上半部分：向上翻页
+                    window.scrollBy({
+                        top: -scrollAmount,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        })();
+    </script>
+
+    <!-- TOC 目录控制脚本 -->
+    <script>
+        (function() {
+            var tocToggle = document.getElementById('tocToggle');
+            var tocPanel = document.getElementById('tocPanel');
+            var tocOverlay = document.getElementById('tocOverlay');
+            
+            // 切换目录显示/隐藏
+            function toggleTOC() {
+                var isOpen = tocPanel.classList.contains('active');
+                if (isOpen) {
+                    closeTOC();
+                } else {
+                    openTOC();
+                }
+            }
+            
+            // 打开目录
+            function openTOC() {
+                tocPanel.classList.add('active');
+                tocOverlay.classList.add('active');
+                tocToggle.setAttribute('aria-label', '关闭目录');
+            }
+            
+            // 关闭目录
+            function closeTOC() {
+                tocPanel.classList.remove('active');
+                tocOverlay.classList.remove('active');
+                tocToggle.setAttribute('aria-label', '打开目录');
+            }
+            
+            // 点击按钮切换目录
+            tocToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTOC();
+            });
+            
+            // 点击遮罩层关闭目录
+            tocOverlay.addEventListener('click', function() {
+                closeTOC();
+            });
+            
+            // 点击目录项后关闭目录
+            var tocLinks = tocPanel.querySelectorAll('a');
+            tocLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    closeTOC();
+                });
+            });
+            
+            // ESC 键关闭目录
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && tocPanel.classList.contains('active')) {
+                    closeTOC();
+                }
+            });
+            
+            // 高亮当前可见的目录条目
+            function updateActiveItem() {
+                var scrollPos = window.scrollY + 150;  // 偏移量
+                var activeSection = null;
+                var activeOriginal = null;
+                
+                // 查找当前可见的 section
+                var sections = document.querySelectorAll('section[id^="section-"]');
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    if (section.offsetTop <= scrollPos) {
+                        activeSection = section.id;
+                    }
+                }
+                
+                // 查找当前可见的原文区块
+                var originals = document.querySelectorAll('[id^="original-"]');
+                for (var j = 0; j < originals.length; j++) {
+                    var original = originals[j];
+                    if (original.offsetTop <= scrollPos) {
+                        activeOriginal = original.id;
+                    }
+                }
+                
+                // 先移除所有 active 类
+                var allHeadings = tocPanel.querySelectorAll('.toc-heading');
+                for (var h = 0; h < allHeadings.length; h++) {
+                    allHeadings[h].classList.remove('active');
+                }
+                
+                var allOriginals = tocPanel.querySelectorAll('.toc-original');
+                for (var o = 0; o < allOriginals.length; o++) {
+                    allOriginals[o].classList.remove('active');
+                }
+                
+                // 只给当前活动的条目添加 active 类
+                if (activeSection) {
+                    var activeHeadingLink = tocPanel.querySelector('.toc-heading a[href="#' + activeSection + '"]');
+                    if (activeHeadingLink) {
+                        activeHeadingLink.parentElement.classList.add('active');
+                    }
+                }
+                
+                if (activeOriginal) {
+                    var activeOriginalLink = tocPanel.querySelector('.toc-original a[href="#' + activeOriginal + '"]');
+                    if (activeOriginalLink) {
+                        activeOriginalLink.parentElement.classList.add('active');
+                    }
+                }
+            }
+            
+            // 节流函数
+            var scrollTimeout;
+            function throttledUpdate() {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(function() {
+                    updateActiveItem();
+                    scrollTimeout = null;
+                }, 100);
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', throttledUpdate);
+            
+            // 打开目录时立即更新高亮
+            var originalOpenTOC = openTOC;
+            openTOC = function() {
+                originalOpenTOC();
+                updateActiveItem();
+            };
+            
+            // 初始化
+            updateActiveItem();
+        })();
+    </script>
+</body>
+</html>

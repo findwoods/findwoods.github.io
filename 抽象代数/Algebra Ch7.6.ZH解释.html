@@ -1,0 +1,2160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行间公式索引</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- MathJax v4 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            output: {
+                displayOverflow: 'linebreak',
+                linebreaks: {
+                    inline: true,
+                    width: '100%',
+                    lineleading: 0.2
+                }
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            /* 五大区块主题色 */
+            --original-color: #8b5cf6;
+            --explain-color: #0ea5e9;
+            --formula-color: #6366f1;
+            --example-color: #10b981;
+            --warning-color: #f59e0b;
+            /* Q1修复：总结、存在目的、直觉心智模型、直观想象 统一使用 #36828C 青色主题 */
+            --summary-color: #36828C;     /* 青色主题 */
+            --purpose-color: #36828C;     /* 青色主题 */
+            --intuition-color: #36828C;   /* 青色主题 */
+            --imagination-color: #36828C; /* 青色主题 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .authors {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
+        .content-section h4 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h5 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 18px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h6 {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            margin: 15px 0 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        /* ===============================
+           五大内容区块 - 统一风格不同主题色
+           =============================== */
+
+        /* 原文区 - 紫色 */
+        .original-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid var(--original-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .original-box .box-label {
+            color: var(--original-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-box .box-content {
+            font-style: italic;
+            color: #6b21a8;
+        }
+
+        /* 📜 [原文]区块内容 - 使用统一的黑色 */
+        .original-content {
+            color: #2d3748; /* 统一的深灰黑色 */
+        }
+
+        .original-content * {
+            color: #2d3748; /* 所有子元素 */
+        }
+
+        .original-content .MathJax, .original-content .MathJax * {
+            color: #2d3748 !important; /* 行内公式 */
+        }
+
+        /* 通用 .box-content 换行规则 - 确保长文本（如代码调用）能自动换行 */
+        .box-content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .box-content strong, .box-content code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            display: inline;
+        }
+
+        /* 逐步解释区 - 蓝色 */
+        .explain-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--explain-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .explain-box .box-label {
+            color: var(--explain-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explain-box .box-content {
+            color: #1a365d; /* Dark Blue */
+        }
+
+        .explain-box .box-content * {
+            color: #1a365d; /* Dark Blue - 所有子元素 */
+        }
+
+        .explain-box .box-content .MathJax, .explain-box .box-content .MathJax * {
+            color: #1a365d !important; /* Dark Blue - 行内公式 */
+        }
+
+        .explain-box ul, .explain-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .explain-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 公式拆解区 - 靛蓝色 */
+        .formula-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--formula-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .formula-box .box-label {
+            color: var(--formula-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .formula-box .box-content {
+            color: var(--text-color); /* 统一使用默认黑色，与原文区块一致 */
+            overflow-x: auto;
+        }
+
+        .formula-box .box-content * {
+            color: var(--text-color); /* 所有子元素 */
+        }
+
+        .formula-box .box-content .MathJax, .formula-box .box-content .MathJax * {
+            color: var(--text-color) !important; /* 行内公式 */
+        }
+
+        /* 数值示例区 - 绿色 */
+        .example-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--example-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .example-box .box-label {
+            color: var(--example-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-box .box-content {
+            color: #166534; /* Dark Green from edstem5 .answer-en */
+        }
+
+        .example-box .box-content * {
+            color: #166534; /* Dark Green - 所有子元素 */
+        }
+
+        .example-box .box-content .MathJax, .example-box .box-content .MathJax * {
+            color: #166534 !important; /* Dark Green - 行内公式 */
+        }
+
+        .example-box ul, .example-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .example-box li {
+            margin-bottom: 6px;
+        }
+
+        .example-box code {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* 易错点区 - 橙色 */
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .warning-box .box-label {
+            color: var(--warning-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warning-box .box-content {
+            color: #92400e;
+        }
+
+        .warning-box .box-content * {
+            color: #92400e; /* 所有子元素 */
+        }
+
+        .warning-box .box-content .MathJax, .warning-box .box-content .MathJax * {
+            color: #92400e !important; /* 行内公式 */
+        }
+
+        .warning-box ul, .warning-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .warning-box li {
+            margin-bottom: 6px;
+        }
+
+        /* 总结区 - Q1修复：使用#36828C青色主题 */
+        .summary-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--summary-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .summary-box .box-label {
+            color: var(--summary-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .summary-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .summary-box .box-content .MathJax, .summary-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 存在目的区 - Q1修复：使用#36828C青色主题 */
+        .purpose-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--purpose-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .purpose-box .box-label {
+            color: var(--purpose-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .purpose-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .purpose-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .purpose-box .box-content .MathJax, .purpose-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直觉心智模型区 - Q1修复：使用#36828C青色主题 */
+        .intuition-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--intuition-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .intuition-box .box-label {
+            color: var(--intuition-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .intuition-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .intuition-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .intuition-box .box-content .MathJax, .intuition-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直观想象区 - Q1修复：使用#36828C青色主题 */
+        .imagination-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--imagination-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .imagination-box .box-label {
+            color: var(--imagination-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .imagination-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .imagination-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .imagination-box .box-content .MathJax, .imagination-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 高亮术语 */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* 代码块 */
+        code {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            margin: 15px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 表格样式 - 紧凑型，行高列宽适应文字最小值 */
+        table {
+            border-collapse: collapse;
+            width: auto;  /* 列宽适应内容 */
+            margin: 15px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;  /* 减小padding使行高更紧凑 */
+            text-align: left;
+            white-space: nowrap;  /* 防止不必要的换行，列宽适应文字 */
+            line-height: 1.4;  /* 紧凑的行高 */
+        }
+
+        th {
+            background: #e0f7fa;
+            color: #006064;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #e2e8f0;
+        }
+
+        /* 表格对齐 */
+        .align-left {
+            text-align: left;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        /* 图例区域 */
+        .legend-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .legend-bar {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .legend-bar.original { background: #8b5cf6; }
+        .legend-bar.explain { background: #0ea5e9; }
+        .legend-bar.formula { background: #6366f1; }
+        .legend-bar.example { background: #10b981; }
+        .legend-bar.warning { background: #f59e0b; }
+        .legend-bar.summary { background: #36828C; }
+        .legend-bar.purpose { background: #36828C; }
+        .legend-bar.intuition { background: #36828C; }
+        .legend-bar.imagination { background: #36828C; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive - 移动端适配 */
+        @media (max-width: 768px) {
+            /* 容器宽度适配 */
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 20px 12px;
+                box-sizing: border-box;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+                padding: 0 15px;
+            }
+            
+            .hero {
+                padding: 50px 15px;
+            }
+            
+            .hero h1 {
+                font-size: 1.6rem;
+                word-break: break-word;
+            }
+            
+            .authors {
+                font-size: 1rem;
+            }
+            
+            /* 内容区块适配 */
+            .content-section {
+                padding: 20px 15px;
+                margin-left: 5px;
+                margin-right: 5px;
+                border-radius: 12px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.4rem;
+                flex-wrap: wrap;
+            }
+            
+            .content-section h3 {
+                font-size: 1.2rem;
+            }
+            
+            .content-section h4 {
+                font-size: 1.1rem;
+            }
+            
+            .section-number {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            /* 各区块box适配 */
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 15px 12px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .original-box .box-label,
+            .explain-box .box-label,
+            .formula-box .box-label,
+            .example-box .box-label,
+            .warning-box .box-label,
+            .summary-box .box-label,
+            .purpose-box .box-label,
+            .intuition-box .box-label,
+            .imagination-box .box-label {
+                font-size: 1.1rem;
+            }
+            
+            /* 图例区域移动端适配 */
+            .legend-section {
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
+            
+            .legend-row {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            
+            .legend-item {
+                font-size: 0.8rem;
+                gap: 5px;
+            }
+            
+            .legend-bar {
+                width: 3px;
+                height: 16px;
+            }
+            
+            /* 列表适配 */
+            ul, ol {
+                margin-left: 15px;
+                padding-left: 5px;
+            }
+            
+            /* 表格移动端适配 */
+            table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.9rem;
+                min-width: 80px;
+            }
+            
+            /* 代码块适配 */
+            pre {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            
+            /* 数学公式适配 */
+            .math-block {
+                padding: 10px 8px;
+                margin: 15px 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* MathJax公式溢出处理 - 只处理块级公式，保持行内公式inline */
+            mjx-container[jax="CHTML"][display="true"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                display: block !important;
+            }
+            
+            /* 行内公式 - 超宽时自动换行 */
+            mjx-container:not([display="true"]) {
+                display: inline-block !important;
+                max-width: 100% !important;
+                overflow-wrap: break-word !important;
+                word-wrap: break-word !important;
+            }
+            
+            /* MathJax内部元素换行支持 */
+            mjx-math {
+                white-space: normal !important;
+            }
+            
+            mjx-mrow {
+                flex-wrap: wrap !important;
+            }
+            
+            /* Footer适配 */
+            .footer {
+                padding: 25px 15px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* 超小屏幕适配 (手机竖屏) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 8px;
+            }
+            
+            .hero {
+                padding: 40px 10px;
+            }
+            
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+            
+            .content-section {
+                padding: 15px 10px;
+                margin-left: 3px;
+                margin-right: 3px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 12px 10px;
+            }
+            
+            .legend-section {
+                padding: 12px 8px;
+            }
+            
+            .legend-row {
+                gap: 8px;
+            }
+            
+            .legend-item {
+                font-size: 0.75rem;
+            }
+            
+            ul, ol {
+                margin-left: 12px;
+            }
+        }
+        
+        /* 确保所有内容不溢出 */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* ========================================
+           TOC 目录样式
+           ======================================== */
+        
+        /* TOC 触发按钮 - 左上角小方块 */
+        .toc-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(54, 130, 140, 0.5);  /* 青色 50% 透明度 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .toc-toggle:hover {
+            background: rgba(54, 130, 140, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .toc-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* TOC 目录面板 */
+        .toc-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 95vw;  /* 手机浏览器宽度的 95% */
+            height: 80vh; /* 手机浏览器高度的 80% */
+            max-width: 450px;  /* 桌面端最大宽度 */
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0 0 16px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .toc-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* TOC 头部 - 标题在图标右侧 */
+        .toc-header {
+            padding: 15px 20px 15px 80px;  /* 左侧留出按钮空间 */
+            background: linear-gradient(135deg, #36828C 0%, #2a6a72 100%);
+            color: white;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .toc-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* TOC 内容区 */
+        .toc-content {
+            flex: 1;
+            overflow-y: auto;   /* 允许垂直滚动 */
+            overflow-x: hidden; /* 禁止水平滚动 */
+            padding: 15px 0;
+        }
+        
+        /* TOC 列表 */
+        .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc-item {
+            margin: 0;
+        }
+        
+        .toc-item a {
+            display: block;
+            padding: 4px 20px;  /* 更紧凑的行间距 */
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #2d3748;
+            text-decoration: none;
+            word-wrap: break-word;   /* 自动换行 */
+            overflow-wrap: break-word;
+            white-space: normal;     /* 允许换行 */
+            line-height: 1.3;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .toc-item a:hover {
+            background: #e8f4f5;
+            color: #36828C;
+            border-left-color: #36828C;
+        }
+        
+        /* 标题项样式 */
+        .toc-heading a {
+            font-weight: 600;
+            color: #1a365d;
+            background: #f7fafc;
+        }
+        
+        .toc-heading a:hover {
+            background: #e8f4f5;
+        }
+        
+        /* 当前活动的标题项样式 */
+        .toc-heading.active a {
+            background: #d0e8ea;
+            color: #36828C;
+            border-left-color: #36828C;
+            font-weight: 700;
+        }
+        
+        /* 当前活动的原文项样式 */
+        .toc-original.active a {
+            background: #36828C;
+            color: white;
+            box-shadow: 0 3px 8px rgba(54, 130, 140, 0.35);
+        }
+        
+        /* 原文项容器 - 横向排列自动换行 */
+        .toc-originals-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 8px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* 原文项样式 - 浅青色带阴影 */
+        .toc-original {
+            margin: 0;
+        }
+        
+        .toc-original a {
+            display: inline-block;
+            width: 64px;  /* 固定宽度确保每行显示数量一致 */
+            padding: 6px 4px;
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #36828C;  /* 青色主题色 */
+            text-decoration: none;
+            text-align: center;
+            background: #e8f4f5;
+            border-radius: 6px;
+            border-left: none;
+            box-shadow: 0 2px 4px rgba(54, 130, 140, 0.2);  /* 青色阴影 */
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .toc-original a:hover {
+            background: #e0f2f4;
+            color: #36828C;
+            box-shadow: 0 3px 6px rgba(54, 130, 140, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        /* TOC 遮罩层 */
+        .toc-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .toc-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 移动端 TOC 适配 */
+        @media (max-width: 768px) {
+            .toc-toggle {
+                top: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .toc-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .toc-panel {
+                width: 90vw;
+                height: 80vh;
+                max-width: none;
+            }
+            
+            .toc-header {
+                padding: 12px 15px 12px 65px;
+            }
+            
+            .toc-header h3 {
+                font-size: 16px;
+            }
+            
+            .toc-item a {
+                padding: 4px 15px;
+                font-size: 15.5px;
+            }
+            
+            .toc-originals-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            .toc-original a {
+                padding: 5px 10px;
+                font-size: 15.5px;
+            }
+        }
+
+        /* 特殊术语着色 */
+        .spectral {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .periodicity {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .fourier {
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        /* 列表样式增强 */
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 - 已移除重复定义，使用上方第602-633行的紧凑型样式 */
+
+        /* 分隔线 */
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 30px 0;
+        }
+
+        /* 数学公式样式 - Q7: 行间公式颜色用黑色 */
+        .math-block {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            color: #000000; /* Q7: 黑色文字 */
+        }
+
+        /* Q7: 确保MathJax渲染的公式为黑色 */
+        .math-block .MathJax {
+            color: #000000 !important;
+        }
+
+        mjx-container {
+            color: #000000 !important;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- TOC 目录按钮 -->
+    <button class="toc-toggle" id="tocToggle" aria-label="打开目录">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+        </svg>
+    </button>
+    
+    <!-- TOC 遮罩层 -->
+    <div class="toc-overlay" id="tocOverlay"></div>
+    
+    <!-- TOC 目录面板 -->
+    <nav class="toc-panel" id="tocPanel">
+        <div class="toc-header">
+            <h3>📑 目录</h3>
+        </div>
+        <div class="toc-content">
+            <ul class="toc-list">
+                <li class="toc-item toc-heading"><a href="#section-1">1. 7.6 正规化子 (Normalizer)</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-1">原文1</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-2">1. 2 正规化子定义</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-2">原文2</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-3">1. 3 计数公式 (The Counting Formula)</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-3">原文3</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-4">1. 4 命题 7.6.3 (Proposition 7.6.3)</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-4">原文4</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-5">1. 5 示例：$S_5$ 中的正规化子</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-5">原文5</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-6">2. 行间公式索引</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>行间公式索引</h1>
+            <p class="authors"></p>
+            <p class="date"></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 图例区域 -->
+        <div class="legend-section">
+            <!-- 第一行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar original"></div>
+                    <span>📜 原文</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar explain"></div>
+                    <span>📖 逐步解释</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar formula"></div>
+                    <span>∑ 公式拆解</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar example"></div>
+                    <span>💡 数值示例</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar warning"></div>
+                    <span>⚠️ 易错点</span>
+                </div>
+            </div>
+            <!-- 第二行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar summary"></div>
+                    <span>📝 总结</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar purpose"></div>
+                    <span>🎯 存在目的</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar intuition"></div>
+                    <span>🧠 直觉心智模型</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar imagination"></div>
+                    <span>💭 直观想象</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="content-section" id="section-1">
+    <h2><span class="section-number">1</span>7.6 正规化子 (Normalizer)</h2>
+    <h4>1.1 轨道与稳定子 (Orbit and Stabilizer)</h4><p id="original-1"><strong style="font-size: 1.3rem;">📜 [原文1]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>我们考虑群 $G$ 的子群 $H$ 在 $G$ 的共轭作用下的<strong>轨道</strong>。$[H]$ 的<strong>轨道</strong>是共轭子群 $\left[g H g^{-1}\right]$ 的集合，其中 $g$ 属于 $G$。在此操作下 $[H]$ 的<strong>稳定子</strong>称为 $H$ 的<strong>正规化子</strong>，记为 $N(H)$：</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话引入了两个核心概念：<strong>轨道</strong>和<strong>稳定子</strong>，但它是在一个特定的场景下讨论的：一个群 $G$ 对其自身的子群集合进行“共轭作用”。让我们一步步拆解。</p>
+<ol>
+  <li> <strong>作用 (Action)</strong>：在群论中，“作用”是一个非常普遍的概念。想象一个群 $G$ 和一个集合 $S$。如果 $G$ 中的每个元素 $g$ 都能以一种“一致”的方式移动 $S$ 中的元素，我们就说群 $G$ <strong>作用</strong>在集合 $S$ 上。例如，旋转群作用在一个正方形的顶点集合上。</li>
+  <li> <strong>共轭作用 (Conjugation Action)</strong>：这里，我们讨论的是一种特殊的“作用”，叫做<strong>共轭作用</strong>。群 $G$ 不再作用于一个外部的集合，而是作用于它自己内部的元素或子群。
+<ul>
+  <li><strong>对元素的作用</strong>：一个元素 $g \in G$ 作用在另一个元素 $a \in G$ 上，结果是 $g a g^{-1}$。</li>
+  <li><strong>对子群的作用</strong>：一个元素 $g \in G$ 作用在一个子群 $H \subseteq G$ 上，结果是得到一个新的子群，这个子群由所有形如 $g h g^{-1}$（其中 $h \in H$）的元素构成。这个新的子群我们记为 $gHg^{-1}$。</li>
+</ul></li>
+  <li> <strong>被作用的集合</strong>：在这个场景里，群 $G$ 作用的“集合”不是别的，正是 $G$ 所有子群构成的集合。我们关注其中一个特定的子群 $H$ 以及它在共轭作用下的变化。</li>
+  <li> <strong>轨道 (Orbit)</strong>：<strong>轨道</strong>是指从一个起点（这里是子群 $H$）出发，通过群 $G$ 中所有元素的“作用”，能够到达的所有“位置”的集合。具体到<strong>共轭作用</strong>，子群 $H$ 的<strong>轨道</strong>就是用 $G$ 中所有的元素 $g$ 去对 $H$ 进行共轭操作（即计算 $gHg^{-1}$）所能得到的所有不同子群的集合。这些子群 $gHg^{-1}$ 都被称为 $H$ 的<strong>共轭子群</strong>。所以，$H$ 的轨道就是它所有<strong>共轭子群</strong>的集合。</li>
+  <li> <strong>稳定子 (Stabilizer)</strong>：<strong>稳定子</strong>则问一个相反的问题：群 $G$ 中有哪些元素在作用于起点 $H$ 后，并<strong>没有</strong>改变它？也就是说，哪些元素 $g \in G$ 使得作用结果 $gHg^{-1}$ 和原来的 $H$ <strong>完全相同</strong>？所有满足 $gHg^{-1} = H$ 的元素 $g$ 构成的集合，就叫做 $H$ 的<strong>稳定子</strong>。</li>
+  <li> <strong>正规化子 (Normalizer)</strong>：在子群共轭作用这个特定情境下，$H$ 的<strong>稳定子</strong>有一个专门的名字，叫做 $H$ 的<strong>正规化子</strong>，记作 $N(H)$。所以，$N(H)$ 就是 $G$ 中所有让子群 $H$ 在共轭作用下“保持不动”的元素的集合。</li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p>本段没有独立的行间公式，但提到了核心定义：</p>
+<ul>
+  <li><strong>$G$</strong>: 一个群 (Group)。</li>
+  <li><strong>$H$</strong>: $G$ 的一个子群 (Subgroup)。</li>
+  <li><strong>$g \in G$</strong>: $g$ 是群 $G$ 中的一个元素。</li>
+  <li><strong>$g^{-1}$</strong>: $g$ 在群 $G$ 中的逆元。</li>
+  <li><strong>$g H g^{-1}$</strong>: 这是一个集合，定义为 $\{ghg^{-1} \mid h \in H\}$。可以证明，如果 $H$ 是一个子群，那么 $gHg^{-1}$ 也是 $G$ 的一个子群，称为 $H$ 的一个<strong>共轭子群</strong>。</li>
+  <li><strong>轨道 (Orbit of H)</strong>:  $\text{Orb}(H) = \{ K \subseteq G \mid K = gHg^{-1} \text{ for some } g \in G \}$。这是由 $H$ 的所有<strong>共轭子群</strong>构成的集合。</li>
+  <li><strong>稳定子/正规化子 (Stabilizer/Normalizer of H)</strong>: $N(H)$ 是 $H$ 在共轭作用下的稳定子。它的定义是 $N(H) = \{g \in G \mid gHg^{-1} = H\}$。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>示例 1：对称群 $S_3$</strong></p>
+<ul>
+  <li><strong>群 $G$</strong>: $S_3 = \{e, (12), (13), (23), (123), (132)\}$，其阶为 6。</li>
+  <li><strong>子群 $H$</strong>: 让我们选择由一个对换生成的子群，例如 $H = \{e, (12)\}$。这是一个 2 阶子群。</li>
+</ul>
+<p>现在我们来计算 $H$ 的<strong>轨道</strong>和<strong>正规化子</strong> $N(H)$。</p>
+<ul>
+  <li><strong>计算轨道 (共轭子群)</strong>：我们用 $S_3$ 的每个元素 $g$ 来计算 $gHg^{-1}$。</li>
+  <li>$g = e$: $e H e^{-1} = H = \{e, (12)\}$.</li>
+  <li>$g = (12)$: $(12) H (12)^{-1} = \{ (12)e(12), (12)(12)(12) \} = \{e, (12)\} = H$.</li>
+  <li>$g = (13)$: $(13) H (13)^{-1} = \{ (13)e(13), (13)(12)(13) \} = \{e, (23)\}$. 我们称这个新子群为 $H_1$。</li>
+  <li>$g = (23)$: $(23) H (23)^{-1} = \{ (23)e(23), (23)(12)(23) \} = \{e, (13)\}$. 我们称这个新子群为 $H_2$。</li>
+  <li>$g = (123)$: $(123) H (123)^{-1} = \{ (123)e(132), (123)(12)(132) \} = \{e, (23)\} = H_1$.</li>
+  <li>$g = (132)$: $(132) H (132)^{-1} = \{ (132)e(123), (132)(12)(123) \} = \{e, (13)\} = H_2$.</li>
+</ul>
+<p>所以，$H$ 的<strong>轨道</strong>是这三个子群的集合: $\text{Orb}(H) = \{ \{e, (12)\}, \{e, (13)\}, \{e, (23)\} \}$。轨道中有 3 个元素。</p>
+<ul>
+  <li><strong>计算正规化子 $N(H)$</strong>：我们寻找所有使得 $gHg^{-1} = H$ 的 $g$。从上面的计算中，我们发现当 $g=e$ 和 $g=(12)$ 时，等式成立。</li>
+</ul>
+<p>因此，$N(H) = \{e, (12)\} = H$。</p>
+<p><strong>示例 2：二面体群 $D_4$ (正方形的对称群)</strong></p>
+<ul>
+  <li><strong>群 $G$</strong>: $D_4 = \{r_0, r_{90}, r_{180}, r_{270}, h, v, d_1, d_2\}$，阶为 8。其中 $r_i$ 是旋转，$h, v$ 是水平/垂直翻转，$d_1, d_2$ 是对角线翻转。</li>
+  <li><strong>子群 $H$</strong>: 让我们选择由水平翻转 $h$ 生成的子群 $H = \{r_0, h\}$。</li>
+</ul>
+<p>我们来计算 $N(H)$。</p>
+<ul>
+  <li>$r_0 H r_0^{-1} = H$，所以 $r_0 \in N(H)$。</li>
+  <li>$h H h^{-1} = H$，所以 $h \in N(H)$。</li>
+  <li>考虑旋转 $r_{90}$：$r_{90} h r_{90}^{-1} = r_{90} h r_{270}$。作用在正方形顶点上，这相当于垂直翻转 $v$。所以 $r_{90} H r_{90}^{-1} = \{r_0, v\} \neq H$。因此 $r_{90} \notin N(H)$。</li>
+  <li>考虑旋转 $r_{180}$：$r_{180} h r_{180}^{-1} = r_{180} h r_{180}$。作用在顶点上，这相当于 $h$。所以 $r_{180} H r_{180}^{-1} = H$。因此 $r_{180} \in N(H)$。</li>
+  <li>$r_{180}$ 和 $h$ 都在 $N(H)$ 中，由于 $N(H)$ 本身也是一个子群，所以它们的乘积 $r_{180}h = v$ 也必须在 $N(H)$ 中吗？我们来验证一下：$v H v^{-1} = v\{r_0, h\}v = \{v r_0 v, vhv\} = \{r_0, r_{180}h\} = \{r_0, h\} = H$。是的，$v \in N(H)$。</li>
+</ul>
+<p>综上，$N(H)$ 包含了 $\{r_0, r_{180}, h, v\}$。这个集合本身就是一个 4 阶子群（克莱因四元群的同构）。所以 $N(H) = \{r_0, r_{180}, h, v\}$。</p>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>混淆 $N(H)$ 和 $H$</strong>：$H$ 总是 $N(H)$ 的一个子集（因为对任何 $h \in H$, $hHh^{-1}=H$），但 $N(H)$ 可能比 $H$ 大。如 $D_4$ 的例子中，$N(H)$ 阶为 4，而 $H$ 阶为 2。</li>
+  <li> <strong>混淆 $N(H)$ 和中心 $Z(G)$</strong>：中心 $Z(G) = \{z \in G \mid zg=gz \text{ for all } g \in G\}$。$Z(G)$ 中的元素与 $G$ 中所有元素都可交换，因此它们也必然满足 $zHz^{-1}=H$。所以 $Z(G) \subseteq N(H)$ 对<strong>所有</strong>子群 $H$ 都成立。而 $N(H)$ 只要求其元素与 $H$ 这个<strong>特定</strong>子群“整体上”可交换，不要求与 $H$ 中每个元素逐个交换。</li>
+  <li> <strong>$gHg^{-1}=H$ vs $ghg^{-1}=h$</strong>：$g \in N(H)$ 的条件是 $gHg^{-1}=H$，这是一个<strong>集合</strong>的相等。它不要求对 $H$ 中的每一个元素 $h$ 都有 $ghg^{-1}=h$。后者是一个更强的条件，定义了另一个叫做<strong>中心化子</strong> $C_G(H)$ 的概念。$N(H)$ 允许 $g$ 在 $H$ 内部“重新排列”元素，只要不把任何元素“扔出” $H$ 或从 $H$ 外“拿进”元素即可。例如，在 $D_4$ 的例子中，$r_{180} \in N(\{r_0,d_1,d_2,r_{180}\})$，但是 $r_{180} d_1 r_{180}^{-1} = d_2 \neq d_1$。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>正规化子</strong> $N(H)$ 是群 $G$ 的一个子群，它由所有“稳定”子群 $H$ 的元素组成。“稳定”的含义是在共轭作用 $g(\cdot)g^{-1}$ 下，$H$ 作为一个集合保持不变。$N(H)$ 刻画了 $H$ 在 $G$ 中的“对称性”或“不变性”的程度。$N(H)$ 越大，与 $H$ 共轭的子群就越少。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p><strong>正规化子</strong>是联系一个子群 $H$ 和其“正规性”的桥梁。</p>
+<ol>
+  <li> <strong>量化“离正规有多远”</strong>：一个子群 $H$ 是<strong>正规子群</strong>当且仅当它在共轭作用下是唯一的<strong>轨道</strong>成员，即 $gHg^{-1}=H$ 对所有 $g \in G$ 成立。这意味着它的<strong>正规化子</strong>是整个群 $G$。如果 $N(H)$ 不是 $G$，那么 $H$ 就不是正规的，而 $N(H)$ 的大小和结构就告诉我们 $H$ “在多大程度上”不是正规的。</li>
+  <li> <strong>构建更大的群</strong>：$N(H)$ 是包含 $H$ 作为<strong>正规子群</strong>的最大的 $G$ 的子群。这在研究群的结构时非常有用，允许我们在 $N(H)$ 这个“局部环境”中把 $H$ 当作正规子群来处理。</li>
+  <li> <strong>计数工具</strong>：如下一节将要看到的，<strong>正规化子</strong>是<strong>轨道-稳定子定理</strong>的一个直接应用，它提供了一个强大的计数公式，用来计算一个子群有多少个<strong>共轭子群</strong>。</li>
+</ol>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一个大社会 $(G)$，里面有各种小团体（子群）。你属于一个小团体 $(H)$。</p>
+<ol>
+  <li><strong>共轭作用</strong>：社会上的某个有影响力的人 $(g)$ 关注你的小团体 $(H)$，并且通过他的影响力“改造”了你的团体，形成了一个看起来不同但结构一样的新团体 $(gHg^{-1})$。</li>
+  <li><strong>轨道</strong>：所有可能通过这种方式改造出的新团体的集合，就是你的团体 $(H)$ 的“关系网”或“阶层”。</li>
+  <li><strong>正规化子 $N(H)$</strong>：社会上有一群特殊的人，他们的“改造”对你的团体毫无影响，你的团体在他们改造前后看起来一模一样。这群人就是你的团体的“守护者”或“稳定力量”，他们构成了 $N(H)$。你的团体 $(H)$ 的成员自然都在这个守护者团体里，因为你们自己人肯定不会改变自己的团体。</li>
+  <li><strong>正规子群</strong>：如果社会上的<strong>每一个人</strong>都是你的团体的“守护者”（即 $N(H)=G$），那么你的团体就是一个非常特殊、稳定的团体，即<strong>正规子群</strong>。无论谁来看，你的团体都保持原样。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个晶体结构 $(G)$，它由许多原子构成。一个特定的原子簇 $(H)$ 是我们的子群。</p>
+<ol>
+  <li>我们对整个晶体进行一个对称操作（如旋转、反射），这个操作就是元素 $g$。</li>
+  <li>操作之后，原来的原子簇 $(H)$ 被移动到了一个新的位置，形成了一个新的原子簇 $(gHg^{-1})$。这个新簇和原簇具有完全相同的内部结构（原子间距、键角等），只是在晶体中的位置和朝向变了。</li>
+  <li><strong>轨道</strong>是所有通过这种对称操作可以得到的原子簇的集合。</li>
+  <li><strong>正规化子 $N(H)$</strong> 则是晶体中所有这样的对称操作：在执行该操作后，原子簇 $(H)$ 作为一个整体，其占据的空间位置和朝向可能变了，但是最终占据的空间区域和原来完全一样（可能内部的原子交换了位置，但整体轮廓不变）。例如，对一个正方形中心的十字形原子簇，旋转90度后，虽然每个原子都去了邻居的位置，但整个十字的轮廓没有变。这个90度旋转操作就属于该十字簇的<strong>正规化子</strong>。</li>
+</ol>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-2">
+    <h2><span class="section-number">1</span>2 正规化子定义</h2>
+    <p id="original-2"><strong style="font-size: 1.3rem;">📜 [原文2]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><div class="math-block">$$
+\begin{equation*}
+N(H)=\left\{g \in G \mid g H g^{-1}=H\right\} . \tag{7.6.1}
+\end{equation*}
+$$</div></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这行公式是对上一段描述的<strong>正规化子</strong>的严格数学定义。</p>
+<ul>
+  <li><strong>$N(H)$</strong>: 这是符号，代表子群 $H$ 的<strong>正规化子</strong>。</li>
+  <li><strong>$=$</strong>: 表示定义。</li>
+  <li><strong>$\{$ ... $\}$</strong>: 表示这是一个集合。</li>
+  <li><strong>$g \in G$</strong>: 集合中的元素 $g$ 必须来自群 $G$。</li>
+  <li><strong>$\mid$</strong>: “使得(such that)” 的意思，竖线右边是这些元素 $g$ 必须满足的条件。</li>
+  <li><strong>$g H g^{-1}=H$</strong>: 这是核心条件。它表示用元素 $g$ 对子群 $H$ 进行共轭操作后，得到的子群 $gHg^{-1}$ 与原来的子群 $H$ 是同一个集合。</li>
+</ul>
+<p>综上，这个公式的完整意思是：<strong>$H$ 的正规化子 $N(H)$ 是由群 $G$ 中所有满足条件 “$gHg^{-1}=H$” 的元素 $g$ 所组成的集合。</strong></p>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><strong>公式 (7.6.1): $N(H)=\left\{g \in G \mid g H g^{-1}=H\right\}$</strong></p>
+<ul>
+  <li><strong>$N(H)$</strong>: <strong>正规化子 (Normalizer)</strong>。它是 $G$ 的一个子集。我们可以证明它实际上是一个子群：</li>
+</ul>
+<ol>
+  <li> <strong>封闭性</strong>: 如果 $g_1, g_2 \in N(H)$，那么 $g_1Hg_1^{-1}=H$ 且 $g_2Hg_2^{-1}=H$。我们需要证明 $g_1g_2 \in N(H)$。</li>
+</ol>
+<p>$(g_1g_2)H(g_1g_2)^{-1} = g_1(g_2Hg_2^{-1})g_1^{-1} = g_1(H)g_1^{-1} = H$。所以 $g_1g_2 \in N(H)$。</p>
+<ol>
+  <li> <strong>单位元</strong>: $eHe^{-1} = eHe = H$，所以单位元 $e \in N(H)$。</li>
+  <li> <strong>逆元</strong>: 如果 $g \in N(H)$，那么 $gHg^{-1}=H$。我们需要证明 $g^{-1} \in N(H)$。</li>
+</ol>
+<p>从 $gHg^{-1}=H$ 两边同时左乘 $g^{-1}$ 右乘 $g$，得到 $g^{-1}(gHg^{-1})g = g^{-1}Hg$，即 $(g^{-1}g)H(g^{-1}g) = g^{-1}Hg$，所以 $H = g^{-1}Hg$。因此 $g^{-1} \in N(H)$。</p>
+<p>既然满足子群的三个条件，所以 $N(H)$ 是 $G$ 的一个子群。</p>
+<ul>
+  <li><strong>$gHg^{-1}=H$</strong>: 这个等式是集合的相等。</li>
+  <li><strong>$gHg^{-1} \subseteq H$</strong>: 对于 $gHg^{-1}$ 中的任意元素 $ghg^{-1}$（其中 $h \in H$），它必须也是 $H$ 的一个元素。</li>
+  <li><strong>$H \subseteq gHg^{-1}$</strong>: 对于 $H$ 中的任意元素 $h'$，它必须可以被写成 $ghg^{-1}$ 的形式，对于某个 $h \in H$。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>示例 1：对称群 $S_4$</strong></p>
+<ul>
+  <li><strong>群 $G$</strong>: $S_4$，阶为 24。</li>
+  <li><strong>子群 $H$</strong>: 考虑由一个 4-轮换生成的循环子群，$H = \langle (1234) \rangle = \{e, (1234), (13)(24), (1432)\}$。这是一个 4 阶子群。</li>
+</ul>
+<p>我们来找 $N(H)$。</p>
+<ul>
+  <li>$H$ 的所有元素肯定在 $N(H)$ 中。所以 $\{e, (1234), (13)(24), (1432)\} \subseteq N(H)$。</li>
+  <li>考虑元素 $g=(24)$。我们计算 $g(1234)g^{-1} = (24)(1234)(24) = (1432)$。</li>
+</ul>
+<p>注意 $(1432)$ 仍然是 $H$ 的一个元素。</p>
+<p>由于 $(1234)$ 是 $H$ 的生成元，我们只需要检查 $g$ 对生成元的作用即可。只要 $g(1234)g^{-1}$ 仍然是 $H$ 的一个生成元（这里是 $(1234)$ 或 $(1432)$），那么 $g$ 就会将整个子群 $H$ 映射到自身。</p>
+<p>因为 $g(1234)g^{-1} = (1432) \in H$，所以 $gHg^{-1} = H$。因此 $(24) \in N(H)$。</p>
+<ul>
+  <li>既然 $H$ 和 $(24)$ 都在 $N(H)$ 中，那么它们的乘积也必须在 $N(H)$ 中。$N(H)$ 包含了由 $H$ 和 $(24)$ 生成的子群。这个子群是 $\langle (1234), (24) \rangle$。</li>
+</ul>
+<p>这个子群的元素有：$H$ 的 4 个元素，以及 $(24), (1234)(24)=(12)(34), (13)(24)(24)=(13), (1432)(24)=(14)(23)$。</p>
+<p>这个子群就是 $D_4$，即正方形的对称群（将顶点标为1,2,3,4），阶为 8。</p>
+<p>所以 $N(H)$ 至少是这个 8 阶的 $D_4$ 子群。可以验证，除了这 8 个元素外，没有其他元素能使 $H$ 保持不变。例如，$(12)(1234)(12) = (2134) \notin H$。</p>
+<p>结论：$N(S_4)(\langle (1234) \rangle) = D_4$。</p>
+<p><strong>示例 2：$GL_2(\mathbb{R})$ (2x2实数可逆矩阵)</strong></p>
+<ul>
+  <li><strong>群 $G$</strong>: $GL_2(\mathbb{R})$，所有 $2 \times 2$ 的可逆实矩阵，运算为矩阵乘法。</li>
+  <li><strong>子群 $H$</strong>: 上三角矩阵的子群 $H = \left\{ \begin{pmatrix} a &amp; b \\ 0 &amp; d \end{pmatrix} \mid ad \neq 0 \right\}$。</li>
+</ul>
+<p>我们寻找 $N(H)$。什么样的可逆矩阵 $M = \begin{pmatrix} p &amp; q \\ r &amp; s \end{pmatrix}$ 满足 $MHM^{-1}=H$？</p>
+<p>这意味着对于任意的 $A = \begin{pmatrix} a &amp; b \\ 0 &amp; d \end{pmatrix} \in H$，矩阵 $MAM^{-1}$ 都必须是上三角矩阵。</p>
+<p>$M^{-1} = \frac{1}{ps-qr} \begin{pmatrix} s &amp; -q \\ -r &amp; p \end{pmatrix}$。</p>
+<p>$MAM^{-1} = \frac{1}{\det(M)} \begin{pmatrix} p &amp; q \\ r &amp; s \end{pmatrix} \begin{pmatrix} a &amp; b \\ 0 &amp; d \end{pmatrix} \begin{pmatrix} s &amp; -q \\ -r &amp; p \end{pmatrix}$</p>
+<p>$= \frac{1}{\det(M)} \begin{pmatrix} ap &amp; bp+dq \\ ar &amp; br+ds \end{pmatrix} \begin{pmatrix} s &amp; -q \\ -r &amp; p \end{pmatrix}$</p>
+<p>$= \frac{1}{\det(M)} \begin{pmatrix} \dots &amp; \dots \\ ars - r(br+ds) &amp; \dots \end{pmatrix}$</p>
+<p>为了让结果矩阵是上三角矩阵，其左下角元素必须为 0。</p>
+<p>$ars - r(br+ds) = r(as - br - ds) = 0$。</p>
+<p>这个等式需要对任意 $a, b, d$（其中 $ad \neq 0$）都成立。</p>
+<ul>
+  <li>如果 $r \neq 0$，那么 $as - br - ds = 0$ 必须对所有 $a,b,d$ 成立。这是不可能的。例如，取 $b=0$, $a=1, d=1$, 我们得到 $s-s=0$，成立。但取 $b=1, a=1, d=1$, 我们得到 $s-r-s = -r = 0$, 与 $r \neq 0$ 矛盾。</li>
+  <li>因此，唯一的可能是 $r=0$。</li>
+</ul>
+<p>如果 $r=0$，那么矩阵 $M = \begin{pmatrix} p &amp; q \\ 0 &amp; s \end{pmatrix}$。由于 $M$ 可逆，所以 $ps \neq 0$。这正好是上三角矩阵的定义！</p>
+<p>所以，任何上三角矩阵都在 $H$ 的正规化子中。即 $H \subseteq N(H)$。</p>
+<p>我们还需要检查是否所有这样的 $M$ 都能使 $MHM^{-1}=H$。当 $r=0$ 时，$M$ 是上三角矩阵，它的逆 $M^{-1}$ 也是上三角矩阵，两个上三角矩阵和一个 H 中的上三角矩阵相乘，结果仍然是上三角矩阵。所以 $MHM^{-1} \subseteq H$。反之可证 $H \subseteq MHM^{-1}$。</p>
+<p>结论：在这种情况下，$N(H) = H$。</p>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>忘记 $g$ 必须可逆</strong>: 在 $GL_n(F)$ 这样的矩阵群中，共轭操作是 $gHg^{-1}$，需要用到逆 $g^{-1}$。如果一个矩阵不可逆，它就不在群里，也就不能用来共轭。</li>
+  <li> <strong>验证条件时不够通用</strong>: 在上一个例子中，如果只代入一两个特殊的 $a,b,d$ 发现左下角为0，就错误地得出结论，是不对的。该条件必须对 $H$ 中<strong>所有</strong>元素都成立。</li>
+  <li> <strong>$N(H)=H$ 是很常见的情况</strong>: 很多子群的“守护者”就是它们自己。但这绝非普遍规律，如 $S_4$ 的例子所示。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>公式 (7.6.1) 是<strong>正规化子</strong>的正式定义，它精确地描述了构成 $N(H)$ 的元素所必须满足的代数性质。这个定义不仅是一个静态的描述，而且是证明 $N(H)$ 是一个子群、研究其性质的出发点。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>数学定义的首要目的是<strong>精确性</strong>和<strong>无歧义性</strong>。这个公式将前面直观的“稳定子”概念转化为一个可以进行严格逻辑推导和计算的数学对象。没有这个精确的定义，就不可能证明<strong>命题 7.6.3</strong>，也不可能推导出<strong>计数公式 (7.6.2)</strong>。它是整个理论的基石。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这个公式就像一个俱乐部的会员章程。</p>
+<ol>
+  <li><strong>$N(H)$</strong>: 俱乐部“守护者”的名单。</li>
+  <li><strong>$g \in G$</strong>: 候选人必须来自整个大社会 $G$。</li>
+  <li><strong>$gHg^{-1}=H$</strong>: 入会资格审查。候选人 $g$ 是否能让俱乐部 $H$ 保持原样？如果能，就吸纳进守护者名单。这个审查过程就是检查等式是否成立。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个由特定规则（比如只能水平或垂直移动）控制的魔方状态集合 $H$。整个魔方的所有可能操作构成了群 $G$。</p>
+<p>公式 $N(H)=\left\{g \in G \mid g H g^{-1}=H\right\}$ 就是在寻找这样一类操作 $g \in G$：</p>
+<p>你先做一个操作 $g$，然后允许进行任何一个 $H$ 中的操作（水平或垂直移动），最后再做一个 $g$ 的逆操作 $g^{-1}$。如果无论你在中间选择了哪个 $H$ 中的操作，最终的效果都等同于只做了一个（可能是不同的）$H$ 中的操作，那么这个操作 $g$ 就属于 $N(H)$。</p>
+<p>例如，如果 $g$ 是将魔方整体旋转90度，那么 $gHg^{-1}$ 就会变成只能在新的方向上进行水平或垂直移动，这不再是原来的 $H$。所以这个 $g$ 不在 $N(H)$ 中。但如果 $g$ 是一个保持魔方轴向不变的操作，它就可能在 $N(H)$ 中。</p>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-3">
+    <h2><span class="section-number">1</span>3 计数公式 (The Counting Formula)</h2>
+    <p id="original-3"><strong style="font-size: 1.3rem;">📜 [原文3]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>计数公式</strong>为</p>
+<p><div class="math-block">$$
+\begin{equation*}
+|G|=|N(H)| \cdot(\text { 共轭子群的数量 }) . \tag{7.6.2}
+\end{equation*}
+$$</div></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个公式是群论中一个非常重要的定理——<strong>轨道-稳定子定理 (Orbit-Stabilizer Theorem)</strong>——的直接应用。</p>
+<ol>
+  <li> <strong>轨道-稳定子定理回顾</strong>: 当一个有限群 $G$ 作用在一个集合 $S$ 上时，对于 $S$ 中的任意一个元素 $x$，我们有：$|G| = |\text{Stab}(x)| \cdot |\text{Orb}(x)|$。其中，
+<ul>
+  <li>$|G|$ 是群 $G$ 的阶（元素的数量）。</li>
+  <li>$|\text{Stab}(x)|$ 是 $x$ 的<strong>稳定子</strong>的阶，即让 $x$ 保持不变的 $G$ 中元素的数量。</li>
+  <li>$|\text{Orb}(x)|$ 是 $x$ 的<strong>轨道</strong>的大小，即 $x$ 在作用下能变成的所有不同元素的数量。</li>
+</ul></li>
+  <li> <strong>应用到共轭作用</strong>: 现在，我们将这个定理应用到我们正在讨论的场景：
+<ul>
+  <li><strong>群 $G$</strong>：就是群 $G$ 本身。</li>
+  <li><strong>作用的集合 $S$</strong>：是 $G$ 的所有子群的集合。</li>
+  <li><strong>我们关注的元素 $x$</strong>：就是子群 $H$。</li>
+  <li><strong>$H$ 的稳定子 $\text{Stab}(H)$</strong>：根据定义，在共轭作用下，$H$ 的稳定子正是它的<strong>正规化子</strong> $N(H)$。</li>
+  <li><strong>$H$ 的轨道 $\text{Orb}(H)$</strong>：根据定义，在共轭作用下，$H$ 的轨道是所有与 $H$ <strong>共轭的子群</strong>的集合。</li>
+</ul></li>
+  <li> <strong>代入公式</strong>: 将这些对应关系代入<strong>轨道-稳定子定理</strong>的通用公式，我们得到：</li>
+</ol>
+<p>$|G| = |N(H)| \cdot |\text{Orb}(H)|$</p>
+<p>其中 $|\text{Orb}(H)|$ 正是与 $H$ 共轭的子群的数量。</p>
+<p>于是，我们就得到了这个<strong>计数公式</strong>：群 $G$ 的阶等于子群 $H$ 的<strong>正规化子</strong>的阶，乘以 $H$ 的<strong>共轭子群</strong>的数量。</p>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><strong>公式 (7.6.2): $|G|=|N(H)| \cdot(\text { 共轭子群的数量 })$</strong></p>
+<ul>
+  <li><strong>$|G|$</strong>: 群 $G$ 的阶 (order)，即 $G$ 中元素的个数。</li>
+  <li><strong>$|N(H)|$</strong>: 正规化子 $N(H)$ 的阶。因为 $N(H)$ 是 $G$ 的子群，根据<strong>拉格朗日定理</strong>，它的阶必然整除 $|G|$。</li>
+  <li><strong>共轭子群的数量</strong>: 指的是集合 $\{gHg^{-1} \mid g \in G\}$ 中不同子群的个数。这个数量等于 $H$ 的轨道的大小。</li>
+</ul>
+<p><strong>推导</strong>:</p>
+<p>这个公式还可以从陪集 (coset) 的角度来理解。</p>
+<p>根据定义，共轭子群的数量是 $H$ 的轨道的大小，即 $|\text{Orb}(H)|$。</p>
+<p>根据群作用理论，轨道的大小等于群的阶除以稳定子的阶。在这里，稳定子是 $N(H)$。</p>
+<p>所以，共轭子群的数量 = $|G| / |N(H)|$。</p>
+<p>这个商 $|G| / |N(H)|$ 也被记作指数 $[G : N(H)]$，它等于 $N(H)$ 在 $G$ 中的左陪集（或右陪集）的数量。</p>
+<p>所以，共轭子群的数量 $= [G : N(H)]$。</p>
+<p>将这个等式的两边同乘以 $|N(H)|$，我们得到：</p>
+<p>$|N(H)| \cdot (\text{共轭子群的数量}) = |N(H)| \cdot [G : N(H)]$</p>
+<p>根据<strong>拉格朗日定理</strong>，对于任何子群 $N$，我们有 $|G| = |N| \cdot [G : N]$。</p>
+<p>所以， $|N(H)| \cdot [G : N(H)] = |G|$。</p>
+<p>结合起来，就得到了 $|G|=|N(H)| \cdot(\text { 共轭子群的数量 })$。</p>
+<p>这个推导也证明了下一句话：“共轭子群的数量等于<strong>指数</strong> $[G: N(H)]$。”</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>示例 1：对称群 $S_3$ (复用之前的计算)</strong></p>
+<ul>
+  <li>$G = S_3$, $|G|=6$.</li>
+  <li>$H = \{e, (12)\}$.</li>
+  <li>我们之前计算出 $N(H) = \{e, (12)\}$，所以 $|N(H)|=2$。</li>
+  <li>我们之前计算出 $H$ 的轨道是 $\{\{e,(12)\}, \{e,(13)\}, \{e,(23)\}\}$，所以共轭子群的数量是 3。</li>
+  <li><strong>验证公式</strong>: $|N(H)| \cdot(\text { 共轭子群的数量 }) = 2 \cdot 3 = 6$。</li>
+  <li>这与 $|G|=6$ 相符。公式成立！</li>
+</ul>
+<p><strong>示例 2：对称群 $S_4$ (复用之前的计算)</strong></p>
+<ul>
+  <li>$G = S_4$, $|G|=24$.</li>
+  <li>$H = \langle (1234) \rangle$, $|H|=4$.</li>
+  <li>我们之前计算出 $N(H) = D_4$（嵌入在 $S_4$ 中），其阶为 8。所以 $|N(H)|=8$。</li>
+  <li><strong>使用公式计算共轭子群数量</strong>: 根据公式，共轭子群的数量 = $|G| / |N(H)| = 24 / 8 = 3$。</li>
+  <li><strong>实际验证</strong>: $H$ 的共轭子群有哪些？它们是由 $H$ 的共轭元素（即 4-轮换）生成的子群。$S_4$ 中有多少个 4-轮换？有 $(4-1)! \times \binom{4}{4} = 6$ 个：$(1234), (1432), (1243), (1342), (1324), (1423)$。</li>
+  <li>$\langle (1234) \rangle = \langle (1432) \rangle = \{e, (1234), (13)(24), (1432)\}$。</li>
+  <li>$\langle (1243) \rangle = \langle (1342) \rangle = \{e, (1243), (14)(23), (1342)\}$。</li>
+  <li>$\langle (1324) \rangle = \langle (1423) \rangle = \{e, (1324), (12)(34), (1423)\}$。</li>
+</ul>
+<p>确实，总共只有 3 个不同的由 4-轮换生成的循环子群。这与公式计算出的结果完全一致。</p>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>公式只对有限群有意义</strong>: 当群 $G$ 是无限群时，我们不能直接使用阶（基数）来做除法。但指数 $[G:N(H)]$ 的概念仍然有效，共轭子群的数量仍然等于这个指数（可能是无限的）。</li>
+  <li> <strong>混淆共轭元素数量和共轭子群数量</strong>: 在 $S_4$ 的例子中，有 6 个 4-轮换（共轭元素），但它们只生成了 3 个不同的子群（共轭子群）。这是因为每个子群都由两个互为逆元的 4-轮换共同生成。计数时要小心对象是什么。</li>
+  <li> <strong>计算错误</strong>: 这个公式本身很简单，但计算 $|N(H)|$ 往往是难点。一旦算错了 $|N(H)|$，整个等式就不平衡了。这个公式提供了一个有力的验算工具。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>计数公式 (7.6.2) 是<strong>轨道-稳定子定理</strong>在子群共轭作用下的一个具体体现。它优美地将整个群的阶 $|G|$、一个子群的“局部对称性”的度量 $|N(H)|$、以及这个子群在整个群中的“普遍性”的度量（共轭子群的数量）联系在了一起。这是一个核心的、强大的定量关系。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>计算未知量</strong>: 这是该公式最直接的用途。如果我们知道了 $|G|$ 和 $|N(H)|$，就可以立刻算出共轭子群的数量，而不必费力地去一一列举。反之，如果我们能数出共轭子群的数量，就可以反推出 $|N(H)|$ 的大小。</li>
+  <li> <strong>理论价值</strong>: 这个公式深刻地揭示了群的内在结构。一个子群的<strong>正规化子</strong>越大，意味着它在共轭作用下越“稳定”，那么与它共轭的“兄弟”子群就越少。在极端情况下，如果 $H$ 是<strong>正规子群</strong>，那么 $N(H)=G$，共轭子群数量就是 $|G|/|G|=1$，即它自己。这与<strong>正规子群</strong>的定义完美契合。</li>
+</ol>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一个公司 $(G)$ 有 120 名员工。一个项目小组 $(H)$ 成立了。</p>
+<ol>
+  <li>$|G| = 120$。</li>
+  <li>$N(H)$ 是“项目小组 $H$ 的事务部”，负责处理所有与 $H$ 相关的行政事宜，保证小组的构成和职能不变。事务部有 $|N(H)|$ 名成员。</li>
+  <li>共轭子群是公司里其他与 $H$ 结构完全相同、职能级别一样的“克隆小组”。</li>
+  <li><strong>公式的含义</strong>：公司总人数 = (事务部人数) $\times$ (克隆小组的总数)。</li>
+</ol>
+<p>这就像把公司分块。每个克隆小组都对应一个“管辖区”，而这个管辖区的大小就是 $|N(H)|$。所有管辖区合起来就是整个公司。如果事务部 $(N(H))$ 人很多，说明这个小组很受重视，权限很大，能“管辖”的人就多，那么为了覆盖全公司，需要的克隆小组数量就少了。反之，如果事务部人很少，管辖范围小，就需要更多克隆小组来覆盖整个公司。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你有一块巨大的马赛克地板 $(G)$，总共有 $|G|$ 块瓷砖。地板上有一个漂亮的图案 $(H)$。</p>
+<ol>
+  <li>你站在地板中央，旋转一个角度再看这个图案，它会和另一个位置的某个图案重合。所有你能通过旋转和移动看到的相同图案，就是 $H$ 的<strong>共轭子群</strong>。</li>
+  <li>$N(H)$ 是所有这样的操作（旋转、移动），在操作之后，你发现图案 $(H)$ 整体上还占据着原来的位置（内部的瓷砖可能互换了，但图案的轮廓没变）。$|N(H)|$ 就是这种操作的数量。</li>
+  <li><strong>公式的含义</strong>：地板上的总瓷砖数 = (让一个图案保持原位的操作数) $\times$ (地板上总共有多少个这样的图案)。</li>
+</ol>
+<p>这很直观：如果一个图案的对称性很高（即 $|N(H)|$ 很大），那么它在整个地板上出现的次数就会比较少。如果一个图案完全不对称（$|N(H)|$ 很小，可能只有恒等操作），那么它可能会在更多不同的位置和方向上出现。</p>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-4">
+    <h2><span class="section-number">1</span>4 命题 7.6.3 (Proposition 7.6.3)</h2>
+    <p id="original-4"><strong style="font-size: 1.3rem;">📜 [原文4]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>命题 7.6.3</strong> 设 $H$ 是群 $G$ 的一个子群，设 $N$ 是 $H$ 的<strong>正规化子</strong>。</p>
+<p>(a) $H$ 是 $N$ 的<strong>正规子群</strong>。</p>
+<p>(b) $H$ 是 $G$ 的<strong>正规子群</strong>当且仅当 $N=G$。</p>
+<p>(c) $|H|$ 整除 $|N|$ 且 $|N|$ 整除 $|G|$。 $\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个命题总结了<strong>正规化子</strong> $N = N(H)$ 的三个关键性质。</p>
+<p><strong>(a) $H$ 是 $N$ 的正规子群。</strong></p>
+<ul>
+  <li><strong>什么是正规子群</strong>: 一个子群 $H$ 是其所在群（这里是 $N$）的<strong>正规子群</strong>，意味着对于 $N$ 中的<strong>任何</strong>元素 $n$，都有 $nHn^{-1} = H$。</li>
+  <li><strong>证明</strong>: 我们来看 $N$ 的定义：$N(H) = \{g \in G \mid gHg^{-1} = H\}$。这个定义本身就说明了，任何被我们选入 $N$ 的元素 $n$，都天然满足 $nHn^{-1}=H$ 这个条件。所以，$H$ 在 $N$ 中是正规的。这几乎是根据定义直接得出的。</li>
+  <li><strong>重要意义</strong>: $N(H)$ 是包含 $H$ 作为<strong>正规子群</strong>的最大的 $G$ 的子群。任何其他包含 $H$ 作为正规子群的 $G$ 的子群 $K$，都必然是 $N(H)$ 的一个子群。</li>
+</ul>
+<p><strong>(b) $H$ 是 $G$ 的正规子群当且仅当 $N=G$。</strong></p>
+<p>这是一个“当且仅当”的陈述，需要双向证明。</p>
+<ul>
+  <li><strong>什么是 $G$ 的正规子群</strong>: $H$ 是 $G$ 的正规子群，意味着对于 $G$ 中的<strong>所有</strong>元素 $g$，都有 $gHg^{-1} = H$。</li>
+  <li><strong>证明 ( =&gt; )</strong>: 假设 $H$ 是 $G$ 的正规子群。这意味着对所有 $g \in G$，都有 $gHg^{-1}=H$。现在看 $N=N(H)$ 的定义，它收集所有满足这个条件的 $g$。既然所有 $g \in G$ 都满足，那么 $N$ 就必须包含 $G$ 的所有元素。所以 $N=G$。</li>
+  <li><strong>证明 ( &lt;= )</strong>: 假设 $N=G$。$N$ 的定义是 $N = \{g \in G \mid gHg^{-1}=H\}$。如果 $N=G$，就意味着 $\{g \in G \mid gHg^{-1}=H\} = G$。换句话说，对于 $G$ 中的所有元素 $g$，都有 $gHg^{-1}=H$。这正是 $H$ 是 $G$ 的正规子群的定义。</li>
+  <li><strong>重要意义</strong>: 这个性质将一个子群是否“正规”这个问题，完全转化为了计算其<strong>正规化子</strong>并判断是否等于整个群 $G$ 的问题。它为我们提供了一个判断正规性的有效判据。</li>
+</ul>
+<p><strong>(c) $|H|$ 整除 $|N|$ 且 $|N|$ 整除 $|G|$。</strong></p>
+<p>这是一个关于阶的整除性的传递关系。</p>
+<ul>
+  <li><strong>证明第一部分 ($|H|$ 整除 $|N|$)</strong>: 我们需要证明 $H$ 是 $N$ 的一个子群。</li>
+</ul>
+<ol>
+  <li> 对任意 $h \in H$，我们需要检查 $h$ 是否在 $N$ 中。即，是否满足 $hHh^{-1}=H$？</li>
+  <li> 因为 $H$ 是一个子群，所以它在乘法下是封闭的。对于任意 $h' \in H$， $h h' h^{-1}$ 也是 $H$ 的一个元素。所以 $hHh^{-1} \subseteq H$。</li>
+  <li> 反过来，对于任意 $h' \in H$，我们可以写 $h' = h(h^{-1}h')h^{-1}$。由于 $h, h' \in H$，那么 $h^{-1}h'$ 也在 $H$ 中。所以 $H \subseteq hHh^{-1}$。</li>
+  <li> 结合两点， $hHh^{-1}=H$。所以任何 $h \in H$ 都属于 $N(H)$。</li>
+  <li> 因此，$H$ 是 $N=N(H)$ 的一个子集。既然 $H$ 和 $N$ 都是 $G$ 的子群，那么 $H$ 就是 $N$ 的一个子群。</li>
+  <li> 根据<strong>拉格朗日定理</strong>，子群的阶必须整除母群的阶。所以 $|H|$ 整除 $|N|$。</li>
+</ol>
+<ul>
+  <li><strong>证明第二部分 ($|N|$ 整除 $|G|$)</strong>: 我们在解释公式 (7.6.1) 时已经证明了 $N(H)$ 是 $G$ 的一个子群。根据<strong>拉格朗日定理</strong>，$N(H)$ 的阶 $|N|$ 必须整除 $G$ 的阶 $|G|$。</li>
+</ul>
+<ul>
+  <li><strong>重要意义</strong>: 这个性质给出了三个群 $H \subseteq N \subseteq G$ 之间的阶的层次关系，是<strong>拉格朗日定理</strong>的连续应用。它在计算和推断群的阶时非常有用。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>示例 1：$S_3$ 和 $H=\{e,(12)\}$</strong></p>
+<ul>
+  <li>$G=S_3, |G|=6$。$H=\{e,(12)\}, |H|=2$。</li>
+  <li>$N=N(H)=\{e,(12)\}, |N|=2$。</li>
+  <li><strong>(a)</strong> $H$ 是 $N$ 的正规子群吗？是的，因为 $H=N$，任何群都是其自身的正规子群。</li>
+  <li><strong>(b)</strong> $H$ 是 $G$ 的正规子群吗？不是。根据命题，$N=G$ 才行。这里 $N=\{e,(12)\} \neq S_3$。这与我们直接的计算结果一致。</li>
+  <li><strong>(c)</strong> $|H|$ 整除 $|N|$？$2$ 整除 $2$，是的。$|N|$ 整除 $|G|$？$2$ 整除 $6$，是的。</li>
+</ul>
+<p><strong>示例 2：$S_4$ 和 $H=\langle (1234) \rangle$</strong></p>
+<ul>
+  <li>$G=S_4, |G|=24$。$H=\langle (1234) \rangle, |H|=4$。</li>
+  <li>$N=N(H)=D_4, |N|=8$。</li>
+  <li><strong>(a)</strong> $H$ 是 $N$ 的正规子群吗？$H$ 是 $D_4$ 中的 4 阶循环子群。$D_4$ 只有一个 4 阶子群，所以它必须是正规的（任何共轭操作都必须把它映射到自身）。指数 $[D_4:H]=8/4=2$，指数为 2 的子群总是正规的。所以是的。</li>
+  <li><strong>(b)</strong> $H$ 是 $G$ 的正规子群吗？不是，因为 $N=D_4 \neq S_4$。</li>
+  <li><strong>(c)</strong> $|H|$ 整除 $|N|$？$4$ 整除 $8$，是的。$|N|$ 整除 $|G|$？$8$ 整除 $24$，是的。</li>
+</ul>
+<p><strong>示例 3：$A_4$ (交错群) 和 $V$ (克莱因四元群)</strong></p>
+<ul>
+  <li>$G=A_4$ (12个偶置换), $|G|=12$。</li>
+  <li>$H=V=\{e, (12)(34), (13)(24), (14)(23)\}, |H|=4$。</li>
+  <li>$H$ 是 $A_4$ 的正规子群（这是一个已知事实）。</li>
+  <li>根据命题 (b)，既然 $H$ 是 $G$ 的正规子群，那么它的正规化子 $N(H)$ 必须等于 $G=A_4$。</li>
+  <li>所以 $N=A_4, |N|=12$。</li>
+  <li><strong>(a)</strong> $H$ 是 $N=A_4$ 的正规子群吗？是的，我们已知。</li>
+  <li><strong>(b)</strong> $N=A_4=G$，与 $H$ 是正规子群的事实相符。</li>
+  <li><strong>(c)</strong> $|H|$ 整除 $|N|$？$4$ 整除 $12$，是的。$|N|$ 整除 $|G|$？$12$ 整除 $12$，是的。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>对于 (a)，$H$ 只是在 $N$ 中正规，不一定在 $G$ 中正规</strong>。这是最关键的一点。$N$ 提供了一个“保护壳”，$H$ 在这个壳里是正规的。</li>
+  <li> <strong>对于 (b)，这是一个充分必要条件</strong>。它可以双向使用，既可以由正规性推出 $N=G$，也可以由 $N=G$ 推出正规性。</li>
+  <li> <strong>对于 (c)，整除关系不意味着反过来也成立</strong>。例如，在 $S_4$ 中，存在 6 阶子群 $S_3$ 和 8 阶子群 $D_4$，但 6 不整除 8，所以 $S_3$ 不可能是 $D_4$ 的子群。阶的整除性是子群存在的必要不充分条件。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>命题 7.6.3 精炼地阐述了 $H$, $N(H)$, $G$ 三者之间的核心关系：</p>
+<p>(a) $N(H)$ 是 $H$ 能在其中“作威作福”（成为正规子群）的最大领地。</p>
+<p>(b) $H$ 是否在整个 $G$ 中都“至高无上”（成为 $G$ 的正规子群），完全取决于它的这个最大领地是否已经扩张到了整个 $G$。</p>
+<p>(c) 从规模上看，三者形成了清晰的“俄罗斯套娃”式的整除链：$|H| \mid |N| \mid |G|$。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个命题将<strong>正规化子</strong>从一个单纯的计算对象，提升到了一个具有深刻理论意义的结构性工具。它建立了<strong>正规化子</strong>和<strong>正规子群</strong>这两个核心概念之间最直接、最重要的联系。它使得对正规性的判断有了一个可操作的计算路径，并揭示了群、子群、正规化子三者在结构和规模上的层次关系。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>继续使用社会 $(G)$ 和小团体 $(H)$ 的比喻。</p>
+<ol>
+  <li><strong>(a) $H$ 是 $N$ 的正规子群</strong>：在你的“守护者”团体 $(N)$ 内部，你的小团体 $(H)$ 的地位是超然的、公认的。守护者们都承认并维护你的团体的存在形式。</li>
+  <li><strong>(b) $H$ 是 $G$ 的正规子群 &lt;=&gt; $N=G$</strong>：你的小团体 $(H)$ 能否在整个社会 $(G)$ 中都享有这种超然地位，完全取决于你的“守护者”团体 $(N)$ 是否已经扩大到覆盖了整个社会。如果社会上的每一个人都是你的守护者，你就是社会公认的“模范团体”（正规子群）。</li>
+  <li><strong>(c) $|H| \mid |N| \mid |G|$</strong>：你的小团体的人数，必然是你的守护者团体人数的一个因子。你的守护者团体人数，也必然是整个社会人数的一个因子。这是一种组织规模上的层层约束。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>回到晶体 $(G)$ 和原子簇 $(H)$ 的想象。</p>
+<ol>
+  <li><strong>(a) $H$ 是 $N$ 的正规子群</strong>：$N$ 是所有让 $H$ 轮廓保持不变的对称操作集合。如果我们只考虑用 $N$ 里的操作来作用于 $H$，那么 $H$ 永远不会被移动到别处形成新的团簇，它永远“在自己家里”。</li>
+  <li><strong>(b) $H$ 是 $G$ 的正规子群 &lt;=&gt; $N=G$</strong>：如果晶体的<strong>所有</strong>对称操作都不能改变 $H$ 的轮廓，那么 $H$ 在晶体中就处于一个非常特殊的位置，它本身就体现了整个晶体的对称性。这就是<strong>正规子群</strong>。</li>
+  <li><strong>(c) $|H| \mid |N| \mid |G|$</strong>：原子簇中的原子数，能整除让其轮廓不变的操作数。这个操作数，又能整除整个晶体的总操作数。这是对称性数量上的约束关系。</li>
+</ol>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-5">
+    <h2><span class="section-number">1</span>5 示例：$S_5$ 中的正规化子</h2>
+    <p id="original-5"><strong style="font-size: 1.3rem;">📜 [原文5]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>例如，设 $H$ 是<strong>对称群</strong> $S_{5}$ 中由元素 $p=(\mathbf{12})(\mathbf{34})$ 生成的二阶<strong>循环子群</strong>。<strong>共轭类</strong> $C(p)$ 包含 15 对不相交的<strong>对换</strong>，每对<strong>对换</strong>都生成 $H$ 的一个共轭子群。<strong>计数公式</strong>表明<strong>正规化子</strong> $N(H)$ 的<strong>阶</strong>为八：$120=8 \cdot 15$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话是应用前面理论来计算一个具体例子——$S_5$ 中某个子群的<strong>正规化子</strong>的阶。</p>
+<ol>
+  <li> <strong>群和子群的设定</strong>:
+<ul>
+  <li><strong>群 $G$</strong>: <strong>对称群</strong> $S_5$，即所有对 $\{1,2,3,4,5\}$ 这 5 个元素的置换构成的群。其阶 $|S_5| = 5! = 120$。</li>
+  <li><strong>元素 $p$</strong>: $p = (12)(34)$。这是一个由两个不相交的<strong>对换</strong>（长度为 2 的轮换）组成的置换。</li>
+  <li><strong>子群 $H$</strong>: 由 $p$ 生成的<strong>循环子群</strong>。我们计算 $p^2 = (12)(34)(12)(34) = (12)(12)(34)(34) = e$。所以 $p$ 的阶是 2。因此，$H = \langle p \rangle = \{e, (12)(34)\}$，是一个二阶子群。</li>
+</ul></li>
+  <li> <strong>计算共轭子群的数量</strong>:
+<ul>
+  <li>文章直接给出了结论：“<strong>共轭类</strong> $C(p)$ 包含 15 对不相交的<strong>对换</strong>”。我们来验证一下。</li>
+  <li>$p$ 的轮换结构是 $(2,2,1)$。在 $S_n$ 中，两个置换共轭当且仅当它们有相同的轮换结构。所以 $p$ 的共轭类 $C(p)$ 就是 $S_5$ 中所有形如 $(ab)(cd)$ 的置换的集合。</li>
+  <li>如何计算这种置换的数量？</li>
+  <li>从 5 个元素中选 2 个组成第一个对换：$\binom{5}{2}$ 种方式。</li>
+  <li>从剩下的 3 个元素中选 2 个组成第二个对换：$\binom{3}{2}$ 种方式。</li>
+  <li>由于 $(ab)(cd)$ 和 $(cd)(ab)$ 是同一个置换，所以需要除以 2。</li>
+  <li>数量 = $\frac{\binom{5}{2} \binom{3}{2}}{2} = \frac{10 \times 3}{2} = 15$。</li>
+  <li>所以，共轭类 $C(p)$ 中有 15 个元素。</li>
+  <li>“每对<strong>对换</strong>都生成 $H$ 的一个共轭子群”。这里的“每对<strong>对换</strong>”指的是每个形如 $(ab)(cd)$ 的元素。</li>
+  <li>$H$ 的共轭子群是形如 $gHg^{-1}$ 的子群。$gHg^{-1} = g\{e, p\}g^{-1} = \{e, gpg^{-1}\}$。</li>
+  <li>所以，每个与 $H$ 共轭的子群都是由一个与 $p$ 共轭的元素生成的。</li>
+  <li>由于 $p$ 的阶是 2，任何与 $p$ 共轭的元素 $p'$ 的阶也是 2。所以由 $p'$ 生成的子群就是 $\{e, p'\}$。</li>
+  <li>如果两个元素 $p_1, p_2$ 是 $C(p)$ 中不同的元素，那么它们生成的子群 $\{e, p_1\}$ 和 $\{e, p_2\}$ 也一定是不同的。</li>
+  <li>因此，$H$ 的共轭子群的数量就等于 $p$ 的共轭元素的数量，即 15。</li>
+</ul></li>
+  <li> <strong>应用计数公式</strong>:
+<ul>
+  <li>我们现在知道了：</li>
+  <li>$|G| = |S_5| = 120$。</li>
+  <li>共轭子群的数量 = 15。</li>
+  <li>代入计数公式 (7.6.2): $|G|=|N(H)| \cdot(\text { 共轭子群的数量 })$</li>
+  <li>$120 = |N(H)| \cdot 15$。</li>
+  <li>解出 $|N(H)|$: $|N(H)| = 120 / 15 = 8$。</li>
+</ul></li>
+  <li> <strong>结论</strong>: <strong>正规化子</strong> $N(H)$ 的阶是 8。我们甚至不需要找出 $N(H)$ 的具体元素，就能通过计数公式确定它的大小。</li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p>本段主要应用了公式 (7.6.2) 和组合计数。</p>
+<ul>
+  <li><strong>$S_5$</strong>: 5 个元素上的对称群, $|S_5| = 5! = 120$。</li>
+  <li><strong>$p = (12)(34)$</strong>: 一个置换，其轮换结构是 $(2,2,1)$。</li>
+  <li><strong>$H = \langle p \rangle = \{e, (12)(34)\}$</strong>: 由 $p$ 生成的二阶循环子群。</li>
+  <li><strong>$C(p)$</strong>: $p$ 在 $S_5$ 中的共轭类。$|C(p)| = \frac{1}{k_1! k_2! \dots} \frac{n!}{\ell_1^{k_1} \ell_2^{k_2} \dots}$ 是通用公式，这里 $n=5$，轮换结构是长度为2的轮换有2个，长度为1的轮换有1个，所以 $\ell_1=2, k_1=2, \ell_2=1, k_2=1$。</li>
+</ul>
+<p>$|C(p)| = \frac{1}{2! \cdot 1!} \frac{5!}{2^2 \cdot 1^1} = \frac{1}{2} \frac{120}{4} = 15$。这与之前的组合方法结果一致。</p>
+<ul>
+  <li><strong>共轭子群的数量</strong>: 在这个例子里，等于 $|C(p)|=15$。</li>
+  <li><strong>$120 = 8 \cdot 15$</strong>: 这是将已知数值代入 $|G|=|N(H)| \cdot(\text { 共轭子群的数量 })$ 的结果，并反解出 $|N(H)|=8$。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p>这个例子本身就是一个非常具体的数值示例。我们可以尝试另一个。</p>
+<p><strong>示例：$S_4$ 中的正规化子</strong></p>
+<ul>
+  <li><strong>群 $G$</strong>: $S_4$, $|G|=24$。</li>
+  <li><strong>子群 $H$</strong>: 让我们选择由一个 3-轮换生成的子群, $H = \langle (123) \rangle = \{e, (123), (132)\}$。这是一个 3 阶子群。</li>
+  <li><strong>计算共轭子群的数量</strong>:</li>
+  <li>$H$ 的共轭子群是由与 $(123)$ 共轭的元素生成的。</li>
+  <li>$(123)$ 的轮换结构是 $(3,1)$。它的共轭类是 $S_4$ 中所有的 3-轮换。</li>
+  <li>3-轮换的数量是 $\binom{4}{3} \times (3-1)! = 4 \times 2 = 8$。</li>
+  <li>这 8 个 3-轮换是：$(123), (132), (124), (142), (134), (143), (234), (243)$。</li>
+  <li>每个 3-轮换和它的逆会生成同一个 3 阶循环子群。例如，$\langle(123)\rangle = \langle(132)\rangle$。</li>
+  <li>所以，这 8 个元素会生成 $8/2 = 4$ 个不同的 3 阶循环子群。</li>
+  <li>这 4 个子群是：$\langle(123)\rangle, \langle(124)\rangle, \langle(134)\rangle, \langle(234)\rangle$。</li>
+  <li>所以，共轭子群的数量是 4。</li>
+  <li><strong>应用计数公式</strong>:</li>
+  <li>$|G| = 24$。</li>
+  <li>共轭子群的数量 = 4。</li>
+  <li>$24 = |N(H)| \cdot 4$。</li>
+  <li>$|N(H)| = 24 / 4 = 6$。</li>
+  <li><strong>验证</strong>: $N(H)$ 是一个 6 阶子群。我们来找找它。</li>
+  <li>$H = \{e, (123), (132)\}$ 肯定在 $N(H)$ 中。</li>
+  <li>我们还需要找别的元素。考虑置换 $(12)$。</li>
+  <li>$(12)(123)(12)^{-1} = (213)$。注意 $(213)$ 就是 $(132)$，它仍在 $H$ 中。</li>
+  <li>由于 $(123)$ 是生成元，这就够了。所以 $(12) \in N(H)$。</li>
+  <li>既然 $H$ (一个3阶群) 和 $(12)$ (一个2阶元素) 都在 $N(H)$ 中，那么 $N(H)$ 至少包含由它们生成的子群 $\langle (123), (12) \rangle$。</li>
+  <li>这个子群正是 $S_3$。$|S_3|=6$。</li>
+  <li>这与我们用公式算出的 $|N(H)|=6$ 完全吻合。</li>
+  <li>结论：$N_{S_4}(\langle(123)\rangle) \cong S_3$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>共轭元素数量不等于共轭子群数量</strong>: 这是这个例子和上一个例子中最关键的易错点。当一个子群可以由多个不同的元素生成时（如此处的循环群，一个元素和它的逆），多个共轭元素可能对应同一个共轭子群。必须仔细分析，或者直接使用指数 $[G:N(H)]$ 来计算。</li>
+  <li> <strong>原文表述的歧义</strong>: “15 对不相交的对换”这个说法有些不精确。一个更好的说法是“15 个由两对不相交的对换组成的置换”。$p=(12)(34)$ 是一个元素，不是“一对”。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这个例子完美地展示了计数公式的威力。通过分析一个元素的共轭类的大小，并理解共轭元素与共轭子群之间的关系，我们可以反过来推断出一个我们可能完全不了解其具体结构的<strong>正规化子</strong>的阶。这是一个从“全局”信息（共轭类的数量）推断“局部”信息（稳定子的大小）的漂亮范例。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个例子的存在是为了：</p>
+<ol>
+  <li> <strong>巩固理论</strong>: 将前面抽象的定义和命题应用到一个具体的、不那么平凡的例子上。</li>
+  <li> <strong>展示应用</strong>: 演示如何实际使用计数公式来解决问题。</li>
+  <li> <strong>建立联系</strong>: 将<strong>正规化子</strong>的概念与群论中另一个重要的概念——<strong>共轭类</strong>——联系起来。</li>
+</ol>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>回到 $S_5$ 公司（120人）和项目小组 $H=\{e, (12)(34)\}$ 的比喻。</p>
+<ol>
+  <li>公司里有 15 个和 $p=(12)(34)$ 这个“明星员工”同级别的员工（即共轭类）。</li>
+  <li>每个这种级别的员工都组建了一个和 $H$ 一样的两人小团队（共轭子群）。</li>
+  <li>所以公司里总共有 15 个这样的两人小团队。</li>
+  <li>根据我们的“公司人数 = 事务部人数 $\times$ 克隆小组总数”模型：</li>
+</ol>
+<p>$120 = |N(H)| \times 15$</p>
+<ol>
+  <li>因此，负责管理 $H$ 这个小组的“事务部” $N(H)$，不多不少，正好有 8 个人。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个由120个不同视角组成的“全景照片” $(S_5)$。照片中有一个特定的“特征” $p=(12)(34)$。</p>
+<ol>
+  <li>你从120个不同视角看，发现这个“特征”有 15 种不同的外观（共轭类）。</li>
+  <li>每个外观都定义了一个极简的“特征组” $H'=\{e, p'\}$ （共轭子群）。所以总共有 15 个这样的特征组。</li>
+  <li><strong>计数公式</strong>告诉你：总视角数 (120) = (让某个特定特征组 $H$ 看起来不变的视角数 $|N(H)|$) $\times$ (总共有多少个不同的特征组 15)。</li>
+  <li>$120 = |N(H)| \times 15$。</li>
+  <li>所以，有 8 个特殊的视角，从这些视角看过去，特征组 $H$ 占据的空间和轮廓是完全一样的。这 8 个视角就是 $N(H)$。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-6">
+    <h2><span class="section-number">2</span>行间公式索引</h2>
+    <p>1.  <strong>公式 (7.6.1)</strong>: $N(H)=\left\{g \in G \mid g H g^{-1}=H\right\}$</p><p>*   <strong>解释</strong>: 这是子群 $H$ 的<strong>正规化子</strong> $N(H)$ 的定义式，它包含了所有使 $H$ 在共轭作用下保持不变的群 $G$ 中的元素 $g$。</p><p>2.  <strong>公式 (7.6.2)</strong>: $|G|=|N(H)| \cdot(\text { 共轭子群的数量 })$</p><p>*   <strong>解释</strong>: 这是<strong>计数公式</strong>，它是<strong>轨道-稳定子定理</strong>的应用，表明群的阶等于其子群的<strong>正规化子</strong>的阶乘以该子群的<strong>共轭子群</strong>的数量。</p><p>好的，我将从上一次中断的地方继续。根据您的要求，我将不重复已输出的内容，并保持原有的结构和编号，仅续写后续内容。</p><p>[[END_OF_RESPONSE]]所有解释内容已全部输出完毕。</p>
+</section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>行间公式索引</p>
+    </footer>
+
+
+    <!-- 手机端点击翻页功能 -->
+    <script>
+        (function() {
+            // 点击翻页功能（在所有设备上启用）
+            
+            document.addEventListener('click', function(e) {
+                // 如果 TOC 目录面板处于打开状态，不触发翻页
+                var tocPanel = document.getElementById('tocPanel');
+                if (tocPanel && tocPanel.classList.contains('active')) {
+                    return;
+                }
+                
+                // 排除对链接、按钮、输入框等交互元素的点击
+                var target = e.target;
+                var tagName = target.tagName.toLowerCase();
+                if (tagName === 'a' || tagName === 'button' || tagName === 'input' || 
+                    tagName === 'textarea' || tagName === 'select' || 
+                    target.closest('a') || target.closest('button') ||
+                    target.closest('.toc-panel') || target.closest('.toc-toggle') ||
+                    target.closest('.toc-overlay')) {
+                    return;
+                }
+                
+                var clickY = e.clientY;
+                var windowHeight = window.innerHeight;
+                var scrollAmount = windowHeight * 0.85; // 滚动85%的屏幕高度
+                
+                if (clickY > windowHeight / 2) {
+                    // 点击下半部分：向下翻页
+                    window.scrollBy({
+                        top: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 点击上半部分：向上翻页
+                    window.scrollBy({
+                        top: -scrollAmount,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        })();
+    </script>
+
+    <!-- TOC 目录控制脚本 -->
+    <script>
+        (function() {
+            var tocToggle = document.getElementById('tocToggle');
+            var tocPanel = document.getElementById('tocPanel');
+            var tocOverlay = document.getElementById('tocOverlay');
+            
+            // 切换目录显示/隐藏
+            function toggleTOC() {
+                var isOpen = tocPanel.classList.contains('active');
+                if (isOpen) {
+                    closeTOC();
+                } else {
+                    openTOC();
+                }
+            }
+            
+            // 打开目录
+            function openTOC() {
+                tocPanel.classList.add('active');
+                tocOverlay.classList.add('active');
+                tocToggle.setAttribute('aria-label', '关闭目录');
+            }
+            
+            // 关闭目录
+            function closeTOC() {
+                tocPanel.classList.remove('active');
+                tocOverlay.classList.remove('active');
+                tocToggle.setAttribute('aria-label', '打开目录');
+            }
+            
+            // 点击按钮切换目录
+            tocToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTOC();
+            });
+            
+            // 点击遮罩层关闭目录
+            tocOverlay.addEventListener('click', function() {
+                closeTOC();
+            });
+            
+            // 点击目录项后关闭目录
+            var tocLinks = tocPanel.querySelectorAll('a');
+            tocLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    closeTOC();
+                });
+            });
+            
+            // ESC 键关闭目录
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && tocPanel.classList.contains('active')) {
+                    closeTOC();
+                }
+            });
+            
+            // 高亮当前可见的目录条目
+            function updateActiveItem() {
+                var scrollPos = window.scrollY + 150;  // 偏移量
+                var activeSection = null;
+                var activeOriginal = null;
+                
+                // 查找当前可见的 section
+                var sections = document.querySelectorAll('section[id^="section-"]');
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    if (section.offsetTop <= scrollPos) {
+                        activeSection = section.id;
+                    }
+                }
+                
+                // 查找当前可见的原文区块
+                var originals = document.querySelectorAll('[id^="original-"]');
+                for (var j = 0; j < originals.length; j++) {
+                    var original = originals[j];
+                    if (original.offsetTop <= scrollPos) {
+                        activeOriginal = original.id;
+                    }
+                }
+                
+                // 先移除所有 active 类
+                var allHeadings = tocPanel.querySelectorAll('.toc-heading');
+                for (var h = 0; h < allHeadings.length; h++) {
+                    allHeadings[h].classList.remove('active');
+                }
+                
+                var allOriginals = tocPanel.querySelectorAll('.toc-original');
+                for (var o = 0; o < allOriginals.length; o++) {
+                    allOriginals[o].classList.remove('active');
+                }
+                
+                // 只给当前活动的条目添加 active 类
+                if (activeSection) {
+                    var activeHeadingLink = tocPanel.querySelector('.toc-heading a[href="#' + activeSection + '"]');
+                    if (activeHeadingLink) {
+                        activeHeadingLink.parentElement.classList.add('active');
+                    }
+                }
+                
+                if (activeOriginal) {
+                    var activeOriginalLink = tocPanel.querySelector('.toc-original a[href="#' + activeOriginal + '"]');
+                    if (activeOriginalLink) {
+                        activeOriginalLink.parentElement.classList.add('active');
+                    }
+                }
+            }
+            
+            // 节流函数
+            var scrollTimeout;
+            function throttledUpdate() {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(function() {
+                    updateActiveItem();
+                    scrollTimeout = null;
+                }, 100);
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', throttledUpdate);
+            
+            // 打开目录时立即更新高亮
+            var originalOpenTOC = openTOC;
+            openTOC = function() {
+                originalOpenTOC();
+                updateActiveItem();
+            };
+            
+            // 初始化
+            updateActiveItem();
+        })();
+    </script>
+</body>
+</html>

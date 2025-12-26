@@ -1,0 +1,2989 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行间公式索引</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- MathJax v4 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            output: {
+                displayOverflow: 'linebreak',
+                linebreaks: {
+                    inline: true,
+                    width: '100%',
+                    lineleading: 0.2
+                }
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            /* 五大区块主题色 */
+            --original-color: #8b5cf6;
+            --explain-color: #0ea5e9;
+            --formula-color: #6366f1;
+            --example-color: #10b981;
+            --warning-color: #f59e0b;
+            /* Q1修复：总结、存在目的、直觉心智模型、直观想象 统一使用 #36828C 青色主题 */
+            --summary-color: #36828C;     /* 青色主题 */
+            --purpose-color: #36828C;     /* 青色主题 */
+            --intuition-color: #36828C;   /* 青色主题 */
+            --imagination-color: #36828C; /* 青色主题 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .authors {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
+        .content-section h4 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h5 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 18px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h6 {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            margin: 15px 0 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        /* ===============================
+           五大内容区块 - 统一风格不同主题色
+           =============================== */
+
+        /* 原文区 - 紫色 */
+        .original-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid var(--original-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .original-box .box-label {
+            color: var(--original-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-box .box-content {
+            font-style: italic;
+            color: #6b21a8;
+        }
+
+        /* 📜 [原文]区块内容 - 使用统一的黑色 */
+        .original-content {
+            color: #2d3748; /* 统一的深灰黑色 */
+        }
+
+        .original-content * {
+            color: #2d3748; /* 所有子元素 */
+        }
+
+        .original-content .MathJax, .original-content .MathJax * {
+            color: #2d3748 !important; /* 行内公式 */
+        }
+
+        /* 通用 .box-content 换行规则 - 确保长文本（如代码调用）能自动换行 */
+        .box-content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .box-content strong, .box-content code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            display: inline;
+        }
+
+        /* 逐步解释区 - 蓝色 */
+        .explain-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--explain-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .explain-box .box-label {
+            color: var(--explain-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explain-box .box-content {
+            color: #1a365d; /* Dark Blue */
+        }
+
+        .explain-box .box-content * {
+            color: #1a365d; /* Dark Blue - 所有子元素 */
+        }
+
+        .explain-box .box-content .MathJax, .explain-box .box-content .MathJax * {
+            color: #1a365d !important; /* Dark Blue - 行内公式 */
+        }
+
+        .explain-box ul, .explain-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .explain-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 公式拆解区 - 靛蓝色 */
+        .formula-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--formula-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .formula-box .box-label {
+            color: var(--formula-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .formula-box .box-content {
+            color: var(--text-color); /* 统一使用默认黑色，与原文区块一致 */
+            overflow-x: auto;
+        }
+
+        .formula-box .box-content * {
+            color: var(--text-color); /* 所有子元素 */
+        }
+
+        .formula-box .box-content .MathJax, .formula-box .box-content .MathJax * {
+            color: var(--text-color) !important; /* 行内公式 */
+        }
+
+        /* 数值示例区 - 绿色 */
+        .example-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--example-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .example-box .box-label {
+            color: var(--example-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-box .box-content {
+            color: #166534; /* Dark Green from edstem5 .answer-en */
+        }
+
+        .example-box .box-content * {
+            color: #166534; /* Dark Green - 所有子元素 */
+        }
+
+        .example-box .box-content .MathJax, .example-box .box-content .MathJax * {
+            color: #166534 !important; /* Dark Green - 行内公式 */
+        }
+
+        .example-box ul, .example-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .example-box li {
+            margin-bottom: 6px;
+        }
+
+        .example-box code {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* 易错点区 - 橙色 */
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .warning-box .box-label {
+            color: var(--warning-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warning-box .box-content {
+            color: #92400e;
+        }
+
+        .warning-box .box-content * {
+            color: #92400e; /* 所有子元素 */
+        }
+
+        .warning-box .box-content .MathJax, .warning-box .box-content .MathJax * {
+            color: #92400e !important; /* 行内公式 */
+        }
+
+        .warning-box ul, .warning-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .warning-box li {
+            margin-bottom: 6px;
+        }
+
+        /* 总结区 - Q1修复：使用#36828C青色主题 */
+        .summary-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--summary-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .summary-box .box-label {
+            color: var(--summary-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .summary-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .summary-box .box-content .MathJax, .summary-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 存在目的区 - Q1修复：使用#36828C青色主题 */
+        .purpose-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--purpose-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .purpose-box .box-label {
+            color: var(--purpose-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .purpose-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .purpose-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .purpose-box .box-content .MathJax, .purpose-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直觉心智模型区 - Q1修复：使用#36828C青色主题 */
+        .intuition-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--intuition-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .intuition-box .box-label {
+            color: var(--intuition-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .intuition-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .intuition-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .intuition-box .box-content .MathJax, .intuition-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直观想象区 - Q1修复：使用#36828C青色主题 */
+        .imagination-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--imagination-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .imagination-box .box-label {
+            color: var(--imagination-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .imagination-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .imagination-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .imagination-box .box-content .MathJax, .imagination-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 高亮术语 */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* 代码块 */
+        code {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            margin: 15px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 表格样式 - 紧凑型，行高列宽适应文字最小值 */
+        table {
+            border-collapse: collapse;
+            width: auto;  /* 列宽适应内容 */
+            margin: 15px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;  /* 减小padding使行高更紧凑 */
+            text-align: left;
+            white-space: nowrap;  /* 防止不必要的换行，列宽适应文字 */
+            line-height: 1.4;  /* 紧凑的行高 */
+        }
+
+        th {
+            background: #e0f7fa;
+            color: #006064;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #e2e8f0;
+        }
+
+        /* 表格对齐 */
+        .align-left {
+            text-align: left;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        /* 图例区域 */
+        .legend-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .legend-bar {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .legend-bar.original { background: #8b5cf6; }
+        .legend-bar.explain { background: #0ea5e9; }
+        .legend-bar.formula { background: #6366f1; }
+        .legend-bar.example { background: #10b981; }
+        .legend-bar.warning { background: #f59e0b; }
+        .legend-bar.summary { background: #36828C; }
+        .legend-bar.purpose { background: #36828C; }
+        .legend-bar.intuition { background: #36828C; }
+        .legend-bar.imagination { background: #36828C; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive - 移动端适配 */
+        @media (max-width: 768px) {
+            /* 容器宽度适配 */
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 20px 12px;
+                box-sizing: border-box;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+                padding: 0 15px;
+            }
+            
+            .hero {
+                padding: 50px 15px;
+            }
+            
+            .hero h1 {
+                font-size: 1.6rem;
+                word-break: break-word;
+            }
+            
+            .authors {
+                font-size: 1rem;
+            }
+            
+            /* 内容区块适配 */
+            .content-section {
+                padding: 20px 15px;
+                margin-left: 5px;
+                margin-right: 5px;
+                border-radius: 12px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.4rem;
+                flex-wrap: wrap;
+            }
+            
+            .content-section h3 {
+                font-size: 1.2rem;
+            }
+            
+            .content-section h4 {
+                font-size: 1.1rem;
+            }
+            
+            .section-number {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            /* 各区块box适配 */
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 15px 12px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .original-box .box-label,
+            .explain-box .box-label,
+            .formula-box .box-label,
+            .example-box .box-label,
+            .warning-box .box-label,
+            .summary-box .box-label,
+            .purpose-box .box-label,
+            .intuition-box .box-label,
+            .imagination-box .box-label {
+                font-size: 1.1rem;
+            }
+            
+            /* 图例区域移动端适配 */
+            .legend-section {
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
+            
+            .legend-row {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            
+            .legend-item {
+                font-size: 0.8rem;
+                gap: 5px;
+            }
+            
+            .legend-bar {
+                width: 3px;
+                height: 16px;
+            }
+            
+            /* 列表适配 */
+            ul, ol {
+                margin-left: 15px;
+                padding-left: 5px;
+            }
+            
+            /* 表格移动端适配 */
+            table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.9rem;
+                min-width: 80px;
+            }
+            
+            /* 代码块适配 */
+            pre {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            
+            /* 数学公式适配 */
+            .math-block {
+                padding: 10px 8px;
+                margin: 15px 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* MathJax公式溢出处理 - 只处理块级公式，保持行内公式inline */
+            mjx-container[jax="CHTML"][display="true"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                display: block !important;
+            }
+            
+            /* 行内公式 - 超宽时自动换行 */
+            mjx-container:not([display="true"]) {
+                display: inline-block !important;
+                max-width: 100% !important;
+                overflow-wrap: break-word !important;
+                word-wrap: break-word !important;
+            }
+            
+            /* MathJax内部元素换行支持 */
+            mjx-math {
+                white-space: normal !important;
+            }
+            
+            mjx-mrow {
+                flex-wrap: wrap !important;
+            }
+            
+            /* Footer适配 */
+            .footer {
+                padding: 25px 15px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* 超小屏幕适配 (手机竖屏) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 8px;
+            }
+            
+            .hero {
+                padding: 40px 10px;
+            }
+            
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+            
+            .content-section {
+                padding: 15px 10px;
+                margin-left: 3px;
+                margin-right: 3px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 12px 10px;
+            }
+            
+            .legend-section {
+                padding: 12px 8px;
+            }
+            
+            .legend-row {
+                gap: 8px;
+            }
+            
+            .legend-item {
+                font-size: 0.75rem;
+            }
+            
+            ul, ol {
+                margin-left: 12px;
+            }
+        }
+        
+        /* 确保所有内容不溢出 */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* ========================================
+           TOC 目录样式
+           ======================================== */
+        
+        /* TOC 触发按钮 - 左上角小方块 */
+        .toc-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(54, 130, 140, 0.5);  /* 青色 50% 透明度 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .toc-toggle:hover {
+            background: rgba(54, 130, 140, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .toc-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* TOC 目录面板 */
+        .toc-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 95vw;  /* 手机浏览器宽度的 95% */
+            height: 80vh; /* 手机浏览器高度的 80% */
+            max-width: 450px;  /* 桌面端最大宽度 */
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0 0 16px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .toc-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* TOC 头部 - 标题在图标右侧 */
+        .toc-header {
+            padding: 15px 20px 15px 80px;  /* 左侧留出按钮空间 */
+            background: linear-gradient(135deg, #36828C 0%, #2a6a72 100%);
+            color: white;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .toc-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* TOC 内容区 */
+        .toc-content {
+            flex: 1;
+            overflow-y: auto;   /* 允许垂直滚动 */
+            overflow-x: hidden; /* 禁止水平滚动 */
+            padding: 15px 0;
+        }
+        
+        /* TOC 列表 */
+        .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc-item {
+            margin: 0;
+        }
+        
+        .toc-item a {
+            display: block;
+            padding: 4px 20px;  /* 更紧凑的行间距 */
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #2d3748;
+            text-decoration: none;
+            word-wrap: break-word;   /* 自动换行 */
+            overflow-wrap: break-word;
+            white-space: normal;     /* 允许换行 */
+            line-height: 1.3;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .toc-item a:hover {
+            background: #e8f4f5;
+            color: #36828C;
+            border-left-color: #36828C;
+        }
+        
+        /* 标题项样式 */
+        .toc-heading a {
+            font-weight: 600;
+            color: #1a365d;
+            background: #f7fafc;
+        }
+        
+        .toc-heading a:hover {
+            background: #e8f4f5;
+        }
+        
+        /* 当前活动的标题项样式 */
+        .toc-heading.active a {
+            background: #d0e8ea;
+            color: #36828C;
+            border-left-color: #36828C;
+            font-weight: 700;
+        }
+        
+        /* 当前活动的原文项样式 */
+        .toc-original.active a {
+            background: #36828C;
+            color: white;
+            box-shadow: 0 3px 8px rgba(54, 130, 140, 0.35);
+        }
+        
+        /* 原文项容器 - 横向排列自动换行 */
+        .toc-originals-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 8px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* 原文项样式 - 浅青色带阴影 */
+        .toc-original {
+            margin: 0;
+        }
+        
+        .toc-original a {
+            display: inline-block;
+            width: 64px;  /* 固定宽度确保每行显示数量一致 */
+            padding: 6px 4px;
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #36828C;  /* 青色主题色 */
+            text-decoration: none;
+            text-align: center;
+            background: #e8f4f5;
+            border-radius: 6px;
+            border-left: none;
+            box-shadow: 0 2px 4px rgba(54, 130, 140, 0.2);  /* 青色阴影 */
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .toc-original a:hover {
+            background: #e0f2f4;
+            color: #36828C;
+            box-shadow: 0 3px 6px rgba(54, 130, 140, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        /* TOC 遮罩层 */
+        .toc-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .toc-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 移动端 TOC 适配 */
+        @media (max-width: 768px) {
+            .toc-toggle {
+                top: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .toc-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .toc-panel {
+                width: 90vw;
+                height: 80vh;
+                max-width: none;
+            }
+            
+            .toc-header {
+                padding: 12px 15px 12px 65px;
+            }
+            
+            .toc-header h3 {
+                font-size: 16px;
+            }
+            
+            .toc-item a {
+                padding: 4px 15px;
+                font-size: 15.5px;
+            }
+            
+            .toc-originals-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            .toc-original a {
+                padding: 5px 10px;
+                font-size: 15.5px;
+            }
+        }
+
+        /* 特殊术语着色 */
+        .spectral {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .periodicity {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .fourier {
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        /* 列表样式增强 */
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 - 已移除重复定义，使用上方第602-633行的紧凑型样式 */
+
+        /* 分隔线 */
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 30px 0;
+        }
+
+        /* 数学公式样式 - Q7: 行间公式颜色用黑色 */
+        .math-block {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            color: #000000; /* Q7: 黑色文字 */
+        }
+
+        /* Q7: 确保MathJax渲染的公式为黑色 */
+        .math-block .MathJax {
+            color: #000000 !important;
+        }
+
+        mjx-container {
+            color: #000000 !important;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- TOC 目录按钮 -->
+    <button class="toc-toggle" id="tocToggle" aria-label="打开目录">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+        </svg>
+    </button>
+    
+    <!-- TOC 遮罩层 -->
+    <div class="toc-overlay" id="tocOverlay"></div>
+    
+    <!-- TOC 目录面板 -->
+    <nav class="toc-panel" id="tocPanel">
+        <div class="toc-header">
+            <h3>📑 目录</h3>
+        </div>
+        <div class="toc-content">
+            <ul class="toc-list">
+                <li class="toc-item toc-heading"><a href="#section-1">1. 等价关系与划分</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-1">原文1</a></span><span class="toc-original"><a href="#original-2">原文2</a></span><span class="toc-original"><a href="#original-3">原文3</a></span><span class="toc-original"><a href="#original-4">原文4</a></span><span class="toc-original"><a href="#original-5">原文5</a></span><span class="toc-original"><a href="#original-6">原文6</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-2">2. 商集与代表元</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-7">原文7</a></span><span class="toc-original"><a href="#original-8">原文8</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-3">3. 由映射定义的等价关系</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-9">原文9</a></span><span class="toc-original"><a href="#original-10">原文10</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-4">4. 群同态与陪集</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-11">原文11</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-5">5. 行间公式索引</a></li>
+                <li class="toc-item toc-heading"><a href="#section-6">4. 2 群同态示意图详解</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-12">原文12</a></span></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>行间公式索引</h1>
+            <p class="authors"></p>
+            <p class="date"></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 图例区域 -->
+        <div class="legend-section">
+            <!-- 第一行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar original"></div>
+                    <span>📜 原文</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar explain"></div>
+                    <span>📖 逐步解释</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar formula"></div>
+                    <span>∑ 公式拆解</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar example"></div>
+                    <span>💡 数值示例</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar warning"></div>
+                    <span>⚠️ 易错点</span>
+                </div>
+            </div>
+            <!-- 第二行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar summary"></div>
+                    <span>📝 总结</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar purpose"></div>
+                    <span>🎯 存在目的</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar intuition"></div>
+                    <span>🧠 直觉心智模型</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar imagination"></div>
+                    <span>💭 直观想象</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="content-section" id="section-1">
+    <h2><span class="section-number">1</span>等价关系与划分</h2>
+    <h4>1.1 引言</h4><p id="original-1"><strong style="font-size: 1.3rem;">📜 [原文1]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>一个基本的数学构造从一个集合 $S$ 开始，通过使 $S$ 的某些元素相等来形成一个新集合。例如，我们可以将整数集分为两类：<strong>偶数</strong>和<strong>奇数</strong>。我们得到的新集合包含两个元素，可以称为<strong>偶数</strong>和<strong>奇数</strong>。或者，在平面中，通常将<strong>全等三角形</strong>视为<strong>等价的几何对象</strong>。这种非常通用的程序以几种方式出现，我们在此讨论。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话是本节内容的总起和引言。它介绍了一个在数学中非常基础且普遍的思想：<strong>等价</strong>。这个思想的核心是，我们有一个原始的集合，比如一个装满了各种各样物品的“大袋子”（集合 $S$）。然后，我们根据某种我们自己定义的“标准”或“规则”，把袋子里的一些物品看作是“一样的”或“等价的”。</p>
+<p>这个“看作一样”的过程，实际上就是一种分类。通过这种分类，我们不再关注每个物品个体的微小差异，而是关注它们所属的类别。这就好比我们有一个装满各种水果的篮子，我们可以按照水果的种类（苹果、香蕉、橙子）来分类，也可以按照颜色（红色的、黄色的、绿色的）来分类。一旦分类完成，我们就可以从一个更高、更抽象的层面来讨论这些物品。我们不再说“这个红色的富士苹果”和“那个有点酸的嘎啦苹果”，而是直接说它们都属于“苹果”这个类别。</p>
+<p>作者举了两个非常经典的例子来帮助我们理解：</p>
+<ol>
+  <li> <strong>整数的奇偶划分</strong>：整数集 $\mathbb{Z} = \{\dots, -2, -1, 0, 1, 2, \dots\}$ 是一个无限大的集合。我们可以定义一个规则：“凡是能被2整除的整数都归为一类，不能被2整除的都归为另一类”。于是，所有的整数就被分成了<strong>偶数</strong> $\{\dots, -4, -2, 0, 2, 4, \dots\}$ 和<strong>奇数</strong> $\{\dots, -3, -1, 1, 3, 5, \dots\}$ 两大类。这时，我们就得到了一个新的、更简单的集合，这个新集合里只有两个元素：【偶数类】和【奇数类】。我们不再关心 $2$ 和 $100$ 的区别，因为它们都属于<strong>偶数</strong>。</li>
+  <li> <strong>三角形的全等</strong>：在几何学中，平面上有无数个形状、大小、位置各不相同的三角形。但我们常常不关心一个三角形具体画在纸的哪个位置，或者它的顶点是朝上还是朝下。我们更关心的是它的“内在属性”——三条边的长度和三个角的大小。如果两个三角形可以通过平移、旋转、翻转这些“刚体运动”完全重合，我们就说它们是<strong>全等</strong>的。在这里，“<strong>全等</strong>”就是我们定义的那个“标准”。所有<strong>全等</strong>的三角形，尽管它们在空间中的位置不同，但我们把它们看作是同一个“<strong>等价的几何对象</strong>”。比如，一个边长为3, 4, 5的直角三角形，无论它在哪里、如何摆放，我们都认为它们在几何性质上是“一样”的。</li>
+</ol>
+<p>这段引言告诉我们，本节就是要深入探讨这种“分类”和“看作一样”的数学思想，它引出了两个核心概念：<strong>划分</strong>（Partition）和<strong>等价关系</strong>（Equivalence Relation）。这两种概念是同一枚硬币的两个面，描述的是同一个本质。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1：时钟算术</strong></li>
+  <li>原始集合 $S$ 是所有整数 $\mathbb{Z} = \{\dots, -2, -1, 0, 1, 2, \dots, 12, 13, \dots\}$。</li>
+  <li>我们定义一个“相等”的规则：如果两个整数除以12的余数相同，我们就说它们是“等价”的。例如，1点钟和13点钟在时钟上指向同一个位置，所以我们视 $1$ 和 $13$ 为等价。同样，$0, 12, 24$ 都是等价的，因为它们除以12的余数都是0。</li>
+  <li>通过这个规则，我们把无限的整数集合“浓缩”成了一个只包含12个元素的新集合：$\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11\}$，这代表了12个可能的余数。这就是所谓的模12算术，新集合通常记作 $\mathbb{Z}_{12}$。</li>
+  <li><strong>示例2：按首字母分类</strong></li>
+  <li>原始集合 $S$ 是一班所有学生的名字：{Alice, Bob, Amy, Bill, Charlie}。</li>
+  <li>我们定义一个规则：名字首字母相同的学生被视为“等价”。</li>
+  <li>根据这个规则，{Alice, Amy} 是一类（A类），{Bob, Bill} 是另一类（B类），{Charlie} 自己是一类（C类）。</li>
+  <li>我们就从一个包含5个学生的集合，得到了一个包含3个“首字母类别”的新集合：{A类, B类, C类}。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>“相等”的含义</strong>：初学者容易混淆原始集合中的“相等”（identity，即两个元素是同一个东西，比如 $5=5$）和我们新定义的“等价”（equivalence，即两个不同的元素按某种规则被看作相等，比如在模12下 $1 \sim 13$）。本节讨论的“使某些元素相等”指的是后者。</li>
+  <li><strong>新集合的元素</strong>：形成的新集合，其元素不再是原始集合里的单个元素，而是原始集合的“子集”或者说“类别”。在奇偶数的例子中，新集合的两个元素是【偶数集】和【奇数集】，而不是数字0和1本身。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段是引子，通过通俗的例子（奇偶数、全等三角形）引入了核心思想：通过定义一种“等价”规则，将一个复杂的集合进行分类，从而得到一个更简单、更抽象的新集合。这个过程在数学中无处不在，是抽象思维的重要一步。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是为后续引入严格的数学定义——<strong>划分</strong>和<strong>等价关系</strong>——做铺垫。它通过直观的例子建立读者的初步认识和感觉，说明了为什么我们需要研究这些概念，因为它们能帮助我们简化问题，抓住事物的本质共性。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>贴标签模型</strong>：想象你有一个大箱子，里面装满了各种形状和颜色的积木（原始集合 $S$）。你拿出一些标签，比如“红色”、“蓝色”、“圆形”、“方形”等（等价规则）。然后你给箱子里的每一块积木都贴上一个合适的标签。所有贴有“红色”标签的积木，你把它们看作一回事；所有贴有“圆形”标签的积木，你也把它们看作一回事。这样，你就从关注每一块具体的积木，转变为关注“红色积木”、“圆形积木”这些类别了。</li>
+  <li><strong>打包模型</strong>：你有一堆散乱的物品（集合 $S$）。你按照某种标准（比如，所有衣服放一包，所有书籍放一包，所有食物放一包），把它们分别打包装进几个不同的袋子里。打包完成后，你就得到了几个大包裹。你不再关心每个包裹里具体的物品是什么，而是把每个“包裹”当作一个独立的新单元来处理。这个过程就是<strong>划分</strong>。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一条无限长的数轴，上面密密麻麻地标着所有的整数。现在你拿来两桶油漆，一桶是蓝色的，一桶是红色的。你用蓝色油漆把所有偶数（0, 2, -2, 4, -4, ...）都涂上颜色，用红色油漆把所有奇数（1, -1, 3, -3, ...）都涂上颜色。涂完之后，整条数轴就变成了红蓝相间的样子。这时，你戴上一副特殊的眼镜，这副眼镜让你看不见具体的数字，只能看见颜色。于是，在你眼里，无限长的数轴消失了，只剩下了两个色块：【蓝色块】和【红色块】。这个从“数字”到“色块”的转变过程，就是本节要讨论的核心思想。</p>
+    </div>
+</div><hr><h4>1.2 划分的定义与示例</h4><p id="original-2"><strong style="font-size: 1.3rem;">📜 [原文2]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ul>
+  <li>集合 $S$ 的一个<strong>划分</strong> $\Pi$ 是将 $S$ 细分为不重叠的非空子集：</li>
+</ul>
+<p><div class="math-block">$$
+\begin{equation*}
+S=\text { union of disjoint nonempty subsets. } \tag{2.7.1}
+\end{equation*}
+$$</div></p>
+<p><strong>偶数</strong>和<strong>奇数</strong>这两个集合<strong>划分</strong>了整数集。用通常的符号表示，集合</p>
+<p><div class="math-block">$$
+\begin{equation*}
+\{1\},\left\{y, x y, x^{2} y\right\},\left\{x, x^{2}\right\} \tag{2.7.2}
+\end{equation*}
+$$</div></p>
+<p>构成了<strong>对称群</strong> $S_{3}$ 的一个<strong>划分</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话给出了“<strong>划分</strong>”（Partition）的正式定义。一个集合 $S$ 的<strong>划分</strong>，就像切蛋糕一样，必须满足三个条件：</p>
+<ol>
+  <li> <strong>全覆盖</strong>：划分所使用的所有子集（那些小块蛋糕）合在一起，必须正好等于原始的大集合 $S$（整个蛋糕）。不能有任何一部分被遗漏。用数学语言说，就是所有子集的<strong>并集</strong>（union）等于 $S$。</li>
+  <li> <strong>不重叠</strong>：任意两个不同的子集（任意两块蛋糕）之间不能有公共部分。它们必须是<strong>不相交</strong>的（disjoint）。一个元素不能同时属于两个不同的子集。</li>
+  <li> <strong>非空</strong>：用来划分的每一个子集（每一块蛋糕）本身都必须是<strong>非空</strong>的（nonempty）。你不能切出来一块“什么都没有”的“空气蛋糕”。</li>
+</ol>
+<p>所以，一个<strong>划分</strong>就是把一个大集合 $S$ 分解成一堆互不相交的、非空的小集合，而这些小集合的全体正好拼回原来的大集合 $S$。</p>
+<p>接着，文章给出了两个例子：</p>
+<ol>
+  <li> <strong>整数集的奇偶划分</strong>：
+<ul>
+  <li>集合 $S$ 是整数集 $\mathbb{Z}$。</li>
+  <li>子集1是<strong>偶数</strong>集合 $E = \{\dots, -2, 0, 2, \dots\}$。</li>
+  <li>子集2是<strong>奇数</strong>集合 $O = \{\dots, -1, 1, 3, \dots\}$。</li>
+  <li>我们来验证这是否是一个<strong>划分</strong>：</li>
+  <li><strong>全覆盖</strong>：任何一个整数，要么是偶数，要么是奇数。所以 $E \cup O = \mathbb{Z}$。满足。</li>
+  <li><strong>不重叠</strong>：一个数不可能既是偶数又是奇数。所以 $E \cap O = \emptyset$（空集）。满足。</li>
+  <li><strong>非空</strong>：偶数集和奇数集里都有无穷多个元素，显然不是空的。满足。</li>
+  <li>因此，{<strong>偶数集</strong>, <strong>奇数集</strong>} 是整数集 $\mathbb{Z}$ 的一个<strong>划分</strong>。</li>
+</ul></li>
+  <li> <strong>对称群 $S_3$ 的划分</strong>：
+<ul>
+  <li>这是一个来自<strong>群论</strong>的例子。对称群 $S_3$ 是指对三个元素 $\{1, 2, 3\}$ 进行所有可能的排列所构成的<strong>群</strong>。它有 $3! = 6$ 个元素。用<strong>轮换表示</strong>法，这6个元素通常写作：</li>
+  <li>$e$ (或 $1$)：恒等变换，什么都不动。</li>
+  <li>$\rho_1$ (或 $x$)：旋转120度，(123)。</li>
+  <li>$\rho_2$ (或 $x^2$)：旋转240度，(132)。</li>
+  <li>$\mu_1$ (或 $y$)：关于1的垂直轴翻转，(23)。</li>
+  <li>$\mu_2$ (或 $xy$)：关于2的垂直轴翻转，(13)。</li>
+  <li>$\mu_3$ (或 $x^2y$)：关于3的垂直轴翻转，(12)。</li>
+  <li>文本中给出的<strong>划分</strong>是：</li>
+  <li>子集1: $\{1\}$ (即恒等元 $e$)</li>
+  <li>子集2: $\{y, xy, x^2y\}$ (即三个翻转 (12), (13), (23))</li>
+  <li>子集3: $\{x, x^2\}$ (即两个旋转 (123), (132))</li>
+  <li>让我们验证这是否构成一个<strong>划分</strong>：</li>
+  <li><strong>全覆盖</strong>：这三个子集合并起来，包含了 $1 + 3 + 2 = 6$ 个元素，正好是 $S_3$ 的所有元素。满足。</li>
+  <li><strong>不重叠</strong>：这三个子集之间没有任何公共元素。满足。</li>
+  <li><strong>非空</strong>：每个子集都含有元素。满足。</li>
+  <li>因此，这确实是 $S_3$ 的一个<strong>划分</strong>。（这个划分其实是根据元素的<strong>阶</strong>来划分的：阶为1的，阶为2的，阶为3的）。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>公式 (2.7.1): $S=\text { union of disjoint nonempty subsets. }$</strong></li>
+  <li>$S$: 表示我们要进行划分的原始集合。</li>
+  <li><strong>union</strong>: <strong>并集</strong>操作。符号是 $\cup$。如果有一系列的子集 $A_1, A_2, \dots, A_n$，它们的并集 $A_1 \cup A_2 \cup \dots \cup A_n$ 是一个包含所有这些子集中所有元素的新集合。公式中的 <strong>union of ... subsets</strong> 就意味着所有划分出来的子集的并集。</li>
+  <li><strong>disjoint</strong>: <strong>不相交</strong>。两个集合 $A$ 和 $B$ 是不相交的，意味着它们没有共同的元素，即它们的<strong>交集</strong> $A \cap B = \emptyset$（空集）。公式中这个词要求划分出的任意两个不同的子集都是不相交的。</li>
+  <li><strong>nonempty</strong>: <strong>非空</strong>。一个集合是<strong>非空</strong>的，意味着它至少包含一个元素。</li>
+  <li>这句话是对<strong>划分</strong>的文字描述，如果用更形式化的数学语言来写，假设<strong>划分</strong> $\Pi$ 是由子集族 $\{S_i\}_{i \in I}$ 构成的（其中 $I$ 是一个索引集），那么它必须满足：</li>
+</ul>
+<ol>
+  <li> $\forall i \in I, S_i \neq \emptyset$ （非空）</li>
+  <li> $\forall i, j \in I, i \neq j \implies S_i \cap S_j = \emptyset$ （不重叠）</li>
+  <li> $\bigcup_{i \in I} S_i = S$ （全覆盖）</li>
+</ol>
+<ul>
+  <li><strong>公式 (2.7.2): $\{1\},\left\{y, x y, x^{2} y\right\},\left\{x, x^{2}\right\}$</strong></li>
+  <li>这个是上面解释过的 $S_3$ 的一个具体划分。</li>
+  <li>$\{ \}$: 表示集合。</li>
+  <li>$1$: 在群论里通常表示<strong>恒等元</strong>。</li>
+  <li>$x, y, xy, x^2y, x^2$: 这些是 $S_3$ 群中元素的代数表示法，代表了不同的排列操作。</li>
+  <li>整个表达式展示了三个集合，这三个集合共同构成了对 $S_3$ 的一个划分。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1：按个位数划分</strong></li>
+  <li>集合 $S = \{10, 11, 22, 31, 40, 52\}$。</li>
+  <li>我们可以按个位数进行<strong>划分</strong>。</li>
+  <li>子集 $S_0$ (个位数为0): $\{10, 40\}$</li>
+  <li>子集 $S_1$ (个位数为1): $\{11, 31\}$</li>
+  <li>子集 $S_2$ (个位数为2): $\{22, 52\}$</li>
+  <li>那么，集合 $\{S_0, S_1, S_2\}$ 就是 $S$ 的一个<strong>划分</strong>。</li>
+  <li><strong>全覆盖</strong>：$S_0 \cup S_1 \cup S_2 = \{10, 40, 11, 31, 22, 52\} = S$。</li>
+  <li><strong>不重叠</strong>：$S_0, S_1, S_2$ 两两之间没有共同元素。</li>
+  <li><strong>非空</strong>：每个子集都非空。</li>
+</ul>
+<ul>
+  <li><strong>示例2：一个不是划分的例子</strong></li>
+  <li>集合 $S = \{a, b, c, d, e\}$。</li>
+  <li>考虑子集族 $T_1 = \{a, b\}, T_2 = \{b, c\}, T_3 = \{d, e\}$。</li>
+  <li>这<strong>不是</strong>一个划分，因为它违反了“不重叠”的原则，$T_1$ 和 $T_2$ 都含有元素 $b$。</li>
+  <li><strong>示例3：另一个不是划分的例子</strong></li>
+  <li>集合 $S = \{a, b, c, d, e\}$。</li>
+  <li>考虑子集族 $U_1 = \{a, c\}, U_2 = \{b\}$。</li>
+  <li>这<strong>不是</strong>一个划分，因为它违反了“全覆盖”的原则，元素 $d$ 和 $e$ 没有被包含在任何子集中。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>划分的是集合，不是元素</strong>：一个<strong>划分</strong>本身是一个“集合的集合”，它的成员是原始集合的子集，而不是原始集合的元素。对于整数奇偶划分的例子，这个划分是 $\{\text{偶数集}, \text{奇数集}\}$，它是一个包含两个成员（这两个成员都是集合）的集合。</li>
+  <li><strong>最细和最粗的划分</strong>：对于任何非空集合 $S$，总存在两个“极端”的划分。</li>
+  <li><strong>最细的划分</strong>：每个元素自己构成一个子集。例如，对 $S=\{a, b, c\}$，最细的划分是 $\{\{a\}, \{b\}, \{c\}\}$。</li>
+  <li><strong>最粗的划分</strong>：整个集合 $S$ 自己构成一个子集。对 $S=\{a, b, c\}$，最粗的划分是 $\{\{a, b, c\}\}$。</li>
+  <li><strong>空集</strong>：定义中明确排除了用“空集”作为划分的子集。这是为了避免无意义的划分，比如把 $S=\{a\}$ 划分成 $\{\{a\}, \emptyset, \emptyset, \dots\}$。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>划分</strong>是将一个集合彻底地、不重不漏地分割成若干个非空子集的操作。这三个条件——全覆盖、不重叠、非空——是定义一个有效划分的刚性约束。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是给出<strong>划分</strong>这个概念的严格数学定义，并用具体的例子（一个来自数论，一个来自群论）来实例化这个定义，让读者明白什么是划分，什么不是。这是后续将<strong>划分</strong>与<strong>等价关系</strong>联系起来的基础。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>拼图模型</strong>：一个完整的拼图（集合 $S$）可以被拆成很多小块（划分中的子集）。这些小块拼在一起能完美地复原整个拼图（全覆盖），任何两块之间没有重叠的部分（不重叠），而且每一块都有图案，不是空白的（非空）。这个由所有小块组成的集合，就是对这幅拼图的一个<strong>划分</strong>。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你有一幅完整的中国地图（集合 $S$）。你可以按照行政省份来对其进行“<strong>划分</strong>”。那么，“广东省”这个区域块就是一个子集，“四川省”是另一个子集，以此类推。</p>
+<ol>
+  <li><strong>全覆盖</strong>：所有省份的区域加起来，正好是中国版图的全部。</li>
+  <li><strong>不重叠</strong>：任何两个省的边界是明确的，一个地方不能既属于广东又属于湖南（忽略争议地区）。</li>
+  <li><strong>非空</strong>：每个省都有自己的土地面积，不是空的。</li>
+</ol>
+<p>因此，由中国所有省级行政区组成的集合，就是对中国领土的一个<strong>划分</strong>。</p>
+    </div>
+</div><hr><h4>1.3 等价关系的定义与示例</h4><p id="original-3"><strong style="font-size: 1.3rem;">📜 [原文3]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ul>
+  <li>集合 $S$ 上的<strong>等价关系</strong>是存在于 $S$ 的某些元素对之间的一种关系。我们可以将其写作 $a \sim b$，并称之为 $a$ 与 $b$ 的<strong>等价</strong>。<strong>等价关系</strong>需要满足：</li>
+  <li><strong>传递性</strong>：如果 $a \sim b$ 且 $b \sim c$，那么 $a \sim c$。</li>
+  <li><strong>对称性</strong>：如果 $a \sim b$，那么 $b \sim a$。</li>
+  <li><strong>自反性</strong>：对于所有 $a$， $a \sim a$。</li>
+</ul>
+<p><strong>三角形的全等</strong>是平面中<strong>三角形</strong>集合上的一个<strong>等价关系</strong>的例子。如果 $A, B$ 和 $C$ 是<strong>三角形</strong>，并且 $A$ <strong>全等</strong>于 $B$ 且 $B$ <strong>全等</strong>于 $C$，那么 $A$ <strong>全等</strong>于 $C$，等等。</p>
+<p><strong>共轭</strong>是<strong>群</strong>上的一个<strong>等价关系</strong>。如果对于某个<strong>群元素</strong> $g$，有 $b=g a g^{-1}$，则两个<strong>群元素</strong> $a \sim b$ <strong>共轭</strong>。我们检查<strong>传递性</strong>：假设 $a \sim b$ 且 $b \sim c$。这意味着对于某些<strong>群元素</strong> $g_{1}$ 和 $g_{2}$，有 $b=g_{1} a g_{1}^{-1}$ 和 $c=g_{2} b g_{2}^{-1}$。那么 $c=g_{2}\left(g_{1} a g_{1}^{-1}\right) g_{2}^{-1}=\left(g_{2} g_{1}\right) a\left(g_{2} g_{1}\right)^{-1}$，因此 $a \sim c$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话介绍了与<strong>划分</strong>密切相关的另一个概念：<strong>等价关系</strong>（Equivalence Relation）。如果说<strong>划分</strong>是从“整体”（集合）出发，把它“切”成小块；那么<strong>等价关系</strong>就是从“个体”（元素）出发，定义元素之间的“关系”。</p>
+<p>一个“关系” $\sim$ （读作 tilde 或 “is equivalent to”），如果被称为<strong>等价关系</strong>，它必须满足三个黄金法则，这三个法则是对我们日常生活中“相等”这个概念的性质的抽象。</p>
+<ol>
+  <li> <strong>自反性 (Reflexivity)</strong>：任何一个元素都和它自己是等价的 ($a \sim a$)。这就像说，“我等于我自己”。这是最基本的要求。</li>
+  <li> <strong>对称性 (Symmetry)</strong>：如果 $a$ 和 $b$ 是等价的 ($a \sim b$)，那么反过来，$b$ 和 $a$ 也必须是等价的 ($b \sim a$)。这就像说，“如果我等于你，那么你也等于我”。关系是对等的。</li>
+  <li> <strong>传递性 (Transitivity)</strong>：如果 $a$ 和 $b$ 等价 ($a \sim b$)，并且 $b$ 和 $c$ 也等价 ($b \sim c$)，那么就必须能推导出 $a$ 和 $c$ 也是等价的 ($a \sim c$)。这就像“等量代换”：“如果我的身高和你一样，你的身高和他的身高一样，那么我的身高就和他的身高一样”。</li>
+</ol>
+<p>只有同时满足这三个条件的关系，才能被称为<strong>等价关系</strong>。</p>
+<p>文章举了两个例子：</p>
+<ol>
+  <li> <strong>三角形的全等</strong>：
+<ul>
+  <li>集合 $S$ 是平面上所有三角形的集合。</li>
+  <li>关系 $\sim$ 定义为“全等于”。</li>
+  <li>验证三条性质：</li>
+  <li><strong>自反性</strong>：任何一个三角形都和它自己全等。满足。</li>
+  <li><strong>对称性</strong>：如果三角形A全等于三角形B，那么三角形B也全等于三角形A。满足。</li>
+  <li><strong>传递性</strong>：如果三角形A全等于B，B又全等于C，那么A肯定也全等于C。满足。</li>
+  <li>所以，“全等”确实是三角形集合上的一个<strong>等价关系</strong>。</li>
+</ul></li>
+  <li> <strong>群中的共轭关系</strong>：
+<ul>
+  <li>集合 $S$ 是一个群 $G$。</li>
+  <li>关系 $\sim$ 定义为“<strong>共轭</strong>” (conjugate)：元素 $a$ 和 $b$ 共轭，当且仅当存在群里的某个元素 $g$，使得 $b = gag^{-1}$。</li>
+  <li>作者在这里只演示了如何检查<strong>传递性</strong>，我们把三个性质都完整地检查一遍：</li>
+  <li><strong>自反性</strong> ($a \sim a$)：我们需要找到一个 $g$ 使得 $a = gag^{-1}$。取群的<strong>单位元</strong> $e$ 作为 $g$ 即可，因为 $eae^{-1} = eae = a$。所以自反性满足。</li>
+  <li><strong>对称性</strong> (若 $a \sim b$，则 $b \sim a$)：假设 $a \sim b$，这意味着存在一个 $g$ 使得 $b = gag^{-1}$。我们需要证明存在一个 $h$ 使得 $a = hbh^{-1}$。我们可以对 $b = gag^{-1}$ 这个等式做变形：</li>
+  <li><strong>传递性</strong> (若 $a \sim b$ 且 $b \sim c$，则 $a \sim c$)：这就是原文证明的过程。</li>
+  <li>因为三个性质都满足，所以<strong>共轭</strong>确实是群上的一个<strong>等价关系</strong>。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1：模n同余关系</strong></li>
+  <li>集合 $S$ 是整数集 $\mathbb{Z}$。</li>
+  <li>定义关系 $a \sim b$ 为“$a$ 和 $b$ 除以 $n$ 的余数相同”，记作 $a \equiv b \pmod{n}$。这等价于说 $a-b$ 是 $n$ 的倍数。让我们以 $n=3$ 为例。</li>
+  <li><strong>自反性</strong>：$a \sim a$? $a-a=0$，0是3的倍数 ($0=0 \times 3$)。满足。所以 $7 \sim 7$。</li>
+  <li><strong>对称性</strong>：如果 $a \sim b$，即 $a-b$ 是3的倍数，那么 $b-a = -(a-b)$ 也必然是3的倍数。满足。例如，$7 \sim 4$ 因为 $7-4=3$ 是3的倍数，那么 $4 \sim 7$ 也是成立的，因为 $4-7=-3$ 也是3的倍数。</li>
+  <li><strong>传递性</strong>：如果 $a \sim b$ 且 $b \sim c$，即 $a-b=3k_1$ 和 $b-c=3k_2$（$k_1, k_2$为整数）。那么 $a-c = (a-b)+(b-c) = 3k_1 + 3k_2 = 3(k_1+k_2)$。显然 $a-c$ 也是3的倍数，所以 $a \sim c$。满足。例如，$7 \sim 4$ 且 $4 \sim 1$，那么 $7-4=3$, $4-1=3$，于是 $7 \sim 1$ 也成立，因为 $7-1=6$ 是3的倍数。</li>
+  <li>因此，模 $n$ 同余是一个<strong>等价关系</strong>。</li>
+</ul>
+<ul>
+  <li><strong>示例2：一个不是等价关系的例子 "$\le$"</strong></li>
+  <li>集合 $S$ 是实数集 $\mathbb{R}$。</li>
+  <li>关系 $\sim$ 定义为 "$\le$" (小于或等于)。</li>
+  <li><strong>自反性</strong>：$a \le a$。满足。</li>
+  <li><strong>传递性</strong>：如果 $a \le b$ 且 $b \le c$，那么 $a \le c$。满足。</li>
+  <li><strong>对称性</strong>：如果 $a \le b$，是否一定有 $b \le a$？不一定。比如 $3 \le 5$，但 $5 \not\le 3$。所以<strong>对称性不满足</strong>。</li>
+  <li>因此，“小于或等于”不是一个<strong>等价关系</strong>。（它是一种<strong>偏序关系</strong>）。</li>
+</ul>
+<ul>
+  <li><strong>示例3：另一个不是等价关系的例子 "is a friend of"</strong></li>
+  <li>集合 $S$ 是人群。</li>
+  <li>关系 $\sim$ 定义为 “是...的朋友”。</li>
+  <li><strong>自反性</strong>：$a \sim a$ (自己是自己的朋友)。通常认为是成立的。</li>
+  <li><strong>对称性</strong>：如果 $a$ 是 $b$ 的朋友，那么 $b$ 也是 $a$ 的朋友。通常也认为是成立的。</li>
+  <li><strong>传递性</strong>：如果 $a$ 是 $b$ 的朋友， $b$ 是 $c$ 的朋友，那么 $a$ 一定是 $c$ 的朋友吗？不一定。你的朋友的朋友不一定是你的朋友。<strong>传递性不满足</strong>。</li>
+  <li>因此，“朋友关系”不是一个<strong>等价关系</strong>。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>三者缺一不可</strong>：定义一个关系时，必须严格地、分别地验证自反、对称、传递这三个性质。只要有一个不满足，它就不是<strong>等价关系</strong>。</li>
+  <li><strong>关系的对象</strong>：要明确<strong>等价关系</strong>是定义在哪个集合上的。例如，“同姓”在“中国人集合”上是一个<strong>等价关系</strong>，但在“全球人集合”上也是（只是集合范围变了）。</li>
+  <li><strong>共轭关系中的 $g$</strong>：在验证共轭关系时，对于不同的元素对 $(a, b)$，那个起连接作用的 $g$ ($b=gag^{-1}$) 可以是不同的。而在验证传递性时，我们用了 $g_1$ 和 $g_2$，最后得到的 $g_3 = g_2g_1$ 是一个新的元素。我们只需要证明<strong>存在</strong>这样一个元素即可，不需要它是一个固定的元素。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>等价关系</strong>是一种特殊的二元关系，它通过自反、对称、传递三个公理，完美地捕捉了“相等”这一概念的本质特征。它为我们提供了一种从元素间关系的角度来对集合进行分类的工具。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是给出<strong>等价关系</strong>的严格数学定义，并用具体的例子（几何的全等、代数的共轭）来展示这个定义的应用。其最终目的是为了揭示<strong>等价关系</strong>和上一节定义的<strong>划分</strong>之间存在着一一对应的深刻联系。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>朋友圈模型（修正版）</strong>：普通的朋友圈不满足传递性。但我们可以想象一种“家族”关系。</li>
+  <li>集合 $S$ 是一群人。</li>
+  <li>关系 $\sim$ 定义为“属于同一个姓氏的家族”。</li>
+  <li><strong>自反性</strong>：张三和张三同姓。</li>
+  <li><strong>对称性</strong>：如果张三和张伟同姓，那么张伟也和张三同姓。</li>
+  <li><strong>传递性</strong>：如果张三和张伟同姓，张伟和张杰同姓，那么张三肯定和张杰同姓。</li>
+  <li>这种“同姓”关系就是一个<strong>等价关系</strong>。它自然地把这群人划分成了“张家”、“李家”、“王家”等几个互不相干的圈子（家族）。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象在一个大房间里有很多小孩子（集合 $S$）。我们想把他们分组。我们可以定义一个关系：“如果两个小孩子穿着同样颜色的衣服，他们就等价”。</p>
+<ol>
+  <li><strong>自反性</strong>：每个小孩子都和自己穿着同样颜色的衣服。</li>
+  <li><strong>对称性</strong>：如果A和B穿的衣服颜色一样，那么B和A穿的衣服颜色也一样。</li>
+  <li><strong>传递性</strong>：如果A和B衣服颜色一样，B和C衣服颜色也一样，那么A和C的衣服颜色肯定也是一样的。</li>
+</ol>
+<p>这是一个<strong>等-价关系</strong>。有了这个关系，我们就可以很自然地把孩子们分成几组：穿红色衣服的一组，穿蓝色衣服的一组，穿黄色衣服的一组...... 每一组就是一个<strong>等价类</strong>。</p>
+    </div>
+</div><hr><h4>1.4 划分与等价关系的等价性</h4><p id="original-4"><strong style="font-size: 1.3rem;">📜 [原文4]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>集合 $S$ 的<strong>划分</strong>和集合 $S$ 上的<strong>等价关系</strong>的概念在逻辑上是<strong>等价</strong>的，尽管在实践中可能会只给出其中之一。</p>
+<p><strong>命题 2.7.4</strong> 集合 $S$ 上的<strong>等价关系</strong>决定了 $S$ 的一个<strong>划分</strong>，反之亦然。</p>
+<p><strong>证明</strong>。给定 $S$ 的一个<strong>划分</strong>，相应的<strong>等价关系</strong>由规则 $a \sim b$ 定义，如果 $a$ 和 $b$ 位于<strong>划分</strong>的同一个子集中。<strong>等价关系</strong>的<strong>公理</strong>显然得到满足。反之，给定一个<strong>等价关系</strong>，通过以下方式定义一个<strong>划分</strong>：包含 $a$ 的子集是所有满足 $a \sim b$ 的元素 $b$ 的集合。这个子集被称为 $a$ 的<strong>等价类</strong>。我们在这里将其表示为 $C_{a}$：</p>
+<p><div class="math-block">$$
+\begin{equation*}
+C_{a}=\{b \in S \mid a \sim b\} . \tag{2.7.5}
+\end{equation*}
+$$</div></p>
+<p>下面的<strong>引理</strong>完成了<strong>命题</strong>的证明。 $\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是本节最核心的论断：<strong>划分</strong>和<strong>等价关系</strong>是描述同一件事的两种不同方式，它们是一体两面的，可以相互推导和定义。</p>
+<p><strong>命题 2.7.4</strong> 明确指出了这种双向关系：</p>
+<ol>
+  <li> 从 <strong>等价关系</strong> $\rightarrow$ 到 <strong>划分</strong></li>
+  <li> 从 <strong>划分</strong> $\rightarrow$ 到 <strong>等价关系</strong></li>
+</ol>
+<p>证明分为两个部分，就像一个双行道：</p>
+<p><strong>第一部分：从划分到等价关系 (Partition $\implies$ Equivalence Relation)</strong></p>
+<ul>
+  <li><strong>前提</strong>：我们手上已经有了一个对集合 $S$ 的<strong>划分</strong> $\Pi = \{S_1, S_2, \dots\}$。这就像我们已经把蛋糕切好了。</li>
+  <li><strong>目标</strong>：我们要基于这个<strong>划分</strong>来定义一个<strong>等价关系</strong> $\sim$。</li>
+  <li><strong>定义方法</strong>：规则很简单——“如果两个元素 $a$ 和 $b$ 掉在同一块蛋糕里（位于同一个子集 $S_i$ 中），那么我们就说 $a \sim b$”。</li>
+  <li><strong>验证</strong>：作者说“<strong>公理</strong>显然得到满足”，我们来把它展开看看为什么是“显然”的：</li>
+  <li>假设 $a, b, c$ 都是 $S$ 中的元素。</li>
+  <li><strong>自反性</strong> ($a \sim a$)：元素 $a$ 肯定在某个子集 $S_i$ 里。那么 $a$ 和 $a$ 自己当然在同一个子集里。所以 $a \sim a$ 成立。</li>
+  <li><strong>对称性</strong> (若 $a \sim b$, 则 $b \sim a$)：如果 $a \sim b$，说明 $a$ 和 $b$ 在同一个子集 $S_k$ 中。那么反过来说，$b$ 和 $a$ 自然也在同一个子集 $S_k$ 中。所以 $b \sim a$ 成立。</li>
+  <li><strong>传递性</strong> (若 $a \sim b$ 且 $b \sim c$, 则 $a \sim c$)：如果 $a \sim b$，说明 $a, b$ 同在子集 $S_i$ 中。如果 $b \sim c$，说明 $b, c$ 同在子集 $S_j$ 中。因为 $b$ 同时在 $S_i$ 和 $S_j$ 中，而<strong>划分</strong>的定义要求不同的子集必须不相交，所以 $S_i$ 和 $S_j$ 必须是同一个子集，即 $i=j$。因此，$a, b, c$ 三个元素都在同一个子集 $S_i$ 中。所以 $a$ 和 $c$ 也在同一个子集中，即 $a \sim c$ 成立。</li>
+  <li><strong>结论</strong>：这个定义方法确实产生了一个有效的<strong>等价关系</strong>。</li>
+</ul>
+<p><strong>第二部分：从等价关系到划分 (Equivalence Relation $\implies$ Partition)</strong></p>
+<ul>
+  <li><strong>前提</strong>：我们手上已经有了一个定义在集合 $S$ 上的<strong>等价关系</strong> $\sim$。这就像我们有了“同色”的规则。</li>
+  <li><strong>目标</strong>：我们要基于这个<strong>等价关系</strong>来构造一个<strong>划分</strong> $\Pi$。</li>
+  <li><strong>构造方法</strong>：对于集合 $S$ 中的任何一个元素 $a$，我们把所有与 $a$ 等价的元素（包括 $a$ 自己）收集起来，形成一个子集。这个子集就叫做 $a$ 的<strong>等价类</strong> (Equivalence Class)。</li>
+  <li><strong>等价类的定义</strong>：公式 (2.7.5) 给出了 $a$ 的等价类 $C_a$ 的严格定义。它是一个集合，包含了 $S$ 中所有满足条件 “$a \sim b$” 的元素 $b$。</li>
+  <li><strong>划分的形成</strong>：由所有这些<strong>等价类</strong>构成的集合，就应该是我们想要的那个<strong>划分</strong>。例如，在“同色”的例子中，<strong style="font-size: 1.2rem;">[所有红色衣服孩子组成的集合]</strong>是一个等价类，<strong style="font-size: 1.2rem;">[所有蓝色衣服孩子组成的集合]</strong>是另一个等价类......所有这些等价类合起来，就构成了对全体孩子的一个划分。</li>
+  <li><strong>验证</strong>：这个构造方法是否真的产生了一个有效的<strong>划分</strong>呢？也就是说，这些<strong>等价类</strong>是否满足<strong>全覆盖</strong>、<strong>不重叠</strong>、<strong>非空</strong>这三个条件？作者说，这个证明需要下面的一个<strong>引理</strong> (Lemma 2.7.6) 来完成。</li>
+</ul>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>命题 2.7.4</strong>: 这是一个陈述句，说明了两个概念间的双向蕴含关系。</li>
+  <li><strong>公式 (2.7.5): $C_{a}=\{b \in S \mid a \sim b\}$</strong></li>
+  <li>$C_a$: 符号，代表元素 $a$ 的<strong>等价类</strong>。这是一个集合。</li>
+  <li>$\{ \dots \}$: 集合的标准表示法。</li>
+  <li>$b \in S$: 表示我们考虑的元素 $b$ 是从大集合 $S$ 中选取的。</li>
+  <li><strong>|</strong>: 读作“使得”(such that)，是集合定义中的分隔符，后面是元素需要满足的条件。</li>
+  <li>$a \sim b$: 元素 $b$ 必须满足的条件，即 $b$ 要与我们选定的元素 $a$ <strong>等价</strong>。</li>
+  <li><strong>整个公式的含义</strong>：$a$ 的等价类 $C_a$，是这样一个集合：它的成员是来自 $S$ 的所有与 $a$ 等价的元素 $b$。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>从划分到等价关系</strong></li>
+  <li>集合 $S = \{1, 2, 3, 4, 5, 6\}$。</li>
+  <li>划分 $\Pi = \{\{1, 3, 5\}, \{2, 4, 6\}\}$。（这就是奇数和偶数的划分）</li>
+  <li>根据这个划分定义的等价关系 $\sim$ 是：</li>
+  <li>$1 \sim 3$, $1 \sim 5$, $3 \sim 5$ （以及它们对称反过来的关系）。</li>
+  <li>$2 \sim 4$, $2 \sim 6$, $4 \sim 6$ （以及对称关系）。</li>
+  <li>任何一个奇数和偶数之间都<strong>不等价</strong>，例如 $1 \not\sim 2$。</li>
+  <li>每个数和自身等价：$1 \sim 1, 2 \sim 2$, etc.</li>
+</ul>
+<ul>
+  <li><strong>从等价关系到划分</strong></li>
+  <li>集合 $S = \{1, 2, 3, 4, 5, 6\}$。</li>
+  <li>等价关系 $\sim$ 定义为 $a \sim b$ 当且仅当 $a-b$ 是3的倍数（模3同余）。</li>
+  <li>让我们来找<strong>等价类</strong>：</li>
+  <li>从元素1开始，找 $C_1$：和1等价的数有哪些？</li>
+  <li>$1-1=0$ (3的倍数) -&gt; 1在 $C_1$ 中。</li>
+  <li>$1-4=-3$ (3的倍数) -&gt; 4在 $C_1$ 中。</li>
+  <li>其他数（2,3,5,6）和1的差都不是3的倍数。</li>
+  <li>所以 $C_1 = \{1, 4\}$。</li>
+  <li>从元素2开始，找 $C_2$：</li>
+  <li>$2-2=0$ -&gt; 2在 $C_2$ 中。</li>
+  <li>$2-5=-3$ -&gt; 5在 $C_2$ 中。</li>
+  <li>所以 $C_2 = \{2, 5\}$。</li>
+  <li>从元素3开始，找 $C_3$：</li>
+  <li>$3-3=0$ -&gt; 3在 $C_3$ 中。</li>
+  <li>$3-6=-3$ -&gt; 6在 $C_3$ 中。</li>
+  <li>所以 $C_3 = \{3, 6\}$。</li>
+  <li>我们已经把所有元素都用完了。我们得到的等价类是 $\{1, 4\}, \{2, 5\}, \{3, 6\}$。</li>
+  <li>这个由等价类组成的集合 $\{\{1, 4\}, \{2, 5\}, \{3, 6\}\}$ 就是一个<strong>划分</strong>。它满足全覆盖、不重叠、非空。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>逻辑上的等价</strong>：说<strong>划分</strong>和<strong>等价关系</strong>“逻辑上等价”，并不意味着它们是同一个东西。它们是两种不同的数学结构，但是它们之间有一座完美的桥梁，可以让你在两个世界里自由穿梭，并且信息没有损失。给出一个<strong>划分</strong>就唯一确定了一个<strong>等价关系</strong>，反之亦然。</li>
+  <li><strong>命名等价类</strong>：$C_a$ 这个名字是依赖于元素 $a$ 的。但是在上面的例子中，$C_1 = \{1, 4\}$，我们也可以计算 $C_4$，$C_4 = \{b \in S \mid 4 \sim b\}$，我们发现 $C_4$ 也是 $\{1, 4\}$。所以 $C_1$ 和 $C_4$ 是同一个集合，只是用了不同的“代表”来命名。这是下一个引理要解决的核心问题。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段是理论核心，它正式声明并开始证明<strong>划分</strong>和<strong>等价关系</strong>是一一对应的。它展示了如何从一个构造另一个：从划分出发，定义“同在一个子集”为等价；从等价关系出发，定义“所有互为等价的元素”为一个子集（等价类）。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是建立<strong>划分</strong>和<strong>等价关系</strong>这两个概念之间的形式化桥梁。这使得我们可以根据手头问题的便利性，选择使用其中任何一个视角。有时从几何的“分块”（划分）角度思考更容易，有时从代数的“关系”（等价关系）角度思考更方便。这个命题保证了两种思路是相通的。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>国家与公民模型</strong>：</li>
+  <li><strong>划分</strong>视角：地球（集合S）被划分成不同的国家（子集）。{中国，美国，日本...}。</li>
+  <li><strong>等价关系</strong>视角：定义一个关系 $\sim$ 为“拥有相同国籍”。</li>
+  <li><strong>从划分到关系</strong>：如果地球已经被划分好了，我们可以定义：两个人等价，当且仅当他们属于同一个国家。这显然是一个等价关系。</li>
+  <li><strong>从关系到划分</strong>：如果我们知道每个人的国籍，我们可以定义：所有拥有中国国籍的人构成一个集合（等价类），所有拥有美国国籍的人构成另一个集合...这些集合就构成了对地球上所有人的一个划分。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一盒彩虹糖（集合 $S$）。</p>
+<ol>
+  <li><strong>划分视角</strong>：你把糖按照颜色分开，堆成几堆：一堆红色的，一堆黄色的，一堆绿色的...... 这就是<strong>划分</strong>。</li>
+  <li><strong>等价关系视角</strong>：你闭上眼睛，随机拿出两颗糖。你定义一个规则 $\sim$：“如果两颗糖颜色相同，它们就等价”。</li>
+</ol>
+<p>这个命题告诉你，你先按颜色分堆（<strong>划分</strong>），然后定义“在同一堆里就是等价”（<strong>等价关系</strong>），和你先定义“颜色相同就是等价”（<strong>等价关系</strong>），然后把等价的糖聚集在一起形成堆（<strong>划分</strong>），最终得到的结果是完全一样的。</p>
+    </div>
+</div><hr><h4>1.5 证明划分引理</h4><p id="original-5"><strong style="font-size: 1.3rem;">📜 [原文5]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>引理 2.7.6</strong> 给定集合 $S$ 上的一个<strong>等价关系</strong>， $S$ 的子集作为<strong>等价类</strong>构成 $S$ 的一个<strong>划分</strong>。</p>
+<p><strong>证明</strong>。这是一个重要的观点，所以我们将仔细检查。我们必须记住，符号 $C_{a}$ 代表以某种方式定义的子集。<strong>划分</strong>由子集组成，并且几个符号可能描述同一个子集。</p>
+<p><strong>自反公理</strong>告诉我们 $a$ 属于其<strong>等价类</strong>。因此<strong>类</strong> $C_{a}$ 是非空的，并且由于 $a$ 可以是任何元素，<strong>等价类</strong>的并集是整个集合 $S$。<strong>划分</strong>的剩下需要验证的性质是<strong>等价类</strong>是<strong>不相交</strong>的。为了证明这一点，我们证明：</p>
+<p><div class="math-block">$$
+\begin{equation*}
+\text { If } C_{a} \text { and } C_{b} \text { have an element in common, then } C_{a}=C_{b} \text {. } \tag{2.7.7}
+\end{equation*}
+$$</div></p>
+<p>由于我们可以互换 $a$ 和 $b$ 的角色，所以只要证明如果 $C_{a}$ 和 $C_{b}$ 有一个共同元素，比如 $d$，那么 $C_{b} \subset C_{a}$，即 $C_{b}$ 中的任何元素 $x$ 也都在 $C_{a}$ 中。如果 $x$ 在 $C_{b}$ 中，那么 $b \sim x$。由于 $d$ 既在 $C_{a}$ 中也在 $C_{b}$ 中，所以 $a \sim d$ 且 $b \sim d$，<strong>对称性</strong>告诉我们 $d \sim b$。因此我们有 $a \sim d, d \sim b$, 和 $b \sim x$。两次应用<strong>传递性</strong>表明 $a \sim x$，因此 $x$ 在 $C_{a}$ 中。 $\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个引理是衔接上一节“从等价关系到划分”的关键证明。它的任务是，证明我们通过<strong>等价关系</strong> $\sim$ 构造出来的那些<strong>等价类</strong> $C_a, C_b, \dots$ 确实构成了一个合格的<strong>划分</strong>。也就是说，我们要用<strong>等价关系</strong>的三公理（自反、对称、传递）来推出<strong>划分</strong>的三性质（非空、全覆盖、不重叠）。</p>
+<p><strong>证明步骤拆解</strong>：</p>
+<ol>
+  <li> <strong>证明等价类非空 (Nonempty)</strong>
+<ul>
+  <li>我们需要证明任何一个等价类 $C_a$ 都不是空集。</li>
+  <li>根据<strong>等价关系</strong>的<strong>自反性</strong>，对于任何元素 $a$，都有 $a \sim a$。</li>
+  <li>根据<strong>等价类</strong>的定义 $C_a = \{b \in S \mid a \sim b\}$，既然 $a \sim a$，那么 $a$ 本身就满足了进入 $C_a$ 的条件。</li>
+  <li>所以，元素 $a$ 必然属于它自己的等价类 $C_a$。</li>
+  <li>因此，每个等价类至少包含一个元素（就是它自己），所以所有等价类都是<strong>非空</strong>的。</li>
+</ul></li>
+  <li> <strong>证明等价类覆盖全集 (Union is S)</strong>
+<ul>
+  <li>我们需要证明所有等价类的并集就是原始集合 $S$。</li>
+  <li>对于 $S$ 中的任意一个元素 $x$，我们总可以考虑它的等价类 $C_x$。</li>
+  <li>正如上面刚证明的， $x$ 属于 $C_x$。</li>
+  <li>既然 $S$ 中的每一个元素 $x$ 都至少属于一个等价类（即 $C_x$），那么把所有等价类合起来，自然就覆盖了整个集合 $S$。</li>
+</ul></li>
+  <li> <strong>证明等价类不重叠 (Disjoint)</strong>
+<ul>
+  <li>这是证明中最关键、最巧妙的部分。我们需要证明，任意两个不同的等价类 $C_a$ 和 $C_b$ 是没有公共元素的。</li>
+  <li>直接证明“不重叠”有点困难，所以作者采用了一个更强的、等价的策略来证明，即证明 (2.7.7) 命题：<strong>只要两个等价类 $C_a$ 和 $C_b$ 有一丁点儿交集（哪怕只有一个共同元素），那么它们就必须是完全相同的两个集合。</strong></li>
+  <li>这个策略非常聪明。它意味着两个等价类之间的关系只有两种可能：要么是完全重合的（$C_a = C_b$），要么是完全分离的（$C_a \cap C_b = \emptyset$）。不存在“部分重叠”的情况。这就保证了如果我们只考虑那些不完全重合的等价类，它们之间必然是不相交的。</li>
+  <li><strong>证明 (2.7.7) 的过程</strong>：</li>
+  <li><strong>假设</strong>：$C_a$ 和 $C_b$ 有一个共同元素 $d$。这意味着 $d \in C_a$ 并且 $d \in C_b$。</li>
+  <li><strong>目标</strong>：证明 $C_a = C_b$。两个集合相等，需要证明 $C_a \subset C_b$ 并且 $C_b \subset C_a$。</li>
+  <li><strong>利用对称性</strong>：作者说，因为 $a$ 和 $b$ 的角色可以互换，所以我们只需要证明其中一个方向，比如 $C_b \subset C_a$ 即可。另一个方向的证明是完全一样的。</li>
+  <li><strong>证明 $C_b \subset C_a$</strong>：</li>
+  <li>我们要证明：对于任意一个属于 $C_b$ 的元素 $x$，它也必然属于 $C_a$。</li>
+  <li>好了，我们开始“关系链”的推导：</li>
+  <li>现在我们把这些关系串起来：我们有了三段关系链 $a \sim d$, $d \sim b$, 和 $b \sim x$。</li>
+  <li>第一次使用<strong>传递性</strong>：由 $a \sim d$ 和 $d \sim b$，我们可以得到 $a \sim b$。</li>
+  <li>第二次使用<strong>传递性</strong>：由刚刚得到的 $a \sim b$ 和已知的 $b \sim x$，我们可以最终得到 $a \sim x$。</li>
+  <li><strong>结论</strong>：我们推导出了 $a \sim x$。根据 $C_a$ 的定义 ($C_a = \{z \in S \mid a \sim z\}$)，$a \sim x$ 正好说明了元素 $x$ 属于等价类 $C_a$。</li>
+  <li>我们从“任意一个 $x \in C_b$” 出发，成功证明了 “$x \in C_a$”。这就完成了 $C_b \subset C_a$ 的证明。</li>
+  <li>由于对称性，同理可证 $C_a \subset C_b$。因此，$C_a = C_b$。</li>
+  <li><strong>最终结论</strong>：等价类的确满足了非空、全覆盖、不重叠三大性质，所以它们构成了一个对集合 $S$ 的<strong>划分</strong>。证明完毕。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>引理 2.7.6</strong>: Lemma，通常指为了证明一个更重要的定理（Theorem）或命题（Proposition）而预先证明的辅助性结论。</li>
+  <li><strong>公式 (2.7.7): If $C_{a}$ and $C_{b}$ have an element in common, then $C_{a}=C_{b}$</strong></li>
+  <li><strong>If ... then ...</strong>: 逻辑蕴含关系。</li>
+  <li><strong>$C_{a}$ and $C_{b}$ have an element in common</strong>: 意味着它们的交集非空，即 $C_a \cap C_b \neq \emptyset$。</li>
+  <li><strong>$C_{a}=C_{b}$</strong>: 两个集合是相等的，意味着它们包含完全相同的元素。</li>
+  <li><strong>整个句子的含义</strong>：两个等价类，要么完全没有交集，要么就完全是同一个集合。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li>让我们再次使用模3同余的例子来体验一下这个证明。$S = \{1, 2, 3, 4, 5, 6\}$。</li>
+  <li>我们计算了 $C_1 = \{1, 4\}$ 和 $C_4 = \{4, 1\}$。这两个等价类是同一个集合。</li>
+  <li>让我们看看 $C_1 = \{1, 4\}$ 和 $C_2 = \{2, 5\}$。它们有公共元素吗？没有。所以它们是<strong>不相交</strong>的。</li>
+  <li>现在，让我们来模拟证明过程。假设我们不知道 $C_1$ 和 $C_4$ 是同一个集合。我们只知道 $C_1 = \{x \mid 1 \sim x\}$ 和 $C_4 = \{x \mid 4 \sim x\}$。</li>
+  <li><strong>假设</strong>：我们发现 $C_1$ 和 $C_4$ 有一个共同元素。哦，它们确实有，就是 4 (或者 1)。让我们假设我们只发现了 1 是共同元素，即 $1 \in C_1$ 且 $1 \in C_4$。</li>
+  <li><strong>目标</strong>：证明 $C_1 = C_4$。我们来证明 $C_4 \subset C_1$。</li>
+  <li><strong>证明</strong>：取 $C_4$ 中任意一个元素 $x$。根据定义，这意味着 $4 \sim x$。</li>
+  <li>我们已知的关系链是：</li>
+  <li>$1 \in C_1 \implies 1 \sim 1$ (这个用不上)</li>
+  <li>$1 \in C_4 \implies 4 \sim 1$。由对称性，得到 $1 \sim 4$。</li>
+  <li>$x \in C_4 \implies 4 \sim x$。</li>
+  <li>我们把关系串起来：$1 \sim 4$ 和 $4 \sim x$。</li>
+  <li>根据<strong>传递性</strong>，我们得到 $1 \sim x$。</li>
+  <li>根据 $C_1$ 的定义， $1 \sim x$ 意味着 $x \in C_1$。</li>
+  <li>我们从 “任意 $x \in C_4$” 推出了 “$x \in C_1$”。所以 $C_4 \subset C_1$。</li>
+  <li>同理可证 $C_1 \subset C_4$。因此 $C_1=C_4$。</li>
+  <li>这与我们的计算结果 $C_1 = C_4 = \{1, 4\}$ 完全吻合。这个例子生动地展示了证明中抽象逻辑是如何运作的。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>对“不相交”的理解</strong>：证明“不相交”时，最容易犯的错误是思路不清晰。这个“if they have an element in common, then they are identical”的策略是关键，必须深刻理解。它把一个看似复杂的问题（检查无数对元素的归属）转化成了一个结构性的论断。</li>
+  <li><strong>等价类代表元</strong>：这个引理的一个重要推论是，一个等价类里的任何一个元素，都可以被选出来作为这个等价类的“代表”(representative)，用来命名这个类。$C_a$ 和 $C_b$ 相等，当且仅当 $a \sim b$。在上面的例子中，因为 $1 \sim 4$，所以 $C_1=C_4$。我们可以把这个集合叫做“1的等价类”，也可以叫做“4的等价类”，它们是同一个东西。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这个引理通过严谨的逻辑推导，证明了从一个<strong>等价关系</strong>出发，通过构造<strong>等价类</strong>，必然会得到一个符合所有要求的<strong>划分</strong>。证明的核心在于巧妙地利用了自反、对称、传递性，特别是通过证明“部分重叠则必然完全重合”来论证等价类之间的不相交性。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>该引理的存在是为了完成<strong>命题 2.7.4</strong> 的证明。它提供了从<strong>等价关系</strong>到<strong>划分</strong>这条路径的坚实逻辑基础，从而最终确立了这两个概念之间的等价性。这是一个在抽象代数中非常基础且重要的证明，其思想会在后续学习（如商群、商环、商空间）中反复出现。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>传染病模型</strong>：把等价关系 $\sim$ 想象成一种“传染病”。</li>
+  <li><strong>自反性</strong>：每个人自己都带病 ($a \sim a$)</li>
+  <li><strong>对称性</strong>：如果 $a$ 能传染给 $b$，那么 $b$ 也能传染给 $a$ ($a \sim b \implies b \sim a$)</li>
+  <li><strong>传递性</strong>：如果 $a$ 传染给 $b$，$b$ 传染给 $c$，那么 $a$ 也能传染给 $c$ ($a \sim b, b \sim c \implies a \sim c$)</li>
+  <li>一个<strong>等价类</strong> $C_a$ 就是从 $a$ 开始，所有能被他直接或间接传染到的人构成的群体。</li>
+  <li><strong>证明“不相交”</strong>：假设有两个群体 $C_a$ 和 $C_b$。如果它们有一个共同的成员 $d$，这意味着 $d$ 同时被 $a$ 的病株和 $b$ 的病株感染了。由于传递性，$a$ 能感染 $d$，$d$ 能感染 $b$ 的整个群体，所以 $a$ 的病株会传遍 $C_b$ 的所有人。反之，$b$ 的病株也会传遍 $C_a$ 的所有人。最终结果是，这两个群体会合并成一个大的、完全被同一种病株感染的群体，即 $C_a = C_b$。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象地面上洒满了铁屑（集合 $S$）。你有一个<strong>等价关系</strong>，就是“两块铁屑的距离小于1厘米”。</p>
+<ol>
+  <li><strong>自反性</strong>：每块铁屑和自己的距离是0，小于1厘米。</li>
+  <li><strong>对称性</strong>：如果A到B的距离小于1厘米，B到A的距离也一样。</li>
+  <li><strong>传递性</strong>：<strong>注意</strong>，这个例子里的“距离小于1厘米”<strong>不满足</strong>传递性！A到B距离0.6，B到C距离0.6，A到C的距离可能大于1。所以这不是一个好的等价关系例子。</li>
+</ol>
+<p>让我们换一个。地面上还是铁屑。你有一个强大的磁铁，你用一个<strong>等价关系</strong> $\sim$ 来定义：“两块铁屑能被同一条磁力线连接”。</p>
+<ol>
+  <li><strong>等价类</strong>就是被同一组磁力线连接在一起的一簇铁屑。</li>
+  <li><strong>引理的证明</strong>就在说：</li>
+  <li><strong>非空</strong>：每块铁屑自己肯定在一个簇里。</li>
+  <li><strong>全覆盖</strong>：所有铁屑都会属于某个簇。</li>
+  <li><strong>不相交</strong>：如果两个簇 $C_a$ 和 $C_b$ 有一块共同的铁屑 $d$，这意味着 $a$ 的磁力线连接到了 $d$，$b$ 的磁力线也连接到了 $d$。那么通过 $d$ 这个“中转站”，$a$ 的整个磁力线网络和 $b$ 的整个磁力线网络就连接成了一个更大的网络。所以这两个簇实际上是同一个大簇。</li>
+</ol>
+    </div>
+</div><hr><h4>1.6 再论对称群S3的划分</h4><p id="original-6"><strong style="font-size: 1.3rem;">📜 [原文6]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>例如，<strong>群</strong>上由 $a \sim b$ 定义的<strong>关系</strong>（如果 $a$ 和 $b$ 具有相同的<strong>阶</strong>）是一个<strong>等价关系</strong>。相应的<strong>划分</strong>在（2.7.2）中为<strong>对称群</strong> $S_{3}$ 所示。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话是前文理论的一个具体应用和回顾。它提出了一个新的<strong>等价关系</strong>的例子，并将其与之前在 (2.7.2) 中提到的 $S_3$ 的划分联系起来。</p>
+<ol>
+  <li> <strong>定义一个新的等价关系</strong>：
+<ul>
+  <li>集合 $S$ 是一个群 $G$。</li>
+  <li>关系 $\sim$ 定义为：$a \sim b$ 当且仅当元素 $a$ 的<strong>阶</strong> (order) 与元素 $b$ 的<strong>阶</strong>相同。</li>
+  <li>回忆一下，一个群元素 $a$ 的<strong>阶</strong>是使得 $a^n = e$（单位元）的最小正整数 $n$。</li>
+</ul></li>
+  <li> <strong>验证这是一个等价关系</strong>：
+<ul>
+  <li>我们来检查三公理：</li>
+  <li><strong>自反性</strong> ($a \sim a$)：$a$ 的阶当然等于 $a$ 的阶。满足。</li>
+  <li><strong>对称性</strong> (若 $a \sim b$, 则 $b \sim a$)：如果 $a \sim b$，说明 $a$ 和 $b$ 的阶相同。那么 $b$ 和 $a$ 的阶也必然相同。满足。</li>
+  <li><strong>传递性</strong> (若 $a \sim b$ 且 $b \sim c$, 则 $a \sim c$)：如果 $a$ 的阶等于 $b$ 的阶， $b$ 的阶又等于 $c$ 的阶，那么根据数字的传递性，$a$ 的阶必然等于 $c$ 的阶。满足。</li>
+  <li>所以，“具有相同的阶”确实是群上的一个<strong>等价关系</strong>。</li>
+</ul></li>
+  <li> <strong>找出对应的划分</strong>：
+<ul>
+  <li>根据我们刚刚学到的理论，这个<strong>等价关系</strong>会把群 $G$ <strong>划分</strong>成若干个<strong>等价类</strong>。每个等价类由所有具有相同阶的元素组成。</li>
+  <li>现在，让我们把这个理论应用到<strong>对称群</strong> $S_3$ 上。</li>
+  <li>$S_3$ 的6个元素是 $\{e, (12), (13), (23), (123), (132)\}$。（这里用置换的轮换表示法，比 $x, y$ 更直观）</li>
+  <li>我们来计算每个元素的<strong>阶</strong>：</li>
+  <li><strong>阶为1</strong>：$e^1 = e$。只有单位元 $e$ 的阶是1。</li>
+  <li><strong>阶为2</strong>：需要 $a^2=e$。</li>
+  <li>$(12)^2 = (12)(12) = e$。阶是2。</li>
+  <li>$(13)^2 = (13)(13) = e$。阶是2。</li>
+  <li>$(23)^2 = (23)(23) = e$。阶是2。</li>
+  <li><strong>阶为3</strong>：需要 $a^3=e$。</li>
+  <li>$(123)^2 = (132)$, $(123)^3 = (123)(132) = e$。阶是3。</li>
+  <li>$(132)^2 = (123)$, $(132)^3 = (132)(123) = e$。阶是3。</li>
+  <li><strong>形成等价类</strong>：</li>
+  <li>等阶1的元素集合：$\{e\}$</li>
+  <li>等阶2的元素集合：$\{(12), (13), (23)\}$</li>
+  <li>等阶3的元素集合：$\{(123), (132)\}$</li>
+  <li><strong>得到划分</strong>：这个<strong>等价关系</strong>导出（induce）的<strong>划分</strong>是:</li>
+  <li><strong>与 (2.7.2) 对比</strong>：回忆一下 (2.7.2) 给出的划分是 $\{\{1\},\left\{y, x y, x^{2} y\right\},\left\{x, x^{2}\right\}\}$。通过对应关系 $1 \leftrightarrow e$, $y \leftrightarrow (12)$ (或其他翻转), $x \leftrightarrow (123)$ 等，我们发现这正是同一个划分！</li>
+  <li>这就完美地印证了理论：一个<strong>等价关系</strong>（按阶相等）导出了一个<strong>划分</strong>（(2.7.2) 所示的集合）。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>另一个群的例子：$\mathbb{Z}_4$</strong></li>
+  <li>集合 $G = \mathbb{Z}_4 = \{0, 1, 2, 3\}$，运算是模4加法。单位元是0。</li>
+  <li><strong>计算阶</strong>：</li>
+  <li>元素0的阶是1 (因为它是单位元)。</li>
+  <li>元素1的阶：$1+1=2, 1+1+1=3, 1+1+1+1=4 \equiv 0 \pmod 4$。阶是4。</li>
+  <li>元素2的阶：$2+2=4 \equiv 0 \pmod 4$。阶是2。</li>
+  <li>元素3的阶：$3+3=6 \equiv 2, 3+3+3=9 \equiv 1, 3+3+3+3=12 \equiv 0 \pmod 4$。阶是4。</li>
+  <li><strong>等价类</strong>（按阶划分）：</li>
+  <li>阶为1的：$\{0\}$</li>
+  <li>阶为2的：$\{2\}$</li>
+  <li>阶为4的：$\{1, 3\}$</li>
+  <li><strong>对应的划分</strong>是 $\{\{0\}, \{2\}, \{1, 3\}\}$。这是一个对 $\mathbb{Z}_4$ 的有效划分。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>共轭类 vs. 按阶划分</strong>：在群上，我们已经遇到了两种不同的<strong>等价关系</strong>：<strong>共轭</strong>和<strong>同阶</strong>。它们通常会导出<strong>不同</strong>的划分。</li>
+  <li>对于 $S_3$：</li>
+  <li><strong>按阶划分</strong>是: $\{\{e\}, \{(12), (13), (23)\}, \{(123), (132)\}\}$。</li>
+  <li><strong>按共轭划分</strong>（共轭类）：</li>
+  <li>$e$ 的共轭类是 $\{e\}$。</li>
+  <li>$(12)$ 的共轭类是 $\{(12), (13), (23)\}$。（因为任何两个对换在 $S_n$ 中是共轭的）</li>
+  <li>$(123)$ 的共轭类是 $\{(123), (132)\}$。（因为任何两个长度相同的不交轮换在 $S_n$ 中是共轭的）</li>
+  <li><strong>巧合！</strong> 在 $S_3$ 这个特殊的例子里，<strong>共轭类</strong>和<strong>按阶划分</strong>的结果是完全一样的！这是一个非常重要的观察，但这在一般群中并不成立。例如，在四元数群 $Q_8 = \{\pm 1, \pm i, \pm j, \pm k\}$ 中，元素 $i, j, k, -i, -j, -k$ 的阶都是4，但它们并不都在同一个共轭类里。比如 $i$ 的共轭类是 $\{i, -i\}$。</li>
+  <li>所以，必须分清楚我们正在使用的是哪一种<strong>等价关系</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段通过“元素同阶”这个具体的<strong>等价关系</strong>，再次演练了从<strong>等价关系</strong>到<strong>划分</strong>的全过程，并将其与之前出现过的一个例子联系起来，加深了读者对核心理论的理解。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是提供一个清晰、具体的代数例子，将前面几段抽象的理论（等价关系、等价类、划分）串联起来，让读者看到这些概念是如何在实际的群论背景中运作的，从而巩固所学知识。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>按“任期”划分</strong>：想象一个公司里所有的前任和现任CEO（群 $G$）。每个CEO都有一个“任期长度”（元素的阶）。我们可以定义一个<strong>等价关系</strong>：“任期长度相同的CEO是等价的”。根据这个关系，我们可以把所有CEO分成几组：任期1年的一组，任期2年的一组，...。这些组就构成了对所有CEO的一个<strong>划分</strong>。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>回到彩虹糖的例子。之前我们是按“颜色”来划分。现在我们换个标准。假设这些糖有不同的“硬度等级”（元素的阶）。我们定义一个新的<strong>等价关系</strong>：“硬度等级相同的糖是等价的”。于是，我们就可以把糖重新分成几堆：硬度1级的一堆，硬度2级的一堆...。这给我们提供了另一种<strong>划分</strong>糖果的方式。$S_3$ 的例子告诉我们，有时“按颜色分”和“按硬度分”可能会得到完全一样的分堆结果。</p>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-2">
+    <h2><span class="section-number">2</span>商集与代表元</h2>
+    <h4>2.1 构造商集</h4><p id="original-7"><strong style="font-size: 1.3rem;">📜 [原文7]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>如果给定集合 $S$ 的一个<strong>划分</strong>，我们可以构造一个新集合 $\bar{S}$，其元素是这些子集。我们设想将这些子集堆放到不同的“堆”中，并将这些“堆”视为我们新集合 $\bar{S}$ 的元素。为了区分子集及其所代表的集合 $\bar{S}$ 的元素（即“堆”），似乎最好有一个符号。如果 $U$ 是一个子集，我们将用 $[U]$ 表示其在 $\bar{S}$ 中对应的元素。因此，如果 $S$ 是整数集，并且 <strong>Even</strong> 和 <strong>Odd</strong> 分别表示<strong>偶数</strong>和<strong>奇数</strong>的子集，那么 $\bar{S}$ 包含两个元素 <strong style="font-size: 1.2rem;">[Even]</strong> 和 <strong style="font-size: 1.2rem;">[Odd]</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话介绍了如何基于一个<strong>划分</strong>来正式地构建一个<strong>新集合</strong>。这个新集合在数学上被称为<strong>商集</strong> (Quotient Set)。</p>
+<ol>
+  <li> <strong>核心思想</strong>：我们已经把原始集合 $S$ 切分成了若干个子集（划分）。现在，我们想“升级”我们的视角。我们不再把这些子集看作是 $S$ 的一部分，而是把每一个子集本身，作为一个<strong>独立的、全新的元素</strong>来看待。</li>
+  <li> <strong>“堆”的比喻</strong>：作者用了一个非常形象的比喻——“堆”（piles）。
+<ul>
+  <li>原始集合 $S$ 是一地散沙。</li>
+  <li><strong>划分</strong>就是把这些沙子按照某种规则（比如颜色）堆成几堆。一堆是红沙，一堆是黄沙...</li>
+  <li><strong>商集</strong> $\bar{S}$ 就是由这些“堆”本身组成的集合。商集里的元素不再是“一粒沙子”，而是一整个“沙堆”。</li>
+</ul></li>
+  <li> <strong>新符号的引入</strong>：为了在数学上严格区分“作为子集的沙堆”和“作为新元素的沙堆”，我们需要引入新的记号。
+<ul>
+  <li>如果 $U$ 是 $S$ 的一个子集（划分中的一块），比如 $U = \text{偶数集}$。</li>
+  <li>那么 $[U]$ 就代表在商集 $\bar{S}$ 中的那个新元素，即 [偶数集] 这个“东西”。</li>
+  <li>这里的方括号 <strong>[ ]</strong> 扮演了一个“封装”或者“提升”的角色，它把一个集合“变成”了一个元素。</li>
+</ul></li>
+  <li> <strong>例子</strong>：
+<ul>
+  <li>$S = \mathbb{Z}$ (整数集)</li>
+  <li>划分是 $\{\text{Even}, \text{Odd}\}$，其中 Even 是偶数集，Odd 是奇数集。</li>
+  <li>那么商集 $\bar{S}$ 就是由这两个“堆”组成的集合。</li>
+  <li>$\bar{S} = \{[\text{Even}], [\text{Odd}]\}$。</li>
+  <li>这个新集合 $\bar{S}$ 只有两个元素。我们成功地从一个无限集 $\mathbb{Z}$ 构建出了一个有限集 $\bar{S}$。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1：按模3划分</strong></li>
+  <li>$S = \{0, 1, 2, 3, 4, 5\}$</li>
+  <li>划分 $\Pi = \{S_0, S_1, S_2\}$，其中 $S_0=\{0, 3\}$ (除3余0)，$S_1=\{1, 4\}$ (除3余1)，$S_2=\{2, 5\}$ (除3余2)。</li>
+  <li>商集 $\bar{S}$ 就是由这三个子集“封装”而来的新元素的集合。</li>
+  <li>$\bar{S} = \{[S_0], [S_1], [S_2]\}$。</li>
+  <li>或者写成 $\bar{S} = \{[\{0, 3\}], [\{\{1, 4\}], [\{2, 5\}]\}$。</li>
+  <li>这个商集 $\bar{S}$ 包含3个元素。</li>
+</ul>
+<ul>
+  <li><strong>示例2：按首字母划分</strong></li>
+  <li>$S = \{\text{Apple}, \text{Ant}, \text{Ball}, \text{Bat}, \text{Cat}\}$。</li>
+  <li>划分 $\Pi = \{\{\text{Apple}, \text{Ant}\}, \{\text{Ball}, \text{Bat}\}, \{\text{Cat}\}\}$。</li>
+  <li>商集 $\bar{S} = \{[\{\text{Apple}, \text{Ant}\}], [\{\text{Ball}, \text{Bat}\}], [\{\text{Cat}\}]\}$。</li>
+  <li>这个商集 $\bar{S}$ 也包含3个元素，我们可以通俗地称它们为“A类”、“B类”、“C类”。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>元素的类型</strong>：必须时刻清醒地认识到，商集 $\bar{S}$ 的元素和原集合 $S$ 的元素在“类型”上是不同的。$S$ 的元素是“个体”，而 $\bar{S}$ 的元素是“个体的集合”。就好像 $S$ 的元素是“士兵”，$\bar{S}$ 的元素是“军队”。</li>
+  <li><strong>符号的精确性</strong>：$[U]$ 和 $U$ 是不同的。$U$ 是 $S$ 的一个子集，你可以问“元素 $a$ 是否在 $U$ 中？”。而 $[U]$ 是 $\bar{S}$ 的一个元素，你只能问“商集 $\bar{S}$ 是否包含 $[U]$ 这个元素？”。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段介绍了从一个给定的<strong>划分</strong>出发，如何构建一个名为<strong>商集</strong>的新集合。商集的核心思想是“升维”，将原集合的子集（划分中的块）视为新集合的元素。引入方括号 $[U]$ 的记法是为了在形式上区分作为集合的 $U$ 和作为元素的 $[U]$。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是将<strong>划分</strong>这个操作的结果——一堆子集——正式地确立为一个新的数学对象（商集）。这是利用等价关系简化问题、构造新代数结构（如商群）的第一步。我们先得有这个新集合，才能讨论这个新集合上的运算和性质。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>文件夹模型</strong>：你的电脑硬盘（集合 $S$）里存着成千上万个文件（元素）。你将这些文件按照项目整理到不同的文件夹里（划分），比如“项目A”、“项目B”、“项目C”。</li>
+  <li>每个文件夹（比如“项目A”）本身是一个文件的集合。</li>
+  <li>现在你打开“我的电脑”，你看到的不是单个文件，而是一系列文件夹图标：“项目A”图标，“项目B”图标...</li>
+  <li>这个只包含文件夹图标的视图，就是<strong>商集</strong> $\bar{S}$。</li>
+  <li>“项目A”文件夹里的所有内容，对应子集 $U$。</li>
+  <li>“项目A”的那个文件夹图标，对应商集元素 $[U]$。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你面前有一大盒乐高积木，五颜六色，形状各异（集合 $S$）。</p>
+<ol>
+  <li> 你把相同颜色的积木放在一起，形成了很多堆（划分）。一堆红色，一堆蓝色...</li>
+  <li> 现在，你找来很多透明的小盒子。你把整堆红色积木放进一个盒子，把整堆蓝色积木放进另一个盒子...</li>
+  <li> 最后，你把这些装有积木的盒子摆成一排。</li>
+  <li> 这一排“盒子”，就是你的<strong>商集</strong> $\bar{S}$。每一个“盒子”就是商集里的一个元素。你不再关心盒子里具体的积木长什么样，你只把“红色的盒子”、“蓝色的盒子”当作新的操作单位。</li>
+</ol>
+    </div>
+</div><hr><h4>2.2 横线表示法与代表元</h4><p id="original-8"><strong style="font-size: 1.3rem;">📜 [原文8]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>我们将更普遍地使用这种表示法。当我们将 $S$ 的子集 $U$ 视为 $S$ 的子集集合中的一个元素时，我们将其表示为 $[U]$。</p>
+<p>当给定 $S$ 上的一个<strong>等价关系</strong>时，<strong>等价类</strong>形成一个<strong>划分</strong>，我们得到一个新集合 $\bar{S}$，其元素是<strong>等价类</strong> $\left[C_{a}\right]$。我们可以用另一种方式来思考这个新集合的元素，即通过改变我们对元素之间<strong>相等</strong>的含义所得到的集合。如果 $a$ 和 $b$ 都在 $S$ 中，我们解释 $a \sim b$ 意味着 $a$ 和 $b$ 在 $\bar{S}$ 中变得<strong>相等</strong>，因为 $C_{a}=C_{b}$。用这种方式来看，集合 $S$ 和 $\bar{S}$ 之间的区别在于，在 $\bar{S}$ 中有更多的元素被声明为“相等”，即<strong>等价</strong>。在我看来，我们在学校里经常这样处理<strong>全等三角形</strong>。</p>
+<p>对于任何<strong>等价关系</strong>，都存在一个自然的<strong>满射</strong>映射</p>
+<p><div class="math-block">$$
+\begin{equation*}
+\pi: S \rightarrow \bar{S} \tag{2.7.8}
+\end{equation*}
+$$</div></p>
+<p>它将 $S$ 的元素 $a$ 映射到它的<strong>等价类</strong>：$\pi(a)=\left[C_{a}\right]$。当我们将 $\bar{S}$ 视为通过改变<strong>相等</strong>概念从 $S$ 得到的集合时，将 $\bar{S}$ 的元素 $\left[C_{a}\right]$ 记为符号 $\bar{a}$ 将会很方便。那么映射 $\pi$ 变为</p>
+<p><div class="math-block">$$
+\pi(a)=\bar{a}
+$$</div></p>
+<p>我们可以在 $\bar{S}$ 中使用用于 $S$ 的元素的符号，但用横线标记它们，以提醒我们新的规则：</p>
+<p><div class="math-block">$$
+\begin{equation*}
+\text { If } a \text { and } b \text { are in } S \text {, then } \bar{a}=\bar{b} \text { means } a \sim b \text {. } \tag{2.7.9}
+\end{equation*}
+$$</div></p>
+<p>这种横线表示法的一个缺点是许多符号代表 $\bar{S}$ 的同一个元素。有时可以通过在每个<strong>等价类</strong>中选择一个特定的元素，即<strong>代表元素</strong>来克服这个缺点。例如，<strong>偶数</strong>和<strong>奇数</strong>通常用 $\overline{0}$ 和 $\overline{1}$ 来表示：</p>
+<p><div class="math-block">$$
+\begin{equation*}
+\{[\text { Even }],[\text { Odd }]\}=\{\overline{0}, \overline{1}\} . \tag{2.7.10}
+\end{equation*}
+$$</div></p>
+<p>尽管“堆”的图示可能更容易理解，但第二种看待 $\bar{S}$ 的方式通常更好，因为横线表示法在代数操作上更容易处理。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话在前文“商集”的基础上，引入了一种更常用、更便捷的记号——<strong>横线表示法</strong> (bar notation)，并解释了其背后的哲学思想。</p>
+<ol>
+  <li> <strong>回顾与衔接</strong>：我们已经知道，一个<strong>等价关系</strong> $\sim$ 会导出一个<strong>划分</strong>，这个划分由所有的<strong>等价类</strong> $C_a, C_b, \dots$ 组成。基于这个划分，我们又可以构建一个<strong>商集</strong> $\bar{S}$，其元素是 $[C_a], [C_b], \dots$。</li>
+  <li> <strong>一种新的哲学观点</strong>：作者提出，与其把 $\bar{S}$ 看作是一个由“集合的集合”构成的全新世界，不如把它看作是“对原世界 $S$ 中的相等规则进行了修改”。
+<ul>
+  <li>在原世界 $S$ 中，只有 $a=a$ 这种严格的相等。</li>
+  <li>在新世界 $\bar{S}$ 中，我们把“等价” ($a \sim b$) 直接“升级”为“相等”。也就是说，只要 $a$ 和 $b$ 满足等价关系，我们就认为它们在新世界里是同一个东西。</li>
+  <li>为什么这个观点是合理的？因为如果 $a \sim b$，我们之前证明了它们的等价类是完全相同的，即 $C_a = C_b$。既然它们对应的“堆”是同一个堆，那么在只关心“堆”的新世界里，它们理应被看作是相等的。</li>
+  <li>例子：<strong>全等三角形</strong>。在几何课上，我们虽然画了两个位置不同但全等的三角形，但我们讨论它们的性质时（比如面积、周长），是把它们当作同一个“边长为3,4,5的直角三角形”来看待的。我们模糊了它们在位置上的区别，把“全等”这个<strong>等价关系</strong>，当作了“几何相等”。</li>
+</ul></li>
+  <li> <strong>自然映射 (Natural Map) 或 典范映射 (Canonical Map)</strong>：
+<ul>
+  <li>有一个非常自然的函数 $\pi$ (pi)，可以把旧世界 $S$ 的元素映射到新世界 $\bar{S}$。</li>
+  <li>这个映射的规则是：对于 $S$ 中的任何一个元素 $a$，它在 $\bar{S}$ 中的对应物就是它所属的那个等价类（或“堆”）。</li>
+  <li>形式化地写，就是 $\pi(a) = [C_a]$。</li>
+  <li>这个映射一定是<strong>满射</strong> (surjection)，因为新世界 $\bar{S}$ 中的每一个元素（每一个“堆”）都至少是由旧世界里的一个元素（堆里的沙子）生成的，所以 $\bar{S}$ 中的每个元素都有“原像”。</li>
+</ul></li>
+  <li> <strong>引入横线表示法 ($\bar{a}$)</strong>：
+<ul>
+  <li>写 $[C_a]$ 这样的符号太笨重了。我们想找一个更简洁的记号来表示商集中的元素。</li>
+  <li><strong>新记号</strong>：我们用 $\bar{a}$ 来代替 $[C_a]$。这里的 $a$ 是原集合 $S$ 中的一个元素，我们称之为这个等价类的<strong>代表元</strong> (representative)。</li>
+  <li>使用这个新记号后，自然映射就变得非常简洁：$\pi(a) = \bar{a}$。它直观地表示“把 $a$ 变成它在商集里的版本”。</li>
+  <li><strong>新规则的核心</strong>：这个记号的关键在于它改变了“等号”的含义。在新世界里，两个带横线的元素相等 ($\bar{a} = \bar{b}$) 的充要条件是，它们在旧世界里的代表元是等价的 ($a \sim b$)。这就是公式 (2.7.9) 的深刻含义。</li>
+</ul></li>
+  <li> <strong>横线表示法的缺点与代表元的选择</strong>：
+<ul>
+  <li><strong>缺点</strong>：一个等价类（一个“堆”）里通常有很多元素。这意味着同一个商集元素，可以有很多种不同的写法。比如在模3同余中，$C_1 = \{1, 4, 7, \dots\}$。那么 $\bar{1}, \bar{4}, \bar{7}$ 实际上都是同一个东西，即 $\bar{1} = \bar{4} = \bar{7}$。这可能会引起混淆。</li>
+  <li><strong>解决方法</strong>：为了规范，我们常常在每个等价类中挑选一个“最标准”、“最简单”的元素作为<strong>代表元</strong>。</li>
+  <li><strong>例子 (2.7.10)</strong>：对于整数的奇偶划分，商集是 $\{[\text{Even}], [\text{Odd}]\}$。</li>
+  <li>偶数集 Even = $\{\dots, -2, 0, 2, \dots\}$。我们可以选 0 作为它的代表元。于是 $[\text{Even}]$ 就可以记作 $\bar{0}$。</li>
+  <li>奇数集 Odd = $\{\dots, -1, 1, 3, \dots\}$。我们可以选 1 作为它的代表元。于是 $[\text{Odd}]$ 就可以记作 $\bar{1}$。</li>
+  <li>这样，商集 $\bar{S}$ 就可以漂亮地写成 $\{\bar{0}, \bar{1}\}$。这正是我们在离散数学中熟悉的模2算术的集合 $\mathbb{Z}_2$。</li>
+</ul></li>
+  <li> <strong>两种视角的比较</strong>：
+<ul>
+  <li>“堆”的图示（$[U]$）在初学时更容易理解，因为它在物理上区分了不同层次的对象。</li>
+  <li>“横线”表示法（$\bar{a}$）在进行代数运算时（比如定义商群的乘法 $\bar{a} \cdot \bar{b} = \overline{ab}$）远比前者方便。所以，一旦理解了概念，后者是更专业、更强大的工具。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>公式 (2.7.8): $\pi: S \rightarrow \bar{S}$</strong></li>
+  <li>$\pi$: 希腊字母pi，常用来表示一种特殊的映射，即<strong>投影</strong> (projection) 或<strong>典范映射</strong>。</li>
+  <li>$: S \rightarrow \bar{S}$: 表示 $\pi$ 是一个从集合 $S$（定义域）到集合 $\bar{S}$（到达域）的函数。</li>
+  <li><strong>公式: $\pi(a)=\left[C_{a}\right]$ and $\pi(a)=\bar{a}$</strong></li>
+  <li>这两个式子定义了映射 $\pi$ 的具体规则，后者是前者在使用横线表示法后的简化形式。它说明了 $a$ 被映射到它所在的那个等价类。</li>
+  <li><strong>公式 (2.7.9): If $a$ and $b$ are in $S$, then $\bar{a}=\bar{b}$ means $a \sim b$</strong></li>
+  <li>这个公式是横线表示法的“使用说明书”。它建立起了新世界中的“相等”和旧世界中的“等价”之间的桥梁。</li>
+  <li><strong>means</strong>: 意思是“当且仅当”，是一个逻辑等价关系。</li>
+  <li><strong>公式 (2.7.10): $\{[\text { Even }],[\text { Odd }]\}=\{\overline{0}, \overline{1}\}$</strong></li>
+  <li>这个等式展示了两种表示法之间的转换。</li>
+  <li>左边是“堆”表示法，商集是两个“集合元素”的集合。</li>
+  <li>右边是“横线”表示法，通过选取0和1作为代表元，商集被表示为两个“带横线数字”的集合。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>模3同余，再访</strong></li>
+  <li>$S = \mathbb{Z}$，关系是模3同余。</li>
+  <li>等价类有3个：</li>
+  <li>$C_0 = \{\dots, -3, 0, 3, 6, \dots\}$ (除3余0的数)</li>
+  <li>$C_1 = \{\dots, -2, 1, 4, 7, \dots\}$ (除3余1的数)</li>
+  <li>$C_2 = \{\dots, -1, 2, 5, 8, \dots\}$ (除3余2的数)</li>
+  <li>商集 $\bar{S} = \{[C_0], [C_1], [C_2]\}$。</li>
+  <li><strong>使用横线表示法</strong>：</li>
+  <li>我们可以选择0, 1, 2作为这三个等价类的<strong>代表元</strong>。</li>
+  <li>于是 $[C_0]$ 记作 $\bar{0}$，$[C_1]$ 记作 $\bar{1}$，$[C_2]$ 记作 $\bar{2}$。</li>
+  <li>商集就可以写成 $\bar{S} = \{\bar{0}, \bar{1}, \bar{2}\}$，这正是模3算术中的集合 $\mathbb{Z}_3$。</li>
+  <li><strong>横线表示法的缺点体现</strong>：</li>
+  <li>$4$ 和 $1$ 在同一个等价类里，所以 $1 \sim 4$。</li>
+  <li>根据 (2.7.9) 的规则，这意味着 $\bar{1} = \bar{4}$。</li>
+  <li>同样，$-1$ 和 $2$ 在同一个等价类里，所以 $-1 \sim 2$。</li>
+  <li>这意味着 $\bar{-1} = \bar{2}$。</li>
+  <li>在 $\mathbb{Z}_3$ 中，我们确实认为 $\bar{4}$ 就是 $\bar{1}$，$\bar{-1}$ 就是 $\bar{2}$。这说明横线表示法很好地捕捉了模运算的本质。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>横线不能随便加</strong>：$\bar{a}$ 是一个有特定上下文的符号，它代表的是一个<strong>集合</strong>（即等价类 $C_a$）。不能把它看作是对数字 $a$ 的某种运算。它是一个<strong>记号</strong>。</li>
+  <li><strong>代表元的任意性</strong>：选择哪个元素作为代表元，原则上是任意的，只要它属于那个等价类就行。但通常我们会选择最简单、最规范的一个（比如模运算中选择最小的非负余数）。</li>
+  <li><strong>良定义 (Well-defined) 问题</strong>：当我们想在商集上定义运算时，比如定义 $\bar{a} + \bar{b} = \overline{a+b}$，就必须检查这个定义是否“<strong>良定义</strong>”的。也就是说，如果我换一个代表元，比如用 $\bar{a'}$ 代替 $\bar{a}$ (其中 $a \sim a'$)，用 $\bar{b'}$ 代替 $\bar{b}$ (其中 $b \sim b'$)，计算结果 $\overline{a'+b'}$ 是否和原来的 $\overline{a+b}$ 相等？如果相等，定义就是良定义的；如果不等，这个定义就是无效的。这是使用横线表示法时必须时刻警惕的核心问题。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段引入了表示商集元素的<strong>横线表示法</strong> $\bar{a}$，并将其阐释为对“相等”概念的扩展。这种表示法比 $[C_a]$ 更简洁，便于代数操作，但其代价是同一个商集元素有多种写法。通过选取<strong>代表元</strong>可以规范化表示。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是从繁琐的 $[C_a]$ 表示法过渡到灵活简洁的 $\bar{a}$ 表示法，为后续在商集上定义代数结构（如商群、商环）铺平道路。它强调了 $\bar{a}=\bar{b} \iff a \sim b$ 这一核心转换规则，是整个商集理论的精髓所在。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>家庭姓氏模型</strong>：</li>
+  <li>原始集合 $S$ 是全村的人。</li>
+  <li>等价关系 $\sim$ 是“同姓”。等价类就是“张家”、“李家”...</li>
+  <li>商集 $\bar{S}$ 就是所有“家族”的集合。</li>
+  <li>$[C_{\text{张三}}]$ 就代表“张家”这个家族，这很啰嗦。</li>
+  <li>横线表示法 $\overline{\text{张三}}$ 也代表“张家”这个家族。</li>
+  <li>$\overline{\text{张三}} = \overline{\text{张伟}}$，因为 张三 $\sim$ 张伟 (他们都姓张)。</li>
+  <li><strong>代表元</strong>：我们通常不会用“张三家”或“张伟家”来称呼，而是直接用姓氏“张家”来称呼。这里的“张”这个姓氏，就扮演了<strong>代表元</strong>的角色。它不是一个人，而是一个符号，代表了整个家族。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象联合国大会（商集 $\bar{S}$）。</p>
+<ol>
+  <li>每个国家（等价类）派一名代表（代表元）坐在席位上。</li>
+  <li>席位上挂的牌子是国家名字，比如“China”, “USA”（商集元素）。</li>
+  <li>坐在“China”席位后的可以是代表A，也可以是代表B（不同的代表元）。</li>
+  <li>无论谁坐在那里，他们在投票时都代表“China”这一个投票单位（同一个商集元素）。</li>
+  <li>横线表示法 $\overline{\text{代表A}}$ 就相当于说“代表A所属的那个国家”。于是我们有 $\overline{\text{代表A}} = \overline{\text{代表B}} = \text{China}$。</li>
+  <li>直接用“China”这个名字，比用“<strong style="font-size: 1.2rem;">[所有中国公民的集合]</strong>”或“<strong style="font-size: 1.2rem;">[由中国代表A所属的那个国家]</strong>”要方便得多。</li>
+</ol>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-3">
+    <h2><span class="section-number">3</span>由映射定义的等价关系</h2>
+    <h4>3.1 映射、逆像与纤维</h4><p id="original-9"><strong style="font-size: 1.3rem;">📜 [原文9]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>映射定义的等价关系</h3><p>任何从集合 $S$ 到 $T$ 的<strong>映射</strong> $f: S \rightarrow T$ 都会在其<strong>定义域</strong> $S$ 上给我们一个<strong>等价关系</strong>。它由规则 $a \sim b$ 定义，如果 $f(a)=f(b)$。</p><p>- $T$ 中元素 $t$ 的<strong>逆像</strong>是 $S$ 的子集，由所有满足 $f(s)=t$ 的元素 $s$ 组成。它符号化地表示为</p><p><div class="math-block">$$
+\begin{equation*}
+f^{-1}(t)=\{s \in S \mid f(s)=t\} . \tag{2.7.11}
+\end{equation*}
+$$</div></p><p>这是符号表示。请记住，除非 $f$ 是<strong>双射</strong>的，否则 $f^{-1}$ 将不是一个<strong>映射</strong>。<strong>逆像</strong>也称为<strong>映射</strong> $f$ 的<strong>纤维</strong>，而非空的<strong>纤维</strong>就是上面定义的关系的<strong>等价类</strong>。</p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这一部分介绍了另一种非常普遍和自然的构造<strong>等价关系</strong>的方法：通过一个<strong>映射</strong> (或称函数)。</p>
+<ol>
+  <li> <strong>通过映射定义等价关系</strong>：
+<ul>
+  <li><strong>场景</strong>：我们有一个函数 $f$，它把集合 $S$ 中的元素映射到集合 $T$ 中。即 $f: S \rightarrow T$。</li>
+  <li><strong>定义规则</strong>：我们可以在 $S$ 上定义一个关系 $\sim$：对于 $S$ 中的任意两个元素 $a$ 和 $b$，如果它们经过映射 $f$ 后，“殊途同归”，到达了 $T$ 中的同一个目的地，那么我们就说它们是等价的。</li>
+  <li><strong>形式化定义</strong>：$a \sim b \iff f(a) = f(b)$。</li>
+  <li><strong>验证这是一个等价关系</strong>：</li>
+  <li><strong>自反性</strong> ($a \sim a$)：$f(a) = f(a)$ 吗？当然。所以 $a \sim a$ 成立。</li>
+  <li><strong>对称性</strong> (若 $a \sim b$, 则 $b \sim a$)：如果 $a \sim b$，则 $f(a) = f(b)$。那么 $f(b) = f(a)$ 也必然成立。所以 $b \sim a$ 成立。</li>
+  <li><strong>传递性</strong> (若 $a \sim b$ 且 $b \sim c$, 则 $a \sim c$)：如果 $a \sim b$ 且 $b \sim c$，则 $f(a) = f(b)$ 且 $f(b) = f(c)$。根据等号的传递性，必然有 $f(a) = f(c)$。所以 $a \sim c$ 成立。</li>
+  <li><strong>结论</strong>：这个规则确实定义了一个有效的<strong>等价关系</strong>。这是构造等价关系最常见的方法之一。</li>
+</ul></li>
+  <li> <strong>逆像 (Inverse Image) / 纤维 (Fiber)</strong>：
+<ul>
+  <li><strong>定义</strong>：给定映射 $f: S \rightarrow T$，对于目标集 $T$ 中的某一个元素 $t$，所有能够通过 $f$ 映射到 $t$ 的原像（$S$中的元素）所组成的集合，就叫做 $t$ 的<strong>逆像</strong>或<strong>纤维</strong>。</li>
+  <li><strong>符号</strong>：记作 $f^{-1}(t)$。</li>
+  <li><strong>公式 (2.7.11)</strong> 给出了它的集合定义：$f^{-1}(t) = \{s \in S \mid f(s)=t\}$。这个集合是 $S$ 的一个子集。</li>
+</ul></li>
+  <li> <strong>逆像与等价类的关系</strong>：
+<ul>
+  <li><strong>核心洞见</strong>：由映射 $f(a)=f(b)$ 定义的<strong>等价关系</strong>，其<strong>等价类</strong>恰好就是那些<strong>非空的逆像（纤维）</strong>。</li>
+  <li><strong>解释</strong>：</li>
+  <li>让我们来看看元素 $a$ 的等价类 $C_a$ 是什么。根据定义，$C_a = \{b \in S \mid a \sim b\} = \{b \in S \mid f(a)=f(b)\}$。</li>
+  <li>假设 $f(a)$ 的值是 $t_0 \in T$。那么 $C_a = \{b \in S \mid f(b)=t_0\}$。</li>
+  <li>我们再来看看 $t_0$ 的逆像是什么。根据定义，$f^{-1}(t_0) = \{s \in S \mid f(s)=t_0\}$。</li>
+  <li>两相对比，我们发现 $C_a = f^{-1}(t_0) = f^{-1}(f(a))$。</li>
+  <li>也就是说，$a$ 的等价类，就是 $a$ 的像 $f(a)$ 的逆像。它包含了所有和 $a$ “飞往同一目的地”的同伴。</li>
+  <li><strong>非空纤维</strong>：如果 $T$ 中的某个元素 $t$ 不是 $f$ 的像（即 $S$ 中没有任何元素映射到 $t$），那么它的逆像 $f^{-1}(t)$ 就是空集。而我们知道等价类必须是非空的，所以只有那些非空的纤维（逆像）才能成为等-价类。</li>
+</ul></li>
+  <li> <strong>$f^{-1}$ 符号的警告</strong>：
+<ul>
+  <li>作者特意提醒，不要把 $f^{-1}(t)$ 看作是一个名叫 $f^{-1}$ 的函数作用在 $t$ 上。</li>
+  <li>只有当 $f$ 是<strong>双射</strong> (bijective，即单射又满射) 时，它的<strong>逆映射</strong> $f^{-1}: T \rightarrow S$ 才存在。</li>
+  <li>在一般情况下，$f$ 不是双射，所以 $f^{-1}$ 不是一个函数。$f^{-1}(t)$ 仅仅是一个<strong>符号</strong>，代表一个<strong>集合</strong>。</li>
+  <li>比如，如果 $f(x)=x^2$，那么 $f^{-1}(4) = \{2, -2\}$，它返回的是一个集合，而不是一个单一的值，所以 $f^{-1}$ 不是函数。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>公式 (2.7.11): $f^{-1}(t)=\{s \in S \mid f(s)=t\}$</strong></li>
+  <li>$f^{-1}(t)$: 符号，代表元素 $t \in T$ 在映射 $f$ 下的<strong>逆像</strong>或<strong>纤维</strong>。这是一个 $S$ 的子集。</li>
+  <li>$\{s \in S \mid f(s)=t\}$: 集合的标准定义。它的成员是所有满足“$f$ 把它映射到 $t$” 的 $S$ 中的元素 $s$。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1：取整函数</strong></li>
+  <li>映射 $f: \mathbb{R} \rightarrow \mathbb{Z}$，规则是 $f(x) = \lfloor x \rfloor$ (向下取整)。</li>
+  <li><strong>等价关系</strong>：$x \sim y \iff \lfloor x \rfloor = \lfloor y \rfloor$。例如，$3.14 \sim 3.99$，因为它们的整数部分都是3。但是 $3.99 \not\sim 4.0$。</li>
+  <li><strong>纤维/逆像</strong>：我们看看目标集 $\mathbb{Z}$ 中几个元素的逆像。</li>
+  <li>$f^{-1}(3) = \{x \in \mathbb{R} \mid \lfloor x \rfloor = 3\} = [3, 4)$。这是一个左闭右开的区间。</li>
+  <li>$f^{-1}(0) = \{x \in \mathbb{R} \mid \lfloor x \rfloor = 0\} = [0, 1)$。</li>
+  <li><strong>等价类</strong>：</li>
+  <li>元素 $3.14$ 的等价类 $C_{3.14}$ 是什么？$C_{3.14} = \{x \in \mathbb{R} \mid f(x) = f(3.14)\} = \{x \in \mathbb{R} \mid \lfloor x \rfloor = 3\} = [3, 4)$。</li>
+  <li>正好就是 $f^{-1}(3)$。</li>
+  <li><strong>划分</strong>：这个映射将整个实数轴 $\mathbb{R}$ 划分成了无穷多个形如 $[n, n+1)$ 的区间，其中 $n$ 是整数。</li>
+</ul>
+<ul>
+  <li><strong>示例2：模运算函数</strong></li>
+  <li>映射 $f: \mathbb{Z} \rightarrow \{0, 1, 2\}$，规则是 $f(n) = n \pmod 3$ (n除以3的余数)。</li>
+  <li><strong>等价关系</strong>：$a \sim b \iff a \pmod 3 = b \pmod 3$。这正是我们之前讨论的模3同余关系。</li>
+  <li><strong>纤维/逆像</strong>：</li>
+  <li>$f^{-1}(0) = \{n \in \mathbb{Z} \mid n \pmod 3 = 0\} = \{\dots, -3, 0, 3, \dots\}$。</li>
+  <li>$f^{-1}(1) = \{n \in \mathbb{Z} \mid n \pmod 3 = 1\} = \{\dots, -2, 1, 4, \dots\}$。</li>
+  <li>$f^{-1}(2) = \{n \in \mathbb{Z} \mid n \pmod 3 = 2\} = \{\dots, -1, 2, 5, \dots\}$。</li>
+  <li><strong>等价类</strong>：这三个逆像，正好就是我们之前计算出的那三个等价类 $C_0, C_1, C_2$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>定义域和到达域</strong>：要搞清楚映射 $f$ 是从哪里到哪里的。等价关系是定义在<strong>定义域</strong> $S$ 上的，而纤维是与<strong>到达域</strong> $T$ 中的元素相关联的。</li>
+  <li><strong>满射与纤维</strong>：只有当映射 $f$ 是<strong>满射</strong>时，$T$ 中的每一个元素 $t$ 都有一个<strong>非空</strong>的纤维 $f^{-1}(t)$。如果 $f$ 不是满射，那么 $T$ 中某些不在 $f$ 的<strong>像</strong> (image) 中的元素，它们的纤维是空集，这些空集不能作为等价类。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段揭示了构造<strong>等价关系</strong>的一种极其自然和普遍的方法：通过一个映射 $f$。$S$ 中的元素只要被 $f$ 映射到同一个地方，它们就是等价的。这种等价关系所产生的<strong>等价类</strong>，恰好就是映射 $f$ 的<strong>非空纤维（逆像）</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是将<strong>映射</strong>这个动态的概念与<strong>等价关系/划分</strong>这个静态结构的概念联系起来。这为我们提供了一个全新的视角和工具。很多时候，一个复杂的等价关系，可以通过构造一个巧妙的映射来更简单地理解。例如，研究群的同态时，这个思想至关重要。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>电影院座位模型</strong>：</li>
+  <li>集合 $S$ 是所有电影票。每张票上有唯一的序列号。</li>
+  <li>集合 $T$ 是电影院里所有的座位号。</li>
+  <li>映射 $f: S \rightarrow T$ 的规则是 $f(\text{票}) = \text{票上写的座位号}$。</li>
+  <li><strong>等价关系</strong>：两张票“等价”，如果它们指向同一个座位号。$f(\text{票A}) = f(\text{票B})$。（当然，正常情况下影院不会卖出这样的票，但我们可以想象这种可能）</li>
+  <li><strong>纤维/逆像</strong>：座位“8排5座”的<strong>逆像</strong> $f^{-1}(\text{8排5座})$，就是所有票面上印着“8排5座”的那些票的集合。</li>
+  <li><strong>等价类</strong>：票A的等价类，就是所有和票A指向同一个座位的票的集合。这和该座位号的逆像是一回事。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个投影仪（映射 $f$）将一个三维空间里的物体（定义域 $S$）投影到一面墙上（到达域 $T$）。</p>
+<ol>
+  <li>墙上的每一个点 $t$，它的<strong>纤维</strong> $f^{-1}(t)$ 就是三维空间中所有被投影到 $t$ 点的那些点的集合。这通常是一条直线。</li>
+  <li><strong>等价关系</strong> $a \sim b \iff f(a)=f(b)$ 就表示：三维空间中的两个点 $a$ 和 $b$ 如果被投影到墙上的同一个位置，它们就等价。</li>
+  <li><strong>等价类</strong>就是那些投影到同一个位置的所有点构成的直线（纤维）。</li>
+  <li>整个三维空间 $S$ 就被<strong>划分</strong>成了无数条这样的投影直线。</li>
+</ol>
+    </div>
+</div><hr><h4>3.2 像与划分的一一对应</h4><p id="original-10"><strong style="font-size: 1.3rem;">📜 [原文10]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>这里<strong>等价类</strong>的集合 $\bar{S}$ 有另一种表现形式，即作为<strong>映射</strong>的<strong>像</strong>。<strong>像</strong>的元素与非空<strong>纤维</strong>（即<strong>等价类</strong>）之间存在<strong>双射</strong>。</p>
+<p><img src="https://cdn.mathpix.com/cropped/40925d26-58c4-48c7-a09f-8cbb62bc844d-19.jpg?height=348&width=348&top_left_y=1470&top_left_x=610" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p><strong>绝对值映射</strong> $\mathbb{C}^{x} \rightarrow \mathbb{R}^{x}$ 的一些<strong>纤维</strong>。</p>
+<p><strong>例 2.7.13</strong> 如果 $G$ 是一个<strong>有限群</strong>，我们可以定义一个<strong>映射</strong> $f: G \rightarrow \mathbb{N}$ 到<strong>自然数</strong>集合 $\{1,2,3, \ldots\}$，令 $f(a)$ 为<strong>群</strong> $G$ 的元素 $a$ 的<strong>阶</strong>。这个<strong>映射</strong>的<strong>纤维</strong>是具有相同<strong>阶</strong>的元素集合（例如，见 (2.7.2)）。 $\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话在前文的基础上，进一步阐明了由映射 $f: S \rightarrow T$ 导出的商集 $\bar{S}$ 与映射的<strong>像</strong> (Image) 之间的关系。</p>
+<ol>
+  <li> <strong>像 (Image) 的定义</strong>：
+<ul>
+  <li>映射 $f: S \rightarrow T$ 的<strong>像</strong>，通常记作 $\text{Im}(f)$ 或 $f(S)$，是 $T$ 的一个子集。</li>
+  <li>它由 $S$ 中所有元素在 $f$ 映射下的“落点”组成。</li>
+  <li>形式化定义：$\text{Im}(f) = \{t \in T \mid \exists s \in S, f(s)=t\}$。</li>
+  <li>简而言之，<strong>像</strong>就是 $f$ 实际“打到”的那些目标的集合。</li>
+</ul></li>
+  <li> <strong>商集与像的对应关系</strong>：
+<ul>
+  <li>我们已经知道，由映射 $f$ 导出的<strong>商集</strong> $\bar{S}$，其元素是所有的<strong>等价类</strong>，而每一个<strong>等价类</strong>又是一个<strong>非空纤维</strong> $f^{-1}(t)$。</li>
+  <li><strong>核心论断</strong>：商集 $\bar{S}$ 和 像 $\text{Im}(f)$ 之间存在一个<strong>双射</strong> (bijection)，即一一对应关系。</li>
+  <li><strong>如何建立这个双射</strong>？</li>
+  <li>像 $\text{Im}(f)$ 中的每一个元素 $t$，都对应着一个非空的纤维 $f^{-1}(t)$。</li>
+  <li>这个纤维 $f^{-1}(t)$ 正好是商集 $\bar{S}$ 中的一个元素。</li>
+  <li>于是，我们可以建立一个映射 $\psi: \text{Im}(f) \rightarrow \bar{S}$，其规则为 $\psi(t) = [f^{-1}(t)]$ (用堆的表示法) 或更简单地 $\psi(t) = \bar{s}$ 其中 $s$ 是任何一个满足 $f(s)=t$ 的元素。</li>
+  <li>这个映射 $\psi$ 是<strong>一一对应</strong>的：</li>
+  <li><strong>单射</strong>：如果 $t_1 \neq t_2$，那么它们的纤维 $f^{-1}(t_1)$ 和 $f^{-1}(t_2)$ 必然是不相交的，因此是不同的等价类。</li>
+  <li><strong>满射</strong>：商集 $\bar{S}$ 中的任何一个等价类，都是某个 $t \in \text{Im}(f)$ 的纤维，所以都有对应的原像。</li>
+  <li><strong>结论</strong>：商集 $\bar{S}$ 和映射的像 $\text{Im}(f)$ 在结构上是“同构”的。它们只是对同一件事情的两种不同“编码”。$\bar{S}$ 是从定义域 $S$ 出发进行“捆绑”得到的结果，而 $\text{Im}(f)$ 是在到达域 $T$ 中“实际落点”的集合。</li>
+</ul></li>
+  <li> <strong>图示解释</strong>：
+<ul>
+  <li>图片展示了<strong>绝对值映射</strong> $f: \mathbb{C}^\times \rightarrow \mathbb{R}^\times$，规则是 $f(z) = |z|$。</li>
+  <li><strong>定义域</strong> $S = \mathbb{C}^\times$ 是所有非零复数构成的复平面（挖掉原点）。</li>
+  <li><strong>到达域</strong> $T = \mathbb{R}^\times$ 是所有正实数构成的射线。</li>
+  <li><strong>纤维</strong>：对于到达域中的一个元素，比如正实数 $r$，它的纤维 $f^{-1}(r)$ 是什么？</li>
+  <li>$f^{-1}(r) = \{z \in \mathbb{C}^\times \mid |z|=r\}$。</li>
+  <li>在复平面上，所有到原点距离为 $r$ 的点的集合，正好是一个以原点为圆心、半径为 $r$ 的圆。</li>
+  <li><strong>图示内容</strong>：图中画了好几个同心圆。每一个圆圈，就是一个<strong>纤维</strong>，也是一个<strong>等价类</strong>。例如，所有在半径为 $r_1$ 的圆上的复数（如 $z_1, z_2, \dots$），它们都是等价的，因为它们的绝对值都是 $r_1$。</li>
+  <li><strong>划分</strong>：这个绝对值映射，将整个挖掉原点的复平面，<strong>划分</strong>成了无穷多个以原点为中心的同心圆。</li>
+  <li><strong>商集与像</strong>：</li>
+  <li><strong>商集</strong> $\bar{\mathbb{C}^\times}$ 的元素就是这些“圆圈”本身。</li>
+  <li><strong>像</strong> $\text{Im}(f)$ 是所有正实数 $\mathbb{R}^+$。</li>
+  <li>商集和像之间存在一一对应：每一个“圆圈”都唯一对应一个它的“半径”值。</li>
+</ul></li>
+  <li> <strong>例子 2.7.13 解释</strong>：
+<ul>
+  <li><strong>映射</strong>：$f: G \rightarrow \mathbb{N}$，其中 $G$ 是有限群。</li>
+  <li><strong>规则</strong>：$f(a) = \text{order of } a$ (元素 $a$ 的阶)。</li>
+  <li><strong>等价关系</strong>：$a \sim b \iff \text{order}(a) = \text{order}(b)$。这就是我们之前讨论过的“同阶”关系。</li>
+  <li><strong>纤维</strong>：对于一个自然数 $k \in \mathbb{N}$，它的纤维 $f^{-1}(k) = \{a \in G \mid \text{order}(a) = k\}$。这正是群 $G$ 中所有阶为 $k$ 的元素的集合。</li>
+  <li><strong>与 (2.7.2) 的联系</strong>：对于 $G=S_3$，像 $\text{Im}(f)=\{1, 2, 3\}$。</li>
+  <li>$f^{-1}(1)=\{e\}$</li>
+  <li>$f^{-1}(2)=\{(12), (13), (23)\}$</li>
+  <li>$f^{-1}(3)=\{(123), (132)\}$</li>
+  <li>这三个纤维，就是 (2.7.2) 中给出的那三个划分的子集。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例：平方映射</strong></li>
+  <li>映射 $f: \mathbb{Z} \rightarrow \mathbb{N} \cup \{0\}$，规则是 $f(x) = x^2$。</li>
+  <li><strong>像</strong> $\text{Im}(f) = \{0, 1, 4, 9, 16, \dots\}$，即所有平方数。</li>
+  <li><strong>纤维/等价类</strong>：</li>
+  <li>$f^{-1}(0) = \{0\}$</li>
+  <li>$f^{-1}(1) = \{-1, 1\}$</li>
+  <li>$f^{-1}(4) = \{-2, 2\}$</li>
+  <li>$f^{-1}(9) = \{-3, 3\}$</li>
+  <li>...</li>
+  <li>对于任何非平方数的 $k \in \mathbb{N}$ (比如 $k=2$)，$f^{-1}(k) = \emptyset$。</li>
+  <li><strong>商集</strong> $\bar{\mathbb{Z}}$ 的元素是 $\{\{0\}, \{-1, 1\}, \{-2, 2\}, \dots\}$。</li>
+  <li><strong>一一对应</strong>：</li>
+  <li>像中的元素 0 $\leftrightarrow$ 商集中的元素 $\{0\}$</li>
+  <li>像中的元素 1 $\leftrightarrow$ 商集中的元素 $\{-1, 1\}$</li>
+  <li>像中的元素 4 $\leftrightarrow$ 商集中的元素 $\{-2, 2\}$</li>
+  <li>...</li>
+  <li>像（平方数集）和商集（由 $\{0\}$ 和 $\{-n, n\}$ 形式的数对构成的集合）之间存在完美的<strong>双射</strong>。这正是<strong>第一同构定理</strong>的雏形。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>像不是整个到达域</strong>：要区分<strong>到达域</strong> $T$ (Codomain) 和<strong>像</strong> $\text{Im}(f)$。像只是到达域的一个子集。只有在映射是<strong>满射</strong>的情况下，两者才相等。</li>
+  <li><strong>一一对应关系的对象</strong>：这个双射关系，是建立在 <strong>像 $\text{Im}(f)$</strong> 和 <strong>商集 $\bar{S}$</strong> 之间的，而不是在 $T$ 和 $\bar{S}$ 之间。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段建立了由映射 $f$ 导出的商集 $\bar{S}$ 与映射的像 $\text{Im}(f)$ 之间的一一对应关系。这揭示了一个深刻的代数事实（后来被形式化为第一同构定理）：从定义域 $S$ 通过“粘合”等价元素得到的商集 $\bar{S}$，其结构与映射在到达域 $T$ 中实际留下的“足迹” $\text{Im}(f)$ 是完全一样的。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是为了引出后续<strong>群同态</strong>中的核心定理——<strong>第一同构定理</strong>。它通过一般集合映射的例子，直观地展示了 "S / Ker(f) is isomorphic to Im(f)" 这个思想的本质。理解了这里纤维和像的对应关系，就为理解商群与同态像的同构关系打下了坚实的基础。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>贴标签机模型</strong>：</li>
+  <li>集合 $S$ 是一条传送带上的各种水果。</li>
+  <li>映射 $f$ 是一台机器，它扫描水果并给它贴上一个标签（比如“苹果”，“香蕉”）。标签的集合是 $T$。</li>
+  <li><strong>像 $\text{Im}(f)$</strong>：是所有被用到的标签的集合。可能机器的标签库里有“梨”，但传送带上一直没有梨，所以“梨”这个标签就没被用上。</li>
+  <li><strong>纤维/等价类</strong>：所有被贴上“苹果”标签的水果，构成了 $f^{-1}(\text{苹果})$ 这个纤维。</li>
+  <li><strong>商集 $\bar{S}$</strong>：是所有这些“水果堆”的集合，比如 {一堆苹果, 一堆香蕉, ...}。</li>
+  <li><strong>一一对应</strong>：<strong>用到的标签</strong>的集合 {“苹果”, “香蕉”, ...} 和 <strong>水果堆</strong>的集合 {一堆苹果, 一堆香蕉, ...} 之间，显然是一一对应的。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>回到联合国大会的例子。</p>
+<ol>
+  <li>$S$ 是全世界所有可能的外交官。</li>
+  <li>$T$ 是所有国家的集合。</li>
+  <li>映射 $f$: $S \rightarrow T$ 是 $f(\text{外交官}) = \text{该外交官的国籍}$。</li>
+  <li><strong>像 $\text{Im}(f)$</strong>：是所有在联合国派了代表的那些国家的集合（可能有的国家没派人来）。</li>
+  <li><strong>纤维/等价类</strong>：$f^{-1}(\text{China})$ 是所有持有中国国籍的外交官的集合。</li>
+  <li><strong>商集 $\bar{S}$</strong>：是所有这些“国籍代表团”的集合。</li>
+  <li><strong>一一对应</strong>：{在联合国派了代表的国家} 这个集合，和 {所有国籍代表团} 这个集合，显然是一一对应的。</li>
+</ol>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-4">
+    <h2><span class="section-number">4</span>群同态与陪集</h2>
+    <h4>4.1 同态、同余与陪集</h4><p id="original-11"><strong style="font-size: 1.3rem;">📜 [原文11]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>我们回到<strong>群同态</strong> $\varphi: G \rightarrow G^{\prime}$。由 $\varphi$ 在 $G$ 上定义的<strong>等价关系</strong>通常用 $\equiv$ 而不是 $\sim$ 来表示，被称为<strong>同余</strong>：</p>
+<p><div class="math-block">$$
+\begin{equation*}
+a \equiv b \text { if } \varphi(a)=\varphi(b) . \tag{2.7.14}
+\end{equation*}
+$$</div></p>
+<p>我们已经看到，<strong>群</strong> $G$ 的元素 $a$ 和 $b$ <strong>同余</strong>，即 $\varphi(a)=\varphi(b)$，当且仅当 $b$ 位于<strong>核</strong> $K$ 的<strong>陪集</strong> $a K$ 中 (2.5.8)。</p>
+<p><strong>命题 2.7.15</strong> 设 $K$ 是<strong>同态</strong> $\varphi: G \rightarrow G^{\prime}$ 的<strong>核</strong>。包含 $G$ 的元素 $a$ 的 $\varphi$ 的<strong>纤维</strong>是 $K$ 的<strong>陪集</strong> $a K$。这些<strong>陪集</strong><strong>划分</strong>了<strong>群</strong> $G$，并且它们对应于 $\varphi$ 的<strong>像</strong>的元素。 $\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分将前面关于映射、等价关系和划分的一般性理论，具体应用到<strong>群同态</strong>这个特殊的代数场景中。</p>
+<ol>
+  <li> <strong>特化场景</strong>：
+<ul>
+  <li>我们不再处理普通的集合 $S, T$ 和普通映射 $f$。</li>
+  <li>现在我们处理的是两个<strong>群</strong> $G, G'$ 和一个保持群运算结构的特殊映射——<strong>群同态</strong> $\varphi: G \rightarrow G'$。</li>
+</ul></li>
+  <li> <strong>同余关系 (Congruence)</strong>：
+<ul>
+  <li>基于群同态 $\varphi$，我们可以定义一个等价关系，方法和之前一样：$a \sim b \iff \varphi(a) = \varphi(b)$。</li>
+  <li>在群论的上下文中，这种由同态定义的等价关系有一个专门的名字，叫做<strong>同余</strong> (Congruence)，并且符号通常写成 $\equiv$。所以 (2.7.14) 就是把通用定义换上了专用马甲。</li>
+</ul></li>
+  <li> <strong>同余与陪集的联系</strong>：
+<ul>
+  <li>作者在这里引用了之前章节 (2.5.8) 的一个结论，这是理解本段的关键。</li>
+  <li>结论是：$\varphi(a) = \varphi(b)$ 成立，当且仅当 $b \in aK$，其中 $K$ 是同态 $\varphi$ 的<strong>核</strong> (Kernel)。</li>
+  <li><strong>核的定义</strong>：$K = \text{Ker}(\varphi) = \{x \in G \mid \varphi(x) = e'\}$，即所有被映射到目标群 $G'$ 的单位元 $e'$ 的元素的集合。核 $K$ 本身是一个 $G$ 的<strong>正规子群</strong>。</li>
+  <li><strong>陪集的定义</strong>：$aK = \{ak \mid k \in K\}$，是 $G$ 的一个子集。</li>
+  <li><strong>证明 $\varphi(a) = \varphi(b) \iff b \in aK$</strong>：</li>
+  <li>($\Rightarrow$) 假设 $\varphi(a) = \varphi(b)$。两边同时左乘 $\varphi(a)^{-1}$。因为 $\varphi$ 是同态，所以 $\varphi(a)^{-1} = \varphi(a^{-1})$。</li>
+  <li>($\Leftarrow$) 假设 $b \in aK$。这意味着存在某个 $k \in K$ 使得 $b=ak$。</li>
+  <li><strong>结论</strong>：在群同态的背景下，“$a$ 和 $b$ 同余” 这件事，和 “$b$ 属于 $a$ 的左陪集” 这件事，是完全等价的。</li>
+</ul></li>
+  <li> <strong>命题 2.7.15 的解读</strong>：
+<ul>
+  <li>这个命题是对以上所有知识点的总结陈词。</li>
+  <li>“包含 $G$ 的元素 $a$ 的 $\varphi$ 的<strong>纤维</strong>...”：</li>
+  <li>元素 $a$ 的纤维，就是 $a$ 的等价类，也就是所有与 $a$ 同余的元素的集合。</li>
+  <li>纤维/等价类 = $\{b \in G \mid a \equiv b\} = \{b \in G \mid \varphi(a) = \varphi(b)\}$。</li>
+  <li>“...是 $K$ 的<strong>陪集</strong> $aK$。”</li>
+  <li>刚刚我们证明了 $\{b \in G \mid \varphi(a) = \varphi(b)\} = aK$。</li>
+  <li>所以，由同态 $\varphi$ 导出的<strong>等价类</strong>（纤维），正好就是以它的<strong>核</strong> $K$ 为子群形成的<strong>陪集</strong>！</li>
+  <li>“这些<strong>陪集</strong><strong>划分</strong>了<strong>群</strong> $G$...”</li>
+  <li>既然<strong>陪集</strong>就是<strong>等价类</strong>，而我们已经证明了<strong>等价类</strong>必然构成一个<strong>划分</strong>。因此，所有不同的陪集 $aK, bK, \dots$ 必然构成对群 $G$ 的一个划分。这被称为<strong>群G关于子群K的左陪集分解</strong>。</li>
+  <li>“...并且它们对应于 $\varphi$ 的<strong>像</strong>的元素。”</li>
+  <li>这就是上一节的结论。陪集（等价类）的集合，即商集 $G/K$，与同态的像 $\text{Im}(\varphi)$ 之间存在一一对应。这正是<strong>群论的第一同构定理</strong>：$G/\text{Ker}(\varphi) \cong \text{Im}(\varphi)$。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>公式 (2.7.14): $a \equiv b \text { if } \varphi(a)=\varphi(b)$</strong></li>
+  <li>$\equiv$: <strong>同余</strong>符号，在群论背景下代替了通用的 $\sim$。</li>
+  <li>$\varphi$: 一个群同态。</li>
+  <li>该公式定义了由群同态诱导的<strong>同余关系</strong>。</li>
+</ul>
+<ul>
+  <li><strong>命题 2.7.15</strong>: 这是一个总结性的命题，将同态、纤维、核、陪集、划分、像这些概念全部串联了起来。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>映射</strong> $\varphi: \mathbb{Z} \rightarrow \mathbb{Z}_3 = \{\bar{0}, \bar{1}, \bar{2}\}$，规则是 $\varphi(n) = \bar{n}$ (即 $n \pmod 3$)。这是一个从加法群 $(\mathbb{Z}, +)$ 到 $(\mathbb{Z}_3, +)$ 的群同态。</li>
+  <li><strong>核 (Kernel)</strong> $K$：$K = \{n \in \mathbb{Z} \mid \varphi(n) = \bar{0}\} = \{n \in \mathbb{Z} \mid n \equiv 0 \pmod 3\} = \{\dots, -3, 0, 3, \dots\} = 3\mathbb{Z}$。</li>
+  <li><strong>同余关系</strong>：$a \equiv b \iff \varphi(a)=\varphi(b) \iff \bar{a} = \bar{b} \iff a \equiv b \pmod 3$。</li>
+  <li><strong>纤维/等价类/陪集</strong>：</li>
+  <li>元素0的纤维（等价类）：$f^{-1}(\bar{0}) = \{n \in \mathbb{Z} \mid \varphi(n)=\bar{0}\} = K = 3\mathbb{Z}$。这也是陪集 $0+K = K$。</li>
+  <li>元素1的纤维（等价类）：$f^{-1}(\bar{1}) = \{n \in \mathbb{Z} \mid \varphi(n)=\bar{1}\} = \{\dots, 1, 4, -2, \dots\}$。这也是陪集 $1+K = \{1+k \mid k \in K\}$。</li>
+  <li>元素2的纤维（等价类）：$f^{-1}(\bar{2}) = \{n \in \mathbb{Z} \mid \varphi(n)=\bar{2}\} = \{\dots, 2, 5, -1, \dots\}$。这也是陪集 $2+K$。</li>
+  <li><strong>划分</strong>：这三个陪集 $K, 1+K, 2+K$ 互不相交，且它们的并集是整个 $\mathbb{Z}$，构成了对 $\mathbb{Z}$ 的一个划分。</li>
+  <li><strong>与像的对应</strong>：</li>
+  <li>像 $\text{Im}(\varphi) = \{\bar{0}, \bar{1}, \bar{2}\} = \mathbb{Z}_3$。</li>
+  <li>陪集的集合（商集/商群）是 $\{K, 1+K, 2+K\}$。</li>
+  <li>对应关系：</li>
+  <li>$\bar{0} \in \text{Im}(\varphi) \leftrightarrow K$</li>
+  <li>$\bar{1} \in \text{Im}(\varphi) \leftrightarrow 1+K$</li>
+  <li>$\bar{2} \in \text{Im}(\varphi) \leftrightarrow 2+K$</li>
+  <li>这就是 $G/K \cong \text{Im}(\varphi)$ 的一个实例。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>陪集是等价类</strong>：这个联系是双向的。任何由群同态定义的等价类，都是一个陪集。反过来，如果 $K$ 是 $G$ 的一个<strong>正规子群</strong>（normal subgroup），那么 $G$ 关于 $K$ 的陪集划分，总是可以通过一个自然同态 $\varphi: G \rightarrow G/K$（商群）来得到，这时 $K$ 就是这个同态的核。</li>
+  <li><strong>普通子群 vs 正规子群</strong>：只有当子群 $K$ 是<strong>正规子群</strong>时，左陪集 $aK$ 才等于右陪集 $Ka$，并且陪集的集合（商集）才能构成一个群（商群）。同态的核天然就是正规子群，这保证了这一切都可以顺利进行。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段是本节内容在群论中的高潮和应用。它揭示了群同态 $\varphi$ 的结构：</p>
+<ol>
+  <li> $\varphi$ 在定义域 $G$ 上定义的<strong>等价类</strong>，就是以其<strong>核</strong> $K=\text{Ker}(\varphi)$ 为子群的<strong>陪集</strong>。</li>
+  <li> 因此，这些<strong>陪集</strong>构成了对群 $G$ 的一个<strong>划分</strong>。</li>
+  <li> 这个<strong>划分</strong>形成的<strong>商集</strong>（记作 $G/K$），与同态的<strong>像</strong> $\text{Im}(\varphi)$ 是一一对应的（实际上是同构的）。</li>
+</ol>
+<p>这三点是群论中<strong>第一同构定理</strong>的核心内容。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是将前面铺垫的所有关于集合、映射、划分、等价类的一般理论，全部聚焦于<strong>群同态</strong>这一核心代数对象上，从而推导出群论中一个极其深刻和有用的结果。它为我们提供了一种通过研究“核”与“像”来理解和分解复杂群同态的强大工具。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>公司部门模型</strong>：</li>
+  <li>群 $G$ 是一个大公司的所有员工。</li>
+  <li>有一个映射 $\varphi$，将每个员工分配到一个部门（比如“研发部”，“市场部”，“行政部”）。$\varphi$ 是一个同态（假设部门分配遵循某种结构）。</li>
+  <li>目标群 $G'$ 是所有部门的集合。</li>
+  <li><strong>核 $K$</strong>：所有被分配到“无名部门”或“总部直属”（单位元）的员工。</li>
+  <li><strong>陪集 $aK$</strong>：员工 $a$ 被分到“市场部”。那么 $aK$ 就是所有同样被分到“市场部”的员工的集合。</li>
+  <li><strong>命题 2.7.15</strong> 说的就是：</li>
+</ol>
+<ol>
+  <li> “市场部”这个员工集合（纤维/等价类）可以表示为 $aK$（陪集）。</li>
+  <li> 所有这些部门（“研发部”员工集，“市场部”员工集...）构成了对公司所有员工的一个划分。</li>
+  <li> 这些“部门员工集”的集合，和实际存在的“部门名称”（像）的集合，是一一对应的。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p><strong>群同态的示意图</strong>。</p>
+<p><img src="https://dsm.services.filemarket.com/api/files/download/signed/dsm:46061386-07f0-4660-844c-3c8749a2a893:f_a0a0ae19-3fec-4467-b864-d4b998396e95/Group_homomorphism_classes_and_image.png?inline=true" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p>把这个经典的图在脑中想象一下：</p>
+<ol>
+  <li>左边的大椭圆是群 $G$。它被划分成了若干个“层”，这些层就是<strong>陪集</strong>（$K, a_1K, a_2K, \dots$）。</li>
+  <li>最中间那一层，包含单位元 $e$ 的，就是<strong>核</strong> $K$。</li>
+  <li>右边的大椭圆是群 $G'$。</li>
+  <li>映射 $\varphi$ 像一个巨大的压缩机，它把左边的一整“层”（一个陪集）全部“压扁”，变成右边的一个<strong>点</strong>。</li>
+  <li>核 $K$ 这一整层，被压成了右边的单位元 $e'$。</li>
+  <li>陪集 $a_1K$ 这一整层，被压成了右边的点 $\varphi(a_1)$。</li>
+  <li>陪集 $a_2K$ 这一整层，被压成了右边的点 $\varphi(a_2)$。</li>
+  <li>右边所有这些“落点” $e', \varphi(a_1), \varphi(a_2), \dots$ 组成的集合，就是<strong>像</strong> $\text{Im}(\varphi)$。</li>
+  <li>整个过程清晰地展示了：<strong>陪集</strong>（左边的层）与<strong>像的元素</strong>（右边的点）之间的一一对应关系。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-5">
+    <h2><span class="section-number">5</span>行间公式索引</h2>
+    <p>1.  <strong>公式 (2.7.1)</strong>: $S=\text { union of disjoint nonempty subsets. }$</p><p>- 解释：这是对集合<strong>划分</strong> (Partition) 的文字定义，说明一个划分是由一堆不相交的、非空的子集构成，且这些子集的并集等于原集合。</p><p>2.  <strong>公式 (2.7.2)</strong>: $\{1\},\left\{y, x y, x^{2} y\right\},\left\{x, x^{2}\right\}$</p><p>- 解释：这是一个具体的例子，展示了<strong>对称群</strong> $S_3$ 根据元素<strong>阶</strong>的不同所形成的一个<strong>划分</strong>。</p><p>3.  <strong>公式 (2.7.5)</strong>: $C_{a}=\{b \in S \mid a \sim b\}$</p><p>- 解释：这定义了元素 $a$ 的<strong>等价类</strong> (Equivalence Class) $C_a$，它是一个集合，包含了原集合 $S$ 中所有与 $a$ 等价的元素 $b$。</p><p>4.  <strong>公式 (2.t.t)</strong>: $\text { If } C_{a} \text { and } C_{b} \text { have an element in common, then } C_{a}=C_{b} \text {. }$</p><p>- 解释：这是一个关键的引理，说明两个不同的<strong>等价类</strong>要么完全不相交，要么就是完全相同的集合，不存在部分重叠的情况。</p><p>5.  <strong>公式 (2.7.8)</strong>: $\pi: S \rightarrow \bar{S}$</p><p>- 解释：这定义了一个从原集合 $S$ 到其<strong>商集</strong> $\bar{S}$ 的<strong>自然映射</strong> (或称典范映射) $\pi$。</p><p>6.  <strong>公式 (2.7.9)</strong>: $\text { If } a \text { and } b \text { are in } S \text {, then } \bar{a}=\bar{b} \text { means } a \sim b \text {. }$</p><p>- 解释：这是<strong>横线表示法</strong>的核心规则，它将商集中元素的“相等”($\bar{a}=\bar{b}$)与原集合中元素的“等价”($a \sim b$)联系起来。</p><p>7.  <strong>公式 (2.7.10)</strong>: $\{[\text { Even }],[\text { Odd }]\}=\{\overline{0}, \overline{1}\}$</p><p>- 解释：这是一个例子，展示了如何用<strong>横线表示法</strong>（通过选取代表元0和1）来表示整数集的奇偶<strong>商集</strong>，即模2整数集 $\mathbb{Z}_2$。</p><p>8.  <strong>公式 (2.7.11)</strong>: $f^{-1}(t)=\{s \in S \mid f(s)=t\}$</p><p>- 解释：这定义了映射 $f$ 下，目标集中元素 $t$ 的<strong>逆像</strong> (Inverse Image) 或<strong>纤维</strong> (Fiber)，它是一个包含了所有被映射到 $t$ 的原像的集合。</p><p>9.  <strong>公式 (2.7.14)</strong>: $a \equiv b \text { if } \varphi(a)=\varphi(b)$</p><p>- 解释：这将在<strong>群同态</strong> $\varphi$ 的背景下，由映射定义的等价关系命名为<strong>同余</strong> (Congruence)，并使用符号 $\equiv$。</p>
+</section>
+
+<section class="content-section" id="section-6">
+    <h2><span class="section-number">4</span>2 群同态示意图详解</h2>
+    <p id="original-12"><strong style="font-size: 1.3rem;">📜 [原文12]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>群同态的示意图</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这最后一句是整个章节的点睛之笔。它提示我们通过一个可视化的图像来总览和巩固前面学到的所有关于群同态、核、陪集、像之间关系的抽象概念。虽然原文没有附图，但我们可以构建出这个在抽象代数中非常经典和重要的示意图，并对其进行深入解读。</p>
+<p>这个示意图旨在可视化<strong>群论第一同构定理</strong>的核心思想：$G/\text{Ker}(\varphi) \cong \text{Im}(\varphi)$。</p>
+<p><strong>图的构成元素</strong>：</p>
+<ol>
+  <li> <strong>左侧的椭圆</strong>：代表定义域群 $G$。</li>
+  <li> <strong>右侧的椭圆</strong>：代表到达域群 $G'$。</li>
+  <li> <strong>从左到右的箭头 $\varphi$</strong>：代表群同态映射。</li>
+  <li> <strong>左侧椭圆内的分层</strong>：群 $G$ 被“切”成了若干个互不相交的“层”或“块”。这些就是由同态 $\varphi$ 的核 $K$ 所导出的<strong>陪集</strong>。</li>
+  <li> <strong>中间的特殊层 $K$</strong>：包含群 $G$ 的单位元 $e$ 的那个陪集，正是同态的<strong>核</strong> $\text{Ker}(\varphi)$。</li>
+  <li> <strong>右侧椭圆内的一些点</strong>：这些点是群 $G$ 中元素经过 $\varphi$ 映射后在 $G'$ 中的落点。这些所有落点组成的集合就是同态的<strong>像</strong> $\text{Im}(\varphi)$。</li>
+</ol>
+<p><strong>图的动态过程</strong>：</p>
+<p>映射 $\varphi$ 的作用可以被想象成一个“压缩”或“投影”的过程。它将左侧群 $G$ 中的一整个<strong>陪集</strong>（一个完整的“层”）上的所有元素，全部映射到右侧群 $G'$ 中的<strong>同一个点</strong>上。</p>
+<ul>
+  <li><strong>核的映射</strong>：核 $K$ 这个陪集里的所有元素（包括 $e$），都被 $\varphi$ 映射到 $G'$ 的单位元 $e'$ 上。这是核的定义所决定的。</li>
+  <li><strong>其他陪集的映射</strong>：对于任何一个陪集 $aK$，其中所有的元素（形如 $ax$, $ay$, $az$ ... 其中 $x,y,z \in K$），都会被 $\varphi$ 映射到同一个点，这个点就是 $\varphi(a)$。因为 $\varphi(ax) = \varphi(a)\varphi(x) = \varphi(a)e' = \varphi(a)$。</li>
+</ul>
+<p><strong>图揭示的核心关系</strong>：</p>
+<p>该图最重要之处在于直观地展示了<strong>陪集</strong>与<strong>像的元素</strong>之间的一一对应关系。</p>
+<ul>
+  <li>$G$ 中的每一个陪集（左侧的一个“层”）都唯一地对应于 $\text{Im}(\varphi)$ 中的一个元素（右侧的一个“点”）。</li>
+  <li>反过来，$\text{Im}(\varphi)$ 中的每一个元素（右侧的一个“点”），都唯一地对应于 $G$ 中一个作为其完整逆像的陪集（左侧的一个“层”）。</li>
+</ul>
+<p>这个一一对应是<strong>同构</strong>的基础。它告诉我们，如果我们把 $G$ 中的陪集本身看作新的元素（即构造<strong>商群</strong> $G/K$），那么这个由“层”组成的商群，其内部的代数结构（运算规则），和由“点”组成的像群 $\text{Im}(\varphi)$ 的代数结构是完全一样的。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p>让我们用之前用过的例子 $\varphi: (\mathbb{Z}, +) \rightarrow (\mathbb{Z}_3, +)$，规则为 $\varphi(n) = n \pmod 3$，来填充这个示意图。</p>
+<ul>
+  <li><strong>左侧群 $G$</strong>：是整数集 $\mathbb{Z}$。我们可以想象一条无限长的数轴。</li>
+  <li><strong>右侧群 $G'$</strong>：是模3整数集 $\mathbb{Z}_3 = \{\bar{0}, \bar{1}, \bar{2}\}$，只有三个元素。</li>
+  <li><strong>核 $K$</strong>：$K = \text{Ker}(\varphi) = 3\mathbb{Z} = \{\dots, -3, 0, 3, \dots\}$。</li>
+  <li><strong>陪集（划分）</strong>：</li>
+  <li>$0+K = \{\dots, -3, 0, 3, \dots\}$ (能被3整除的数)</li>
+  <li>$1+K = \{\dots, -2, 1, 4, \dots\}$ (除3余1的数)</li>
+  <li>$2+K = \{\dots, -1, 2, 5, \dots\}$ (除3余2的数)</li>
+  <li><strong>像 $\text{Im}(\varphi)$</strong>：$\{\bar{0}, \bar{1}, \bar{2}\}$。</li>
+</ul>
+<p><strong>示意图的具象化</strong>：</p>
+<ul>
+  <li><strong>左边</strong>：整个整数轴 $\mathbb{Z}$ 被分成了三“层”。</li>
+  <li><strong>第0层 (核 $K$)</strong>：是所有3的倍数。</li>
+  <li><strong>第1层 (陪集 $1+K$)</strong>：是所有除3余1的数。</li>
+  <li><strong>第2层 (陪集 $2+K$)</strong>：是所有除3余2的数。</li>
+  <li><strong>右边</strong>：是三个孤立的点 $\bar{0}, \bar{1}, \bar{2}$。</li>
+  <li><strong>映射 $\varphi$ 的作用</strong>：</li>
+  <li>整个“第0层”上的所有数字（-3, 0, 3, 6...）都被 $\varphi$ 射向了点 $\bar{0}$。</li>
+  <li>整个“第1层”上的所有数字（-2, 1, 4, 7...）都被 $\varphi$ 射向了点 $\bar{1}$。</li>
+  <li>整个“第2层”上的所有数字（-1, 2, 5, 8...）都被 $\varphi$ 射向了点 $\bar{2}$。</li>
+  <li><strong>一一对应关系</strong>：</li>
+  <li>(层) $0+K \longleftrightarrow \bar{0}$ (点)</li>
+  <li>(层) $1+K \longleftrightarrow \bar{1}$ (点)</li>
+  <li>(层) $2+K \longleftrightarrow \bar{2}$ (点)</li>
+</ul>
+<p>这清晰地展示了由“层”构成的商群 $\mathbb{Z}/3\mathbb{Z}$ 和由“点”构成的像群 $\mathbb{Z}_3$ 之间的同构关系。</p>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>图的抽象性</strong>：示意图中的“层”和“点”都是对代数概念的类比，不要拘泥于其几何形状。关键在于理解其代表的“多对一”的映射关系和“整体对单体”的对应关系。</li>
+  <li><strong>不是所有子群都能画</strong>：只有<strong>正规子群</strong>才能作为同态的核，其陪集划分才能形成商群，才能画出这样有意义的同态示意图。如果用一个非正规子群来做陪集划分，将无法定义一个保持结构的同态，使得这些陪集是其纤维。</li>
+  <li><strong>像不一定是整个右侧</strong>：图中右侧的像 $\text{Im}(\varphi)$ 可能只是 $G'$ 的一个子集（子群），除非同态 $\varphi$ 是满射。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>“群同态的示意图”是理解群同态、核、陪集、像、商群以及它们之间内在联系的至关重要的视觉工具。它将“一个同态定义了一个划分（陪集分解）”和“商集与像同构（第一同构定理）”这两个核心思想浓缩在了一幅直观的图像中，是化抽象为形象的典范。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本节内容的存在，是为了给读者提供一个强大的心智模型，帮助他们将之前所有分步学习的、看似零散的概念（等价关系、划分、商集、核、陪集、像）有机地整合在一起。通过这个可视化的框架，读者可以更深刻地理解群同态的本质——即通过“捏合”掉核的信息，揭示出原群中与像同构的商结构。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>水果榨汁机模型</strong>：</li>
+  <li>群 $G$ 是一大筐各种水果（橙子、苹果、柠檬...）。</li>
+  <li>陪集是按种类分好的水果堆（一堆橙子，一堆苹果...）。核可以想象成“果核/果皮”这些最终被丢弃的部分。</li>
+  <li>同态 $\varphi$ 是一台榨汁机。</li>
+  <li>像 $\text{Im}(\varphi)$ 是榨出来的各种果汁（橙汁、苹果汁...）。</li>
+  <li>示意图展示了：榨汁机 $\varphi$ 把<strong>一整堆橙子</strong>（一个陪集）加工成了<strong>一杯橙汁</strong>（像中的一个元素）。它把<strong>一整堆苹果</strong>加工成了<strong>一杯苹果汁</strong>。</li>
+  <li>商群 $G/K$（水果堆的集合）与像群 $\text{Im}(\varphi)$（果汁的集合）之间存在一一对应，并且保留了某种结构（比如，混合水果堆榨出的就是混合果汁，这对应运算的保持）。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你在做手工，有很多彩色的珠子（群 $G$）。</p>
+<ol>
+  <li>你按照颜色将珠子分类（陪集划分），比如红色一堆，蓝色一堆...。其中有一堆是无色的（核 $K$）。</li>
+  <li>你的“同态映射” $\varphi$ 是把每一堆珠子用一根相应颜色的线串起来，形成一个手链。</li>
+  <li>示意图就展示了这个过程：</li>
+  <li>左边是散落的、按颜色分好堆的珠子（陪集们）。</li>
+  <li>右边是做好的各色手链（像的元素们）。</li>
+  <li>$\varphi$ 的作用是：拿起一整堆红色珠子（陪集 $aK$），把它们串成一个红色手链（像元素 $\varphi(a)$）。拿起所有无色珠子（核 $K$），把它们串成一个“无色手链”（单位元 $e'$）。</li>
+  <li>最终，你得到“一堆堆的珠子”（商群 $G/K$）和“一条条的手链”（像群 $\text{Im}(\varphi)$）。这两组东西的数量和类别是完全对应的，它们的结构也是同构的。</li>
+</ol>
+    </div>
+</div>
+</section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>行间公式索引</p>
+    </footer>
+
+
+    <!-- 手机端点击翻页功能 -->
+    <script>
+        (function() {
+            // 点击翻页功能（在所有设备上启用）
+            
+            document.addEventListener('click', function(e) {
+                // 如果 TOC 目录面板处于打开状态，不触发翻页
+                var tocPanel = document.getElementById('tocPanel');
+                if (tocPanel && tocPanel.classList.contains('active')) {
+                    return;
+                }
+                
+                // 排除对链接、按钮、输入框等交互元素的点击
+                var target = e.target;
+                var tagName = target.tagName.toLowerCase();
+                if (tagName === 'a' || tagName === 'button' || tagName === 'input' || 
+                    tagName === 'textarea' || tagName === 'select' || 
+                    target.closest('a') || target.closest('button') ||
+                    target.closest('.toc-panel') || target.closest('.toc-toggle') ||
+                    target.closest('.toc-overlay')) {
+                    return;
+                }
+                
+                var clickY = e.clientY;
+                var windowHeight = window.innerHeight;
+                var scrollAmount = windowHeight * 0.85; // 滚动85%的屏幕高度
+                
+                if (clickY > windowHeight / 2) {
+                    // 点击下半部分：向下翻页
+                    window.scrollBy({
+                        top: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 点击上半部分：向上翻页
+                    window.scrollBy({
+                        top: -scrollAmount,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        })();
+    </script>
+
+    <!-- TOC 目录控制脚本 -->
+    <script>
+        (function() {
+            var tocToggle = document.getElementById('tocToggle');
+            var tocPanel = document.getElementById('tocPanel');
+            var tocOverlay = document.getElementById('tocOverlay');
+            
+            // 切换目录显示/隐藏
+            function toggleTOC() {
+                var isOpen = tocPanel.classList.contains('active');
+                if (isOpen) {
+                    closeTOC();
+                } else {
+                    openTOC();
+                }
+            }
+            
+            // 打开目录
+            function openTOC() {
+                tocPanel.classList.add('active');
+                tocOverlay.classList.add('active');
+                tocToggle.setAttribute('aria-label', '关闭目录');
+            }
+            
+            // 关闭目录
+            function closeTOC() {
+                tocPanel.classList.remove('active');
+                tocOverlay.classList.remove('active');
+                tocToggle.setAttribute('aria-label', '打开目录');
+            }
+            
+            // 点击按钮切换目录
+            tocToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTOC();
+            });
+            
+            // 点击遮罩层关闭目录
+            tocOverlay.addEventListener('click', function() {
+                closeTOC();
+            });
+            
+            // 点击目录项后关闭目录
+            var tocLinks = tocPanel.querySelectorAll('a');
+            tocLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    closeTOC();
+                });
+            });
+            
+            // ESC 键关闭目录
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && tocPanel.classList.contains('active')) {
+                    closeTOC();
+                }
+            });
+            
+            // 高亮当前可见的目录条目
+            function updateActiveItem() {
+                var scrollPos = window.scrollY + 150;  // 偏移量
+                var activeSection = null;
+                var activeOriginal = null;
+                
+                // 查找当前可见的 section
+                var sections = document.querySelectorAll('section[id^="section-"]');
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    if (section.offsetTop <= scrollPos) {
+                        activeSection = section.id;
+                    }
+                }
+                
+                // 查找当前可见的原文区块
+                var originals = document.querySelectorAll('[id^="original-"]');
+                for (var j = 0; j < originals.length; j++) {
+                    var original = originals[j];
+                    if (original.offsetTop <= scrollPos) {
+                        activeOriginal = original.id;
+                    }
+                }
+                
+                // 先移除所有 active 类
+                var allHeadings = tocPanel.querySelectorAll('.toc-heading');
+                for (var h = 0; h < allHeadings.length; h++) {
+                    allHeadings[h].classList.remove('active');
+                }
+                
+                var allOriginals = tocPanel.querySelectorAll('.toc-original');
+                for (var o = 0; o < allOriginals.length; o++) {
+                    allOriginals[o].classList.remove('active');
+                }
+                
+                // 只给当前活动的条目添加 active 类
+                if (activeSection) {
+                    var activeHeadingLink = tocPanel.querySelector('.toc-heading a[href="#' + activeSection + '"]');
+                    if (activeHeadingLink) {
+                        activeHeadingLink.parentElement.classList.add('active');
+                    }
+                }
+                
+                if (activeOriginal) {
+                    var activeOriginalLink = tocPanel.querySelector('.toc-original a[href="#' + activeOriginal + '"]');
+                    if (activeOriginalLink) {
+                        activeOriginalLink.parentElement.classList.add('active');
+                    }
+                }
+            }
+            
+            // 节流函数
+            var scrollTimeout;
+            function throttledUpdate() {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(function() {
+                    updateActiveItem();
+                    scrollTimeout = null;
+                }, 100);
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', throttledUpdate);
+            
+            // 打开目录时立即更新高亮
+            var originalOpenTOC = openTOC;
+            openTOC = function() {
+                originalOpenTOC();
+                updateActiveItem();
+            };
+            
+            // 初始化
+            updateActiveItem();
+        })();
+    </script>
+</body>
+</html>

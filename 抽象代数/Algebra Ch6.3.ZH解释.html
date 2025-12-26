@@ -1,0 +1,2778 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1. 平面等距变换的代数与几何描述</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- MathJax v4 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            output: {
+                displayOverflow: 'linebreak',
+                linebreaks: {
+                    inline: true,
+                    width: '100%',
+                    lineleading: 0.2
+                }
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            /* 五大区块主题色 */
+            --original-color: #8b5cf6;
+            --explain-color: #0ea5e9;
+            --formula-color: #6366f1;
+            --example-color: #10b981;
+            --warning-color: #f59e0b;
+            /* Q1修复：总结、存在目的、直觉心智模型、直观想象 统一使用 #36828C 青色主题 */
+            --summary-color: #36828C;     /* 青色主题 */
+            --purpose-color: #36828C;     /* 青色主题 */
+            --intuition-color: #36828C;   /* 青色主题 */
+            --imagination-color: #36828C; /* 青色主题 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .authors {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
+        .content-section h4 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h5 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 18px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h6 {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            margin: 15px 0 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        /* ===============================
+           五大内容区块 - 统一风格不同主题色
+           =============================== */
+
+        /* 原文区 - 紫色 */
+        .original-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid var(--original-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .original-box .box-label {
+            color: var(--original-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-box .box-content {
+            font-style: italic;
+            color: #6b21a8;
+        }
+
+        /* 📜 [原文]区块内容 - 使用统一的黑色 */
+        .original-content {
+            color: #2d3748; /* 统一的深灰黑色 */
+        }
+
+        .original-content * {
+            color: #2d3748; /* 所有子元素 */
+        }
+
+        .original-content .MathJax, .original-content .MathJax * {
+            color: #2d3748 !important; /* 行内公式 */
+        }
+
+        /* 通用 .box-content 换行规则 - 确保长文本（如代码调用）能自动换行 */
+        .box-content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .box-content strong, .box-content code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            display: inline;
+        }
+
+        /* 逐步解释区 - 蓝色 */
+        .explain-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--explain-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .explain-box .box-label {
+            color: var(--explain-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explain-box .box-content {
+            color: #1a365d; /* Dark Blue */
+        }
+
+        .explain-box .box-content * {
+            color: #1a365d; /* Dark Blue - 所有子元素 */
+        }
+
+        .explain-box .box-content .MathJax, .explain-box .box-content .MathJax * {
+            color: #1a365d !important; /* Dark Blue - 行内公式 */
+        }
+
+        .explain-box ul, .explain-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .explain-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 公式拆解区 - 靛蓝色 */
+        .formula-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--formula-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .formula-box .box-label {
+            color: var(--formula-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .formula-box .box-content {
+            color: var(--text-color); /* 统一使用默认黑色，与原文区块一致 */
+            overflow-x: auto;
+        }
+
+        .formula-box .box-content * {
+            color: var(--text-color); /* 所有子元素 */
+        }
+
+        .formula-box .box-content .MathJax, .formula-box .box-content .MathJax * {
+            color: var(--text-color) !important; /* 行内公式 */
+        }
+
+        /* 数值示例区 - 绿色 */
+        .example-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--example-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .example-box .box-label {
+            color: var(--example-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-box .box-content {
+            color: #166534; /* Dark Green from edstem5 .answer-en */
+        }
+
+        .example-box .box-content * {
+            color: #166534; /* Dark Green - 所有子元素 */
+        }
+
+        .example-box .box-content .MathJax, .example-box .box-content .MathJax * {
+            color: #166534 !important; /* Dark Green - 行内公式 */
+        }
+
+        .example-box ul, .example-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .example-box li {
+            margin-bottom: 6px;
+        }
+
+        .example-box code {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* 易错点区 - 橙色 */
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .warning-box .box-label {
+            color: var(--warning-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warning-box .box-content {
+            color: #92400e;
+        }
+
+        .warning-box .box-content * {
+            color: #92400e; /* 所有子元素 */
+        }
+
+        .warning-box .box-content .MathJax, .warning-box .box-content .MathJax * {
+            color: #92400e !important; /* 行内公式 */
+        }
+
+        .warning-box ul, .warning-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .warning-box li {
+            margin-bottom: 6px;
+        }
+
+        /* 总结区 - Q1修复：使用#36828C青色主题 */
+        .summary-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--summary-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .summary-box .box-label {
+            color: var(--summary-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .summary-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .summary-box .box-content .MathJax, .summary-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 存在目的区 - Q1修复：使用#36828C青色主题 */
+        .purpose-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--purpose-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .purpose-box .box-label {
+            color: var(--purpose-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .purpose-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .purpose-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .purpose-box .box-content .MathJax, .purpose-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直觉心智模型区 - Q1修复：使用#36828C青色主题 */
+        .intuition-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--intuition-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .intuition-box .box-label {
+            color: var(--intuition-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .intuition-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .intuition-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .intuition-box .box-content .MathJax, .intuition-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直观想象区 - Q1修复：使用#36828C青色主题 */
+        .imagination-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--imagination-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .imagination-box .box-label {
+            color: var(--imagination-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .imagination-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .imagination-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .imagination-box .box-content .MathJax, .imagination-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 高亮术语 */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* 代码块 */
+        code {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            margin: 15px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 表格样式 - 紧凑型，行高列宽适应文字最小值 */
+        table {
+            border-collapse: collapse;
+            width: auto;  /* 列宽适应内容 */
+            margin: 15px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;  /* 减小padding使行高更紧凑 */
+            text-align: left;
+            white-space: nowrap;  /* 防止不必要的换行，列宽适应文字 */
+            line-height: 1.4;  /* 紧凑的行高 */
+        }
+
+        th {
+            background: #e0f7fa;
+            color: #006064;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #e2e8f0;
+        }
+
+        /* 表格对齐 */
+        .align-left {
+            text-align: left;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        /* 图例区域 */
+        .legend-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .legend-bar {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .legend-bar.original { background: #8b5cf6; }
+        .legend-bar.explain { background: #0ea5e9; }
+        .legend-bar.formula { background: #6366f1; }
+        .legend-bar.example { background: #10b981; }
+        .legend-bar.warning { background: #f59e0b; }
+        .legend-bar.summary { background: #36828C; }
+        .legend-bar.purpose { background: #36828C; }
+        .legend-bar.intuition { background: #36828C; }
+        .legend-bar.imagination { background: #36828C; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive - 移动端适配 */
+        @media (max-width: 768px) {
+            /* 容器宽度适配 */
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 20px 12px;
+                box-sizing: border-box;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+                padding: 0 15px;
+            }
+            
+            .hero {
+                padding: 50px 15px;
+            }
+            
+            .hero h1 {
+                font-size: 1.6rem;
+                word-break: break-word;
+            }
+            
+            .authors {
+                font-size: 1rem;
+            }
+            
+            /* 内容区块适配 */
+            .content-section {
+                padding: 20px 15px;
+                margin-left: 5px;
+                margin-right: 5px;
+                border-radius: 12px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.4rem;
+                flex-wrap: wrap;
+            }
+            
+            .content-section h3 {
+                font-size: 1.2rem;
+            }
+            
+            .content-section h4 {
+                font-size: 1.1rem;
+            }
+            
+            .section-number {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            /* 各区块box适配 */
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 15px 12px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .original-box .box-label,
+            .explain-box .box-label,
+            .formula-box .box-label,
+            .example-box .box-label,
+            .warning-box .box-label,
+            .summary-box .box-label,
+            .purpose-box .box-label,
+            .intuition-box .box-label,
+            .imagination-box .box-label {
+                font-size: 1.1rem;
+            }
+            
+            /* 图例区域移动端适配 */
+            .legend-section {
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
+            
+            .legend-row {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            
+            .legend-item {
+                font-size: 0.8rem;
+                gap: 5px;
+            }
+            
+            .legend-bar {
+                width: 3px;
+                height: 16px;
+            }
+            
+            /* 列表适配 */
+            ul, ol {
+                margin-left: 15px;
+                padding-left: 5px;
+            }
+            
+            /* 表格移动端适配 */
+            table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.9rem;
+                min-width: 80px;
+            }
+            
+            /* 代码块适配 */
+            pre {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            
+            /* 数学公式适配 */
+            .math-block {
+                padding: 10px 8px;
+                margin: 15px 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* MathJax公式溢出处理 - 只处理块级公式，保持行内公式inline */
+            mjx-container[jax="CHTML"][display="true"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                display: block !important;
+            }
+            
+            /* 行内公式 - 超宽时自动换行 */
+            mjx-container:not([display="true"]) {
+                display: inline-block !important;
+                max-width: 100% !important;
+                overflow-wrap: break-word !important;
+                word-wrap: break-word !important;
+            }
+            
+            /* MathJax内部元素换行支持 */
+            mjx-math {
+                white-space: normal !important;
+            }
+            
+            mjx-mrow {
+                flex-wrap: wrap !important;
+            }
+            
+            /* Footer适配 */
+            .footer {
+                padding: 25px 15px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* 超小屏幕适配 (手机竖屏) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 8px;
+            }
+            
+            .hero {
+                padding: 40px 10px;
+            }
+            
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+            
+            .content-section {
+                padding: 15px 10px;
+                margin-left: 3px;
+                margin-right: 3px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 12px 10px;
+            }
+            
+            .legend-section {
+                padding: 12px 8px;
+            }
+            
+            .legend-row {
+                gap: 8px;
+            }
+            
+            .legend-item {
+                font-size: 0.75rem;
+            }
+            
+            ul, ol {
+                margin-left: 12px;
+            }
+        }
+        
+        /* 确保所有内容不溢出 */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* ========================================
+           TOC 目录样式
+           ======================================== */
+        
+        /* TOC 触发按钮 - 左上角小方块 */
+        .toc-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(54, 130, 140, 0.5);  /* 青色 50% 透明度 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .toc-toggle:hover {
+            background: rgba(54, 130, 140, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .toc-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* TOC 目录面板 */
+        .toc-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 95vw;  /* 手机浏览器宽度的 95% */
+            height: 80vh; /* 手机浏览器高度的 80% */
+            max-width: 450px;  /* 桌面端最大宽度 */
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0 0 16px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .toc-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* TOC 头部 - 标题在图标右侧 */
+        .toc-header {
+            padding: 15px 20px 15px 80px;  /* 左侧留出按钮空间 */
+            background: linear-gradient(135deg, #36828C 0%, #2a6a72 100%);
+            color: white;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .toc-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* TOC 内容区 */
+        .toc-content {
+            flex: 1;
+            overflow-y: auto;   /* 允许垂直滚动 */
+            overflow-x: hidden; /* 禁止水平滚动 */
+            padding: 15px 0;
+        }
+        
+        /* TOC 列表 */
+        .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc-item {
+            margin: 0;
+        }
+        
+        .toc-item a {
+            display: block;
+            padding: 4px 20px;  /* 更紧凑的行间距 */
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #2d3748;
+            text-decoration: none;
+            word-wrap: break-word;   /* 自动换行 */
+            overflow-wrap: break-word;
+            white-space: normal;     /* 允许换行 */
+            line-height: 1.3;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .toc-item a:hover {
+            background: #e8f4f5;
+            color: #36828C;
+            border-left-color: #36828C;
+        }
+        
+        /* 标题项样式 */
+        .toc-heading a {
+            font-weight: 600;
+            color: #1a365d;
+            background: #f7fafc;
+        }
+        
+        .toc-heading a:hover {
+            background: #e8f4f5;
+        }
+        
+        /* 当前活动的标题项样式 */
+        .toc-heading.active a {
+            background: #d0e8ea;
+            color: #36828C;
+            border-left-color: #36828C;
+            font-weight: 700;
+        }
+        
+        /* 当前活动的原文项样式 */
+        .toc-original.active a {
+            background: #36828C;
+            color: white;
+            box-shadow: 0 3px 8px rgba(54, 130, 140, 0.35);
+        }
+        
+        /* 原文项容器 - 横向排列自动换行 */
+        .toc-originals-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 8px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* 原文项样式 - 浅青色带阴影 */
+        .toc-original {
+            margin: 0;
+        }
+        
+        .toc-original a {
+            display: inline-block;
+            width: 64px;  /* 固定宽度确保每行显示数量一致 */
+            padding: 6px 4px;
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #36828C;  /* 青色主题色 */
+            text-decoration: none;
+            text-align: center;
+            background: #e8f4f5;
+            border-radius: 6px;
+            border-left: none;
+            box-shadow: 0 2px 4px rgba(54, 130, 140, 0.2);  /* 青色阴影 */
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .toc-original a:hover {
+            background: #e0f2f4;
+            color: #36828C;
+            box-shadow: 0 3px 6px rgba(54, 130, 140, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        /* TOC 遮罩层 */
+        .toc-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .toc-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 移动端 TOC 适配 */
+        @media (max-width: 768px) {
+            .toc-toggle {
+                top: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .toc-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .toc-panel {
+                width: 90vw;
+                height: 80vh;
+                max-width: none;
+            }
+            
+            .toc-header {
+                padding: 12px 15px 12px 65px;
+            }
+            
+            .toc-header h3 {
+                font-size: 16px;
+            }
+            
+            .toc-item a {
+                padding: 4px 15px;
+                font-size: 15.5px;
+            }
+            
+            .toc-originals-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            .toc-original a {
+                padding: 5px 10px;
+                font-size: 15.5px;
+            }
+        }
+
+        /* 特殊术语着色 */
+        .spectral {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .periodicity {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .fourier {
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        /* 列表样式增强 */
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 - 已移除重复定义，使用上方第602-633行的紧凑型样式 */
+
+        /* 分隔线 */
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 30px 0;
+        }
+
+        /* 数学公式样式 - Q7: 行间公式颜色用黑色 */
+        .math-block {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            color: #000000; /* Q7: 黑色文字 */
+        }
+
+        /* Q7: 确保MathJax渲染的公式为黑色 */
+        .math-block .MathJax {
+            color: #000000 !important;
+        }
+
+        mjx-container {
+            color: #000000 !important;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- TOC 目录按钮 -->
+    <button class="toc-toggle" id="tocToggle" aria-label="打开目录">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+        </svg>
+    </button>
+    
+    <!-- TOC 遮罩层 -->
+    <div class="toc-overlay" id="tocOverlay"></div>
+    
+    <!-- TOC 目录面板 -->
+    <nav class="toc-panel" id="tocPanel">
+        <div class="toc-header">
+            <h3>📑 目录</h3>
+        </div>
+        <div class="toc-content">
+            <ul class="toc-list">
+                <li class="toc-item toc-heading"><a href="#section-1">1. 1. 平面等距变换的代数与几何描述</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-1">原文1</a></span><span class="toc-original"><a href="#original-2">原文2</a></span><span class="toc-original"><a href="#original-3">原文3</a></span><span class="toc-original"><a href="#original-4">原文4</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-2">2. 2. 等距变换的代数结构</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-5">原文5</a></span><span class="toc-original"><a href="#original-6">原文6</a></span><span class="toc-original"><a href="#original-7">原文7</a></span><span class="toc-original"><a href="#original-8">原文8</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-3">3. 3. 等距变换的几何分类</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-9">原文9</a></span><span class="toc-original"><a href="#original-10">原文10</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-4">4. 4. 定理6.3.4的证明</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-11">原文11</a></span><span class="toc-original"><a href="#original-12">原文12</a></span><span class="toc-original"><a href="#original-13">原文13</a></span><span class="toc-original"><a href="#original-14">原文14</a></span><span class="toc-original"><a href="#original-15">原文15</a></span><span class="toc-original"><a href="#original-16">原文16</a></span><span class="toc-original"><a href="#original-17">原文17</a></span><span class="toc-original"><a href="#original-18">原文18</a></span><span class="toc-original"><a href="#original-19">原文19</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-5">5. 5. 固定点的等距变换子群</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-20">原文20</a></span><span class="toc-original"><a href="#original-21">原文21</a></span><span class="toc-original"><a href="#original-22">原文22</a></span><span class="toc-original"><a href="#original-23">原文23</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-6">6. 6. 点与向量的区分</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-24">原文24</a></span><span class="toc-original"><a href="#original-25">原文25</a></span><span class="toc-original"><a href="#original-26">原文26</a></span><span class="toc-original"><a href="#original-27">原文27</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-7">7. 行间公式索引</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>1. 平面等距变换的代数与几何描述</h1>
+            <p class="authors"></p>
+            <p class="date"></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 图例区域 -->
+        <div class="legend-section">
+            <!-- 第一行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar original"></div>
+                    <span>📜 原文</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar explain"></div>
+                    <span>📖 逐步解释</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar formula"></div>
+                    <span>∑ 公式拆解</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar example"></div>
+                    <span>💡 数值示例</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar warning"></div>
+                    <span>⚠️ 易错点</span>
+                </div>
+            </div>
+            <!-- 第二行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar summary"></div>
+                    <span>📝 总结</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar purpose"></div>
+                    <span>🎯 存在目的</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar intuition"></div>
+                    <span>🧠 直觉心智模型</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar imagination"></div>
+                    <span>💭 直观想象</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="content-section" id="section-1">
+    <h2><span class="section-number">1</span>1. 平面等距变换的代数与几何描述</h2>
+    <h3>1.1. 引言：研究目标与方法</h3><p id="original-1"><strong style="font-size: 1.3rem;">📜 [原文1]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>在本节中，我们将从<strong>代数</strong>和<strong>几何</strong>两方面描述<strong>平面</strong>的<strong>等距变换</strong>。</p>
+<p>我们将<strong>平面</strong>的<strong>等距变换群</strong>记为 $M$。为了在该<strong>群</strong>中进行计算，我们选择一些特殊的<strong>等距变换</strong>作为<strong>生成元</strong>，并获得它们之间的<strong>关系</strong>。这些<strong>关系</strong>在某种程度上类似于定义<strong>对称群</strong> $S_{3}$ 的<strong>关系</strong>，但由于 $M$ 是<strong>无限</strong>的，因此<strong>关系</strong>更多。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本段是这一节的开篇，阐述了本节的核心目标和研究方法。</p>
+<ol>
+  <li> <strong>研究对象</strong>: <strong>平面</strong>的<strong>等距变换</strong>（isometries of the plane）。<strong>等距变换</strong>指的是<strong>平面</strong>上的一种<strong>变换</strong>（可以想象成移动或翻转），它保持任意两点之间的距离不变。就像你移动一张刚性纸片，纸片上任意两个点之间的距离在移动前后都是一样的。这种<strong>变换</strong>不会拉伸、压缩或撕裂<strong>平面</strong>。常见的<strong>等距变换</strong>包括<strong>平移</strong>、<strong>旋转</strong>和<strong>反射</strong>。</li>
+  <li> <strong>研究角度</strong>: 作者提出了两个角度来描述这些<strong>变换</strong>：
+<ul>
+  <li><strong>代数</strong>角度：将这些<strong>变换</strong>看作是一个<strong>代数</strong>结构——<strong>群 (Group)</strong> 的<strong>元素</strong>。<strong>群</strong>是一个<strong>集合</strong>，配上一种<strong>二元运算</strong>（在这里是<strong>变换</strong>的<strong>复合</strong>，即先做一个<strong>变换</strong>再做另一个），满足一些特定的<strong>公理</strong>（封闭性、结合律、存在单位元、存在逆元）。我们会用<strong>符号</strong>、<strong>公式</strong>和<strong>方程</strong>来描述这些<strong>变换</strong>以及它们之间的相互作用。</li>
+  <li><strong>几何</strong>角度：关注这些<strong>变换</strong>在视觉上是如何改变<strong>平面</strong>的。例如，一个<strong>变换</strong>是把整个<strong>平面</strong>向右移动了3个单位，还是绕着某个点旋转了90度。</li>
+</ul></li>
+  <li> <strong>研究方法</strong>:
+<ul>
+  <li>将所有<strong>平面</strong>的<strong>等距变换</strong>的<strong>集合</strong>记为 $M$。这个 $M$ 和<strong>变换</strong>的<strong>复合运算</strong>一起构成了一个<strong>群</strong>，称为<strong>平面</strong>的<strong>等距变换群</strong>。</li>
+  <li>为了研究这个<strong>群</strong> $M$，我们不需要列出其中所有的<strong>变换</strong>（因为有无穷多个）。相反，我们采用一种更高效的方法：找到一小组最基本的<strong>变换</strong>，称为<strong>生成元 (generators)</strong>。通过反复组合这些<strong>生成元</strong>，我们可以得到 $M$ 中的任何一个<strong>等距变换</strong>。这就像用红、黄、蓝三种基本颜色可以混合出各种颜色一样。</li>
+  <li>定义了<strong>生成元</strong>之后，我们需要了解它们之间是如何相互作用的。这些相互作用的规则被称为<strong>关系 (relations)</strong>。例如，一个<strong>旋转</strong>和一个<strong>平移</strong>组合起来，会得到一个新的<strong>变换</strong>，这个新<strong>变换</strong>是什么？这就是<strong>关系</strong>要回答的问题。</li>
+</ul></li>
+  <li> <strong>类比</strong>: 作者用<strong>对称群</strong> $S_3$ 来类比。$S_3$ 是一个包含6个<strong>元素</strong>的<strong>有限群</strong>，它可以被一个<strong>旋转</strong>和一个<strong>反射</strong>这两个<strong>生成元</strong>所<strong>生成</strong>，并且它们之间满足一些简单的<strong>关系</strong>。而我们现在研究的<strong>等距变换群</strong> $M$ 是一个<strong>无限群</strong>，因为它包含无数个<strong>平移</strong>（可以向任何方向移动任何距离）和<strong>旋转</strong>（可以绕任何点旋转任何角度）。因此，$M$ 的<strong>生成元</strong>之间的<strong>关系</strong>会比 $S_3$ 更复杂、更多样。</li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>等距变换</strong>: 想象<strong>平面</strong>上的两个点 $A=(0,0)$ 和 $B=(3,4)$。它们之间的距离是 $\sqrt{(3-0)^2 + (4-0)^2} = \sqrt{9+16} = \sqrt{25} = 5$。现在我们对整个<strong>平面</strong>进行一个<strong>平移</strong>，把每个点 $(x,y)$ 都移动到 $(x+2, y+1)$。那么点 $A$ 移动到 $A'=(2,1)$，点 $B$ 移动到 $B'=(5,5)$。新点 $A'$ 和 $B'$ 之间的距离是 $\sqrt{(5-2)^2 + (5-1)^2} = \sqrt{3^2 + 4^2} = \sqrt{9+16} = 5$。距离没有改变，所以这个<strong>平移</strong>是一个<strong>等距变换</strong>。</li>
+  <li><strong>生成元与关系 (类比)</strong>: 想象你在一个一维的无限数轴上，你只能做两种操作：向右走一步 (记为 $R$) 和向左走一步 (记为 $L$)。$R$ 和 $L$ 就是这个运动<strong>群</strong>的<strong>生成元</strong>。它们之间的<strong>关系</strong>是什么？很明显，先向右走一步再向左走一步，等于没动。这个<strong>关系</strong>可以写成 $R \circ L = \text{Identity}$ (恒等操作)。通过组合 $R$ 和 $L$，你可以到达数轴上的任何整数点。<strong>平面</strong>的<strong>等距变换</strong>也是类似的道理，只是更复杂。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>变换的顺序</strong>: <strong>变换</strong>的<strong>复合</strong>（运算）通常不满足交换律。例如，先<strong>平移</strong>再<strong>旋转</strong>，和先<strong>旋转</strong>再<strong>平移</strong>，得到的结果一般是不同的。这在后面的<strong>关系</strong>部分会详细体现。</li>
+  <li><strong>群和集合的区别</strong>: $M$ 不仅仅是一个<strong>集合</strong>，它是一个<strong>群</strong>。这意味着我们关心<strong>元素</strong>（<strong>等距变换</strong>）之间的<strong>运算</strong>（<strong>复合</strong>）。只罗列<strong>元素</strong>而不谈<strong>运算规则</strong>是没有意义的。</li>
+  <li><strong>无限群的复杂性</strong>: 不要低估从<strong>有限群</strong>（如 $S_3$）到<strong>无限群</strong>（如 $M$）的跨越。<strong>无限群</strong>的结构要复杂得多，<strong>关系</strong>的数量和形式也会更丰富。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段设定了本节的舞台：我们将使用<strong>代数</strong>工具（<strong>群</strong>、<strong>生成元</strong>、<strong>关系</strong>）来系统地、精确地描述和分类<strong>平面</strong>上所有保持距离不变的<strong>几何变换</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是为读者建立一个清晰的路线图。它告知读者，我们将要从两个不同但互补的视角（<strong>代数</strong>与<strong>几何</strong>）来探索同一个核心概念（<strong>平面等距变换</strong>）。通过引入<strong>群</strong>、<strong>生成元</strong>和<strong>关系</strong>这些<strong>代数</strong>概念，它预示了我们将采用一种结构化、公理化的方法来处理一个看似直观的<strong>几何</strong>问题，从而实现更深刻的理解和更强的计算能力。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你有一块无限大的、画着方格的硬纸板（<strong>平面</strong>）。你可以对这块纸板做的所有操作，只要保证纸板本身不被弯曲或拉伸（保持距离不变），都属于<strong>平面等geom</strong>变换**。这些操作包括：</p>
+<ol>
+  <li> 把整块纸板沿着某个方向滑动（<strong>平移</strong>）。</li>
+  <li> 找一个点，用钉子钉住，然后转动纸板（<strong>旋转</strong>）。</li>
+  <li> 沿着一条线，把纸板翻个面（<strong>反射</strong>）。</li>
+</ol>
+<p>本节的目标就是把所有这些可能的操作（无穷多种）进行分类，并找出它们背后的“语法规则”（<strong>代数关系</strong>）。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你站在一个无边无际的冰面上。你可以在冰面上滑行到任何位置（<strong>平移</strong>），可以原地打转（绕你所在点的<strong>旋转</strong>），甚至可以想象有一个镜子立在冰面上，你看到了一个镜像的你（<strong>反射</strong>）。本节就是要研究所有这些运动方式的数学本质。</p>
+    </div>
+</div><h3>1.2. 等距变换的生成元</h3><p id="original-2"><strong style="font-size: 1.3rem;">📜 [原文2]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>我们选择一个<strong>坐标系</strong>并用它来将<strong>平面</strong> $P$ 识别为<strong>空间</strong> $\mathbb{R}^{2}$。然后我们选择<strong>平移</strong>、关于<strong>原点</strong>的<strong>旋转</strong>以及关于 $e_{1}$-<strong>轴</strong>的<strong>反射</strong>作为<strong>生成元</strong>。我们将通过<strong>角度</strong> $\theta$ 的<strong>旋转</strong>记为 $\rho_{\theta}$，将关于 $e_{1}$-<strong>轴</strong>的<strong>反射</strong>记为 $r$。这些是<strong>线性算子</strong>，它们的<strong>矩阵</strong> $R$ 和 $S_{0}$ 之前已经展示过（参见 (5.1.17) 和 (5.1.16)）。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话定义了研究<strong>平面等距变换群</strong> $M$ 所需的“基本积木”——<strong>生成元</strong>。</p>
+<ol>
+  <li> <strong>建立坐标系</strong>: 为了用<strong>代数</strong>（数字和<strong>矩阵</strong>）来描述<strong>几何</strong>（点和<strong>变换</strong>），我们首先要在<strong>平面</strong> $P$ 上建立一个笛卡尔<strong>坐标系</strong>。这样，<strong>平面</strong>上的每一个点都可以用一个<strong>坐标</strong>对 $(x_1, x_2)$ 来表示。这个<strong>坐标</strong>对可以看作是<strong>二维实数空间</strong> $\mathbb{R}^2$ 中的一个<strong>向量</strong> $\begin{pmatrix} x_1 \\ x_2 \end{pmatrix}$。这么做的本质是“<strong>数字化</strong>”<strong>几何空间</strong>。</li>
+  <li> <strong>选择生成元</strong>: 作者没有选择所有类型的<strong>等距变换</strong>，而是只选了三种最基本的、特殊的<strong>变换</strong>作为<strong>生成元</strong>：
+<ul>
+  <li><strong>平移 (translation)</strong>: 记为 $t_a$，表示将<strong>平面</strong>上的每个点都移动一个<strong>向量</strong> $a$ 的距离和方向。</li>
+  <li><strong>关于原点的旋转 (rotation about the origin)</strong>: 记为 $\rho_{\theta}$，表示将<strong>平面</strong>上的每个点都绕着<strong>坐标系</strong>的<strong>原点</strong> $(0,0)$ 逆时针旋转一个<strong>角度</strong> $\theta$。</li>
+  <li><strong>关于 $e_1$-轴的反射 (reflection about the $e_1$-axis)</strong>: 记为 $r$。这里的 $e_1$-<strong>轴</strong>就是我们通常说的 $x$-<strong>轴</strong>。这个<strong>变换</strong>就像沿着 $x$-<strong>轴</strong>放了一面镜子，把每个点都翻到它的镜像位置。</li>
+</ul></li>
+  <li> <strong>生成元的特殊性</strong>: 注意，这里选择的<strong>旋转</strong>和<strong>反射</strong>都是非常特殊的。<strong>旋转</strong>必须是绕着<strong>原点</strong>的，<strong>反射</strong>必须是关于 $x$-<strong>轴</strong>的。为什么可以做这样的简化？因为后面会证明，任何<strong>等距变换</strong>（比如绕任意点 $p$ 的<strong>旋转</strong>，或关于任意直线 $\ell$ 的<strong>反射</strong>）都可以通过这三种基本<strong>生成元</strong>的组合来得到。</li>
+  <li> <strong>符号约定</strong>:
+<ul>
+  <li>$\rho_{\theta}$: 表示绕<strong>原点</strong>逆时针旋转<strong>角度</strong> $\theta$。$\rho$ 是 rotation 的希腊字母写法。</li>
+  <li>$r$: 表示关于 $x$-<strong>轴</strong>（$e_1$-<strong>轴</strong>）的<strong>反射</strong>。$r$ 是 reflection 的首字母。</li>
+</ul></li>
+  <li> <strong>与线性代数关联</strong>: 作者提到，<strong>旋转</strong> $\rho_{\theta}$ 和<strong>反射</strong> $r$ 都是<strong>线性算子</strong>。这意味着它们可以用<strong>矩阵</strong>来表示。一个<strong>变换</strong> $f$ 是<strong>线性</strong>的，如果它满足 $f(x+y)=f(x)+f(y)$ 和 $f(cx)=cf(x)$。<strong>绕原点的旋转</strong>和<strong>关于过原点的直线的反射</strong>都满足这个性质。而<strong>平移</strong>（只要平移<strong>向量</strong>非零）不是<strong>线性算子</strong>，因为它不满足 $f(0)=0$（它会把<strong>原点</strong>移动到其他地方）。</li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>平移不是线性变换</strong>: 这是一个非常关键的区别。<strong>旋转</strong> $\rho_{\theta}$ 和<strong>反射</strong> $r$ 可以用一个 $2 \times 2$ <strong>矩阵</strong>与<strong>坐标向量</strong>相乘来表示，但<strong>平移</strong> $t_a$ 只能表示为<strong>向量</strong>加法。这个区别是理解后续<strong>复合规则</strong>的关键。</li>
+  <li><strong>生成元的选择不是唯一的</strong>: 我们可以选择其他三、四种基本<strong>变换</strong>作为<strong>生成元</strong>。例如，我们可以选择两个不同直线（比如 $x$ <strong>轴</strong>和 $y$ <strong>轴</strong>）的<strong>反射</strong>作为<strong>生成元</strong>。但当前的选择（<strong>平移</strong>、绕<strong>原点旋转</strong>、关于 $x$ <strong>轴反射</strong>）在<strong>代数</strong>计算上特别方便。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段将研究<strong>等距变换</strong>的策略具体化：通过建立<strong>坐标系</strong>，将问题转化为 $\mathbb{R}^2$ 上的<strong>向量</strong>和<strong>矩阵</strong>运算，并选定了一组最基本的<strong>变换</strong>——任意<strong>平移</strong>、绕<strong>原点旋转</strong>、沿 $x$ <strong>轴反射</strong>——作为构建所有<strong>等距变换</strong>的<strong>生成元</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是奠定整个<strong>代数</strong>分析的基础。通过将<strong>几何</strong>问题<strong>坐标化</strong>，并将无穷的<strong>等距变换</strong>归结为三种基本<strong>生成元</strong>，它为后续的<strong>公式化</strong>和<strong>计算</strong>铺平了道路。这是一种化繁为简的经典数学策略。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像玩乐高积木。你有一堆各种各样（无穷无尽）的复杂积木块（所有的<strong>等距变换</strong>）。为了更好地理解它们，你发现其实只需要三种最基本的积木块：一种是“移动块”（<strong>平移</strong>），一种是“绕中心旋转块”（<strong>绕原点旋转</strong>），一种是“翻转块”（<strong>沿x轴反射</strong>）。通过组合这三种基本块，你可以拼出任何一个复杂的积木块。本段就是在定义这三种“基本乐高块”。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一张透明的坐标纸盖在另一张固定的地图上。</p>
+<ol>
+  <li><strong>平移</strong> $t_a$：你把整张透明纸平着滑动，不旋转。</li>
+  <li><strong>旋转</strong> $\rho_{\theta}$：你用一根针把透明纸的<strong>原点</strong>钉在地图的<strong>原点</strong>上，然后转动透明纸。</li>
+  <li><strong>反射</strong> $r$：你捏住透明纸的 $x$ <strong>轴</strong>，然后把它像书页一样翻过来。</li>
+</ol>
+<p>这三种基本动作就是我们的<strong>生成元</strong>。</p>
+    </div>
+</div><h3>1.3. 生成元的具体公式</h3><p id="original-3"><strong style="font-size: 1.3rem;">📜 [原文3]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ol>
+  <li> <strong>向量</strong> $a$ 的<strong>平移</strong> $t_{a}$: $t_{a}(x)=x+a=\left[\begin{array}{l}x_{1} \\ x_{2}\end{array}\right]+\left[\begin{array}{l}a_{1} \\ a_{2}\end{array}\right]$。</li>
+  <li> 关于<strong>原点</strong>以<strong>角度</strong> $\theta$ 的<strong>旋转</strong> $\rho_{\theta}$: $\rho_{\theta}(x)=\left[\begin{array}{rr}\cos \theta &amp; -\sin \theta \\ \sin \theta &amp; \cos \theta\end{array}\right]\left[\begin{array}{l}x_{1} \\ x_{2}\end{array}\right]$。</li>
+  <li> 关于 $e_{1}$-<strong>轴</strong>的<strong>反射</strong> $r$: $r(x)=\left[\begin{array}{rr}1 &amp; 0 \\ 0 &amp; -1\end{array}\right]\left[\begin{array}{l}x_{1} \\ x_{2}\end{array}\right]$。</li>
+</ol>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这一部分给出了上一段提到的三种<strong>生成元</strong>的具体数学<strong>公式</strong>。</p>
+<ol>
+  <li> <strong>平移 (Translation)</strong>:
+<ul>
+  <li>$t_a(x) = x + a$：这是<strong>平移</strong>的<strong>向量</strong>表示。$t_a$ 是作用在点 $x$ 上的<strong>变换</strong>，其结果是点 $x$ 的<strong>位置向量</strong>与<strong>平移向量</strong> $a$ 相加。</li>
+  <li>$\left[\begin{array}{l}x_{1} \\ x_{2}\end{array}\right]+\left[\begin{array}{l}a_{1} \\ a_{2}\end{array}\right]$：这是<strong>分量</strong>表示。点 $(x_1, x_2)$ 被移动到点 $(x_1+a_1, x_2+a_2)$。$x$ <strong>坐标</strong>移动 $a_1$， $y$ <strong>坐标</strong>移动 $a_2$。</li>
+</ul></li>
+  <li> <strong>旋转 (Rotation)</strong>:
+<ul>
+  <li>$\rho_{\theta}(x) = R_{\theta}x$：这是<strong>旋转</strong>的<strong>矩阵</strong>表示。绕<strong>原点</strong>旋转一个<strong>角度</strong> $\theta$ 的<strong>变换</strong> $\rho_{\theta}$ 可以通过将点的<strong>坐标向量</strong> $x$ 左乘一个 $2 \times 2$ 的<strong>旋转矩阵</strong>来实现。</li>
+  <li>$\left[\begin{array}{rr}\cos \theta &amp; -\sin \theta \\ \sin \theta &amp; \cos \theta\end{array}\right]$：这是著名的<strong>二维旋转矩阵</strong>。当它乘以一个<strong>向量</strong> $\begin{pmatrix} x_1 \\ x_2 \end{pmatrix}$ 时，得到的新<strong>向量</strong>就是原<strong>向量</strong>绕<strong>原点</strong>逆时针旋转 $\theta$ 角后的<strong>位置</strong>。</li>
+</ul></li>
+  <li> <strong>反射 (Reflection)</strong>:
+<ul>
+  <li>$r(x) = S_0 x$: 这是关于 $x$ <strong>轴</strong>（$e_1$ <strong>轴</strong>）<strong>反射</strong>的<strong>矩阵</strong>表示。这个<strong>变换</strong> $r$ 也是一个<strong>线性变换</strong>，可以通过左乘一个<strong>反射矩阵</strong> $S_0$ 来实现。</li>
+  <li>$\left[\begin{array}{rr}1 &amp; 0 \\ 0 &amp; -1\end{array}\right]$: 这是关于 $x$ <strong>轴</strong>的<strong>反射矩阵</strong>。当它乘以一个<strong>向量</strong> $\begin{pmatrix} x_1 \\ x_2 \end{pmatrix}$ 时，结果是 $\begin{pmatrix} 1 \cdot x_1 + 0 \cdot x_2 \\ 0 \cdot x_1 + (-1) \cdot x_2 \end{pmatrix} = \begin{pmatrix} x_1 \\ -x_2 \end{pmatrix}$。这正是点 $(x_1, x_2)$ 关于 $x$ <strong>轴</strong>的镜像点。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>公式1: 平移</strong> $t_{a}(x)=x+a$</li>
+  <li>$t_a$: 一个函数/算子，表示“由<strong>向量</strong> $a$ 定义的<strong>平移</strong>”。下标 $a$ 指明了<strong>平移</strong>的方向和大小。</li>
+  <li>$x$: 输入，一个<strong>平面</strong>上的点，用其<strong>位置向量</strong> $\begin{pmatrix} x_1 \\ x_2 \end{pmatrix}$ 表示。</li>
+  <li>$a$: <strong>平移向量</strong> $\begin{pmatrix} a_1 \\ a_2 \end{pmatrix}$。</li>
+  <li>$x+a$: <strong>向量加法</strong>，输出是<strong>平移</strong>后的新点的<strong>位置向量</strong>。</li>
+  <li><strong>公式2: 旋转</strong> $\rho_{\theta}(x)=\left[\begin{array}{rr}\cos \theta &amp; -\sin \theta \\ \sin \theta &amp; \cos \theta\end{array}\right]\left[\begin{array}{l}x_{1} \\ x_{2}\end{array}\right]$</li>
+  <li>$\rho_\theta$: 表示“绕<strong>原点</strong>逆时针旋转<strong>角度</strong> $\theta$”的算子。</li>
+  <li>$\left[\begin{array}{rr}\cos \theta &amp; -\sin \theta \\ \sin \theta &amp; \cos \theta\end{array}\right]$: <strong>旋转矩阵</strong> $R_\theta$。我们可以推导它：假设点 $P(x,y)$ 极<strong>坐标</strong>为 $(l, \alpha)$，则 $x = l \cos \alpha, y = l \sin \alpha$。旋转 $\theta$ 角后到点 $P'(x', y')$，其极<strong>坐标</strong>为 $(l, \alpha+\theta)$。所以 $x' = l \cos(\alpha+\theta) = l(\cos\alpha\cos\theta - \sin\alpha\sin\theta) = x\cos\theta - y\sin\theta$。同理 $y' = l \sin(\alpha+\theta) = l(\sin\alpha\cos\theta + \cos\alpha\sin\theta) = y\cos\theta + x\sin\theta$。写成<strong>矩阵</strong>形式就是：$\begin{pmatrix} x' \\ y' \end{pmatrix} = \begin{pmatrix} \cos\theta &amp; -\sin\theta \\ \sin\theta &amp; \cos\theta \end{pmatrix} \begin{pmatrix} x \\ y \end{pmatrix}$。</li>
+  <li><strong>公式3: 反射</strong> $r(x)=\left[\begin{array}{rr}1 &amp; 0 \\ 0 &amp; -1\end{array}\right]\left[\begin{array}{l}x_{1} \\ x_{2}\end{array}\right]$</li>
+  <li>$r$: 表示“关于 $x$ <strong>轴</strong>的<strong>反射</strong>”的算子。</li>
+  <li>$\left[\begin{array}{rr}1 &amp; 0 \\ 0 &amp; -1\end{array}\right]$: <strong>反射矩阵</strong>。这个<strong>矩阵</strong>的作用是保持 $x_1$ <strong>分量</strong>不变 ($1 \cdot x_1$)，并将 $x_2$ <strong>分量</strong>取反 ($-1 \cdot x_2$)。这正是关于 $x$ <strong>轴</strong>做镜像的<strong>几何</strong>意义。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1: 平移</strong></li>
+  <li>令<strong>平移向量</strong> $a = \begin{pmatrix} 3 \\ -2 \end{pmatrix}$，作用于点 $x = \begin{pmatrix} 1 \\ 4 \end{pmatrix}$。</li>
+  <li>$t_a(x) = x + a = \begin{pmatrix} 1 \\ 4 \end{pmatrix} + \begin{pmatrix} 3 \\ -2 \end{pmatrix} = \begin{pmatrix} 1+3 \\ 4-2 \end{pmatrix} = \begin{pmatrix} 4 \\ 2 \end{pmatrix}$。</li>
+  <li>点 $(1,4)$ 被<strong>平移</strong>到了点 $(4,2)$。</li>
+  <li><strong>示例2: 旋转</strong></li>
+  <li>令旋转<strong>角度</strong> $\theta = 90^\circ$ (或 $\pi/2$ 弧度)。$\cos(90^\circ)=0, \sin(90^\circ)=1$。</li>
+  <li><strong>旋转矩阵</strong>为 $\left[\begin{array}{rr}0 &amp; -1 \\ 1 &amp; 0\end{array}\right]$。</li>
+  <li>作用于点 $x = \begin{pmatrix} 2 \\ 3 \end{pmatrix}$。</li>
+  <li>$\rho_{90^\circ}(x) = \left[\begin{array}{rr}0 &amp; -1 \\ 1 &amp; 0\end{array}\right] \begin{pmatrix} 2 \\ 3 \end{pmatrix} = \begin{pmatrix} 0 \cdot 2 + (-1) \cdot 3 \\ 1 \cdot 2 + 0 \cdot 3 \end{pmatrix} = \begin{pmatrix} -3 \\ 2 \end{pmatrix}$。</li>
+  <li>点 $(2,3)$ 被逆时针旋转 $90^\circ$ 后到达点 $(-3,2)$。</li>
+  <li><strong>示例3: 反射</strong></li>
+  <li>作用于点 $x = \begin{pmatrix} 5 \\ -6 \end{pmatrix}$。</li>
+  <li>$r(x) = \left[\begin{array}{rr}1 &amp; 0 \\ 0 &amp; -1\end{array}\right] \begin{pmatrix} 5 \\ -6 \end{pmatrix} = \begin{pmatrix} 1 \cdot 5 + 0 \cdot (-6) \\ 0 \cdot 5 + (-1) \cdot (-6) \end{pmatrix} = \begin{pmatrix} 5 \\ 6 \end{pmatrix}$。</li>
+  <li>点 $(5, -6)$ 关于 $x$ <strong>轴</strong>的镜像点是 $(5, 6)$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>角度单位</strong>: 在<strong>旋转矩阵</strong>的<strong>公式</strong>中，$\theta$ 通常使用弧度制。如果题目给的是<strong>角度</strong>制，需要先转换。例如 $90^\circ = \pi/2$ 弧度。</li>
+  <li><strong>旋转方向</strong>: 这里的<strong>旋转矩阵</strong>是逆时针旋转。顺时针旋转 $\theta$ 等价于逆时针旋转 $-\theta$。由于 $\cos(-\theta)=\cos\theta, \sin(-\theta)=-\sin\theta$，顺时针旋转的<strong>矩阵</strong>为 $\left[\begin{array}{rr}\cos \theta &amp; \sin \theta \\ -\sin \theta &amp; \cos \theta\end{array}\right]$。</li>
+  <li><strong>矩阵乘法顺序</strong>: <strong>矩阵</strong>必须在<strong>向量</strong>的左边，即 $Rx$ 而不是 $xR$。<strong>矩阵乘法</strong>不满足交换律。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段将三种<strong>生成元</strong>（<strong>平移</strong>、绕<strong>原点旋转</strong>、沿 $x$ <strong>轴反射</strong>）从抽象概念转化为具体的、可计算的<strong>代数</strong>表达式：<strong>平移</strong>是<strong>向量加法</strong>，<strong>旋转</strong>和<strong>反射</strong>是<strong>矩阵乘法</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是为“计算”做准备。通过提供这些明确的<strong>公式</strong>，我们就拥有了分析和组合这些<strong>变换</strong>的工具。任何复杂的<strong>等距变换</strong>，原则上都可以通过反复应用这些<strong>公式</strong>来计算其最终效果。这是连接<strong>几何</strong>直观与<strong>代数</strong>严谨性的桥梁。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像是给你的三种乐高基本块（移动、旋转、翻转）写下了详细的“使用说明书”。说明书用数学语言精确地告诉你，当你使用这些积木块时，<strong>平面</strong>上每个点的<strong>坐标</strong>会发生怎样的确切变化。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>平移</strong>：在<strong>坐标</strong>网格上，所有点都像一个整体，沿着<strong>向量</strong> $a$ 的箭头方向滑动。</li>
+  <li><strong>旋转</strong>：想象<strong>坐标</strong>网格的<strong>原点</strong>有一个图钉。整个网格绕着图钉旋转，而网格线本身的角度也跟着改变。</li>
+  <li><strong>反射</strong>：想象 $x$ <strong>轴</strong>是一面镜子。每个点都跳到镜子另一侧同样距离的位置，它的 $y$ <strong>坐标</strong>数值不变，但符号变了。</li>
+</ol>
+    </div>
+</div><h3>1.4. 生成元的完备性</h3><p id="original-4"><strong style="font-size: 1.3rem;">📜 [原文4]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>我们还没有列出所有的<strong>等距变换</strong>。不包括不通过<strong>原点</strong>的<strong>旋转</strong>，也不包括关于其他<strong>直线</strong>的<strong>反射</strong>，或<strong>滑移反射</strong>。然而，$M$ 的每个<strong>元素</strong>都是这些<strong>等距变换</strong>的<strong>乘积</strong>，因此它们<strong>生成</strong>了<strong>群</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话处理了一个潜在的疑问，并做出了一个核心论断。</p>
+<ol>
+  <li> <strong>提出疑问/承认不足</strong>: 作者坦诚，我们刚刚定义的三种基本操作（<strong>平移</strong>、$t_a$；绕<strong>原点</strong>旋转、$\rho_\theta$；关于 $x$ <strong>轴反射</strong>，$r$）显然不是全部的<strong>等距变换</strong>。例如：
+<ul>
+  <li><strong>不通过原点的旋转</strong>: 比如，绕点 $(1,1)$ 旋转 $45^\circ$。这是一个合法的<strong>等距变换</strong>，但它不是我们定义的 $\rho_{45^\circ}$。</li>
+  <li><strong>关于其他直线的反射</strong>: 比如，关于直线 $y=x$ 的<strong>反射</strong>。</li>
+  <li><strong>滑移反射 (glide reflection)</strong>: 这是一种更复杂的<strong>变换</strong>，它由一个<strong>反射</strong>和一个平行于<strong>反射轴</strong>的<strong>平移</strong>组合而成。想象在雪地上走路的脚印，左脚印和右脚印大致是镜像对称的，但又向前错开了一段距离。</li>
+</ul></li>
+  <li> <strong>核心论断</strong>: 尽管我们只列出了三种“特殊”的<strong>变换</strong>，但这个<strong>集合</strong>已经足够了。这个论断是：“$M$ 的每个<strong>元素</strong>都是这些<strong>等距变换</strong>的<strong>乘积</strong>”。
+<ul>
+  <li>“<strong>乘积</strong>”在这里指的是<strong>变换</strong>的<strong>复合</strong>（composition）。例如，$\rho_\theta \circ t_a$ 表示先进行<strong>平移</strong> $t_a$，再进行<strong>旋转</strong> $\rho_\theta$。（注意：函数<strong>复合</strong>的顺序是从右到左）。</li>
+  <li>这个论断意味着，任何你能想到的<strong>平面等距变换</strong>，无论它看起来多么复杂（如绕任意点的<strong>旋转</strong>或<strong>滑移反射</strong>），都可以被拆解成一系列我们定义的三种基本<strong>变换</strong>的组合。</li>
+</ul></li>
+  <li> <strong>生成群 (generate the group)</strong>: 这个核心论断直接引出了结论——我们选出的这三种<strong>变换</strong>（<strong>平移</strong>、绕<strong>原点旋转</strong>、关于 $x$ <strong>轴反射</strong>）是<strong>等距变换群</strong> $M$ 的一个<strong>生成集 (generating set)</strong>。它们是构建整个<strong>群</strong> $M$ 的基本材料。</li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>如何生成一个“不通过原点的旋转”？</strong></li>
+  <li>目标：将<strong>平面</strong>绕点 $p=(1,1)$ 旋转 $90^\circ$。我们称这个<strong>变换</strong>为 $R_{90, p}$。</li>
+  <li>分解步骤：我们可以利用我们已有的工具（绕<strong>原点</strong>的<strong>旋转</strong> $\rho_{90}$ 和<strong>平移</strong> $t_a$）来“拼凑”出这个<strong>变换</strong>。</li>
+</ul>
+<ol>
+  <li> <strong>第一步：将旋转中心平移到原点</strong>。使用<strong>平移</strong> $t_{-p}$，即 $t_{(-1,-1)}$，将点 $p=(1,1)$ 移动到<strong>原点</strong> $(0,0)$。</li>
+  <li> <strong>第二步：执行我们熟悉的绕原点旋转</strong>。现在旋转中心已经在<strong>原点</strong>了，我们可以使用 $\rho_{90}$ 进行旋转。</li>
+  <li> <strong>第三步：将原点平移回原来的旋转中心</strong>。使用<strong>平移</strong> $t_p$，即 $t_{(1,1)}$，将<strong>原点</strong>移回到点 $p=(1,1)$。
+<ul>
+  <li><strong>代数表示</strong>: 整个<strong>变换</strong>的<strong>复合</strong>为 $R_{90, p} = t_p \circ \rho_{90} \circ t_{-p}$。</li>
+  <li>我们成功地用<strong>生成元</strong>（一个<strong>旋转</strong>和两个<strong>平移</strong>）的<strong>复合</strong>表示了一个更复杂的<strong>变换</strong>。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>复合顺序至关重要</strong>: $t_p \circ \rho_{90} \circ t_{-p}$ 的顺序不能错。它是把一个点 $x$ 先做 $t_{-p}$，再做 $\rho_{90}$，最后做 $t_p$。写出来就是 $t_p(\rho_{90}(t_{-p}(x)))$。如果顺序颠倒，例如变成 $t_{-p} \circ \rho_{90} \circ t_p$，那将是绕 $(-1,-1)$ 点的<strong>旋转</strong>，完全不同。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段的核心思想是“完备性”。它申明我们选出的三种基本<strong>变换</strong>（<strong>生成元</strong>）虽然看起来很特殊、很简单，但它们的组合能力是完备的，足以构建出整个<strong>平面等距变换群</strong> $M$ 中的任何一个<strong>元素</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是打消读者的疑虑，建立信心。在只介绍了三种特殊<strong>变换</strong>后，读者很自然会问“这够用吗？”。本段直接回答了这个问题：“够用”，并解释了“够用”的含义，即任何<strong>变换</strong>都可以由它们“<strong>生成</strong>”。这为后续只研究这三种<strong>生成元</strong>及其<strong>关系</strong>的合理性提供了辩护。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>回到乐高积木的比喻。你可能觉得只有三种基本块，怎么可能拼出宇宙飞船模型呢？本段告诉你，这三种基本块设计得非常好，通过不同的方式组合、堆叠它们（对应<strong>变换</strong>的<strong>复合</strong>），你确实可以拼出任何你想要的复杂模型（任何<strong>等距变换</strong>）。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你的工具箱里只有三种工具：一把能让你在<strong>平面</strong>上滑动的“滑动器”（<strong>平移</strong>），一个只能在<strong>原点</strong>打桩旋转的“圆规”（绕<strong>原点旋转</strong>），和一把只能沿着 $x$ <strong>轴</strong>翻折的“折尺”（关于 $x$ <strong>轴反射</strong>）。本段告诉你，即使工具这么有限，只要你足够聪明地组合使用它们，你就能实现任何对<strong>平面</strong>的刚性操作。例如，想绕任意点 $P$ 旋转，你可以先用“滑动器”把 $P$ 点滑到<strong>原点</strong>，再用“圆规”旋转，最后再用“滑动器”把<strong>原点</strong>滑回 $P$ 点。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-2">
+    <h2><span class="section-number">2</span>2. 等距变换的代数结构</h2>
+    <h3>2.1. 等距变换的唯一分解定理</h3><p id="original-5"><strong style="font-size: 1.3rem;">📜 [原文5]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>定理</strong> 6.3.2 令 $m$ 为<strong>平面</strong>的<strong>等距变换</strong>。那么 $m=t_{v} \rho_{\theta}$，或者 $m=t_{v} \rho_{\theta} r$，其中 $v$ 是一个<strong>唯一确定</strong>的<strong>向量</strong>，$\theta$ 是一个<strong>唯一确定</strong>的<strong>角度</strong>，可能为零。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个<strong>定理</strong>是本节第一个重要的结构性结论。它为<strong>平面</strong>上的任何一个<strong>等距变换</strong> $m$ 提供了一个“标准范式”或“标准分解式”。</p>
+<ol>
+  <li> <strong>定理内容</strong>: 它说，任何一个<strong>等距变换</strong> $m$ 都可以被写成以下两种形式之一：
+<ul>
+  <li>形式一: $m = t_v \rho_\theta$。这是一个绕<strong>原点</strong>的<strong>旋转</strong> $\rho_\theta$，后面跟着一个<strong>平移</strong> $t_v$。</li>
+  <li>形式二: $m = t_v \rho_\theta r$。这是一个关于 $x$ <strong>轴</strong>的<strong>反射</strong> $r$，然后是一个绕<strong>原点</strong>的<strong>旋转</strong> $\rho_\theta$，最后是一个<strong>平移</strong> $t_v$。（注意<strong>复合</strong>顺序从右到左）。</li>
+</ul></li>
+  <li> <strong>唯一性</strong>: 这种表示法是<strong>唯一</strong>的。对于一个给定的<strong>等距变换</strong> $m$，能把它写成上述形式的<strong>平移向量</strong> $v$ 和旋转<strong>角度</strong> $\theta$ 是独一无二的。</li>
+  <li> <strong>分类</strong>: 这个<strong>定理</strong>实际上将所有<strong>等距变换</strong>分成了两大类：
+<ul>
+  <li><strong>保持定向 (orientation-preserving)</strong> 的<strong>变换</strong>，它们可以被写成 $t_v \rho_\theta$ 的形式。直观上，这些<strong>变换</strong>像是把<strong>平面</strong>作为一个刚性物体来移动和旋转，但不会“翻面”。比如，如果你在<strong>平面</strong>上画了一个顺时针的圆，经过这类<strong>变换</strong>后，它依然是顺时针的。<strong>平移</strong>和<strong>旋转</strong>都属于这一类。</li>
+  <li><strong>改变定向 (orientation-reversing)</strong> 的<strong>变换</strong>，它们可以被写成 $t_v \rho_\theta r$ 的形式。这些<strong>变换</strong>中包含了一次<strong>反射</strong>（翻面操作）。经过这类<strong>变换</strong>后，原来顺时针的圆会变成逆时针的。<strong>反射</strong>和<strong>滑移反射</strong>属于这一类。</li>
+</ul></li>
+  <li> <strong>$\theta$ 可能为零</strong>: <strong>定理</strong>中提到 $\theta$ 可能为零。如果 $\theta=0$，那么 $\rho_0$ 就是恒等<strong>变换</strong>（不做任何旋转），因为<strong>旋转矩阵</strong>变成单位<strong>矩阵</strong> $\begin{pmatrix} 1 &amp; 0 \\ 0 &amp; 1 \end{pmatrix}$。
+<ul>
+  <li>当 $\theta=0$ 时，形式一 $m=t_v \rho_0 = t_v$，就是一个纯粹的<strong>平移</strong>。</li>
+  <li>当 $\theta=0$ 时，形式二 $m=t_v \rho_0 r = t_v r$，就是一个<strong>反射</strong>再加一个<strong>平移</strong>。这就是<strong>滑移反射</strong>的一般形式。</li>
+</ul></li>
+</ol>
+<p><strong style="font-size: 1.2rem;">[证明思路解析]</strong></p>
+    </div>
+</div><p id="original-6"><strong style="font-size: 1.3rem;">📜 [原文6]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>证明</strong>。<strong>推论</strong> 6.2.7 断言任何<strong>等距变换</strong> $m$ 都可以<strong>唯一</strong>地写成 $m=t_{v} \varphi$ 的形式，其中 $\varphi$ 是一个<strong>正交算子</strong>。<strong>空间</strong> $\mathbb{R}^{2}$ 上的<strong>正交线性算子</strong>是关于<strong>原点</strong>的<strong>旋转</strong> $\rho_{\theta}$ 和关于通过<strong>原点</strong>的<strong>直线</strong>的<strong>反射</strong>。这些<strong>反射</strong>具有 $\rho_{\theta} r$ 的形式（参见 (5.1.17)）。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>引用先前的结论 (推论 6.2.7)</strong>: 证明的第一步是引用一个更早的结论：任何<strong>等距变换</strong> $m$ 都可以被<strong>唯一</strong>地分解为一个<strong>平移</strong> $t_v$ 和一个<strong>正交算子</strong> $\varphi$ 的<strong>复合</strong>，即 $m = t_v \varphi$。
+<ul>
+  <li><strong>正交算子</strong> $\varphi$ 是一个保持<strong>原点</strong>不变的<strong>等距变换</strong>。在<strong>几何</strong>上，它保持<strong>向量</strong>的长度和<strong>向量</strong>之间的夹角不变。在线性<strong>代数</strong>中，它的<strong>矩阵</strong> $Q$ 满足 $Q^T Q = I$（<strong>正交矩阵</strong>）。</li>
+</ul></li>
+  <li> <strong>分类二维正交算子</strong>: 证明的第二步是具体化在二维<strong>平面</strong> $\mathbb{R}^2$ 上，<strong>正交算子</strong> $\varphi$ 到底有哪些。结论是，它们只有两种：
+<ul>
+  <li><strong>旋转</strong>: 绕<strong>原点</strong>的<strong>旋转</strong> $\rho_\theta$。这些<strong>变换</strong>的<strong>矩阵</strong>是 $\begin{pmatrix} \cos\theta &amp; -\sin\theta \\ \sin\theta &amp; \cos\theta \end{pmatrix}$，其<strong>行列式</strong>为 $\cos^2\theta - (-\sin^2\theta) = 1$。这些是<strong>保持定向</strong>的<strong>正交算子</strong>。</li>
+  <li><strong>反射</strong>: 关于一条穿过<strong>原点</strong>的直线的<strong>反射</strong>。之前的章节 (5.1.17) 已经证明，任何这样的一条<strong>反射</strong>都可以表示为“先做一个标准的关于 $x$ <strong>轴</strong>的<strong>反射</strong> $r$，然后再做一个合适的绕<strong>原点</strong>的<strong>旋转</strong> $\rho_\theta$”。也就是说，任何关于过<strong>原点</strong>直线的<strong>反射</strong>都可以写成 $\rho_\theta r$ 的形式。这些<strong>变换</strong>的<strong>矩阵</strong><strong>行列式</strong>为 $-1$，是<strong>改变定向</strong>的<strong>正交算子</strong>。</li>
+</ul></li>
+  <li> <strong>组合结论</strong>: 将步骤1和2结合起来：
+<ul>
+  <li>既然任何<strong>等距变换</strong>是 $m = t_v \varphi$，而 $\varphi$ 要么是 $\rho_\theta$，要么是 $\rho_\theta r$。</li>
+  <li>那么 $m$ 就必然是 $m = t_v \rho_\theta$ 或者 $m = t_v \rho_\theta r$。</li>
+  <li>由于 $m=t_v\varphi$ 的分解是<strong>唯一</strong>的，而 $\varphi$ 到 $\rho_\theta$ 或 $\rho_\theta r$ 的表示也是<strong>唯一</strong>的，因此整个分解 $m=t_v\rho_\theta$ 或 $m=t_v\rho_\theta r$ 中的 $v$ 和 $\theta$ 也是<strong>唯一</strong>的。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这个<strong>定理</strong>极其强大，它为所有看起来杂乱无章的<strong>平面等距变换</strong>提供了一个统一的、唯一的“身份证”。每个<strong>变换</strong>都可以被两个参数（<strong>平移向量</strong> $v$）和（旋转<strong>角度</strong> $\theta$）以及一个“翻转”标志（是否包含 $r$）来唯一标识。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个<strong>定理</strong>的目的是为了“标准化”。有了这个标准形式，我们在处理一个任意的<strong>等距变换</strong>时，就有了一个固定的入手点。我们可以先确定它是<strong>保持定向</strong>还是<strong>改变定向</strong>，然后找出它的<strong>平移</strong>部分和<strong>旋转</strong>/<strong>反射</strong>部分。这为后续的分类和计算提供了极大的便利。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你在整理一个大仓库，里面堆满了各式各样的椅子（<strong>等距变换</strong>）。你发现所有椅子都可以被归为两类：“正着放的椅子”（<strong>保持定向</strong>）和“倒着放的椅子”（<strong>改变定向</strong>）。然后你进一步发现，任何一把“正着放的椅子”，它的<strong>位置</strong>和朝向都可以通过“先在仓库中心转一个角度，再把它搬到某个地方”来描述。任何一把“倒着放的椅子”，其<strong>位置</strong>和姿态都可以通过“先在仓库中心把它上下翻转并转一个角度，再把它搬到某个地方”来描述。这个<strong>定理</strong>就是这个整理仓库的“万能描述法则”。</p>
+    </div>
+</div><h3>2.2. 定向的保持与改变</h3><p id="original-7"><strong style="font-size: 1.3rem;">📜 [原文7]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>$t_{v} \rho_{\theta}$ 形式的<strong>等距变换</strong>保持<strong>定向</strong>，而 $t_{v} \rho_{\theta} r$ 改变<strong>定向</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话是对<strong>定理</strong> 6.3.2 分类的<strong>几何</strong>意义的阐述。</p>
+<ol>
+  <li> <strong>定向 (Orientation)</strong>: <strong>平面</strong>的<strong>定向</strong>可以直观地理解为“顺时针”和“逆时针”方向的区分。你可以在<strong>平面</strong>上画一个带箭头的圆弧，或者画一个带顶点顺序的三角形（如 $ABC$）。</li>
+  <li> <strong>保持定向 (Orientation-Preserving)</strong>: 一个<strong>变换</strong>如果<strong>保持定向</strong>，意味着它不会改变这种“顺时针/逆时针”的性质。
+<ul>
+  <li>如果你有一个按 $A \rightarrow B \rightarrow C$ 顺序为逆时针的三角形，经过<strong>变换</strong>后得到新三角形 $A'B'C'$，那么 $A' \rightarrow B' \rightarrow C'$ 的顺序也必须是逆时针的。</li>
+  <li><strong>平移</strong> $t_v$ 只是把图形平移，显然不改变<strong>定向</strong>。</li>
+  <li><strong>旋转</strong> $\rho_\theta$ 只是把图形转动，也不改变<strong>定向</strong>。</li>
+  <li>它们的<strong>复合</strong> $t_v \rho_\theta$ 自然也<strong>保持定向</strong>。</li>
+  <li>从线性<strong>代数</strong>角度看，这种<strong>变换</strong>的<strong>线性</strong>部分（即 $\rho_\theta$）的<strong>矩阵</strong><strong>行列式</strong>为 $+1$。</li>
+</ul></li>
+  <li> <strong>改变定向 (Orientation-Reversing)</strong>: 一个<strong>变换</strong>如果<strong>改变定向</strong>，意味着它会颠倒“顺时针/逆时针”的性质。
+<ul>
+  <li>如果原来的三角形 $ABC$ 是逆时针的，<strong>变换</strong>后的 $A'B'C'$ 会变成顺时针的。</li>
+  <li>这本质上是一个“翻面”操作，就像你看镜子里的自己，你的左手在镜像里变成了“右手”（相对于镜像身体的左右）。</li>
+  <li><strong>反射</strong> $r$ 是最基本的<strong>改变定向</strong>的<strong>变换</strong>。</li>
+  <li>任何包含奇数次<strong>反射</strong>的<strong>复合变换</strong>都会<strong>改变定向</strong>。形式 $t_v \rho_\theta r$ 中包含了一次<strong>反射</strong> $r$，所以它<strong>改变定向</strong>。</li>
+  <li>从线性<strong>代数</strong>角度看，这种<strong>变换</strong>的<strong>线性</strong>部分（即 $\rho_\theta r$）的<strong>矩阵</strong><strong>行列式</strong>为 $-1$。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>保持定向示例</strong>:</li>
+  <li>考虑三个点 $O(0,0), A(1,0), B(0,1)$。从 $O \rightarrow A \rightarrow B$ 是逆时针顺序。</li>
+  <li>应用<strong>变换</strong> $m = t_{(2,1)}\rho_{90}$。</li>
+  <li>先旋转 $\rho_{90}$: $O \rightarrow O'(0,0)$, $A \rightarrow A'(0,1)$, $B \rightarrow B'(-1,0)$。顺序 $O' \rightarrow A' \rightarrow B'$ 仍然是逆时针。</li>
+  <li>再<strong>平移</strong> $t_{(2,1)}$: $O' \rightarrow O''(2,1)$, $A' \rightarrow A''(2,2)$, $B' \rightarrow B''(1,1)$。顺序 $O'' \rightarrow A'' \rightarrow B''$ 依然是逆时针。</li>
+  <li><strong>改变定向示例</strong>:</li>
+  <li>还是用 $O(0,0), A(1,0), B(0,1)$，逆时针。</li>
+  <li>应用<strong>变换</strong> $m=r$ (关于 $x$ <strong>轴反射</strong>)。</li>
+  <li>$O \rightarrow O'(0,0)$, $A \rightarrow A'(1,0)$, $B \rightarrow B'(0,-1)$。</li>
+  <li>现在我们看新的顺序 $O' \rightarrow A' \rightarrow B'$。从 $(0,0)$ 到 $(1,0)$ 再到 $(0,-1)$，这是一个顺时针的顺序。<strong>定向</strong>被改变了。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段用<strong>定向</strong>这个<strong>几何</strong>概念，给<strong>定理</strong> 6.3.2 的两种标准形式赋予了直观的物理意义：一种是刚体在<strong>平面</strong>内的移动和旋转，另一种是刚体移动旋转后再翻个面。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这不仅是一个解释，更是一个重要的分类标准。在<strong>群</strong>论中，所有<strong>保持定向</strong>的<strong>等距变换</strong>构成一个<strong>子群</strong>，称为<strong>特殊欧几里得群</strong> $SE(2)$。这个<strong>子群</strong>在整个<strong>等距变换群</strong> $M$ 中是一个指数为2的<strong>正规子群</strong>，这是<strong>群</strong>论中一个非常重要的结构。</p>
+    </div>
+</div><h3>2.3. 生成元的复合规则（关系）</h3><p id="original-8"><strong style="font-size: 1.3rem;">📜 [原文8]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>在 $M$ 中的计算可以使用<strong>符号</strong> $t_{v}, \rho_{\theta}$ 和 $r$ 进行，并使用以下<strong>组合规则</strong>。这些<strong>规则</strong>可以通过<strong>公式</strong> 6.3.1 进行验证（另请参见 (6.2.8)）。</p>
+<p><div class="math-block">$$
+\begin{align*}
+\rho_{\theta} t_{v} &amp; =t_{v^{\prime}} \rho_{\theta}, &amp; &amp; \text { 其中 } v^{\prime}=\rho_{\theta}(v) \\
+r t_{v} &amp; =t_{v^{\prime}} r, &amp; &amp; \text { 其中 } v^{\prime}=r(v),  \tag{6.3.3}\\
+r \rho_{\theta} &amp; =\rho_{-\theta} r . &amp; &amp; \\
+t_{v} t_{w} &amp; =t_{v+w}, &amp; &amp; \rho_{\theta} \rho_{\eta}=\rho_{\theta+\eta}, \quad \text { 且 } \quad r r=1 .
+\end{align*}
+$$</div></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段给出了我们选定的<strong>生成元</strong>之间进行<strong>复合</strong>运算的“语法规则”，即<strong>关系</strong>。这些<strong>关系</strong>是进行<strong>代数</strong>计算的基础。我们逐条分析：</p>
+<ol>
+  <li> <strong>$\rho_{\theta} t_{v} =t_{v^{\prime}} \rho_{\theta}, \text{ 其中 } v^{\prime}=\rho_{\theta}(v)$</strong>
+<ul>
+  <li><strong>含义</strong>: “先<strong>平移</strong> $v$ 再绕<strong>原点</strong>旋转 $\theta$”，这个组合<strong>变换</strong>等价于“先绕<strong>原点</strong>旋转 $\theta$，再<strong>平移</strong>另一个<strong>向量</strong> $v'$”。而这个新的<strong>平移向量</strong> $v'$ 正是原来的<strong>平移向量</strong> $v$ 被旋转 $\theta$ 角后得到的<strong>向量</strong>。</li>
+  <li><strong>直观理解</strong>: 想象一个点 $P$。先把它<strong>平移</strong> $v$ 到 $P+v$，再把结果绕<strong>原点</strong>旋转 $\theta$ 得到 $\rho_\theta(P+v)$。由于<strong>旋转</strong>是<strong>线性</strong>的，所以 $\rho_\theta(P+v) = \rho_\theta(P) + \rho_\theta(v)$。这个结果可以看作是：先把 $P$ 点旋转 $\theta$ 得到 $\rho_\theta(P)$，然后再把它<strong>平移</strong>一个<strong>向量</strong> $\rho_\theta(v)$。这正是 $t_{\rho_\theta(v)} \rho_\theta$ 作用在 $P$ 上的结果。</li>
+  <li><strong>核心</strong>: <strong>旋转</strong>和<strong>平移</strong>的顺序可以交换，但代价是必须把<strong>平移向量</strong>也旋转一下。</li>
+</ul></li>
+  <li> <strong>$r t_{v} =t_{v^{\prime}} r, \text{ 其中 } v^{\prime}=r(v)$</strong>
+<ul>
+  <li><strong>含义</strong>: “先<strong>平移</strong> $v$ 再关于 $x$ <strong>轴反射</strong>”，等价于“先关于 $x$ <strong>轴反射</strong>，再<strong>平移</strong>一个新的<strong>向量</strong> $v'$”。这个新<strong>向量</strong> $v'$ 是原<strong>平移向量</strong> $v$ 被 $x$ <strong>轴反射</strong>后的<strong>向量</strong>。</li>
+  <li><strong>证明</strong>类似于上一条，利用了<strong>反射</strong> $r$ 也是<strong>线性</strong>的性质：$r(P+v) = r(P) + r(v)$。</li>
+</ul></li>
+  <li> <strong>$r \rho_{\theta} =\rho_{-\theta} r$</strong>
+<ul>
+  <li><strong>含义</strong>: “先绕<strong>原点</strong>旋转 $\theta$ 再关于 $x$ <strong>轴反射</strong>”，等价于“先关于 $x$ <strong>轴反射</strong>，再绕<strong>原点</strong>旋转 $-\theta$（即顺时针旋转 $\theta$）”。</li>
+  <li><strong>直观理解</strong>: 想象你面前有一本书，你先把它逆时针转了30度，然后上下翻个面。这和你先把它上下翻个面，再顺时针转30度，最后得到书的姿态是一样的。<strong>反射</strong>会把<strong>旋转</strong>的方向颠倒。</li>
+</ul></li>
+  <li> <strong>$t_{v} t_{w} =t_{v+w}, \quad \rho_{\theta} \rho_{\eta}=\rho_{\theta+\eta}, \quad \text{且} \quad r r=1$</strong>
+<ul>
+  <li>这三条是同类<strong>变换</strong>复合的规则。</li>
+  <li><strong>$t_{v} t_{w} =t_{v+w}$</strong>: 两次<strong>平移</strong>的<strong>复合</strong>等于一次<strong>平移</strong>，<strong>平移向量</strong>是两次<strong>平移向量</strong>的<strong>和</strong>。这非常直观。</li>
+  <li><strong>$\rho_{\theta} \rho_{\eta}=\rho_{\theta+\eta}$</strong>: 两次绕<strong>原点</strong>的<strong>旋转</strong>的<strong>复合</strong>等于一次<strong>旋转</strong>，<strong>旋转</strong><strong>角度</strong>是两次<strong>旋转</strong><strong>角度</strong>的<strong>和</strong>。</li>
+  <li><strong>$r r = 1$</strong>: 连续两次做同一个<strong>反射</strong>，等于什么都没做（回到原位）。$1$ 在这里代表恒等<strong>变换</strong> (Identity)。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>推导 $\rho_{\theta} t_{v} =t_{\rho_{\theta}(v)} \rho_{\theta}$</strong>:</li>
+  <li>我们要证明这两个<strong>变换</strong>作用在任意点 $x$ 上结果相同。</li>
+  <li>左边：$(\rho_{\theta} t_{v})(x) = \rho_{\theta}(t_v(x)) = \rho_{\theta}(x+v)$。</li>
+  <li>因为 $\rho_\theta$ 是<strong>线性算子</strong>，所以 $\rho_{\theta}(x+v) = \rho_{\theta}(x) + \rho_{\theta}(v)$。</li>
+  <li>右边：$(t_{\rho_{\theta}(v)} \rho_{\theta})(x) = t_{\rho_{\theta}(v)}(\rho_{\theta}(x)) = \rho_{\theta}(x) + \rho_{\theta}(v)$。</li>
+  <li>左右两边相等，证毕。</li>
+  <li><strong>推导 $r \rho_{\theta} =\rho_{-\theta} r$</strong>:</li>
+  <li>我们需要比较<strong>复合矩阵</strong>。</li>
+  <li>$r$ 的<strong>矩阵</strong>是 $S = \begin{pmatrix} 1 &amp; 0 \\ 0 &amp; -1 \end{pmatrix}$。 $\rho_\theta$ 的<strong>矩阵</strong>是 $R_\theta = \begin{pmatrix} \cos\theta &amp; -\sin\theta \\ \sin\theta &amp; \cos\theta \end{pmatrix}$。</li>
+  <li>左边<strong>矩阵</strong>: $S R_\theta = \begin{pmatrix} 1 &amp; 0 \\ 0 &amp; -1 \end{pmatrix} \begin{pmatrix} \cos\theta &amp; -\sin\theta \\ \sin\theta &amp; \cos\theta \end{pmatrix} = \begin{pmatrix} \cos\theta &amp; -\sin\theta \\ -\sin\theta &amp; -\cos\theta \end{pmatrix}$。</li>
+  <li>右边<strong>矩阵</strong>: $\rho_{-\theta}$ 的<strong>矩阵</strong>是 $R_{-\theta} = \begin{pmatrix} \cos(-\theta) &amp; -\sin(-\theta) \\ \sin(-\theta) &amp; \cos(-\theta) \end{pmatrix} = \begin{pmatrix} \cos\theta &amp; \sin\theta \\ -\sin\theta &amp; \cos\theta \end{pmatrix}$。</li>
+  <li>$R_{-\theta} S = \begin{pmatrix} \cos\theta &amp; \sin\theta \\ -\sin\theta &amp; \cos\theta \end{pmatrix} \begin{pmatrix} 1 &amp; 0 \\ 0 &amp; -1 \end{pmatrix} = \begin{pmatrix} \cos\theta &amp; -\sin\theta \\ -\sin\theta &amp; -\cos\theta \end{pmatrix}$。</li>
+  <li>左右两边<strong>矩阵</strong>相等，证毕。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例 $\rho_{\theta} t_{v}$</strong>:</li>
+  <li>令 $\theta = 90^\circ, v = \begin{pmatrix} 2 \\ 0 \end{pmatrix}$。点 $x = \begin{pmatrix} 1 \\ 1 \end{pmatrix}$。</li>
+  <li>左边：先<strong>平移</strong> $t_v(x) = \begin{pmatrix} 1+2 \\ 1 \end{pmatrix} = \begin{pmatrix} 3 \\ 1 \end{pmatrix}$。再<strong>旋转</strong> $\rho_{90}(\begin{pmatrix} 3 \\ 1 \end{pmatrix}) = \begin{pmatrix} -1 \\ 3 \end{pmatrix}$。</li>
+  <li>右边：$v' = \rho_{90}(v) = \rho_{90}(\begin{pmatrix} 2 \\ 0 \end{pmatrix}) = \begin{pmatrix} 0 \\ 2 \end{pmatrix}$。先<strong>旋转</strong> $\rho_{90}(x) = \begin{pmatrix} -1 \\ 1 \end{pmatrix}$。再<strong>平移</strong> $t_{v'}(\begin{pmatrix} -1 \\ 1 \end{pmatrix}) = \begin{pmatrix} -1+0 \\ 1+2 \end{pmatrix} = \begin{pmatrix} -1 \\ 3 \end{pmatrix}$。</li>
+  <li>结果相同。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段给出的<strong>复合规则</strong>是<strong>等距变换群</strong> $M$ 的“<strong>代数</strong>基因”。它们精确描述了<strong>生成元</strong>之间的相互作用，使得我们可以纯粹通过<strong>符号</strong>操作来分析复杂的<strong>等距变换</strong>，而无需每次都回到<strong>几何</strong>图形。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这些<strong>关系</strong>的存在，标志着我们从对<strong>等距变换</strong>的“描述”阶段进入了“计算”阶段。它们是连接<strong>群</strong>的<strong>表示</strong>（用<strong>生成元</strong>和<strong>关系</strong>定义）和<strong>群</strong>的实际运算的桥梁，是整个<strong>代数</strong>分析方法的核心。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-3">
+    <h2><span class="section-number">3</span>3. 等距变换的几何分类</h2>
+    <h3>3.1. 几何分类定理</h3><p id="original-9"><strong style="font-size: 1.3rem;">📜 [原文9]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>下一个<strong>定理</strong>从<strong>几何</strong>上描述了<strong>平面</strong>的<strong>等距变换</strong>。</p>
+<p><strong>定理</strong> 6.3.4 <strong>平面</strong>的每个<strong>等距变换</strong>都具有以下形式之一：</p>
+<p>(a) <strong>保持定向</strong>的<strong>等距变换</strong>：</p>
+<p>(i) <strong>平移</strong>：一个<strong>映射</strong> $t_{v}$，将 $p \leadsto p+v$。</p>
+<p>(ii) <strong>旋转</strong>：<strong>平面</strong>围绕某个<strong>点</strong>旋转一个<strong>非零角</strong> $\theta$。</p>
+<p>(b) <strong>改变定向</strong>的<strong>等距变换</strong>：</p>
+<p>(i) <strong>反射</strong>：关于<strong>直线</strong> $\ell$ 的<strong>双边对称</strong>。</p>
+<p>(ii) <strong>滑移反射</strong>（简称<strong>滑移</strong>）：关于<strong>直线</strong> $\ell$ 的<strong>反射</strong>，接着是<strong>平行于</strong> $\ell$ 的<strong>非零向量</strong>的<strong>平移</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个<strong>定理</strong>是本节的另一个核心结论，它从纯粹的<strong>几何</strong>角度对所有<strong>平面等距变换</strong>进行了彻底的分类。它告诉我们，你能想到的任何保持距离的<strong>变换</strong>，最终都逃不出这四种类型。</p>
+<ol>
+  <li> <strong>两大类</strong>: 和<strong>定理</strong> 6.3.2 类似，首先根据是否“翻面”分为两大类。
+<ul>
+  <li><strong>(a) 保持定向的等距变换</strong>: 不改变“顺时针/逆时针”的方向。</li>
+  <li><strong>(b) 改变定向的等距变换</strong>: 改变“顺时针/逆时针”的方向。</li>
+</ul></li>
+  <li> <strong>四小种</strong>: 在两大类下，进一步细分为四种基本的<strong>几何</strong>动作。
+<ul>
+  <li><strong>(a-i) 平移 (Translation)</strong>: 整个<strong>平面</strong>“刚性”地滑动一个<strong>向量</strong> $v$。其特征是<strong>没有不动点</strong>（除非是移动<strong>向量</strong>为零的恒等<strong>变换</strong>）。</li>
+  <li><strong>(a-ii) 旋转 (Rotation)</strong>: 整个<strong>平面</strong>围绕一个<strong>固定点</strong>（旋转中心）转动一个角度。其特征是<strong>有且仅有一个不动点</strong>（旋转中心）。（这里的旋转角度特指非零，零角度旋转是恒等变换，可以看作是平移向量为零的平移）。</li>
+  <li><strong>(b-i) 反射 (Reflection)</strong>: 关于一条<strong>直线</strong>（反射轴）的“镜面对称”。其特征是<strong>有一条直线上的所有点都是不动点</strong>（反射轴本身）。</li>
+  <li><strong>(b-ii) 滑移反射 (Glide Reflection)</strong>: 先沿着一条<strong>直线</strong> $\ell$ 做<strong>反射</strong>，然后再沿着<strong>平行于</strong> $\ell$ 的方向<strong>平移</strong>一段距离。其特征是<strong>没有任何不动点</strong>。</li>
+</ul></li>
+  <li> <strong>分类的完备性与互斥性</strong>: 这个<strong>定理</strong>声称，任何一个<strong>平面等距变换</strong>，都<strong>必须</strong>是这四种类型中的一种，而且只能是一种（恒等<strong>变换</strong>除外，它可以被看作是零<strong>平移</strong>或零<strong>旋转</strong>）。这个分类是“不重不漏”的。</li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>平移</strong>: 将每个点 $(x,y)$ 移动到 $(x+3, y-1)$。</li>
+  <li><strong>旋转</strong>: 绕点 $(1,1)$ 旋转 $90^\circ$。</li>
+  <li><strong>反射</strong>: 关于直线 $y=x$ 的<strong>反射</strong>，将点 $(x,y)$ 映到 $(y,x)$。</li>
+  <li><strong>滑移反射</strong>: 先关于 $x$ <strong>轴反射</strong>（$(x,y) \rightarrow (x,-y)$），再向右<strong>平移</strong> 5 个单位（$(x,-y) \rightarrow (x+5, -y)$）。最终<strong>变换</strong>为 $(x,y) \rightarrow (x+5, -y)$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>旋转 vs 平移</strong>: 任何一个<strong>保持定向</strong>的<strong>变换</strong>，要么是<strong>平移</strong>，要么是<strong>旋转</strong>，二者必居其一（除了恒等<strong>变换</strong>）。关键区别在于有无<strong>不动点</strong>。</li>
+  <li><strong>反射 vs 滑移反射</strong>: 任何一个<strong>改变定向</strong>的<strong>变换</strong>，如果它有<strong>不动点</strong>，那它必然是一条<strong>直线</strong>上的所有点都不动，这就是一个纯粹的<strong>反射</strong>。如果它没有<strong>不动点</strong>，那它必然是一个<strong>滑移反射</strong>。</li>
+  <li><strong>零向量平移/零角度旋转</strong>: <strong>平移</strong>向量为零的<strong>平移</strong>是恒等<strong>变换</strong>。旋转<strong>角度</strong>为零的<strong>旋转</strong>也是恒等<strong>变换</strong>。<strong>滑移反射</strong>中<strong>平移</strong>向量为零时，退化为纯<strong>反射</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>定理</strong> 6.3.4 提供了一个基于<strong>几何</strong>直观的、完备的分类体系。它告诉我们，<strong>平面</strong>上所有保持距离的运动，无论其<strong>代数</strong>形式多么复杂，其<strong>几何</strong>本质无非就是<strong>平移</strong>、<strong>旋转</strong>、<strong>反射</strong>和<strong>滑移反射</strong>这四种。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个<strong>定理</strong>的目的是建立<strong>代数</strong>表达与<strong>几何</strong>现象之间的对应关系。前面的<strong>定理</strong> 6.3.2 给出了<strong>代数</strong>上的标准型 $t_v \rho_\theta$ 或 $t_v \rho_\theta r$，这个<strong>定理</strong>则告诉我们这些<strong>代数</strong>形式分别对应哪种<strong>几何</strong>图像。这种对应是<strong>现代数学</strong>的核心思想：用<strong>代数</strong>的精确性来捕捉和分类<strong>几何</strong>的直观。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你在沙滩上观察脚印。</p>
+<ol>
+  <li>一串平行的、朝向相同的脚印：这是<strong>平移</strong>。</li>
+  <li>一圈围绕一个点的、方向逐渐改变的脚印：这是<strong>旋转</strong>。</li>
+  <li>一条线上左右对称的两排脚印：这是<strong>反射</strong>。</li>
+  <li>一串左右交替、向前行进的脚印（像走路）：这是<strong>滑移反射</strong>。</li>
+</ol>
+<p>这个<strong>定理</strong>说，沙滩上任何由刚性鞋模踩出的印记序列，其模式必定属于这四种之一。</p>
+    </div>
+</div><h3>3.2. 复合变换的几何性质</h3><p id="original-10"><strong style="font-size: 1.3rem;">📜 [原文10]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>这个<strong>非凡</strong>的<strong>定理</strong>的<strong>推论</strong>之一是，关于两个不同<strong>点</strong>的<strong>旋转</strong>的<strong>复合</strong>是关于第三个<strong>点</strong>的<strong>旋转</strong>，除非它是一个<strong>平移</strong>。这并不明显，但它遵循<strong>定理</strong>，因为<strong>复合</strong>保持<strong>定向</strong>。</p>
+<p>一些<strong>复合</strong>更容易<strong>可视化</strong>。关于同一点以<strong>角度</strong> $\alpha$ 和 $\beta$ 的<strong>旋转</strong>的<strong>复合</strong>是关于该<strong>点</strong>的<strong>旋转</strong>，通过<strong>角度</strong> $\alpha+\beta$。关于<strong>向量</strong> $a$ 和 $b$ 的<strong>平移</strong>的<strong>复合</strong>是它们<strong>和</strong> $a+b$ 的<strong>平移</strong>。</p>
+<p>关于<strong>不平行</strong>的<strong>直线</strong> $\ell_{1}, \ell_{2}$ 的<strong>反射</strong>的<strong>复合</strong>是关于<strong>交点</strong> $p=\ell_{1} \cap \ell_{2}$ 的<strong>旋转</strong>。这也遵循<strong>定理</strong>，因为<strong>复合</strong>保持<strong>定向</strong>，并且它<strong>固定</strong> $p$。关于<strong>平行</strong><strong>直线</strong>的<strong>反射</strong>的<strong>复合</strong>是由<strong>正交于</strong>这些<strong>直线</strong>的<strong>向量</strong>的<strong>平移</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分通过几个例子，展示了如何应用<strong>定理</strong> 6.3.4 来推断<strong>复合变换</strong>的<strong>几何</strong>性质，其中一些结论是反直觉的。</p>
+<ol>
+  <li> <strong>两个不同旋转的复合</strong>:
+<ul>
+  <li><strong>结论</strong>: 先绕点 $P_1$ 旋转 $\theta_1$，再绕点 $P_2$ 旋转 $\theta_2$。这个<strong>复合变换</strong>的结果是什么？</li>
+  <li>如果 $\theta_1 + \theta_2$ 不是 $360^\circ$ 的整数倍，那么结果是绕某个新的点 $P_3$ 的一次<strong>旋转</strong>，旋转角度为 $\theta_1+\theta_2$。</li>
+  <li>如果 $\theta_1 + \theta_2$ 恰好是 $360^\circ$ 的整数倍，那么结果是一个<strong>平移</strong>。</li>
+  <li><strong>推导思路</strong>:</li>
+</ul></li>
+  <li> <strong>旋转</strong>是<strong>保持定向</strong>的。</li>
+  <li> 两个<strong>保持定向</strong>的<strong>变换</strong>的<strong>复合</strong>，结果也必然<strong>保持定向</strong>。</li>
+  <li> 根据<strong>定理</strong> 6.3.4，任何<strong>保持定向</strong>的<strong>变换</strong>要么是<strong>平移</strong>，要么是<strong>旋转</strong>。</li>
+  <li> 因此，两个<strong>旋转</strong>的<strong>复合</strong>，结果只可能是<strong>平移</strong>或<strong>旋转</strong>。这本身就是一个很强的结论，排除了<strong>反射</strong>和<strong>滑移反射</strong>的可能性。
+<ul>
+  <li><strong>为什么“不明显”</strong>: 直观上很难想象，绕着两个不同的中心点转圈，其效果等同于绕第三个点转一个圈。</li>
+</ul></li>
+  <li> <strong>简单的复合</strong>:
+<ul>
+  <li><strong>同心旋转</strong>: 绕同一点 $P$ 旋转 $\alpha$ 再旋转 $\beta$，显然等于绕 $P$ 点旋转 $\alpha+\beta$。</li>
+  <li><strong>平移复合</strong>: <strong>平移</strong> $a$ 再<strong>平移</strong> $b$，等于一次性<strong>平移</strong> $a+b$。</li>
+</ul></li>
+  <li> <strong>两个反射的复合</strong>:
+<ul>
+  <li><strong>结论</strong>: 两次<strong>反射</strong>的<strong>复合</strong>是<strong>保持定向</strong>的（因为“翻两次面等于没翻”）。因此，根据<strong>定理</strong> 6.3.4，其结果必然是<strong>平移</strong>或<strong>旋转</strong>。</li>
+  <li><strong>情况一：反射轴不平行</strong>。设<strong>反射</strong>轴 $\ell_1$ 和 $\ell_2$ 相交于点 $p$。</li>
+</ul></li>
+  <li> 先关于 $\ell_1$ <strong>反射</strong>，再关于 $\ell_2$ <strong>反射</strong>。</li>
+  <li> 点 $p$ 在 $\ell_1$ 上，所以第一次<strong>反射</strong>后不动。点 $p$ 也在 $\ell_2$ 上，所以第二次<strong>反射</strong>后也不动。因此，点 $p$ 是这个<strong>复合变换</strong>的<strong>不动点</strong>。</li>
+  <li> 一个<strong>保持定向</strong>且有<strong>不动点</strong>的<strong>变换</strong>，根据<strong>定理</strong> 6.3.4，必然是<strong>旋转</strong>。旋转中心就是这个<strong>不动点</strong> $p$。
+<ul>
+  <li><strong>情况二：反射轴平行</strong>。设<strong>反射</strong>轴 $\ell_1$ 和 $\ell_2$ <strong>平行</strong>。</li>
+</ul></li>
+  <li> 这个<strong>复合变换</strong>没有<strong>不动点</strong>（可以自己画图验证，任何不在轴上的点都会被移动）。</li>
+  <li> 一个<strong>保持定向</strong>且没有<strong>不动点</strong>的<strong>变换</strong>，根据<strong>定理</strong> 6.3.4，必然是<strong>平移</strong>。</li>
+  <li> 可以进一步证明，<strong>平移</strong>的方向垂直于两条<strong>平行</strong>的<strong>反射</strong>轴，<strong>平移</strong>的距离是两轴间距离的两倍。</li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>两反射复合 -&gt; 旋转</strong>:</li>
+  <li>$\ell_1$ 是 $x$ <strong>轴</strong> ($y=0$)，$\ell_2$ 是直线 $y=x$。它们交于<strong>原点</strong> $p=(0,0)$。</li>
+  <li>令点 $A=(2,0)$。</li>
+  <li>第一次<strong>反射</strong>（关于 $x$ <strong>轴</strong>）：$A$ 不动，还是 $(2,0)$。</li>
+  <li>第二次<strong>反射</strong>（关于 $y=x$）：将 $(2,0)$ <strong>反射</strong>得到 $A'=(0,2)$。</li>
+  <li>我们看<strong>复合</strong>效果：$A(2,0) \rightarrow A'(0,2)$。这正是一个绕<strong>原点</strong>逆时针旋转 $90^\circ$ 的效果。</li>
+  <li><strong>两反射复合 -&gt; 平移</strong>:</li>
+  <li>$\ell_1$ 是 $x$ <strong>轴</strong> ($y=0$)，$\ell_2$ 是直线 $y=1$。它们<strong>平行</strong>。</li>
+  <li>令点 $A=(3,0)$。</li>
+  <li>第一次<strong>反射</strong>（关于 $y=0$）：$A$ 不动，还是 $(3,0)$。</li>
+  <li>第二次<strong>反射</strong>（关于 $y=1$）：点 $(3,0)$ 到直线 $y=1$ 的<strong>垂直</strong>距离是 $1$。它需要被映到直线另一侧同样距离的地方，即 $y$ <strong>坐标</strong>变为 $1+1=2$。所以 $A'=(3,2)$。</li>
+  <li>我们看<strong>复合</strong>效果：$A(3,0) \rightarrow A'(3,2)$。</li>
+  <li>换个点 $B=(4,2)$。第一次<strong>反射</strong>得 $(4,-2)$。第二次<strong>反射</strong>，点 $(4,-2)$ 到直线 $y=1$ 的距离是 $3$，映到另一侧 $y$ <strong>坐标</strong>为 $1+3=4$。所以 $B'=(4,4)$。</li>
+  <li><strong>复合</strong>效果：$B(4,2) \rightarrow B'(4,4)$。</li>
+  <li>可以发现，所有点 $(x,y)$ 都被移动到了 $(x, y+2)$。这是一个向上的<strong>平移</strong>，<strong>平移向量</strong>是 $(0,2)$。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段展示了<strong>定理</strong> 6.3.4 的威力。它像一个“过滤器”或“分类器”，我们把一个复杂的<strong>复合变换</strong>丢进去，通过分析其是否<strong>保持定向</strong>以及有无<strong>不动点</strong>，就可以立即确定其最终的<strong>几何</strong>类型（<strong>平移</strong>或<strong>旋转</strong>），而无需进行繁琐的<strong>坐标</strong>计算。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-4">
+    <h2><span class="section-number">4</span>4. 定理6.3.4的证明</h2>
+    <h3>4.1. 证明的策略</h3><p id="original-11"><strong style="font-size: 1.3rem;">📜 [原文11]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>定理</strong> (6.3.4) 的<strong>证明</strong>。我们首先考虑<strong>保持定向</strong>的<strong>等距变换</strong>。设 $f$ 是一个<strong>保持定向</strong>但不是<strong>平移</strong>的<strong>等距变换</strong>。我们必须证明 $f$ 是关于某个<strong>点</strong>的<strong>旋转</strong>。我们选择<strong>坐标</strong>来将 $f$ 的<strong>公式</strong>写成 $m=t_{a} \rho_{\theta}$，如 (6.3.3) 所示。由于 $m$ 不是<strong>平移</strong>，所以 $\theta \neq 0$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分开始着手证明<strong>几何分类定理</strong>（<strong>定理</strong> 6.3.4）。</p>
+<ol>
+  <li> <strong>分而治之</strong>: 证明的第一步是采用分治策略。作者不一次性处理所有四种情况，而是先把问题分成两大块：
+<ul>
+  <li><strong>保持定向</strong>的<strong>等距变换</strong>。</li>
+  <li><strong>改变定向</strong>的<strong>等距变换</strong>。</li>
+</ul></li>
+  <li> <strong>处理第一大类（保持定向）</strong>:
+<ul>
+  <li>在<strong>保持定向</strong>的<strong>变换</strong>中，<strong>定理</strong> 6.3.4 声称它们要么是<strong>平移</strong>，要么是<strong>旋转</strong>。</li>
+  <li>所以，证明的目标就变成了：证明一个<strong>保持定向</strong>的<strong>等距变换</strong>，如果它不是<strong>平移</strong>，那么它必然是<strong>旋转</strong>。</li>
+</ul></li>
+  <li> <strong>使用代数形式</strong>: 为了进行证明，我们不能只停留在<strong>几何</strong>概念上，必须使用<strong>代数</strong>工具。
+<ul>
+  <li>我们知道，任何<strong>保持定向</strong>的<strong>等距变换</strong> $f$ 都可以唯一地写成<strong>代数</strong>形式 $m = t_a \rho_\theta$（这是从<strong>定理</strong> 6.3.2 知道的）。</li>
+</ul></li>
+  <li> <strong>翻译条件</strong>:
+<ul>
+  <li>“$f$ 不是<strong>平移</strong>”这个<strong>几何</strong>条件，在<strong>代数</strong>上意味着什么？</li>
+  <li>一个<strong>变换</strong>是<strong>平移</strong>，当且仅当它的<strong>旋转</strong>部分是平凡的，即旋转<strong>角度</strong>为零。</li>
+  <li>所以，“$f$ 不是<strong>平移</strong>”等价于<strong>代数</strong>形式 $m=t_a\rho_\theta$ 中的 $\theta \neq 0$（或者说不是 $360^\circ$ 的整数倍）。</li>
+</ul></li>
+  <li> <strong>明确证明目标</strong>: 综上所述，现在的任务非常明确了：
+<ul>
+  <li><strong>已知</strong>: 一个<strong>等距变换</strong> $f$，其<strong>代数</strong>形式为 $m = t_a \rho_\theta$，且 $\theta \neq 0$。</li>
+  <li><strong>欲证</strong>: 这个<strong>变换</strong> $f$ 在<strong>几何</strong>上是一个绕着某个<strong>点</strong> $p$ 的<strong>旋转</strong>。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段清晰地勾勒出了证明的第一阶段的蓝图：利用<strong>代数</strong>标准式 $m=t_a\rho_\theta$ (其中 $\theta \neq 0$)，去证明这种形式的<strong>变换</strong>在<strong>几何</strong>上总能被解释为一次<strong>旋转</strong>。</p>
+    </div>
+</div><h3>4.2. 引理：非平移的保向变换是旋转</h3><p id="original-12"><strong style="font-size: 1.3rem;">📜 [原文12]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>引理</strong> 6.3.5 具有 $m=t_{a} \rho_{\theta}$ 形式且 $\theta \neq 0$ 的<strong>等距变换</strong> $f$ 是<strong>平面</strong>中关于某个<strong>点</strong>的<strong>角度</strong>为 $\theta$ 的<strong>旋转</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个<strong>引理</strong>（Lemma）是证明过程中的一个关键步骤，它本身就是一个小<strong>定理</strong>。它精确地陈述了我们在上一段分析出的证明目标。</p>
+<ul>
+  <li><strong>引理的作用</strong>: 将一个<strong>代数</strong>形式与一个<strong>几何</strong>概念等同起来。</li>
+  <li><strong>代数形式</strong>: $m = t_a \rho_\theta$ (先绕<strong>原点</strong>旋转 $\theta$，再<strong>平移</strong> $a$)，其中旋转<strong>角度</strong> $\theta$ 非零。</li>
+  <li><strong>几何概念</strong>: 绕<strong>平面</strong>上<strong>某个点</strong> $p$ 旋转<strong>角度</strong> $\theta$。</li>
+  <li><strong>证明的核心</strong>: 为了证明 $f$ 是绕某点 $p$ 的<strong>旋转</strong>，我们需要做两件事：</li>
+</ul>
+<ol>
+  <li> 找到那个<strong>旋转中心点</strong> $p$。</li>
+  <li> 证明<strong>变换</strong> $f$ 的效果确实是所有点都绕着 $p$ 转了 $\theta$ 角。
+<ul>
+  <li>一个<strong>变换</strong>是绕点 $p$ 的<strong>旋转</strong>，最核心的特征就是点 $p$ 本身在该<strong>变换</strong>下是<strong>不动</strong>的，即 $f(p)=p$。所以，找旋转中心 $p$ 的问题就转化为了找<strong>不动点</strong>的问题。</li>
+  <li><strong>方程</strong>: 我们要找一个点 $p$，使得 $f(p)=p$。代入<strong>代数</strong>形式，就是要解方程：</li>
+  <li>只要这个关于 $p$ 的<strong>线性方程组</strong>有解，我们就找到了<strong>不动点</strong>，也就是找到了<strong>旋转中心</strong>。</li>
+</ul></li>
+</ol>
+    </div>
+</div><h3>4.3. 引理的证明：寻找不动点</h3><p id="original-13"><strong style="font-size: 1.3rem;">📜 [原文13]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>证明</strong>。为了简化<strong>符号</strong>，我们将 $\rho_{\theta}$ 记为 $\rho$。为了表明 $f$ 表示关于某个<strong>点</strong> $p$ 的<strong>角度</strong>为 $\theta$ 的<strong>旋转</strong>，我们通过<strong>平移</strong> $t_{p}$ 改变<strong>坐标</strong>。我们希望选择 $p$，使得<strong>等距变换</strong> $f$ 的新<strong>公式</strong>变为 $m^{\prime}=\rho$。如果这样，那么 $f$ 将是关于<strong>点</strong> $p$ 的<strong>角度</strong>为 $\theta$ 的<strong>旋转</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分开始用一种非常巧妙的“改变<strong>坐标</strong>”的思路来证明引理。</p>
+<ol>
+  <li> <strong>简化符号</strong>: $\rho_\theta$ 写作 $\rho$。</li>
+  <li> <strong>核心思想</strong>: 我们要证明 $f$ 是绕点 $p$ 的<strong>旋转</strong>。这等价于说：如果我们把<strong>坐标系</strong>的<strong>原点</strong>移动到点 $p$ 上，那么在新的<strong>坐标系</strong>看来，这个<strong>变换</strong> $f$ 就应该变成一个简单的、绕着新<strong>原点</strong>（也就是 $p$）的<strong>旋转</strong> $\rho$。</li>
+  <li> <strong>坐标变换公式</strong>:
+<ul>
+  <li>假设旧<strong>坐标</strong>为 $x$，新<strong>坐标</strong>为 $x'$。</li>
+  <li>将<strong>原点</strong>移动到 $p$，意味着新<strong>坐标</strong> $x'$ 和旧<strong>坐标</strong> $x$ 的关系是 $x = x' + p$。用<strong>变换</strong>的语言说，就是 $x = t_p(x')$。</li>
+  <li>一个在旧<strong>坐标</strong>下的<strong>变换</strong> $m$，在新<strong>坐标</strong>下会变成什么样呢？</li>
+  <li>一个新<strong>坐标</strong>点 $x'$，先通过 $t_p$ 变成旧<strong>坐标</strong> $t_p(x')$。</li>
+  <li>然后应用旧的<strong>变换</strong> $m$，变成 $m(t_p(x'))$。</li>
+  <li>最后把结果从旧<strong>坐标</strong>变回新<strong>坐标</strong>，需要应用 $t_p$ 的逆<strong>变换</strong> $t_p^{-1} = t_{-p}$。</li>
+  <li>所以，新<strong>变换</strong> $m'$ 的<strong>公式</strong>是 $m' = t_p^{-1} m t_p$。这是一个非常重要的<strong>共轭变换</strong>公式。</li>
+</ul></li>
+  <li> <strong>应用到我们的问题</strong>:
+<ul>
+  <li>我们的<strong>变换</strong>是 $m = t_a \rho$。</li>
+  <li>我们希望找到一个 $p$，使得新<strong>变换</strong> $m'$ 恰好等于 $\rho$。</li>
+  <li>即：$t_p^{-1} (t_a \rho) t_p = \rho$。</li>
+  <li>这个方程看起来有点复杂，我们来化简它。</li>
+</ul></li>
+</ol>
+    </div>
+</div><p id="original-14"><strong style="font-size: 1.3rem;">📜 [原文14]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>坐标</strong>变化的<strong>规则</strong>是 $t_{p}\left(x^{\prime}\right)=x$，因此 $f$ 的新<strong>公式</strong>是 $m^{\prime}=t_{p}^{-1} m t_{p}=t_{-p} t_{a} \rho t_{p}$ (6.2.11)。我们使用<strong>规则</strong> (6.3.3)：$\rho t_{p}=t_{p^{\prime}} \rho$，其中 $p^{\prime}=\rho(p)$。那么如果 $b=-p+a+p^{\prime}=a+\rho(p)-p$，我们将有 $m^{\prime}=t_{b} \rho$。我们希望选择 $p$ 使得 $b=0$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分是对上面提出的方程进行<strong>代数</strong>化简。</p>
+<ol>
+  <li> <strong>代入</strong>: $m' = t_p^{-1} m t_p = t_{-p} (t_a \rho) t_p = t_{-p} t_a \rho t_p$。</li>
+  <li> <strong>使用复合规则</strong>: 我们不能随便交换这些<strong>变换</strong>的顺序。关键是处理 $\rho$ 和 $t_p$ 的<strong>复合</strong>。
+<ul>
+  <li>根据<strong>关系</strong> (6.3.3) 的第一条，我们有 $\rho t_p = t_{\rho(p)} \rho$。</li>
+</ul></li>
+  <li> <strong>化简</strong>:
+<ul>
+  <li>$m' = t_{-p} t_a (\rho t_p)$</li>
+  <li>$m' = t_{-p} t_a (t_{\rho(p)} \rho)$</li>
+  <li>根据<strong>平移</strong>的<strong>复合规则</strong> $t_u t_v = t_{u+v}$，我们可以合并前面三个<strong>平移</strong>：</li>
+  <li>$m' = t_{-p+a+\rho(p)} \rho$</li>
+</ul></li>
+  <li> <strong>设定目标</strong>: 我们希望新的<strong>变换</strong> $m'$ 就是一个纯粹的<strong>旋转</strong> $\rho$。这意味着，它前面的<strong>平移</strong>部分必须是恒等<strong>变换</strong>，即<strong>平移向量</strong>为零。
+<ul>
+  <li>令 $b = -p+a+\rho(p)$。</li>
+  <li>我们希望 $b=0$。</li>
+</ul></li>
+  <li> <strong>求解方程</strong>: 我们需要找一个点 $p$，使得 $-p+a+\rho(p) = 0$。
+<ul>
+  <li>重新整理方程：$a = p - \rho(p) = (I - \rho)p$。</li>
+  <li>这和我们之前通过找<strong>不动点</strong>得到的方程 $a = (I - \rho_\theta)p$ 是完全一样的！这说明两种思路（找<strong>不动点</strong> vs. 改变<strong>坐标</strong>）是等价的。</li>
+</ul></li>
+</ol>
+    </div>
+</div><p id="original-15"><strong style="font-size: 1.3rem;">📜 [原文15]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>令 $I$ 表示<strong>恒等算子</strong>，令 $c=\cos \theta$ 且 $s=\sin \theta$。<strong>线性算子</strong> $I-\rho$ 的<strong>矩阵</strong>是</p>
+<p><div class="math-block">$$
+\left[\begin{array}{cc}
+1-c &amp; s  \tag{6.3.6}\\
+-s &amp; 1-c
+\end{array}\right]
+$$</div></p>
+<p>它的<strong>行列式</strong>是 $2-2 c=2-2 \cos \theta$。<strong>行列式</strong>不为零，除非 $\cos \theta=1$，而这仅在 $\theta=0$ 时发生。由于 $\theta \neq 0$，<strong>方程</strong> $(I-\rho) p=a$ 对于 $p$ 有<strong>唯一解</strong>。在需要时可以<strong>显式</strong>求解该<strong>方程</strong>。$\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分是证明的核心，它论证了我们需要的点 $p$ 确实存在且<strong>唯一</strong>。</p>
+<ol>
+  <li> <strong>矩阵形式</strong>: 将<strong>算子方程</strong> $(I-\rho)p = a$ 转换成<strong>矩阵方程</strong>。
+<ul>
+  <li>$I$ 的<strong>矩阵</strong>是 $\begin{pmatrix} 1 &amp; 0 \\ 0 &amp; 1 \end{pmatrix}$。</li>
+  <li>$\rho$ (即 $\rho_\theta$) 的<strong>矩阵</strong>是 $\begin{pmatrix} \cos\theta &amp; -\sin\theta \\ \sin\theta &amp; \cos\theta \end{pmatrix}$。</li>
+  <li>所以 $I-\rho$ 的<strong>矩阵</strong>就是 $\begin{pmatrix} 1-\cos\theta &amp; \sin\theta \\ -\sin\theta &amp; 1-\cos\theta \end{pmatrix}$。（注意原文中第二行第一列的符号 $s$ 和 $-s$ 与推导不符，原文可能是笔误或使用了不同的约定，但最终<strong>行列式</strong>结果不受影响。我们按标准推导：$I-R_\theta = \begin{pmatrix} 1 &amp; 0 \\ 0 &amp; 1 \end{pmatrix} - \begin{pmatrix} c &amp; -s \\ s &amp; c \end{pmatrix} = \begin{pmatrix} 1-c &amp; s \\ -s &amp; 1-c \end{pmatrix}$，与原文一致）。</li>
+</ul></li>
+  <li> <strong>求解条件</strong>: 一个<strong>线性方程组</strong> $Ax=b$ 是否有<strong>唯一解</strong>，取决于<strong>系数矩阵</strong> $A$ 的<strong>行列式</strong>是否为零。
+<ul>
+  <li>计算<strong>矩阵</strong> $I-\rho$ 的<strong>行列式</strong>：</li>
+</ul></li>
+  <li> <strong>分析行列式</strong>:
+<ul>
+  <li>什么时候<strong>行列式</strong> $2-2\cos\theta$ 会等于零？</li>
+  <li>当 $\cos\theta = 1$ 时。</li>
+  <li>在 $0 \le \theta &lt; 2\pi$ 的范围内，这只在 $\theta=0$ 时发生。</li>
+</ul></li>
+  <li> <strong>利用已知条件</strong>: <strong>引理</strong>的前提条件是 $\theta \neq 0$。
+<ul>
+  <li>既然 $\theta \neq 0$，那么 $\cos\theta \neq 1$，所以<strong>行列式</strong> $2-2\cos\theta \neq 0$。</li>
+</ul></li>
+  <li> <strong>结论</strong>: 因为<strong>系数矩阵</strong> $I-\rho$ 的<strong>行列式</strong>非零，所以<strong>方程</strong> $(I-\rho)p=a$ 对于任意的<strong>向量</strong> $a$ 都存在<strong>唯一</strong>的解 $p$。</li>
+  <li> <strong>证明完成</strong>: 我们已经证明了，总能找到这样一个<strong>唯一</strong>的点 $p$。以这个点 $p$ 为中心进行<strong>坐标变换</strong>后，我们的<strong>变换</strong> $f$ 就变成了一个纯粹的绕<strong>原点</strong>的<strong>旋转</strong> $\rho$。这就从<strong>几何</strong>上证明了，$f$ 本身就是一个以 $p$ 为旋转中心，以 $\theta$ 为旋转<strong>角度</strong>的<strong>旋转</strong>。<strong>引理</strong>证毕。</li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>寻找旋转中心</strong>:</li>
+  <li>考虑<strong>变换</strong> $m = t_a \rho_{90}$，其中 $a = \begin{pmatrix} 2 \\ 4 \end{pmatrix}$。这里 $\theta=90^\circ$。</li>
+  <li>我们需要解方程 $(I-\rho_{90})p = a$。</li>
+  <li>$I-\rho_{90}$ 的<strong>矩阵</strong>是 $\begin{pmatrix} 1-0 &amp; \sin 90 \\ -\sin 90 &amp; 1-0 \end{pmatrix} = \begin{pmatrix} 1 &amp; 1 \\ -1 &amp; 1 \end{pmatrix}$。</li>
+  <li>我们要解 $\begin{pmatrix} 1 &amp; 1 \\ -1 &amp; 1 \end{pmatrix} \begin{pmatrix} p_1 \\ p_2 \end{pmatrix} = \begin{pmatrix} 2 \\ 4 \end{pmatrix}$。</li>
+  <li>这是一个二元一次方程组:</li>
+</ul>
+<p>$p_1 + p_2 = 2$</p>
+<p>$-p_1 + p_2 = 4$</p>
+<ul>
+  <li>两式相加得 $2p_2 = 6 \Rightarrow p_2 = 3$。</li>
+  <li>代入第一式得 $p_1 + 3 = 2 \Rightarrow p_1 = -1$。</li>
+  <li>所以，旋转中心（<strong>不动点</strong>）是 $p = \begin{pmatrix} -1 \\ 3 \end{pmatrix}$。</li>
+  <li>结论：<strong>变换</strong> $t_{(2,4)}\rho_{90}$ 是一个绕点 $(-1,3)$ 旋转 $90^\circ$ 的<strong>旋转</strong>。</li>
+</ul>
+    </div>
+</div><h3>4.4. 不动点的几何解释</h3><p id="original-16"><strong style="font-size: 1.3rem;">📜 [原文16]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>点</strong> $p$ 是<strong>等距变换</strong> $t_{a} \rho_{\theta}$ 的<strong>不动点</strong>，它可以从<strong>几何</strong>上找到，如下图所示。<strong>直线</strong> $\ell$ 穿过<strong>原点</strong>并<strong>垂直于</strong><strong>向量</strong> $a$。<strong>扇区</strong>的<strong>角度</strong>为 $\theta$，其位置使得被 $\ell$ <strong>平分</strong>，<strong>不动点</strong> $p$ 通过将<strong>向量</strong> $a$ 插入<strong>扇区</strong>来确定，如图所示。</p>
+<p><img src="https://cdn.mathpix.com/cropped/ace3f27f-694b-4e2e-b3f0-30bcc6ea7cdf-09.jpg?height=476&width=389&top_left_y=184&top_left_x=590" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p><strong>等距变换</strong> $t_{a} \rho_{\theta}$ 的<strong>不动点</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分给出了寻找<strong>不动点</strong> $p$ 的一个纯<strong>几何</strong>构造方法，作为对前面<strong>代数</strong>求解的补充和直观化。</p>
+<ol>
+  <li> <strong>回顾不动点方程</strong>: 我们要找的点 $p$ 满足 $\rho_\theta(p) + a = p$，即 $p - \rho_\theta(p) = a$。</li>
+  <li> <strong>几何分析</strong>:
+<ul>
+  <li>$\rho_\theta(p)$ 是将<strong>向量</strong> $p$ 绕<strong>原点</strong>旋转 $\theta$ 得到的<strong>向量</strong>。</li>
+  <li>$p$ 和 $\rho_\theta(p)$ 都是从<strong>原点</strong>出发的<strong>向量</strong>，且长度相等。它们构成一个等腰三角形的两个腰，这个等腰三角形的顶角是 $\theta$。</li>
+  <li>$p - \rho_\theta(p)$ 是连接 $\rho_\theta(p)$ <strong>向量</strong>终点和 $p$ <strong>向量</strong>终点的<strong>向量</strong>。这个<strong>向量</strong>就是等腰三角形的底边。</li>
+  <li>我们的目标是找到这样一个点 $p$，使得这个“底边”<strong>向量</strong>恰好等于给定的<strong>平移向量</strong> $a$。</li>
+</ul></li>
+  <li> <strong>解读图片</strong>:
+<ul>
+  <li>图中画出了<strong>原点</strong> $O$，以及<strong>不动点</strong> $p$。</li>
+  <li>从 $O$ 到 $p$ 是<strong>向量</strong> $p$。</li>
+  <li><strong>向量</strong> $p$ 绕<strong>原点</strong> $O$ 旋转 $\theta$ 角，得到<strong>向量</strong> $Op'$，这里 $p'$ 就是 $\rho_\theta(p)$ 的终点。</li>
+  <li>连接 $p'$ 和 $p$ 的<strong>向量</strong> $\vec{p'p}$ 就是 $p - \rho_\theta(p)$，它必须等于<strong>向量</strong> $a$。</li>
+  <li>所以，图中的三角形 $Opp'$ 是一个顶角为 $\theta$ 的等腰三角形，其底边就是<strong>向量</strong> $a$。</li>
+</ul></li>
+  <li> <strong>构造方法</strong>:
+<ul>
+  <li>给定<strong>向量</strong> $a$ 和<strong>角度</strong> $\theta$。</li>
+  <li>我们要做一个底边为 $a$，顶角为 $\theta$ 的等腰三角形 $Opp'$。</li>
+  <li>这个三角形的顶点 $p$ 就是我们要找的<strong>不动点</strong>。</li>
+  <li><strong>直线</strong> $\ell$ 是<strong>向量</strong> $a$ 的<strong>中垂线</strong>，它必然穿过<strong>原点</strong> $O$。</li>
+  <li>这个构造在<strong>几何</strong>上是唯一的（因为 $\theta \neq 0$ 且 $\theta \neq 180^\circ$ 的情况），与<strong>代数</strong>解的唯一性相符。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这个<strong>几何</strong>构造法将求解<strong>线性方程组</strong>这个抽象的<strong>代数</strong>过程，转化为了一个直观的、尺规作图式的<strong>几何</strong>问题，加深了我们对<strong>不动点</strong>物理意义的理解。</p>
+    </div>
+</div><h3>4.5. 证明改变定向的变换</h3><p id="original-17"><strong style="font-size: 1.3rem;">📜 [原文17]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>为了完成<strong>定理</strong> 6.3.4 的<strong>证明</strong>，我们证明一个<strong>改变定向</strong>的<strong>等距变换</strong> $m=t_{a} \rho_{\theta} r$ 是<strong>滑移反射</strong>或<strong>反射</strong>。为此，我们改变<strong>坐标</strong>。<strong>等距变换</strong> $\rho_{\theta} r$ 是关于通过<strong>原点</strong>的<strong>直线</strong> $\ell_{0}$ 的<strong>反射</strong>。我们不妨<strong>旋转坐标</strong>，使得 $\ell_{0}$ 成为<strong>水平轴</strong>。在新的<strong>坐标系</strong>中，<strong>反射</strong>成为我们标准的<strong>反射</strong> $r$，<strong>平移</strong> $t_{a}$ 仍然是<strong>平移</strong>，尽管<strong>向量</strong> $a$ 的<strong>坐标</strong>会发生变化。我们仍然用<strong>符号</strong> $a$ 表示这个新<strong>向量</strong>。在新的<strong>坐标系</strong>中，<strong>等距变换</strong>变为 $m=t_{a} r$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分开始证明<strong>定理</strong> 6.3.4 的第二部分：对<strong>改变定向</strong>的<strong>变换</strong>进行分类。</p>
+<ol>
+  <li> <strong>证明目标</strong>: 证明任何形式为 $m = t_a \rho_\theta r$ 的<strong>变换</strong>，在<strong>几何</strong>上要么是<strong>反射</strong>，要么是<strong>滑移反射</strong>。</li>
+  <li> <strong>核心策略：简化问题</strong>: 形式 $t_a \rho_\theta r$ 看起来有点复杂，因为它涉及到三个<strong>变换</strong>的<strong>复合</strong>。证明的关键在于通过巧妙的<strong>坐标变换</strong>来简化这个<strong>代数</strong>形式。</li>
+  <li> <strong>第一步简化</strong>:
+<ul>
+  <li>考虑<strong>变换</strong>中的 $\rho_\theta r$ 部分。我们知道这是一个关于某条穿过<strong>原点</strong>的<strong>直线</strong> $\ell_0$ 的<strong>反射</strong>。（这条直线的<strong>角度</strong>是 $\theta/2$）。</li>
+  <li>这个 $\ell_0$ 可能不是 $x$ <strong>轴</strong>，这使得分析不方便。</li>
+  <li><strong>解决方案</strong>: <strong>旋转坐标系</strong>！我们可以旋转我们的<strong>坐标</strong>轴，使得新的 $x'$ <strong>轴</strong>恰好与<strong>反射</strong>轴 $\ell_0$ 重合。</li>
+</ul></li>
+  <li> <strong>坐标变换后的效果</strong>:
+<ul>
+  <li>在新的<strong>坐标系</strong>中，原来的那个复杂的<strong>反射</strong> $\rho_\theta r$ 就变成了简单的、标准的关于新 $x'$ <strong>轴</strong>的<strong>反射</strong>。我们可以继续用符号 $r$ 来表示这个标准<strong>反射</strong>。</li>
+  <li>原来的<strong>平移向量</strong> $a$ 在新<strong>坐标系</strong>下会有新的<strong>坐标</strong>，但它仍然是一个<strong>平移</strong>。我们不妨把这个新<strong>坐标</strong>下的<strong>平移向量</strong>仍然记为 $a$。</li>
+</ul></li>
+  <li> <strong>简化后的形式</strong>: 经过这个<strong>坐标</strong>旋转，原来的<strong>变换</strong> $m = t_a \rho_\theta r$ 就被转化成了一个更简单的形式：$m' = t_a r$。
+<ul>
+  <li>这个形式的含义是：先做一个标准的关于 $x$ <strong>轴</strong>的<strong>反射</strong>，然后再做一个<strong>平移</strong>。</li>
+  <li>我们现在的任务就是分析 $t_a r$ 这种形式的<strong>变换</strong>的<strong>几何</strong>本质。</li>
+</ul></li>
+</ol>
+    </div>
+</div><p id="original-18"><strong style="font-size: 1.3rem;">📜 [原文18]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>它的作用是</p>
+<p><div class="math-block">$$
+m\left[\begin{array}{l}
+x_{1} \\
+x_{2}
+\end{array}\right]=t_{a}\left[\begin{array}{r}
+x_{1} \\
+-x_{2}
+\end{array}\right]=\left[\begin{array}{r}
+x_{1}+a_{1} \\
+-x_{2}+a_{2}
+\end{array}\right] .
+$$</div></p>
+<p>这个<strong>等距变换</strong>是关于<strong>直线</strong> $\ell:\left\{x_{2}=\frac{1}{2} a_{2}\right\}$ <strong>反射</strong>，然后由<strong>平行于</strong> $\ell$ 的<strong>向量</strong> $a_{1} e_{1}$ <strong>平移</strong>所获得的<strong>滑移反射</strong>。如果 $a_{1}=0$，$m$ 是<strong>反射</strong>。</p>
+<p>这就完成了<strong>定理</strong> 6.3.4 的<strong>证明</strong>。$\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分对简化后的形式 $m=t_a r$ 进行最终分析。</p>
+<ol>
+  <li> <strong>写出坐标分量</strong>:
+<ul>
+  <li>$m(x) = t_a(r(x))$</li>
+  <li>$r$ 作用在 $\begin{pmatrix} x_1 \\ x_2 \end{pmatrix}$ 上，得到 $\begin{pmatrix} x_1 \\ -x_2 \end{pmatrix}$。</li>
+  <li>$t_a$ 作用在结果上，其中 $a=\begin{pmatrix} a_1 \\ a_2 \end{pmatrix}$，得到 $\begin{pmatrix} x_1+a_1 \\ -x_2+a_2 \end{pmatrix}$。</li>
+</ul></li>
+  <li> <strong>分解变换</strong>: 我们要证明这个看起来奇怪的<strong>变换</strong> $(x_1, x_2) \rightarrow (x_1+a_1, -x_2+a_2)$ 是一个<strong>滑移反射</strong>。
+<ul>
+  <li>一个<strong>滑移反射</strong>包含两部分：一个<strong>反射</strong>和一个<strong>平行</strong>于<strong>反射</strong>轴的<strong>平移</strong>。</li>
+  <li>让我们尝试把它分解成 $m = (\text{平移}) \circ (\text{反射})$。</li>
+  <li>观察<strong>变换</strong>结果：$x_1$ 坐标变成了 $x_1+a_1$，这明显是一个水平<strong>平移</strong>。$x_2$ 坐标变成了 $-x_2+a_2$。</li>
+  <li>我们可以把<strong>变换</strong>重写为：</li>
+  <li>让我们换一种思路，先猜测<strong>反射</strong>轴。<strong>反射</strong>通常形式为 $y \rightarrow C - y$。我们的形式是 $x_2 \rightarrow a_2 - x_2$。这提示<strong>反射</strong>轴可能是 $x_2 = a_2/2$。</li>
+  <li>我们来验证一下：关于直线 $\ell: x_2 = k$ 的<strong>反射</strong>将点 $(x_1, x_2)$ 映到 $(x_1, 2k-x_2)$。</li>
+  <li>如果我们令 $k = a_2/2$，那么<strong>反射</strong>后的 $x_2$ 坐标是 $2(a_2/2) - x_2 = a_2-x_2$。这正是我们<strong>公式</strong>中 $x_2$ 坐标的后半部分！</li>
+</ul></li>
+  <li> <strong>重新组合</strong>:
+<ul>
+  <li>所以，我们的<strong>变换</strong> $m$ 可以分解为：</li>
+</ul></li>
+  <li> <strong>第一步</strong>: 关于直线 $\ell: \{x_2 = a_2/2\}$ 做<strong>反射</strong>。这会将 $(x_1, x_2)$ 变为 $(x_1, a_2-x_2)$。</li>
+  <li> <strong>第二步</strong>: 将结果 $(x_1, a_2-x_2)$ 再做一个<strong>平移</strong>。我们需要从 $(x_1, a_2-x_2)$ 得到最终结果 $(x_1+a_1, a_2-x_2)$（注意原文<strong>公式</strong>是 $-x_2+a_2$，这和 $a_2-x_2$ 是一样的）。这需要一个<strong>平移向量</strong> $\begin{pmatrix} a_1 \\ 0 \end{pmatrix}$。
+<ul>
+  <li>因此，$m = (\text{平移 } t_{(a_1,0)}) \circ (\text{反射于 } x_2=a_2/2)$。</li>
+</ul></li>
+  <li> <strong>判断几何类型</strong>:
+<ul>
+  <li><strong>反射</strong>轴是水平线 $x_2=a_2/2$。</li>
+  <li><strong>平移向量</strong>是 $\begin{pmatrix} a_1 \\ 0 \end{pmatrix} = a_1 e_1$，这是一个水平<strong>向量</strong>，它<strong>平行于</strong><strong>反射</strong>轴。</li>
+  <li>这完全符合<strong>滑移反射</strong>的定义：一个<strong>反射</strong>，接着一个<strong>平行于</strong><strong>反射</strong>轴的<strong>平移</strong>。</li>
+</ul></li>
+  <li> <strong>边界情况</strong>:
+<ul>
+  <li>如果<strong>平移向量</strong>的<strong>平行</strong>分量 $a_1=0$ 怎么办？</li>
+  <li>那么<strong>平移</strong>就是零<strong>平移</strong>（恒等<strong>变换</strong>）。</li>
+  <li>此时，$m$ 就退化成一个纯粹的、关于直线 $\ell: \{x_2 = a_2/2\}$ 的<strong>反射</strong>。</li>
+</ul></li>
+  <li> <strong>证明闭环</strong>: 我们已经证明，任何<strong>改变定向</strong>的<strong>等距变换</strong> $m = t_a \rho_\theta r$，通过适当的<strong>坐标</strong>旋转，都可以看作是 $m'=t_a r$ 的形式，而 $m'=t_a r$ 的<strong>几何</strong>本质就是一个<strong>滑移反射</strong>（当 $a_1 \neq 0$）或一个纯<strong>粹的反射</strong>（当 $a_1=0$）。这就完成了对<strong>定理</strong> 6.3.4 的完整证明。</li>
+</ol>
+    </div>
+</div><h3>4.6. 推论：滑移线方向</h3><p id="original-19"><strong style="font-size: 1.3rem;">📜 [原文19]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>推论</strong> 6.3.8 <strong>等距变换</strong> $t_{a} \rho_{\theta} r$ 的<strong>滑移线</strong><strong>平行于</strong> $\rho_{\theta} r$ 的<strong>反射线</strong>。$\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个<strong>推论</strong>是上述证明过程的一个直接结果。</p>
+<ol>
+  <li> <strong>回顾证明过程</strong>: 在证明中，我们有一个<strong>改变定向</strong>的<strong>变换</strong> $m = t_a \rho_\theta r$。我们的关键步骤是<strong>旋转坐标系</strong>，使得新的 $x'$ 轴与 $\rho_\theta r$ 的<strong>反射线</strong> $\ell_0$ 对齐。</li>
+  <li> <strong>滑移线的出现</strong>: 在这个新的<strong>坐标系</strong>中，我们证明了该<strong>变换</strong>是一个<strong>滑移反射</strong>，其<strong>反射</strong>轴（我们称之为<strong>滑移线</strong>）是 $x_2' = a_2'/2$，这是一条<strong>平行于</strong>新 $x'$ 轴的<strong>直线</strong>。</li>
+  <li> <strong>连接两者</strong>:
+<ul>
+  <li>新 $x'$ 轴就是旧<strong>坐标系</strong>中的<strong>直线</strong> $\ell_0$。</li>
+  <li><strong>滑移线</strong> $x_2'=a_2'/2$ <strong>平行于</strong>新 $x'$ 轴。</li>
+  <li>因此，<strong>滑移线</strong>必然<strong>平行于</strong>旧<strong>坐标系</strong>中的<strong>直线</strong> $\ell_0$。</li>
+</ul></li>
+  <li> <strong>结论</strong>: <strong>直线</strong> $\ell_0$ 是 $\rho_\theta r$ 的<strong>反射线</strong>。所以，最终的结论是：一个一般形式的<strong>滑移反射</strong> $t_a \rho_\theta r$，它的<strong>滑移线</strong>（即它实际上的<strong>反射</strong>轴），总是<strong>平行于</strong>它的<strong>正交</strong>部分 $\rho_\theta r$ 的<strong>反射</strong>轴。</li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li>考虑一个<strong>变换</strong>：先关于直线 $y=x$ <strong>反射</strong>，再向上<strong>平移</strong> 2 个单位。</li>
+  <li>这里的 $\rho_\theta r$ 部分就是“关于 $y=x$ <strong>反射</strong>”。它的<strong>反射线</strong>是 $y=x$。</li>
+  <li>根据<strong>推论</strong>，这个<strong>复合变换</strong>是一个<strong>滑移反射</strong>，其<strong>滑移线</strong>必然<strong>平行于</strong> $y=x$。</li>
+  <li>我们可以计算出这条<strong>滑移线</strong>。实际上，它是 $y=x+1$。<strong>变换</strong>的效果是先关于 $y=x+1$ <strong>反射</strong>，然后沿着 $y=x+1$ 方向<strong>平移</strong>一个<strong>向量</strong> $(1,1)$。</li>
+</ul>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-5">
+    <h2><span class="section-number">5</span>5. 固定点的等距变换子群</h2>
+    <h3>5.1. 不同中心点的旋转群关系</h3><p id="original-20"><strong style="font-size: 1.3rem;">📜 [原文20]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>固定原点</strong>的<strong>等距变换</strong>是<strong>正交线性算子</strong>，因此当选择<strong>坐标</strong>时，<strong>正交群</strong> $\mathrm{O}_{2}$ 成为<strong>等距变换群</strong> $M$ 的一个<strong>子群</strong>。我们也可以考虑 $M$ 中<strong>固定</strong>除<strong>原点</strong>以外的<strong>平面</strong><strong>点</strong>的<strong>等距变换</strong>的<strong>子群</strong>。该<strong>群</strong>与<strong>正交群</strong>的<strong>关系</strong>在以下<strong>命题</strong>中给出。</p>
+<p><strong>命题</strong> 6.3.9 假设已选择<strong>平面</strong>中的<strong>坐标</strong>，使得<strong>正交群</strong> $O_{2}$ 成为 $M$ 中<strong>固定原点</strong>的<strong>等距变换</strong>的<strong>子群</strong>。那么<strong>固定</strong><strong>平面</strong>中<strong>点</strong> $p$ 的<strong>等距变换群</strong>是<strong>共轭子群</strong> $t_{p} O_{2} t_{p}^{-1}$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分探讨了不同<strong>子群</strong>之间的关系，引入了<strong>群</strong>论中一个非常重要的概念——<strong>共轭 (conjugation)</strong>。</p>
+<ol>
+  <li> <strong>稳定子群 (Stabilizer Subgroup)</strong>:
+<ul>
+  <li>在<strong>群</strong> $M$ 中，所有<strong>固定</strong>某一个特定点（比如<strong>原点</strong> $o$）的<strong>变换</strong>集合，它们自身也构成一个<strong>子群</strong>。这个<strong>子群</strong>被称为点 $o$ 的<strong>稳定子群</strong>。</li>
+  <li><strong>固定原点</strong>的<strong>等距变换群</strong>，我们已经知道，就是<strong>正交群</strong> $O_2$。它包含了所有的绕<strong>原点</strong>的<strong>旋转</strong> $\rho_\theta$ 和所有关于过<strong>原点</strong>直线的<strong>反射</strong> $\rho_\theta r$。</li>
+</ul></li>
+  <li> <strong>提出问题</strong>: 那么，<strong>固定</strong>另一个点 $p \neq o$ 的所有<strong>等距变换</strong>，是否也构成一个<strong>子群</strong>？它和 $O_2$ 有什么关系？
+<ul>
+  <li>答案是肯定的，它们也构成一个<strong>子群</strong>，记为 $M_p$。</li>
+  <li><strong>命题 6.3.9</strong> 回答了第二个问题：$M_p$ 和 $M_o = O_2$ 是<strong>共轭</strong>关系。</li>
+</ul></li>
+  <li> <strong>共轭子群</strong>:
+<ul>
+  <li><strong>公式</strong>: $M_p = t_p O_2 t_p^{-1}$。</li>
+  <li><strong>解读</strong>: 这个<strong>公式</strong>是什么意思？它表示 $M_p$ 中的任何一个<strong>元素</strong> $m_p$，都可以被写成 $t_p \circ m_o \circ t_p^{-1}$ 的形式，其中 $m_o$ 是 $O_2$ 中的某个<strong>元素</strong>（即某个<strong>固定原点</strong>的<strong>变换</strong>）。</li>
+  <li><strong>$t_p^{-1}$</strong>: 先做一个<strong>平移</strong> $t_{-p}$，把点 $p$ 移动到<strong>原点</strong> $o$。</li>
+  <li><strong>$m_o$</strong>: 然后，执行一个<strong>固定原点</strong>的<strong>变换</strong>（<strong>旋转</strong>或<strong>反射</strong>）。</li>
+  <li><strong>$t_p$</strong>: 最后，再做一个反向的<strong>平移</strong> $t_p$，把<strong>原点</strong> $o$ 移回到点 $p$。</li>
+  <li>整个流程下来，点 $p$ 经历了 $p \xrightarrow{t_{-p}} o \xrightarrow{m_o} o \xrightarrow{t_p} p$，所以最终 $p$ 点是<strong>不动</strong>的。这证明了 $t_p m_o t_p^{-1}$ 确实是<strong>固定</strong>点 $p$ 的<strong>变换</strong>。</li>
+  <li>反之，任何<strong>固定</strong> $p$ 的<strong>变换</strong> $m_p$，都可以通过类似的方法 $t_p^{-1} m_p t_p$ 转化为一个<strong>固定原点</strong>的<strong>变换</strong>。</li>
+</ul></li>
+</ol>
+<p><strong style="font-size: 1.2rem;">[证明思路解析]</strong></p>
+    </div>
+</div><p id="original-21"><strong style="font-size: 1.3rem;">📜 [原文21]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>证明</strong>。如果<strong>等距变换</strong> $m$ <strong>固定</strong> $p$，那么 $t_{p}^{-1} m t_{p}$ <strong>固定原点</strong>：$t_{p}^{-1} m t_{p} o=t_{p}^{-1} m p=t_{p}^{-1} p=0$。反之，如果 $m$ <strong>固定</strong> $o$，那么 $t_{p} m t_{p}^{-1}$ <strong>固定</strong> $p$。$\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>证明过程非常简洁，完美地诠释了<strong>共轭</strong>操作的<strong>几何</strong>意义。</p>
+<ol>
+  <li> <strong>第一部分</strong>: 证明 $M_p \subseteq t_p O_2 t_p^{-1}$。
+<ul>
+  <li>取任意一个<strong>固定</strong> $p$ 的<strong>变换</strong> $m \in M_p$。我们要证明 $m$ 可以被写成 $t_p m_o t_p^{-1}$ 的形式。</li>
+  <li>构造一个新<strong>变换</strong> $m' = t_p^{-1} m t_p$。我们来检验 $m'$ 的性质。</li>
+  <li>$m'$ 作用在<strong>原点</strong> $o$ 上：$m'(o) = t_p^{-1}(m(t_p(o))) = t_p^{-1}(m(p))$。</li>
+  <li>因为 $m$ <strong>固定</strong> $p$，所以 $m(p)=p$。</li>
+  <li>于是 $m'(o) = t_p^{-1}(p) = o$。</li>
+  <li>这说明 $m'$ 是一个<strong>固定原点</strong>的<strong>变换</strong>，因此 $m' \in O_2$。</li>
+  <li>从 $m' = t_p^{-1} m t_p$，我们可以解出 $m = t_p m' t_p^{-1}$。由于 $m' \in O_2$，这正是我们想证明的形式。</li>
+</ul></li>
+  <li> <strong>第二部分</strong>: 证明 $t_p O_2 t_p^{-1} \subseteq M_p$。
+<ul>
+  <li>取任意一个 $m_o \in O_2$（即 $m_o$ <strong>固定原点</strong>）。构造一个新<strong>变换</strong> $m = t_p m_o t_p^{-1}$。</li>
+  <li>我们要证明 $m$ <strong>固定</strong>点 $p$。</li>
+  <li>$m(p) = t_p(m_o(t_p^{-1}(p))) = t_p(m_o(o))$。</li>
+  <li>因为 $m_o$ <strong>固定原点</strong>，所以 $m_o(o)=o$。</li>
+  <li>于是 $m(p) = t_p(o) = p$。</li>
+  <li>这证明了形如 $t_p m_o t_p^{-1}$ 的<strong>变换</strong>确实都<strong>固定</strong>点 $p$，属于 $M_p$。</li>
+</ul></li>
+  <li> <strong>结论</strong>: 两部分结合，证明了 $M_p = t_p O_2 t_p^{-1}$。</li>
+</ol>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像是“换个地方做同样的事”。$O_2$ 是所有在“<strong>原点</strong>工作室”里能做的操作（绕<strong>原点</strong>转、关于过<strong>原点</strong>的线翻转）。$M_p$ 是所有在“$p$点工作室”里能做的操作。<strong>命题</strong>说，要在 $p$ 点工作室做一个操作，你只需要：</p>
+<ol>
+  <li> 坐班车 ($t_{-p}$) 从 $p$ 点工作室回到<strong>原点</strong>工作室。</li>
+  <li> 在<strong>原点</strong>工作室做一个标准操作 ($m_o$)。</li>
+  <li> 再坐班车 ($t_p$) 回到 $p$ 点工作室。</li>
+</ol>
+<p>这个“坐班车-操作-坐回来”的流程，在<strong>群</strong>论里就叫<strong>共轭</strong>。它说明 $M_p$ 和 $O_2$ 这两个<strong>子群</strong>在结构上是完全一样的（<strong>同构</strong>的），只是“地理位置”不同。</p>
+    </div>
+</div><h3>5.2. 旋转的几何可视化</h3><p id="original-22"><strong style="font-size: 1.3rem;">📜 [原文22]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>可以这样<strong>可视化</strong>关于<strong>点</strong> $p$ 的<strong>旋转</strong>：首先通过 $t_{-p}$ <strong>平移</strong>将 $p$ 移动到<strong>原点</strong>，然后关于<strong>原点旋转</strong>，然后再<strong>平移</strong>回 $p$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这正是对<strong>共轭</strong>表达式 $t_p \rho_\theta t_p^{-1}$ 的<strong>几何</strong>步骤的文字描述。一个绕任意点 $p$ 的<strong>旋转</strong> $\rho_{\theta,p}$，其<strong>代数</strong>表达式就是：</p>
+<p>$\rho_{\theta,p} = t_p \rho_\theta t_p^{-1}$</p>
+<p>这个<strong>公式</strong>完美地体现了“将问题转化到<strong>原点</strong>处理，再将结果移回去”的思想，是<strong>应用数学</strong>和物理中非常常见的一种解题策略。</p>
+    </div>
+</div><h3>5.3. 同态映射与几何变换</h3><p id="original-23"><strong style="font-size: 1.3rem;">📜 [原文23]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>我们回到在 (6.2.10) 中定义的<strong>同态</strong> $\pi: M \rightarrow O_{2}$。上面的讨论表明：</p>
+<p><strong>命题</strong> 6.3.10 令 $p$ 为<strong>平面</strong>的一个<strong>点</strong>，令 $\rho_{\theta, p}$ 表示关于 $p$ 的<strong>角度</strong>为 $\theta$ 的<strong>旋转</strong>。那么 $\pi\left(\rho_{\theta, p}\right)=\rho_{\theta}$。类似地，如果 $r_{\ell}$ 是关于<strong>直线</strong> $\ell$ 的<strong>反射</strong>，或者是<strong>滑移线</strong><strong>平行于</strong> $x$-<strong>轴</strong>的<strong>滑移反射</strong>，那么 $\pi\left(r_{\ell}\right)=r$。$\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分将前面的讨论与一个重要的<strong>群同态</strong>联系起来。</p>
+<ol>
+  <li> <strong>群同态 $\pi: M \rightarrow O_2$</strong>:
+<ul>
+  <li>这个<strong>同态</strong>是一个<strong>映射</strong>，它将一个任意的<strong>等距变换</strong> $m \in M$ 对应到一个<strong>正交算子</strong> $\varphi \in O_2$。</li>
+  <li>具体是怎么对应的？任何<strong>等距变换</strong> $m$ 都可以唯一分解为 $m = t_v \varphi$。这个<strong>同态</strong> $\pi$ 的作用就是“扔掉<strong>平移</strong>部分，只保留<strong>正交</strong>（旋转/反射）部分”。即 $\pi(t_v \varphi) = \varphi$。</li>
+  <li>$\pi$ 是一个<strong>同态</strong>，意味着它保持<strong>群</strong>的<strong>运算</strong>结构：$\pi(m_1 m_2) = \pi(m_1)\pi(m_2)$。</li>
+</ul></li>
+  <li> <strong>命题 6.3.10 的内容</strong>:
+<ul>
+  <li><strong>$\pi(\rho_{\theta,p}) = \rho_\theta$</strong>:</li>
+  <li>一个绕任意点 $p$ 的<strong>旋转</strong> $\rho_{\theta,p}$，经过 $\pi$ <strong>映射</strong>后，变成了绕<strong>原点</strong>的、<strong>角度</strong>相同的<strong>旋转</strong> $\rho_\theta$。</li>
+  <li>这很好理解，因为 $\rho_{\theta,p} = t_p \rho_\theta t_{-p}$。根据<strong>复合规则</strong>，它可以被化为 $t_v \rho_\theta$ 的形式（其中 $v = p - \rho_\theta(p)$）。</li>
+  <li>应用 $\pi$ <strong>映射</strong>，$\pi(t_v \rho_\theta) = \rho_\theta$。</li>
+  <li><strong>直观意义</strong>: $\pi$ <strong>映射</strong>忽略了<strong>旋转</strong>发生在哪里（哪个中心点），只关心<strong>旋转</strong>本身是什么（转了多少度）。</li>
+  <li><strong>$\pi(r_\ell) = r$</strong> (假设<strong>滑移线</strong>与 $x$ 轴<strong>平行</strong>)</li>
+  <li>$r_\ell$ 是关于<strong>直线</strong> $\ell$ 的<strong>反射</strong>或<strong>滑移反射</strong>。</li>
+  <li>在证明<strong>定理</strong> 6.3.4 时我们看到，任何这样的<strong>变换</strong>，如果它的<strong>反射</strong>轴 $\ell$ <strong>平行于</strong> $x$ 轴，那么它的<strong>代数</strong>形式可以写成 $m=t_a r$。</li>
+  <li>应用 $\pi$ <strong>映射</strong>，$\pi(t_a r) = r$。</li>
+  <li><strong>直观意义</strong>: $\pi$ <strong>映射</strong>忽略了<strong>反射</strong>/滑移发生在哪条<strong>直线</strong>上以及<strong>平移</strong>了多少，只关心其<strong>正交</strong>部分的“本质”，在这里就是一个标准的关于 $x$ <strong>轴</strong>的<strong>反射</strong>（在合适的<strong>坐标系</strong>下）。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>同态</strong> $\pi$ 是一个“信息提取器”。它从一个具体的<strong>几何变换</strong>（如绕 $(5,8)$ 点旋转 $30^\circ$）中，提取出其抽象的“<strong>线性</strong>”或“<strong>正交</strong>”部分（一个绕<strong>原点</strong>旋转 $30^\circ$ 的<strong>算子</strong>）。这个<strong>命题</strong>表明，所有具有相同旋转<strong>角度</strong>的<strong>旋转</strong>（无论中心在哪），以及所有具有相同<strong>反射</strong>方向的<strong>反射</strong>/<strong>滑移</strong>（在<strong>平行</strong>类中），都被 $\pi$ <strong>映射</strong>到同一个 $O_2$ 中的<strong>元素</strong>。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-6">
+    <h2><span class="section-number">6</span>6. 点与向量的区分</h2>
+    <h3>6.1. 引入向量空间V</h3><p id="original-24"><strong style="font-size: 1.3rem;">📜 [原文24]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>在这本书的大部分内容中，没有令人信服的理由来区分<strong>平面</strong> $\boldsymbol{P}=\mathbb{R}^{2}$ 的<strong>点</strong> $p$ 和从<strong>原点</strong> $o$ 到 $p$ 的<strong>向量</strong>，在<strong>微积分</strong>书籍中通常写为 $\overrightarrow{o p}$。然而，在使用<strong>等距变换</strong>时，最好保持这种区别。因此，我们引入<strong>平面</strong>的另一个副本，我们称之为 $V$，我们将其<strong>元素</strong>视为<strong>平移向量</strong>。<strong>向量</strong> $v \in V$ 的<strong>平移</strong>作用于 $P$ 的<strong>点</strong> $p$ 时为 $t_{v}(p)=p+v$。它将<strong>平面</strong>的每个<strong>点</strong><strong>平移</strong> $v$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分引入了一个在处理<strong>仿射变换</strong>（<strong>等距变换</strong>是其一种）时非常重要的哲学思辨：<strong>点 (Point)</strong> 和 <strong>向量 (Vector)</strong> 的区别。</p>
+<ol>
+  <li> <strong>通常的混用</strong>: 在很多情况下（如基础<strong>线性代数</strong>），我们不严格区分一个<strong>点</strong> $(x,y)$ 和一个从<strong>原点</strong>指向该<strong>点</strong>的<strong>向量</strong> $\begin{pmatrix} x \\ y \end{pmatrix}$。我们都用 $\mathbb{R}^2$ 中的一个<strong>元素</strong>来表示。</li>
+  <li> <strong>区分的必要性</strong>: 当我们开始研究<strong>平移</strong>时，这种混用会造成概念上的混乱。
+<ul>
+  <li>一个<strong>点</strong>代表一个“<strong>位置</strong>”。</li>
+  <li>一个<strong>向量</strong>代表一个“<strong>位移</strong>”或“方向和大小”。</li>
+  <li>你可以说“一个<strong>点</strong>被一个<strong>向量</strong><strong>平移</strong>了”，得到一个新<strong>点</strong>。即：<strong>点</strong> + <strong>向量</strong> = <strong>点</strong>。</li>
+  <li>你也可以说“两个<strong>向量</strong>相加”，得到一个新<strong>向量</strong>。即：<strong>向量</strong> + <strong>向量</strong> = <strong>向量</strong>。</li>
+  <li>但是“两个<strong>点</strong>相加”在<strong>几何</strong>上没有明确的意义。</li>
+</ul></li>
+  <li> <strong>引入新空间 V</strong>: 为了在数学上严格化这个区别，作者引入了两个不同的空间：
+<ul>
+  <li><strong>$P$ (Point Space)</strong>: <strong>点</strong>的<strong>集合</strong>。可以把它想象成一张白纸。$P$ 的<strong>元素</strong>是 $p$。</li>
+  <li><strong>$V$ (Vector Space)</strong>: <strong>平移向量</strong>的<strong>集合</strong>。可以把它想象成一堆箭头。$V$ 的<strong>元素</strong>是 $v$。</li>
+  <li>$P$ 和 $V$ 在结构上都是 $\mathbb{R}^2$，但我们赋予它们不同的<strong>几何</strong>角色。</li>
+</ul></li>
+  <li> <strong>相互作用</strong>:
+<ul>
+  <li><strong>向量</strong> $v \in V$ 作用于 <strong>点</strong> $p \in P$，通过<strong>平移</strong>操作 $t_v$。</li>
+  <li>$t_v(p) = p+v$。这个“+”号的含义是，拿一个代表<strong>位置</strong> $p$ 的<strong>向量</strong>，和代表<strong>位移</strong> $v$ 的<strong>向量</strong>相加，得到的结果是一个代表新<strong>位置</strong>的<strong>向量</strong>。</li>
+  <li>这样，<strong>点</strong>和<strong>向量</strong>的角色就分明了。$V$ 中的<strong>元素</strong>（<strong>向量</strong>）是作用在 $P$ 中<strong>元素</strong>（<strong>点</strong>）上的“动作”。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段通过引入两个概念上不同的空间 $P$（<strong>点</strong>空间）和 $V$（<strong>向量</strong>空间），澄清了“<strong>位置</strong>”和“<strong>位移</strong>”在<strong>几何变换</strong>中的不同角色，为更严谨地分析<strong>坐标变换</strong>带来的影响做好了铺垫。</p>
+    </div>
+</div><h3>6.2. 坐标变换对点和向量的影响</h3><p id="original-25"><strong style="font-size: 1.3rem;">📜 [原文25]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>$V$ 和 $P$ 都是<strong>平面</strong>。它们之间的区别仅在<strong>坐标</strong>变化时才显现出来。假设我们通过<strong>平移</strong> $\eta=t_{w}$ <strong>平移</strong> $P$ 中的<strong>坐标</strong>。<strong>坐标</strong>变化的<strong>规则</strong>是 $\eta\left(p^{\prime}\right)=p$，或者 $p^{\prime}+w=p$。同时，<strong>等距变换</strong> $m$ 变为 $m^{\prime}=\eta^{-1} m \eta=t_{-w} m t_{w}$ (6.2.11)。如果我们将此<strong>规则</strong>应用于 $m=t_{v}$，那么 $m^{\prime}=t_{-w} t_{v} t_{w}=t_{v}$。$P$ 的<strong>点</strong>获得新<strong>坐标</strong>，但<strong>平移向量</strong>不变。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分解释了<strong>点</strong>和<strong>向量</strong>的根本区别：它们在<strong>坐标系平移</strong>下的不同表现。</p>
+<ol>
+  <li> <strong>坐标系平移</strong>: 假设我们把<strong>坐标系</strong>的<strong>原点</strong>从 $o$ 移动到一个新的位置 $o'=-w$。
+<ul>
+  <li>对于一个<strong>固定</strong>的<strong>几何点</strong>，它在旧<strong>坐标系</strong>下的<strong>坐标</strong>是 $p$，在新<strong>坐标系</strong>下的<strong>坐标</strong>是 $p'$。</li>
+  <li>它们的关系是 $p = p' + w$ 或 $p' = p - w$。比如，<strong>原点</strong>本身，旧<strong>坐标</strong>是 $(0,0)$，新<strong>坐标</strong>是 $(0-w_1, 0-w_2) = -w$。</li>
+</ul></li>
+  <li> <strong>平移变换自身的变化</strong>:
+<ul>
+  <li>考虑一个由<strong>向量</strong> $v$ 定义的<strong>平移变换</strong> $m=t_v$。</li>
+  <li>在新的<strong>坐标系</strong>下，这个<strong>变换</strong>会变成什么样？我们使用<strong>共轭公式</strong> $m' = \eta^{-1} m \eta$，其中 $\eta = t_w$ 是<strong>坐标变换</strong>。</li>
+  <li>$m' = t_w^{-1} t_v t_w = t_{-w} t_v t_w$。</li>
+  <li>根据<strong>平移</strong>的<strong>复合规则</strong>，这等于 $t_{-w+v+w} = t_v$。</li>
+</ul></li>
+  <li> <strong>惊人的结论</strong>:
+<ul>
+  <li><strong>平移变换</strong> $t_v$ 在<strong>坐标系平移</strong>后，其形式完全不变！它仍然是 $t_v$。</li>
+  <li><strong>几何</strong>意义：<strong>平移</strong>这个“动作”（比如“向右移动5米”）的描述，与你把<strong>坐标系</strong>的<strong>原点</strong>放在哪里无关。</li>
+  <li><strong>对比</strong>: <strong>点</strong>的<strong>坐标</strong>会改变 ($p' = p-w$)，但定义<strong>平移</strong>的<strong>向量</strong> $v$ 不会变。</li>
+  <li>这就是<strong>点</strong>和<strong>向量</strong>的本质区别。<strong>点</strong>的<strong>坐标</strong>是相对的，依赖于<strong>原点</strong>选择。<strong>向量</strong>（作为位移）是绝对的，不依赖于<strong>原点</strong>。</li>
+</ul></li>
+</ol>
+    </div>
+</div><p id="original-26"><strong style="font-size: 1.3rem;">📜 [原文26]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>另一方面，如果我们通过<strong>正交算子</strong> $\varphi$ 改变<strong>坐标</strong>，那么 $\varphi\left(p^{\prime}\right)=p$，并且如果 $m=t_{v}$，那么 $m^{\prime}=\varphi^{-1} t_{v} \varphi=t_{v^{\prime}}$，其中 $v^{\prime}=\varphi^{-1} v$。所以 $\varphi v^{\prime}=v$。<strong>正交算子</strong>改变<strong>坐标</strong>的效果在 $P$ 和 $V$ 上是相同的。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这里讨论另一种<strong>坐标变换</strong>——<strong>旋转</strong>或<strong>反射坐标系</strong>。</p>
+<ol>
+  <li> <strong>坐标系旋转/反射</strong>: 我们保持<strong>原点</strong>不动，但旋转/反射<strong>坐标</strong>轴。这由一个<strong>正交算子</strong> $\varphi$ 描述。
+<ul>
+  <li>一个<strong>固定</strong>的<strong>几何点</strong>，旧<strong>坐标</strong>为 $p$，新<strong>坐标</strong>为 $p'$。关系是 $p = \varphi(p')$ 或 $p'=\varphi^{-1}(p)$。</li>
+</ul></li>
+  <li> <strong>平移变换的变化</strong>:
+<ul>
+  <li>还是考虑<strong>平移变换</strong> $m=t_v$。</li>
+  <li>在新<strong>坐标系</strong>下，它变成 $m' = \varphi^{-1} m \varphi = \varphi^{-1} t_v \varphi$。</li>
+  <li>使用<strong>复合规则</strong>: $t_v \varphi = \varphi t_{\varphi^{-1}(v)}$（这是 $\rho_\theta t_v=t_{\rho_\theta(v)}\rho_\theta$ 规则的变体）。所以 $t_v = \varphi t_{\varphi^{-1}(v)} \varphi^{-1}$。</li>
+  <li>因此 $\varphi^{-1} t_v \varphi = \varphi^{-1} (\varphi t_{\varphi^{-1}(v)} \varphi^{-1}) \varphi = t_{\varphi^{-1}(v)}$。</li>
+</ul></li>
+  <li> <strong>结论</strong>:
+<ul>
+  <li>在<strong>旋转</strong>/<strong>反射</strong>的<strong>坐标变换</strong>下，<strong>平移变换</strong> $t_v$ 变成了 $t_{v'}$，其中新的<strong>平移向量</strong> $v'$ 是旧的<strong>平移向量</strong> $v$ 被<strong>坐标变换</strong>的逆<strong>变换</strong> $\varphi^{-1}$ 作用后的结果。</li>
+  <li><strong>几何</strong>意义：如果你把<strong>坐标</strong>轴转了 $30^\circ$，那么原来一个“向东”的<strong>平移向量</strong>，在新<strong>坐标系</strong>下看起来就是“向南偏东 $30^\circ$”了。它的<strong>分量</strong>会改变。</li>
+  <li>在这种<strong>坐标变换</strong>下，<strong>点</strong>的<strong>坐标</strong>和<strong>向量</strong>的<strong>坐标</strong>（分量）以同样的方式变化，即 $p'=\varphi^{-1}(p)$ 且 $v' = \varphi^{-1}(v)$。</li>
+</ul></li>
+</ol>
+    </div>
+</div><p id="original-27"><strong style="font-size: 1.3rem;">📜 [原文27]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>$P$ 和 $V$ 之间唯一的区别是 $P$ 中的<strong>原点</strong>不必是<strong>固定</strong>的，而<strong>零向量</strong>在 $V$ 中被选为<strong>原点</strong>。</p>
+<p><strong>正交算子</strong>作用于 $V$，但它们不作用于 $P$，除非选择了<strong>原点</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这几句是画龙点睛的总结。</p>
+<ol>
+  <li> <strong>P与V的唯一区别</strong>:
+<ul>
+  <li>在<strong>点空间</strong> $P$ 中，没有哪个点是天生特殊的。“<strong>原点</strong>”只是我们为了方便计算而人为选择的一个参考点，它可以被随意<strong>平移</strong>。</li>
+  <li>在<strong>向量空间</strong> $V$ 中，<strong>零向量</strong> $\begin{pmatrix} 0 \\ 0 \end{pmatrix}$ 是一个绝对的、特殊的<strong>元素</strong>。它是<strong>加法</strong>的<strong>单位元</strong>，代表“没有位移”。你不能随意改变<strong>零向量</strong>的定义。</li>
+</ul></li>
+  <li> <strong>算子的作用对象</strong>:
+<ul>
+  <li><strong>正交算子</strong>（如 $\rho_\theta, r$）天生是作用在<strong>向量</strong>上的（它们是<strong>线性算子</strong>，保持<strong>零向量</strong>不变），所以它们作用于 $V$。</li>
+  <li><strong>正交算子</strong>不能直接“作用于<strong>点空间</strong> $P$”，因为 $P$ 没有一个固定的中心。只有当你为 $P$ 人为地指定了一个<strong>原点</strong> $o$ 时，你才能把<strong>点</strong>和从 $o$ 出发的<strong>向量</strong>等同起来，从而让<strong>正交算子</strong>作用在这些<strong>向量</strong>上，实现对<strong>点</strong>的<strong>变换</strong>。这就是为什么我们总是说“绕<strong>原点</strong>的<strong>旋转</strong>”。如果你不指定“<strong>原点</strong>”，那么“<strong>旋转</strong>”这个词本身是无意义的。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>通过区分<strong>点空间</strong> $P$ 和<strong>向量空间</strong> $V$，并考察它们在不同<strong>坐标变换</strong>下的行为，我们深化了对<strong>仿射几何</strong>基本概念的理解。<strong>点</strong>是<strong>位置</strong>，其<strong>坐标</strong>依赖于<strong>原点</strong>选择。<strong>向量</strong>是<strong>位移</strong>，其本身不依赖于<strong>原点</strong>，但其<strong>坐标分量</strong>依赖于<strong>坐标</strong>轴的方向。这个区别是理解<strong>平移</strong>在<strong>等距变换群</strong>中扮演的特殊角色的关键。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-7">
+    <h2><span class="section-number">7</span>行间公式索引</h2>
+    <p>1. <strong>平移变换公式</strong></p><p><div class="math-block">$$
+t_{a}(x)=x+a=\left[\begin{array}{l}x_{1} \\ x_{2}\end{array}\right]+\left[\begin{array}{l}a_{1} \\ a_{2}\end{array}\right]
+$$</div></p><p>该公式定义了<strong>平移变换</strong> $t_a$，它将点 $x$ 的<strong>位置向量</strong>加上一个<strong>平移向量</strong> $a$。</p><p>2. <strong>旋转变换公式</strong></p><p><div class="math-block">$$
+\rho_{\theta}(x)=\left[\begin{array}{rr}\cos \theta &amp; -\sin \theta \\ \sin \theta &amp; \cos \theta\end{array}\right]\left[\begin{array}{l}x_{1} \\ x_{2}\end{array}\right]
+$$</div></p><p>该公式定义了绕<strong>原点</strong>逆时针旋转<strong>角度</strong> $\theta$ 的<strong>变换</strong> $\rho_\theta$，通过左乘一个 $2 \times 2$ 的<strong>旋转矩阵</strong>来实现。</p><p>3. <strong>反射变换公式</strong></p><p><div class="math-block">$$
+r(x)=\left[\begin{array}{rr}1 &amp; 0 \\ 0 &amp; -1\end{array}\right]\left[\begin{array}{l}x_{1} \\ x_{2}\end{array}\right]
+$$</div></p><p>该公式定义了关于 $e_1$ 轴（$x$ 轴）的<strong>反射变换</strong> $r$，通过左乘一个<strong>反射矩阵</strong>实现，该<strong>矩阵</strong>将 $x_2$ <strong>坐标</strong>取反。</p><p>4. <strong>等距变换群的复合规则（关系）</strong></p><p><div class="math-block">$$
+\begin{align*}
+\rho_{\theta} t_{v} &amp; =t_{v^{\prime}} \rho_{\theta}, &amp; &amp; \text { 其中 } v^{\prime}=\rho_{\theta}(v) \\
+r t_{v} &amp; =t_{v^{\prime}} r, &amp; &amp; \text { 其中 } v^{\prime}=r(v),  \tag{6.3.3}\\
+r \rho_{\theta} &amp; =\rho_{-\theta} r . &amp; &amp; \\
+t_{v} t_{w} &amp; =t_{v+w}, &amp; &amp; \rho_{\theta} \rho_{\eta}=\rho_{\theta+\eta}, \quad \text { 且 } \quad r r=1 .
+\end{align*}
+$$</div></p><p>这组公式描述了<strong>等距变换群</strong> $M$ 的<strong>生成元</strong>（<strong>平移</strong> $t_v$、<strong>旋转</strong> $\rho_\theta$、<strong>反射</strong> $r$）之间的<strong>代数复合规则</strong>。</p><p>5. <strong>求解不动点的线性算子矩阵</strong></p><p><div class="math-block">$$
+\left[\begin{array}{cc}
+1-c &amp; s  \tag{6.3.6}\\
+-s &amp; 1-c
+\end{array}\right]
+$$</div></p><p>该<strong>矩阵</strong>是<strong>线性算子</strong> $I-\rho_\theta$ 的<strong>矩阵</strong>表示，用于求解<strong>变换</strong> $t_a\rho_\theta$ 的<strong>不动点</strong> $p$ 的方程 $(I-\rho_\theta)p = a$。</p><p>6. <strong>改变定向变换的坐标表示</strong></p><p><div class="math-block">$$
+m\left[\begin{array}{l}
+x_{1} \\
+x_{2}
+\end{array}\right]=t_{a}\left[\begin{array}{r}
+x_{1} \\
+-x_{2}
+\end{array}\right]=\left[\begin{array}{r}
+x_{1}+a_{1} \\
+-x_{2}+a_{2}
+\end{array}\right] .
+$$</div></p><p>该公式给出了一个简化后的<strong>改变定向</strong>的<strong>等距变换</strong> $m = t_a r$ 作用在任意点 $(x_1, x_2)$ 上的具体<strong>坐标</strong>变化结果。</p>
+</section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>1. 平面等距变换的代数与几何描述</p>
+    </footer>
+
+
+    <!-- 手机端点击翻页功能 -->
+    <script>
+        (function() {
+            // 点击翻页功能（在所有设备上启用）
+            
+            document.addEventListener('click', function(e) {
+                // 如果 TOC 目录面板处于打开状态，不触发翻页
+                var tocPanel = document.getElementById('tocPanel');
+                if (tocPanel && tocPanel.classList.contains('active')) {
+                    return;
+                }
+                
+                // 排除对链接、按钮、输入框等交互元素的点击
+                var target = e.target;
+                var tagName = target.tagName.toLowerCase();
+                if (tagName === 'a' || tagName === 'button' || tagName === 'input' || 
+                    tagName === 'textarea' || tagName === 'select' || 
+                    target.closest('a') || target.closest('button') ||
+                    target.closest('.toc-panel') || target.closest('.toc-toggle') ||
+                    target.closest('.toc-overlay')) {
+                    return;
+                }
+                
+                var clickY = e.clientY;
+                var windowHeight = window.innerHeight;
+                var scrollAmount = windowHeight * 0.85; // 滚动85%的屏幕高度
+                
+                if (clickY > windowHeight / 2) {
+                    // 点击下半部分：向下翻页
+                    window.scrollBy({
+                        top: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 点击上半部分：向上翻页
+                    window.scrollBy({
+                        top: -scrollAmount,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        })();
+    </script>
+
+    <!-- TOC 目录控制脚本 -->
+    <script>
+        (function() {
+            var tocToggle = document.getElementById('tocToggle');
+            var tocPanel = document.getElementById('tocPanel');
+            var tocOverlay = document.getElementById('tocOverlay');
+            
+            // 切换目录显示/隐藏
+            function toggleTOC() {
+                var isOpen = tocPanel.classList.contains('active');
+                if (isOpen) {
+                    closeTOC();
+                } else {
+                    openTOC();
+                }
+            }
+            
+            // 打开目录
+            function openTOC() {
+                tocPanel.classList.add('active');
+                tocOverlay.classList.add('active');
+                tocToggle.setAttribute('aria-label', '关闭目录');
+            }
+            
+            // 关闭目录
+            function closeTOC() {
+                tocPanel.classList.remove('active');
+                tocOverlay.classList.remove('active');
+                tocToggle.setAttribute('aria-label', '打开目录');
+            }
+            
+            // 点击按钮切换目录
+            tocToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTOC();
+            });
+            
+            // 点击遮罩层关闭目录
+            tocOverlay.addEventListener('click', function() {
+                closeTOC();
+            });
+            
+            // 点击目录项后关闭目录
+            var tocLinks = tocPanel.querySelectorAll('a');
+            tocLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    closeTOC();
+                });
+            });
+            
+            // ESC 键关闭目录
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && tocPanel.classList.contains('active')) {
+                    closeTOC();
+                }
+            });
+            
+            // 高亮当前可见的目录条目
+            function updateActiveItem() {
+                var scrollPos = window.scrollY + 150;  // 偏移量
+                var activeSection = null;
+                var activeOriginal = null;
+                
+                // 查找当前可见的 section
+                var sections = document.querySelectorAll('section[id^="section-"]');
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    if (section.offsetTop <= scrollPos) {
+                        activeSection = section.id;
+                    }
+                }
+                
+                // 查找当前可见的原文区块
+                var originals = document.querySelectorAll('[id^="original-"]');
+                for (var j = 0; j < originals.length; j++) {
+                    var original = originals[j];
+                    if (original.offsetTop <= scrollPos) {
+                        activeOriginal = original.id;
+                    }
+                }
+                
+                // 先移除所有 active 类
+                var allHeadings = tocPanel.querySelectorAll('.toc-heading');
+                for (var h = 0; h < allHeadings.length; h++) {
+                    allHeadings[h].classList.remove('active');
+                }
+                
+                var allOriginals = tocPanel.querySelectorAll('.toc-original');
+                for (var o = 0; o < allOriginals.length; o++) {
+                    allOriginals[o].classList.remove('active');
+                }
+                
+                // 只给当前活动的条目添加 active 类
+                if (activeSection) {
+                    var activeHeadingLink = tocPanel.querySelector('.toc-heading a[href="#' + activeSection + '"]');
+                    if (activeHeadingLink) {
+                        activeHeadingLink.parentElement.classList.add('active');
+                    }
+                }
+                
+                if (activeOriginal) {
+                    var activeOriginalLink = tocPanel.querySelector('.toc-original a[href="#' + activeOriginal + '"]');
+                    if (activeOriginalLink) {
+                        activeOriginalLink.parentElement.classList.add('active');
+                    }
+                }
+            }
+            
+            // 节流函数
+            var scrollTimeout;
+            function throttledUpdate() {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(function() {
+                    updateActiveItem();
+                    scrollTimeout = null;
+                }, 100);
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', throttledUpdate);
+            
+            // 打开目录时立即更新高亮
+            var originalOpenTOC = openTOC;
+            openTOC = function() {
+                originalOpenTOC();
+                updateActiveItem();
+            };
+            
+            // 初始化
+            updateActiveItem();
+        })();
+    </script>
+</body>
+</html>

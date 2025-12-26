@@ -1,0 +1,2652 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行间公式索引</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- MathJax v4 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            output: {
+                displayOverflow: 'linebreak',
+                linebreaks: {
+                    inline: true,
+                    width: '100%',
+                    lineleading: 0.2
+                }
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            /* 五大区块主题色 */
+            --original-color: #8b5cf6;
+            --explain-color: #0ea5e9;
+            --formula-color: #6366f1;
+            --example-color: #10b981;
+            --warning-color: #f59e0b;
+            /* Q1修复：总结、存在目的、直觉心智模型、直观想象 统一使用 #36828C 青色主题 */
+            --summary-color: #36828C;     /* 青色主题 */
+            --purpose-color: #36828C;     /* 青色主题 */
+            --intuition-color: #36828C;   /* 青色主题 */
+            --imagination-color: #36828C; /* 青色主题 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .authors {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
+        .content-section h4 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h5 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 18px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h6 {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            margin: 15px 0 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        /* ===============================
+           五大内容区块 - 统一风格不同主题色
+           =============================== */
+
+        /* 原文区 - 紫色 */
+        .original-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid var(--original-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .original-box .box-label {
+            color: var(--original-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-box .box-content {
+            font-style: italic;
+            color: #6b21a8;
+        }
+
+        /* 📜 [原文]区块内容 - 使用统一的黑色 */
+        .original-content {
+            color: #2d3748; /* 统一的深灰黑色 */
+        }
+
+        .original-content * {
+            color: #2d3748; /* 所有子元素 */
+        }
+
+        .original-content .MathJax, .original-content .MathJax * {
+            color: #2d3748 !important; /* 行内公式 */
+        }
+
+        /* 通用 .box-content 换行规则 - 确保长文本（如代码调用）能自动换行 */
+        .box-content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .box-content strong, .box-content code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            display: inline;
+        }
+
+        /* 逐步解释区 - 蓝色 */
+        .explain-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--explain-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .explain-box .box-label {
+            color: var(--explain-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explain-box .box-content {
+            color: #1a365d; /* Dark Blue */
+        }
+
+        .explain-box .box-content * {
+            color: #1a365d; /* Dark Blue - 所有子元素 */
+        }
+
+        .explain-box .box-content .MathJax, .explain-box .box-content .MathJax * {
+            color: #1a365d !important; /* Dark Blue - 行内公式 */
+        }
+
+        .explain-box ul, .explain-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .explain-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 公式拆解区 - 靛蓝色 */
+        .formula-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--formula-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .formula-box .box-label {
+            color: var(--formula-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .formula-box .box-content {
+            color: var(--text-color); /* 统一使用默认黑色，与原文区块一致 */
+            overflow-x: auto;
+        }
+
+        .formula-box .box-content * {
+            color: var(--text-color); /* 所有子元素 */
+        }
+
+        .formula-box .box-content .MathJax, .formula-box .box-content .MathJax * {
+            color: var(--text-color) !important; /* 行内公式 */
+        }
+
+        /* 数值示例区 - 绿色 */
+        .example-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--example-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .example-box .box-label {
+            color: var(--example-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-box .box-content {
+            color: #166534; /* Dark Green from edstem5 .answer-en */
+        }
+
+        .example-box .box-content * {
+            color: #166534; /* Dark Green - 所有子元素 */
+        }
+
+        .example-box .box-content .MathJax, .example-box .box-content .MathJax * {
+            color: #166534 !important; /* Dark Green - 行内公式 */
+        }
+
+        .example-box ul, .example-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .example-box li {
+            margin-bottom: 6px;
+        }
+
+        .example-box code {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* 易错点区 - 橙色 */
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .warning-box .box-label {
+            color: var(--warning-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warning-box .box-content {
+            color: #92400e;
+        }
+
+        .warning-box .box-content * {
+            color: #92400e; /* 所有子元素 */
+        }
+
+        .warning-box .box-content .MathJax, .warning-box .box-content .MathJax * {
+            color: #92400e !important; /* 行内公式 */
+        }
+
+        .warning-box ul, .warning-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .warning-box li {
+            margin-bottom: 6px;
+        }
+
+        /* 总结区 - Q1修复：使用#36828C青色主题 */
+        .summary-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--summary-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .summary-box .box-label {
+            color: var(--summary-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .summary-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .summary-box .box-content .MathJax, .summary-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 存在目的区 - Q1修复：使用#36828C青色主题 */
+        .purpose-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--purpose-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .purpose-box .box-label {
+            color: var(--purpose-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .purpose-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .purpose-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .purpose-box .box-content .MathJax, .purpose-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直觉心智模型区 - Q1修复：使用#36828C青色主题 */
+        .intuition-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--intuition-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .intuition-box .box-label {
+            color: var(--intuition-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .intuition-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .intuition-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .intuition-box .box-content .MathJax, .intuition-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直观想象区 - Q1修复：使用#36828C青色主题 */
+        .imagination-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--imagination-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .imagination-box .box-label {
+            color: var(--imagination-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .imagination-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .imagination-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .imagination-box .box-content .MathJax, .imagination-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 高亮术语 */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* 代码块 */
+        code {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            margin: 15px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 表格样式 - 紧凑型，行高列宽适应文字最小值 */
+        table {
+            border-collapse: collapse;
+            width: auto;  /* 列宽适应内容 */
+            margin: 15px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;  /* 减小padding使行高更紧凑 */
+            text-align: left;
+            white-space: nowrap;  /* 防止不必要的换行，列宽适应文字 */
+            line-height: 1.4;  /* 紧凑的行高 */
+        }
+
+        th {
+            background: #e0f7fa;
+            color: #006064;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #e2e8f0;
+        }
+
+        /* 表格对齐 */
+        .align-left {
+            text-align: left;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        /* 图例区域 */
+        .legend-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .legend-bar {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .legend-bar.original { background: #8b5cf6; }
+        .legend-bar.explain { background: #0ea5e9; }
+        .legend-bar.formula { background: #6366f1; }
+        .legend-bar.example { background: #10b981; }
+        .legend-bar.warning { background: #f59e0b; }
+        .legend-bar.summary { background: #36828C; }
+        .legend-bar.purpose { background: #36828C; }
+        .legend-bar.intuition { background: #36828C; }
+        .legend-bar.imagination { background: #36828C; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive - 移动端适配 */
+        @media (max-width: 768px) {
+            /* 容器宽度适配 */
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 20px 12px;
+                box-sizing: border-box;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+                padding: 0 15px;
+            }
+            
+            .hero {
+                padding: 50px 15px;
+            }
+            
+            .hero h1 {
+                font-size: 1.6rem;
+                word-break: break-word;
+            }
+            
+            .authors {
+                font-size: 1rem;
+            }
+            
+            /* 内容区块适配 */
+            .content-section {
+                padding: 20px 15px;
+                margin-left: 5px;
+                margin-right: 5px;
+                border-radius: 12px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.4rem;
+                flex-wrap: wrap;
+            }
+            
+            .content-section h3 {
+                font-size: 1.2rem;
+            }
+            
+            .content-section h4 {
+                font-size: 1.1rem;
+            }
+            
+            .section-number {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            /* 各区块box适配 */
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 15px 12px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .original-box .box-label,
+            .explain-box .box-label,
+            .formula-box .box-label,
+            .example-box .box-label,
+            .warning-box .box-label,
+            .summary-box .box-label,
+            .purpose-box .box-label,
+            .intuition-box .box-label,
+            .imagination-box .box-label {
+                font-size: 1.1rem;
+            }
+            
+            /* 图例区域移动端适配 */
+            .legend-section {
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
+            
+            .legend-row {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            
+            .legend-item {
+                font-size: 0.8rem;
+                gap: 5px;
+            }
+            
+            .legend-bar {
+                width: 3px;
+                height: 16px;
+            }
+            
+            /* 列表适配 */
+            ul, ol {
+                margin-left: 15px;
+                padding-left: 5px;
+            }
+            
+            /* 表格移动端适配 */
+            table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.9rem;
+                min-width: 80px;
+            }
+            
+            /* 代码块适配 */
+            pre {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            
+            /* 数学公式适配 */
+            .math-block {
+                padding: 10px 8px;
+                margin: 15px 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* MathJax公式溢出处理 - 只处理块级公式，保持行内公式inline */
+            mjx-container[jax="CHTML"][display="true"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                display: block !important;
+            }
+            
+            /* 行内公式 - 超宽时自动换行 */
+            mjx-container:not([display="true"]) {
+                display: inline-block !important;
+                max-width: 100% !important;
+                overflow-wrap: break-word !important;
+                word-wrap: break-word !important;
+            }
+            
+            /* MathJax内部元素换行支持 */
+            mjx-math {
+                white-space: normal !important;
+            }
+            
+            mjx-mrow {
+                flex-wrap: wrap !important;
+            }
+            
+            /* Footer适配 */
+            .footer {
+                padding: 25px 15px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* 超小屏幕适配 (手机竖屏) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 8px;
+            }
+            
+            .hero {
+                padding: 40px 10px;
+            }
+            
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+            
+            .content-section {
+                padding: 15px 10px;
+                margin-left: 3px;
+                margin-right: 3px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 12px 10px;
+            }
+            
+            .legend-section {
+                padding: 12px 8px;
+            }
+            
+            .legend-row {
+                gap: 8px;
+            }
+            
+            .legend-item {
+                font-size: 0.75rem;
+            }
+            
+            ul, ol {
+                margin-left: 12px;
+            }
+        }
+        
+        /* 确保所有内容不溢出 */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* ========================================
+           TOC 目录样式
+           ======================================== */
+        
+        /* TOC 触发按钮 - 左上角小方块 */
+        .toc-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(54, 130, 140, 0.5);  /* 青色 50% 透明度 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .toc-toggle:hover {
+            background: rgba(54, 130, 140, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .toc-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* TOC 目录面板 */
+        .toc-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 95vw;  /* 手机浏览器宽度的 95% */
+            height: 80vh; /* 手机浏览器高度的 80% */
+            max-width: 450px;  /* 桌面端最大宽度 */
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0 0 16px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .toc-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* TOC 头部 - 标题在图标右侧 */
+        .toc-header {
+            padding: 15px 20px 15px 80px;  /* 左侧留出按钮空间 */
+            background: linear-gradient(135deg, #36828C 0%, #2a6a72 100%);
+            color: white;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .toc-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* TOC 内容区 */
+        .toc-content {
+            flex: 1;
+            overflow-y: auto;   /* 允许垂直滚动 */
+            overflow-x: hidden; /* 禁止水平滚动 */
+            padding: 15px 0;
+        }
+        
+        /* TOC 列表 */
+        .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc-item {
+            margin: 0;
+        }
+        
+        .toc-item a {
+            display: block;
+            padding: 4px 20px;  /* 更紧凑的行间距 */
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #2d3748;
+            text-decoration: none;
+            word-wrap: break-word;   /* 自动换行 */
+            overflow-wrap: break-word;
+            white-space: normal;     /* 允许换行 */
+            line-height: 1.3;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .toc-item a:hover {
+            background: #e8f4f5;
+            color: #36828C;
+            border-left-color: #36828C;
+        }
+        
+        /* 标题项样式 */
+        .toc-heading a {
+            font-weight: 600;
+            color: #1a365d;
+            background: #f7fafc;
+        }
+        
+        .toc-heading a:hover {
+            background: #e8f4f5;
+        }
+        
+        /* 当前活动的标题项样式 */
+        .toc-heading.active a {
+            background: #d0e8ea;
+            color: #36828C;
+            border-left-color: #36828C;
+            font-weight: 700;
+        }
+        
+        /* 当前活动的原文项样式 */
+        .toc-original.active a {
+            background: #36828C;
+            color: white;
+            box-shadow: 0 3px 8px rgba(54, 130, 140, 0.35);
+        }
+        
+        /* 原文项容器 - 横向排列自动换行 */
+        .toc-originals-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 8px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* 原文项样式 - 浅青色带阴影 */
+        .toc-original {
+            margin: 0;
+        }
+        
+        .toc-original a {
+            display: inline-block;
+            width: 64px;  /* 固定宽度确保每行显示数量一致 */
+            padding: 6px 4px;
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #36828C;  /* 青色主题色 */
+            text-decoration: none;
+            text-align: center;
+            background: #e8f4f5;
+            border-radius: 6px;
+            border-left: none;
+            box-shadow: 0 2px 4px rgba(54, 130, 140, 0.2);  /* 青色阴影 */
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .toc-original a:hover {
+            background: #e0f2f4;
+            color: #36828C;
+            box-shadow: 0 3px 6px rgba(54, 130, 140, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        /* TOC 遮罩层 */
+        .toc-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .toc-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 移动端 TOC 适配 */
+        @media (max-width: 768px) {
+            .toc-toggle {
+                top: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .toc-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .toc-panel {
+                width: 90vw;
+                height: 80vh;
+                max-width: none;
+            }
+            
+            .toc-header {
+                padding: 12px 15px 12px 65px;
+            }
+            
+            .toc-header h3 {
+                font-size: 16px;
+            }
+            
+            .toc-item a {
+                padding: 4px 15px;
+                font-size: 15.5px;
+            }
+            
+            .toc-originals-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            .toc-original a {
+                padding: 5px 10px;
+                font-size: 15.5px;
+            }
+        }
+
+        /* 特殊术语着色 */
+        .spectral {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .periodicity {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .fourier {
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        /* 列表样式增强 */
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 - 已移除重复定义，使用上方第602-633行的紧凑型样式 */
+
+        /* 分隔线 */
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 30px 0;
+        }
+
+        /* 数学公式样式 - Q7: 行间公式颜色用黑色 */
+        .math-block {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            color: #000000; /* Q7: 黑色文字 */
+        }
+
+        /* Q7: 确保MathJax渲染的公式为黑色 */
+        .math-block .MathJax {
+            color: #000000 !important;
+        }
+
+        mjx-container {
+            color: #000000 !important;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- TOC 目录按钮 -->
+    <button class="toc-toggle" id="tocToggle" aria-label="打开目录">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+        </svg>
+    </button>
+    
+    <!-- TOC 遮罩层 -->
+    <div class="toc-overlay" id="tocOverlay"></div>
+    
+    <!-- TOC 目录面板 -->
+    <nav class="toc-panel" id="tocPanel">
+        <div class="toc-header">
+            <h3>📑 目录</h3>
+        </div>
+        <div class="toc-content">
+            <ul class="toc-list">
+                <li class="toc-item toc-heading"><a href="#section-1">1. 同构 (ISOMORPHISMS) 的定义</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-1">原文1</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-2">2. 示例 2.6.1</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-2">原文2</a></span><span class="toc-original"><a href="#original-3">原文3</a></span><span class="toc-original"><a href="#original-4">原文4</a></span><span class="toc-original"><a href="#original-5">原文5</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-3">3. 验证同构的方法</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-6">原文6</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-4">4. 逆映射的性质</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-7">原文7</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-5">5. 同构群与同构类</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-8">原文8</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-6">6. 自同构与共轭</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-9">原文9</a></span><span class="toc-original"><a href="#original-10">原文10</a></span><span class="toc-original"><a href="#original-11">原文11</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-7">7. 共轭元素</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-12">原文12</a></span><span class="toc-original"><a href="#original-13">原文13</a></span><span class="toc-original"><a href="#original-14">原文14</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-8">8. 换位子</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-15">原文15</a></span><span class="toc-original"><a href="#original-16">原文16</a></span><span class="toc-original"><a href="#original-17">原文17</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-9">9. 行间公式索引</a></li>
+                <li class="toc-item toc-heading"><a href="#section-10">8. 3 换位子与交换性</a></li>
+                <li class="toc-item toc-heading"><a href="#section-11">9. 行间公式索引</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>行间公式索引</h1>
+            <p class="authors"></p>
+            <p class="date"></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 图例区域 -->
+        <div class="legend-section">
+            <!-- 第一行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar original"></div>
+                    <span>📜 原文</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar explain"></div>
+                    <span>📖 逐步解释</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar formula"></div>
+                    <span>∑ 公式拆解</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar example"></div>
+                    <span>💡 数值示例</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar warning"></div>
+                    <span>⚠️ 易错点</span>
+                </div>
+            </div>
+            <!-- 第二行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar summary"></div>
+                    <span>📝 总结</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar purpose"></div>
+                    <span>🎯 存在目的</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar intuition"></div>
+                    <span>🧠 直觉心智模型</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar imagination"></div>
+                    <span>💭 直观想象</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="content-section" id="section-1">
+    <h2><span class="section-number">1</span>同构 (ISOMORPHISMS) 的定义</h2>
+    <h4>1.1 同构的正式定义</h4><p id="original-1"><strong style="font-size: 1.3rem;">📜 [原文1]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>同构 $\varphi: G \rightarrow G^{\prime}$ 是从群 $G$ 到群 $G^{\prime}$ 的一个双射群<strong>同态</strong>——一个双射映射，使得对于 $G$ 中的所有 $a$ 和 $b$，都有 $\varphi(a b)=\varphi(a) \varphi(b)$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话定义了现代代数中一个极其核心的概念：<strong>同构</strong>。让我们把它拆解成最小的单元来理解。</p>
+<ol>
+  <li> <strong>映射 (Map)</strong>: 首先，$\varphi$ 是一个<strong>映射</strong>（或者叫函数），它建立了一个从群 $G$ 到群 $G'$ 的对应关系。这意味着对于群 $G$ 中的<strong>每一个</strong>元素，$\varphi$ 都能指定群 $G'$ 中<strong>唯一一个</strong>与之对应的元素。我们写作 $\varphi: G \rightarrow G^{\prime}$。$G$ 称为<strong>定义域</strong> (domain)，$G'$ 称为<strong>陪域</strong> (codomain)。</li>
+  <li> <strong>群同态 (Group Homomorphism)</strong>: 这不是任意一个映射，它是一个“保持结构”的映射。这里的“结构”指的就是群的<strong>二元运算</strong>。
+<ul>
+  <li>假设群 $G$ 的运算是 $\cdot_G$，群 $G'$ 的运算是 $\cdot_{G'}$。</li>
+  <li>“保持结构”意味着，我们在 $G$ 中先进行运算，再通过 $\varphi$ 映射到 $G'$；或者，我们先把 $G$ 中的元素通过 $\varphi$ 映射到 $G'$，再在 $G'$ 中进行运算，这两种方式得到的结果是完全一样的。</li>
+  <li>用符号表示就是：$\varphi(a \cdot_G b) = \varphi(a) \cdot_{G'} \varphi(b)$。为了简洁，当上下文清晰时，我们通常省略运算符号，直接写成 $\varphi(ab) = \varphi(a)\varphi(b)$。左边的 $ab$ 是在 $G$ 中计算的，右边的 $\varphi(a)\varphi(b)$ 是在 $G'$ 中计算的。</li>
+  <li><strong>同态</strong> (Homomorphism) 这个词的词根 "homo" 意为 "same" (相同)，"morph" 意为 "form" 或 "shape" (形式或形状)。所以<strong>同态</strong>字面意思就是“形式相同”的映射。</li>
+</ul></li>
+  <li> <strong>双射 (Bijective)</strong>: 这对映射 $\varphi$ 提出了更严格的要求，它必须同时是<strong>单射</strong>和<strong>满射</strong>。
+<ul>
+  <li><strong>单射 (Injective, or one-to-one)</strong>: 群 $G$ 中不同的元素，一定会被映射到群 $G'$ 中不同的元素。如果 $a \neq b$ (在 $G$ 中)，那么一定有 $\varphi(a) \neq \varphi(b)$ (在 $G'$ 中)。换句话说，不允许“多对一”的映射。这保证了没有信息在映射过程中被“压缩”或“丢失”。</li>
+  <li><strong>满射 (Surjective, or onto)</strong>: 群 $G'$ 中的<strong>任何一个</strong>元素，都<strong>至少</strong>是 $G$ 中某个元素映射过来的像。也就是说，对于 $G'$ 中的任意元素 $y$，都存在 $G$ 中的一个元素 $x$ 使得 $\varphi(x) = y$。这保证了映射覆盖了整个目标群 $G'$，没有任何一个 $G'$ 的元素被“遗漏”。</li>
+</ul></li>
+  <li> <strong>同构 (Isomorphism)</strong>: 将以上三点结合起来，<strong>同构</strong>就是一个<strong>保持群运算结构</strong>的<strong>一一对应</strong>关系。
+<ul>
+  <li>词根 "iso" 意为 "equal" (相等)。所以<strong>同构</strong>字面意思就是“形式相等”的映射。</li>
+  <li>如果两个群之间存在一个<strong>同构</strong>，我们就说这两个群是<strong>同构</strong>的。这意味着，从抽象代数的角度看，这两个群的结构是完全一样的，它们只是“看起来”不一样，比如元素的命名不同，或者运算的符号不同。它们本质上是同一个群的两种不同实现或表示。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>公式</strong>: $\varphi(a b)=\varphi(a) \varphi(b)$</li>
+  <li><strong>符号拆解</strong>:</li>
+  <li>$\varphi$: 读作 "phi"，表示从群 $G$ 到群 $G'$ 的<strong>同构映射</strong>。</li>
+  <li>$a, b$: 表示群 $G$ 中的任意两个元素。</li>
+  <li>$ab$: 表示 $a$ 和 $b$ 在群 $G$ 中进行群运算的结果。例如，如果 $G$ 是整数<strong>加法群</strong> $(\mathbb{Z}, +)$，$ab$ 就代表 $a+b$。</li>
+  <li>$\varphi(a), \varphi(b)$: 分别表示 $a$ 和 $b$ 在映射 $\varphi$ 下在群 $G'$ 中的<strong>像</strong> (image)。</li>
+  <li>$\varphi(a)\varphi(b)$: 表示 $\varphi(a)$ 和 $\varphi(b)$ 在群 $G'$ 中进行群运算的结果。例如，如果 $G'$ 是正实数<strong>乘法群</strong> $(\mathbb{R}^+, \times)$，$\varphi(a)\varphi(b)$ 就代表 $\varphi(a) \times \varphi(b)$。</li>
+  <li><strong>推导</strong>:</li>
+</ul>
+<p>这个公式是<strong>同态</strong>的核心定义，是<strong>同构</strong>必须满足的条件之一，它本身不是推导出来的，而是一个公理性的要求。它确保了群的运算结构在映射前后保持不变。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>: 整数<strong>加法群</strong>与偶数<strong>加法群</strong>的<strong>同构</strong>。</li>
+  <li>令 $G = (\mathbb{Z}, +) = \{\dots, -2, -1, 0, 1, 2, \dots\}$，群运算是整数加法。</li>
+  <li>令 $G' = (2\mathbb{Z}, +) = \{\dots, -4, -2, 0, 2, 4, \dots\}$，群运算也是整数加法。</li>
+  <li>定义映射 $\varphi: \mathbb{Z} \rightarrow 2\mathbb{Z}$ 为 $\varphi(n) = 2n$。</li>
+  <li><strong>验证同构</strong>:</li>
+</ul>
+<ol>
+  <li> <strong>同态</strong>: 我们需要验证 $\varphi(a+b) = \varphi(a) + \varphi(b)$。
+<ul>
+  <li>左边：$\varphi(a+b) = 2(a+b) = 2a + 2b$。</li>
+  <li>右边：$\varphi(a) + \varphi(b) = (2a) + (2b) = 2a + 2b$。</li>
+  <li>左边 = 右边，所以 $\varphi$ 是<strong>同态</strong>。</li>
+</ul></li>
+  <li> <strong>双射</strong>:
+<ul>
+  <li><strong>单射</strong>: 如果 $\varphi(a) = \varphi(b)$，那么 $2a = 2b$，两边除以 2 得到 $a=b$。所以是<strong>单射</strong>。</li>
+  <li><strong>满射</strong>: 对于 $G'$ 中任意一个偶数 $y$，我们总能找到 $G$ 中的整数 $x = y/2$，使得 $\varphi(x) = \varphi(y/2) = 2(y/2) = y$。所以是<strong>满射</strong>。</li>
+  <li>结论: $\varphi(n)=2n$ 是一个<strong>同构</strong>，因此群 $(\mathbb{Z}, +)$ 和群 $(2\mathbb{Z}, +)$ 是<strong>同构</strong>的。</li>
+</ul></li>
+</ol>
+<ul>
+  <li><strong>示例2</strong>: <strong>加法群</strong> $(\mathbb{Z}_2, +)$ 与<strong>乘法群</strong> $(\{1, -1\}, \times)$ 的<strong>同构</strong>。</li>
+  <li>令 $G = (\mathbb{Z}_2, +)$，元素为 $\{0, 1\}$，运算为模2加法。其运算表为：</li>
+</ul>
+<p>$0+0=0$, $0+1=1$, $1+0=1$, $1+1=0$。</p>
+<ul>
+  <li>令 $G' = (\{1, -1\}, \times)$，元素为 $\{1, -1\}$，运算为普通乘法。其运算表为：</li>
+</ul>
+<p>$1 \times 1 = 1$, $1 \times (-1) = -1$, $(-1) \times 1 = -1$, $(-1) \times (-1) = 1$。</p>
+<ul>
+  <li>定义映射 $\varphi: \mathbb{Z}_2 \rightarrow \{1, -1\}$ 为 $\varphi(0) = 1$, $\varphi(1) = -1$。</li>
+  <li><strong>验证同构</strong>:</li>
+</ul>
+<ol>
+  <li> <strong>同态</strong>: 我们需要验证所有情况。
+<ul>
+  <li>$\varphi(0+0) = \varphi(0) = 1$。而 $\varphi(0)\varphi(0) = 1 \times 1 = 1$。相等。</li>
+  <li>$\varphi(0+1) = \varphi(1) = -1$。而 $\varphi(0)\varphi(1) = 1 \times (-1) = -1$。相等。</li>
+  <li>$\varphi(1+1) = \varphi(0) = 1$。而 $\varphi(1)\varphi(1) = (-1) \times (-1) = 1$。相等。</li>
+  <li>$\varphi$ 是<strong>同态</strong>。</li>
+</ul></li>
+  <li> <strong>双射</strong>:
+<ul>
+  <li><strong>单射</strong>: $0 \neq 1$ 且 $\varphi(0) \neq \varphi(1)$ (即 $1 \neq -1$) 。是<strong>单射</strong>。</li>
+  <li><strong>满射</strong>: $G'$ 中的 1 可以由 0 映射得到，-1 可以由 1 映射得到。是<strong>满射</strong>。</li>
+  <li>结论: 这两个看似完全不同的群（一个用加法，一个用乘法）是<strong>同构</strong>的。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>同态 vs 同构</strong>: 最常见的错误是混淆<strong>同态</strong>和<strong>同构</strong>。<strong>同构</strong>是一种特殊的<strong>同态</strong>，它必须是<strong>双射</strong>的。例如，从整数<strong>加法群</strong> $(\mathbb{Z}, +)$到其自身的映射 $f(x)=2x$，这是一个<strong>同态</strong>，也是<strong>单射</strong>，但不是<strong>满射</strong>（因为奇数无法被映射到），所以它不是<strong>同构</strong>。</li>
+  <li><strong>阶数相同不代表同构</strong>: 两个有限群的元素个数（阶）相同，并不意味着它们一定<strong>同构</strong>。例如，4阶群有两个<strong>同构类</strong>：<strong>循环群</strong> $C_4$ 和<strong>克莱因四元群</strong> $V_4$。$C_4$ 中有阶为4的元素，而 $V_4$ 中所有非单位元素的阶都是2。由于<strong>同构</strong>会保持元素的阶，所以它们不<strong>同构</strong>。</li>
+  <li><strong>运算的重要性</strong>: 在讨论群时，必须明确其运算。例如，集合 $\{0, 1, 2, 3\}$ 在模4加法下构成一个群，但在模4乘法下不构成群（因为0没有逆元）。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>同构</strong>是群论中的“相等”概念。它是一个保持群运算结构的双射映射。如果两个群 $G$ 和 $G'$ <strong>同构</strong>，那么它们在代数结构上是无法区分的，拥有完全相同的群论性质（如阶、<strong>交换性</strong>、元素的阶分布等）。一个群的所有性质都可以通过<strong>同构</strong>映射“翻译”成另一个群的性质。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>引入<strong>同构</strong>概念的目的是为了对群进行<strong>分类</strong>。世界上有无穷多个群，但很多群在结构上是重复的。<strong>同构</strong>使我们能够透过表面现象（如元素的具体名称或运算的表示方式），抓住群的本质结构。我们可以把所有<strong>同构</strong>的群归为一类（一个<strong>同构类</strong>），然后只研究这个类的代表即可。这是一种强大的抽象和简化工具，是现代数学的基石之一。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你有两副不同的棋，一副是国际象棋，另一副的棋子被做成了《哈利波特》里的人物模型。虽然国王棋子看起来像邓布利多，皇后棋子像麦格教授，但只要它们的移动规则和吃子规则与国际象棋的规则有<strong>一一对应</strong>的关系，那么从游戏策略和逻辑的角度来看，这两副棋是“<strong>同构</strong>”的。你可以用分析国际象棋的思路来玩这副哈利波特棋，反之亦然。<strong>同构</strong>就是这种“规则和结构上的完全等价”。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个群是一个由节点（元素）和有向边（运算结果）构成的网络图。例如，从节点 $a$ 和节点 $b$ 出发，都有一条边指向节点 $c$，这代表 $a \cdot b = c$。一个与它<strong>同构</strong>的群，就是另一个网络图，虽然节点的名字可能都换了，但整个网络的连接方式、拓扑结构是完全一模一样的。你可以把一个图的节点重命名，然后完美地覆盖在另一个图上，所有节点和连接边都会重合。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-2">
+    <h2><span class="section-number">2</span>示例 2.6.1</h2>
+    <p id="original-2"><strong style="font-size: 1.3rem;">📜 [原文2]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ul>
+  <li>指数映射 $e^{x}$ 是一个<strong>同构</strong>，当它被视为从<strong>加法群</strong> $\mathbb{R}^{+}$到其像，即<strong>正实数的乘法群</strong>的映射时。</li>
+  <li>如果 $a$ 是群 $G$ 中无限阶的元素，那么将 $n$ 映射到 $a^{n}$ 的映射是从<strong>加法群</strong> $\mathbb{Z}^{+}$到 $G$ 的无限<strong>循环子群</strong> $\langle a\rangle$ 的一个<strong>同构</strong>。</li>
+  <li>$n \times n$ <strong>置换矩阵</strong>的集合 $\mathcal{P}$ 是 $G L_{n}$ 的一个<strong>子群</strong>，将<strong>置换</strong>映射到其相关矩阵 (1.5.7) 的映射 $S_{n} \rightarrow \mathcal{P}$ 是一个<strong>同构</strong>。 $\square$</li>
+</ul>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+
+    </div>
+</div><h4>2.1 示例一：指数映射</h4><p id="original-3"><strong style="font-size: 1.3rem;">📜 [原文3]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ul>
+  <li>指数映射 $e^{x}$ 是一个<strong>同构</strong>，当它被视为从<strong>加法群</strong> $\mathbb{R}$ 到其像，即<strong>正实数的乘法群</strong>的映射时。</li>
+</ul>
+<p>(注：原文中写的是 $\mathbb{R}^{+}$，根据上下文，定义域应为全体实数 $\mathbb{R}$，值域为正实数 $\mathbb{R}^{+}$。)</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>定义群</strong>:
+<ul>
+  <li>群 $G$: 实数<strong>加法群</strong> $(\mathbb{R}, +)$。元素是所有实数，运算是加法。单位元是 $0$，任意元素 $x$ 的逆元是 $-x$。</li>
+  <li>群 $G'$: 正实数<strong>乘法群</strong> $(\mathbb{R}^+, \times)$。元素是所有大于零的实数，运算是乘法。单位元是 $1$，任意元素 $y$ 的逆元是 $1/y$。</li>
+</ul></li>
+  <li> <strong>定义映射</strong>:
+<ul>
+  <li>映射 $\varphi: \mathbb{R} \rightarrow \mathbb{R}^+$ 定义为 $\varphi(x) = e^x$。这里的 $e$ 是自然对数的底。</li>
+</ul></li>
+  <li> <strong>验证同构</strong>:
+<ul>
+  <li><strong>同态</strong>: 验证 $\varphi(x+y) = \varphi(x)\varphi(y)$。</li>
+  <li>左边：在 $G$ 中先运算，$\varphi(x+y) = e^{x+y}$。</li>
+  <li>右边：在 $G'$ 中后运算，$\varphi(x)\varphi(y) = e^x \times e^y$。</li>
+  <li>根据指数运算法则，$e^{x+y} = e^x e^y$。所以左边 = 右边，该映射是<strong>同态</strong>。这个<strong>同态</strong>把加法变成了乘法。</li>
+  <li><strong>双射</strong>:</li>
+  <li><strong>单射</strong>: 如果 $\varphi(x_1) = \varphi(x_2)$，那么 $e^{x_1} = e^{x_2}$。两边取自然对数 $\ln$，得到 $\ln(e^{x_1}) = \ln(e^{x_2})$，即 $x_1 = x_2$。所以是<strong>单射</strong>。</li>
+  <li><strong>满射</strong>: 对于 $G'$ 中任意一个正实数 $y$，我们总能找到 $G$ 中的一个实数 $x = \ln(y)$ (因为 $y&gt;0$，所以 $\ln(y)$ 有定义)，使得 $\varphi(x) = e^x = e^{\ln(y)} = y$。所以是<strong>满射</strong>。</li>
+</ul></li>
+  <li> <strong>结论</strong>: 指数映射是一个<strong>同构</strong>。这意味着实数<strong>加法群</strong>和正实数<strong>乘法群</strong>在结构上是完全一样的。加法中的 $0$ 对应乘法中的 $1$ ($\varphi(0)=e^0=1$)，加法中的相反数 $-x$ 对应乘法中的倒数 $1/e^x$ ($\varphi(-x)=e^{-x}=1/e^x$)。</li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li>取 $G=(\mathbb{R}, +)$ 中的 $x=2, y=3$。</li>
+  <li>先在 $G$ 中运算：$2+3=5$。映射结果为 $\varphi(5) = e^5$。</li>
+  <li>映射到 $G'=(\mathbb{R}^+, \times)$ 中：$\varphi(2)=e^2$, $\varphi(3)=e^3$。</li>
+  <li>在 $G'$ 中运算：$e^2 \times e^3 = e^{2+3} = e^5$。</li>
+  <li>两者结果相同，验证了<strong>同态</strong>性质。</li>
+</ul>
+    </div>
+</div><h4>2.2 示例二：无限循环群</h4><p id="original-4"><strong style="font-size: 1.3rem;">📜 [原文4]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ul>
+  <li>如果 $a$ 是群 $G$ 中无限阶的元素，那么将 $n$ 映射到 $a^{n}$ 的映射是从<strong>加法群</strong> $\mathbb{Z}$ 到 $G$ 的无限<strong>循环子群</strong> $\langle a\rangle$ 的一个<strong>同构</strong>。</li>
+</ul>
+<p>(注：原文中写的是 $\mathbb{Z}^{+}$，这通常指正整数，但群需要单位元和逆元，所以应为整数集 $\mathbb{Z}$ 构成的<strong>加法群</strong>。)</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>定义群</strong>:
+<ul>
+  <li>群 $G_1$: 整数<strong>加法群</strong> $(\mathbb{Z}, +)$。元素是所有整数，运算是加法。</li>
+  <li>群 $G_2$: 由 $G$ 中一个<strong>无限阶</strong>元素 $a$ 生成的<strong>循环子群</strong> $\langle a \rangle$。</li>
+  <li><strong>无限阶元素</strong> $a$ 指的是，对于任何正整数 $n$，$a^n$ 都不等于单位元 $e$。</li>
+  <li>$\langle a \rangle = \{\dots, a^{-2}, a^{-1}, a^0=e, a^1, a^2, \dots\}$。这个群的运算是继承自 $G$ 的运算。</li>
+</ul></li>
+  <li> <strong>定义映射</strong>:
+<ul>
+  <li>映射 $\varphi: \mathbb{Z} \rightarrow \langle a \rangle$ 定义为 $\varphi(n) = a^n$。</li>
+</ul></li>
+  <li> <strong>验证同构</strong>:
+<ul>
+  <li><strong>同态</strong>: 验证 $\varphi(n+m) = \varphi(n)\varphi(m)$。</li>
+  <li>左边：在 $\mathbb{Z}$ 中先运算，$\varphi(n+m) = a^{n+m}$。</li>
+  <li>右边：在 $\langle a \rangle$ 中后运算，$\varphi(n)\varphi(m) = a^n a^m$。</li>
+  <li>根据幂运算法则，$a^{n+m} = a^n a^m$。所以是<strong>同态</strong>。</li>
+  <li><strong>双射</strong>:</li>
+  <li><strong>单射</strong>: 如果 $\varphi(n) = \varphi(m)$，那么 $a^n = a^m$。两边同乘以 $a^{-m}$，得到 $a^{n-m} = e$。因为 $a$ 是<strong>无限阶</strong>元素，这只有在指数 $n-m=0$ 时才成立，即 $n=m$。所以是<strong>单射</strong>。</li>
+  <li><strong>满射</strong>: 对于 $\langle a \rangle$ 中任意一个元素 $y$，根据定义，它必然可以写成 $a^k$ 的形式（$k$ 是某个整数）。那么我们总能找到 $\mathbb{Z}$ 中的元素 $x=k$，使得 $\varphi(x) = \varphi(k) = a^k = y$。所以是<strong>满射</strong>。</li>
+</ul></li>
+  <li> <strong>结论</strong>: 该映射是一个<strong>同构</strong>。这个结论非常重要：任何一个由无限阶元素生成的<strong>无限循环群</strong>，都与整数<strong>加法群</strong> $(\mathbb{Z}, +)$ <strong>同构</strong>。这说明从抽象结构的角度看，只存在<strong>一种</strong>无限循环群。</li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li>令 $G$ 为 $2 \times 2$ 可逆实矩阵构成的<strong>乘法群</strong> $GL_2(\mathbb{R})$。</li>
+  <li>取元素 $a = \begin{pmatrix} 1 &amp; 1 \\ 0 &amp; 1 \end{pmatrix}$。这是一个无限阶元素，因为 $a^n = \begin{pmatrix} 1 &amp; n \\ 0 &amp; 1 \end{pmatrix}$，仅当 $n=0$ 时才为单位矩阵。</li>
+  <li>$G_1 = (\mathbb{Z}, +)$。</li>
+  <li>$G_2 = \langle a \rangle = \left\{ \begin{pmatrix} 1 &amp; n \\ 0 &amp; 1 \end{pmatrix} \mid n \in \mathbb{Z} \right\}$。</li>
+  <li>映射 $\varphi(n) = a^n = \begin{pmatrix} 1 &amp; n \\ 0 &amp; 1 \end{pmatrix}$。</li>
+  <li>验证<strong>同态</strong>：取 $n=2, m=3$。</li>
+  <li>$\varphi(2+3) = \varphi(5) = \begin{pmatrix} 1 &amp; 5 \\ 0 &amp; 1 \end{pmatrix}$。</li>
+  <li>$\varphi(2)\varphi(3) = \begin{pmatrix} 1 &amp; 2 \\ 0 &amp; 1 \end{pmatrix} \begin{pmatrix} 1 &amp; 3 \\ 0 &amp; 1 \end{pmatrix} = \begin{pmatrix} 1\cdot1+2\cdot0 &amp; 1\cdot3+2\cdot1 \\ 0\cdot1+1\cdot0 &amp; 0\cdot3+1\cdot1 \end{pmatrix} = \begin{pmatrix} 1 &amp; 5 \\ 0 &amp; 1 \end{pmatrix}$。</li>
+  <li>两者结果相同。由于我们已经从理论上证明了双射性，所以这两个群是<strong>同构</strong>的。</li>
+</ul>
+    </div>
+</div><h4>2.3 示例三：置换群与置换矩阵</h4><p id="original-5"><strong style="font-size: 1.3rem;">📜 [原文5]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ul>
+  <li>$n \times n$ <strong>置换矩阵</strong>的集合 $\mathcal{P}$ 是 $G L_{n}$ 的一个<strong>子群</strong>，将<strong>置换</strong>映射到其相关矩阵 (1.5.7) 的映射 $S_{n} \rightarrow \mathcal{P}$ 是一个<strong>同构</strong>。 $\square$</li>
+</ul>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>定义群</strong>:
+<ul>
+  <li>群 $G_1$: <strong>对称群</strong> $S_n$，其元素是集合 $\{1, 2, \dots, n\}$ 上的所有<strong>置换</strong>（双射函数），群运算是函数复合。</li>
+  <li>群 $G_2$: $n \times n$ <strong>置换矩阵</strong>群 $\mathcal{P}$。</li>
+  <li><strong>置换矩阵</strong>是这样一种矩阵：每行每列都只有一个 1，其余元素都是 0。</li>
+  <li>它是<strong>一般线性群</strong> $GL_n$ (所有 $n \times n$ 可逆矩阵构成的<strong>乘法群</strong>) 的一个<strong>子群</strong>。</li>
+</ul></li>
+  <li> <strong>定义映射</strong>:
+<ul>
+  <li>映射 $\varphi: S_n \rightarrow \mathcal{P}$ 的规则是：对于一个<strong>置换</strong> $\sigma \in S_n$，它对应的矩阵 $P_\sigma$ 的第 $i$ 行第 $j$ 列的元素 $(P_\sigma)_{ij}$ 定义为：如果 $\sigma(j) = i$，则为 1；否则为 0。</li>
+  <li>一个更直观的方式是：$P_\sigma$ 是将单位矩阵 $I$ 的列按照<strong>置换</strong> $\sigma$ 进行重排得到的矩阵。具体来说，$P_\sigma$ 的第 $j$ 列是单位矩阵的第 $\sigma(j)$ 列。</li>
+</ul></li>
+  <li> <strong>验证同构</strong>:
+<ul>
+  <li><strong>同态</strong>: 设有两个<strong>置换</strong> $\sigma, \tau \in S_n$，其复合为 $\sigma \circ \tau$。需要验证 $\varphi(\sigma \circ \tau) = \varphi(\sigma)\varphi(\tau)$，即 $P_{\sigma \circ \tau} = P_\sigma P_\tau$。这是一个可以被证明的矩阵乘法性质，即对<strong>置换</strong>进行复合，等价于对它们对应的<strong>置换矩阵</strong>进行相乘。</li>
+  <li><strong>双射</strong>:</li>
+  <li><strong>单射</strong>: 不同的<strong>置换</strong>会以不同的方式重排单位矩阵的列，从而得到不同的<strong>置换矩阵</strong>。所以是<strong>单射</strong>。</li>
+  <li><strong>满射</strong>: 根据定义，每一个<strong>置换矩阵</strong>都对应一个<strong>置换</strong>。所以是<strong>满射</strong>。</li>
+</ul></li>
+  <li> <strong>结论</strong>: 该映射是一个<strong>同构</strong>。这说明<strong>对称群</strong> $S_n$ 和 $n \times n$ <strong>置换矩阵</strong>群 $\mathcal{P}$ 是<strong>同构</strong>的。这提供了一种将抽象的<strong>置换</strong>概念转化为线性代数中具体对象（矩阵）的方法，这种表示称为“<strong>忠实表示</strong>”。</li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li>令 $n=3$。</li>
+  <li>$G_1 = S_3$。取一个<strong>置换</strong> $\sigma = (1 2 3)$，它表示 $1 \to 2$, $2 \to 3$, $3 \to 1$。</li>
+  <li>$G_2 = \mathcal{P}_3$，3x3 <strong>置换矩阵</strong>群。</li>
+  <li>$\varphi(\sigma)$ 对应的矩阵 $P_\sigma$ 是什么？</li>
+  <li>单位矩阵 $I = \begin{pmatrix} 1 &amp; 0 &amp; 0 \\ 0 &amp; 1 &amp; 0 \\ 0 &amp; 0 &amp; 1 \end{pmatrix}$，它的三列分别是 $e_1, e_2, e_3$。</li>
+  <li>$\sigma$ 把 1 换成 2，2 换成 3，3 换成 1。我们将 $P_\sigma$ 的第1, 2, 3列分别设为单位矩阵的第 $\sigma(1)=2, \sigma(2)=3, \sigma(3)=1$ 列。</li>
+  <li>所以 $P_\sigma = \begin{pmatrix} e_2 &amp; e_3 &amp; e_1 \end{pmatrix} = \begin{pmatrix} 0 &amp; 0 &amp; 1 \\ 1 &amp; 0 &amp; 0 \\ 0 &amp; 1 &amp; 0 \end{pmatrix}$。</li>
+  <li>再取一个<strong>置换</strong> $\tau = (1 2)$，它表示 $1 \to 2, 2 \to 1, 3 \to 3$。</li>
+  <li>$P_\tau = \begin{pmatrix} e_{\tau(1)} &amp; e_{\tau(2)} &amp; e_{\tau(3)} \end{pmatrix} = \begin{pmatrix} e_2 &amp; e_1 &amp; e_3 \end{pmatrix} = \begin{pmatrix} 0 &amp; 1 &amp; 0 \\ 1 &amp; 0 &amp; 0 \\ 0 &amp; 0 &amp; 1 \end{pmatrix}$。</li>
+  <li>验证<strong>同态</strong>:</li>
+  <li>先在 $S_3$ 中运算：$\sigma \circ \tau = (1 2 3)(1 2) = (1 3)$。</li>
+  <li>$\varphi(\sigma \circ \tau) = P_{(13)} = \begin{pmatrix} e_{\sigma\tau(1)} &amp; e_{\sigma\tau(2)} &amp; e_{\sigma\tau(3)} \end{pmatrix} = \begin{pmatrix} e_3 &amp; e_2 &amp; e_1 \end{pmatrix} = \begin{pmatrix} 0 &amp; 0 &amp; 1 \\ 0 &amp; 1 &amp; 0 \\ 1 &amp; 0 &amp; 0 \end{pmatrix}$。</li>
+  <li>在 $\mathcal{P}_3$ 中后运算：$P_\sigma P_\tau = \begin{pmatrix} 0 &amp; 0 &amp; 1 \\ 1 &amp; 0 &amp; 0 \\ 0 &amp; 1 &amp; 0 \end{pmatrix} \begin{pmatrix} 0 &amp; 1 &amp; 0 \\ 1 &amp; 0 &amp; 0 \\ 0 &amp; 0 &amp; 1 \end{pmatrix} = \begin{pmatrix} 0 &amp; 0 &amp; 1 \\ 0 &amp; 1 &amp; 0 \\ 1 &amp; 0 &amp; 0 \end{pmatrix}$。</li>
+  <li>两者结果相同。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这三个例子展示了<strong>同构</strong>思想的威力。它揭示了表面上完全不同的数学对象之间深层的结构联系：</p>
+<ol>
+  <li> <strong>加法</strong>和<strong>乘法</strong>可以是<strong>同构</strong>的。</li>
+  <li> 任何<strong>无限循环群</strong>都和最简单的整数<strong>加法群同构</strong>。</li>
+  <li> 抽象的<strong>置换</strong>概念可以用具体的<strong>矩阵乘法</strong>来<strong>同构</strong>地表示。</li>
+</ol>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这些例子是为了具体化<strong>同构</strong>的定义。它们不是随机挑选的，而是代数中非常基本和重要的<strong>同构</strong>关系。理解了这些例子，就对<strong>同构</strong>能做什么、它如何连接不同数学分支有了切实的感受。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>例1 (指数)</strong>: 想象一个可以拉伸的尺子。在普通尺子（代表 $\mathbb{R}$）上，从2走到5的距离是3个单位（加法）。现在把这个尺子非线性地拉伸，变成一把对数尺（代表 $\mathbb{R}^+$），刻度分别是 $e^x$。那么原来尺子上的0, 1, 2, 3...现在变成了 $e^0=1, e^1, e^2, e^3...$。在拉伸后的尺子上，从 $e^2$ “走”到 $e^5$，你需要做的是“乘以 $e^3$”（乘法）。<strong>同构</strong>就是说，这两种“行走”的方式是等价的。</li>
+  <li><strong>例2 (循环群)</strong>: 想象一部无限长的电梯，楼层用整数...-2, -1, 0, 1, 2...标记。向上走 $n$ 层再走 $m$ 层，等于一次性向上走 $n+m$ 层。这是 $(\mathbb{Z}, +)$。现在想象一个钟表，但它的指针永远不会转回原位，每走一步都到一个新的位置。从初始位置走 $n$ 步，再走 $m$ 步，等于一次性走 $n+m$ 步。这就是无限<strong>循环群</strong>。电梯和这个永不重复的钟表在“行走”的结构上是<strong>同构</strong>的。</li>
+  <li><strong>例3 (置换)</strong>: 想象有 $n$ 个不同颜色的小球放在 $n$ 个盒子里，每个盒子一个。一个<strong>置换</strong>就是一种“重新安排小球”的指令。例如，“把1号盒的球和2号盒的球交换”。<strong>置换矩阵</strong>则是对一个坐标系进行操作。例如，乘以 $P_{(12)}$ 就是交换 $x_1$ 和 $x_2$ 坐标轴。这两种操作——操作小球和操作坐标轴——其底层的组合规则是完全一样的，它们是<strong>同构</strong>的。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-3">
+    <h2><span class="section-number">3</span>验证同构的方法</h2>
+    <p id="original-6"><strong style="font-size: 1.3rem;">📜 [原文6]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>推论</strong> 2.5.9 提供了验证<strong>同态</strong> $\varphi: G \rightarrow G^{\prime}$ 是否为<strong>同构</strong>的方法。为此，我们检查 $\operatorname{ker} \varphi=\{1\}$，这表示 $\varphi$ 是<strong>单射</strong>的，并且 $\operatorname{im} \varphi=G^{\prime}$，即 $\varphi$ 是<strong>满射</strong>的。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话基于之前关于<strong>同态</strong>的知识（特别是第一<strong>同构</strong>定理的基础），给出了一个更代数化、更实用的判断<strong>同构</strong>的方法。</p>
+<ol>
+  <li> <strong>回顾同构定义</strong>: <strong>同构</strong> = <strong>同态</strong> + <strong>双射</strong>。其中 <strong>双射</strong> = <strong>单射</strong> + <strong>满射</strong>。所以，要证明一个映射是<strong>同构</strong>，需要分三步：
+<ul>
+  <li>(a) 证明是<strong>同态</strong>。</li>
+  <li>(b) 证明是<strong>单射</strong>。</li>
+  <li>(c) 证明是<strong>满射</strong>。</li>
+</ul></li>
+  <li> <strong>用核 (Kernel) 判断单射</strong>:
+<ul>
+  <li><strong>核的定义</strong>: 对于一个<strong>群同态</strong> $\varphi: G \rightarrow G^{\prime}$，它的<strong>核</strong> (kernel)，记作 $\operatorname{ker} \varphi$，是 $G$ 中所有被映射到 $G'$ 中单位元 $e'$ 的元素的集合。即 $\operatorname{ker} \varphi = \{x \in G \mid \varphi(x) = e'\}$。</li>
+  <li><strong>关键定理 (推论 2.5.9 的一部分)</strong>: 一个<strong>群同态</strong> $\varphi$ 是<strong>单射</strong>的，<strong>当且仅当</strong>它的<strong>核</strong>只包含单位元 $e$。即 $\operatorname{ker} \varphi = \{e\}$。（在原文中用 $\{1\}$ 表示，这是一种常见的写法，用 1 代表抽象的单位元）。</li>
+  <li><strong>为什么?</strong></li>
+  <li>($\Rightarrow$) 如果 $\varphi$ 是<strong>单射</strong>，那么只有一个元素能映射到 $e'$。我们知道 $\varphi(e) = e'$ (同态的基本性质)，所以这个唯一的元素就是 $e$。因此 $\operatorname{ker} \varphi = \{e\}$。</li>
+  <li>($\Leftarrow$) 如果 $\operatorname{ker} \varphi = \{e\}$，我们要证明 $\varphi$ 是<strong>单射</strong>。假设 $\varphi(a) = \varphi(b)$。两边同乘以 $(\varphi(b))^{-1}$，得到 $\varphi(a)(\varphi(b))^{-1} = e'$。由于 $\varphi$ 是<strong>同态</strong>，$(\varphi(b))^{-1} = \varphi(b^{-1})$，所以 $\varphi(a)\varphi(b^{-1}) = \varphi(ab^{-1}) = e'$。这说明元素 $ab^{-1}$ 在<strong>核</strong>里。但我们已知<strong>核</strong>里只有一个元素 $e$，所以 $ab^{-1} = e$。两边同乘以 $b$，得到 $a=b$。这就证明了 $\varphi$ 是<strong>单射</strong>。</li>
+  <li>所以，步骤 (b) “证明是<strong>单射</strong>” 可以替换为 “计算<strong>核</strong>并证明其只含单位元”。</li>
+</ul></li>
+  <li> <strong>用像 (Image) 判断满射</strong>:
+<ul>
+  <li><strong>像的定义</strong>: 对于一个映射 $\varphi: G \rightarrow G^{\prime}$，它的<strong>像</strong> (image)，记作 $\operatorname{im} \varphi$，是 $G'$ 中所有可以被 $G$ 中元素映射到的元素的集合。即 $\operatorname{im} \varphi = \{\varphi(x) \mid x \in G\}$。<strong>像</strong>是陪域 $G'$ 的一个<strong>子集</strong>（对于<strong>同态</strong>来说，它还是一个<strong>子群</strong>）。</li>
+  <li><strong>满射的定义</strong>: $\varphi$ 是<strong>满射</strong>，当且仅当陪域中的每个元素都被映射到了，即陪域 $G'$ 等于<strong>像</strong> $\operatorname{im} \varphi$。</li>
+  <li>所以，步骤 (c) “证明是<strong>满射</strong>” 可以直接替换为 “证明 $\operatorname{im} \varphi = G'$”。</li>
+</ul></li>
+  <li> <strong>新的验证流程</strong>: 要验证一个<strong>同态</strong> $\varphi: G \rightarrow G^{\prime}$ 是<strong>同构</strong>，我们只需要检查两点：
+<ul>
+  <li>(1) $\operatorname{ker} \varphi = \{e_G\}$ (单射条件)</li>
+  <li>(2) $\operatorname{im} \varphi = G^{\prime}$ (满射条件)</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>公式/符号</strong>: $\operatorname{ker} \varphi=\{1\}$</li>
+  <li><strong>符号拆解</strong>:</li>
+  <li>$\operatorname{ker}$: "kernel" (核) 的缩写。</li>
+  <li>$\varphi$: 所讨论的<strong>群同态</strong>。</li>
+  <li>$\{1\}$: 只包含单位元的集合。这里的 "1" 是乘法群记法下的单位元，对于一般群，应理解为单位元 $e$。</li>
+  <li><strong>推导</strong>: 如上文“为什么”部分所述，这个条件是<strong>同态</strong>为<strong>单射</strong>的充要条件。</li>
+</ul>
+<ul>
+  <li><strong>公式/符号</strong>: $\operatorname{im} \varphi=G^{\prime}$</li>
+  <li><strong>符号拆解</strong>:</li>
+  <li>$\operatorname{im}$: "image" (像) 的缩写。</li>
+  <li>$\varphi$: 所讨论的<strong>群同态</strong>。</li>
+  <li>$G'$: <strong>陪域</strong>群。</li>
+  <li><strong>推导</strong>: 这就是<strong>满射</strong>的定义。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例</strong>: 还是用指数映射 $\varphi: (\mathbb{R}, +) \rightarrow (\mathbb{R}^+, \times)$，$\varphi(x)=e^x$。我们已经知道它是<strong>同态</strong>了。现在用新方法验证它是<strong>同构</strong>。</li>
+</ul>
+<ol>
+  <li> <strong>检查核 (Kernel)</strong>:
+<ul>
+  <li>目标群 $(\mathbb{R}^+, \times)$ 的单位元是 1。</li>
+  <li>我们需要找到所有 $x \in \mathbb{R}$，使得 $\varphi(x)=1$。</li>
+  <li>即解方程 $e^x = 1$。</li>
+  <li>两边取自然对数，得到 $x=0$。</li>
+  <li>所以 $\operatorname{ker} \varphi = \{0\}$。源群 $(\mathbb{R}, +)$ 的单位元是 0，所以<strong>核</strong>是平凡的。</li>
+  <li>结论：$\varphi$ 是<strong>单射</strong>。</li>
+</ul></li>
+  <li> <strong>检查像 (Image)</strong>:
+<ul>
+  <li>我们需要确定集合 $\operatorname{im} \varphi = \{ e^x \mid x \in \mathbb{R} \}$ 是什么。</li>
+  <li>我们知道，当 $x$ 取遍所有实数时，$e^x$ 的值域正好是所有正实数。</li>
+  <li>所以 $\operatorname{im} \varphi = \mathbb{R}^+$。</li>
+  <li>这正好等于目标群 $G'$。</li>
+  <li>结论：$\varphi$ 是<strong>满射</strong>。</li>
+  <li><strong>最终结论</strong>: 因为该<strong>同态</strong>的<strong>核</strong>是平凡的，且它是<strong>满射</strong>的，所以它是一个<strong>同构</strong>。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>前提是同态</strong>: 这个方法只适用于已经是<strong>同态</strong>的映射。如果一个映射不是<strong>同态</strong>，谈论它的<strong>核</strong>没有代数意义，这个方法也不适用。</li>
+  <li><strong>核和像都在哪里</strong>: <strong>核</strong> $\operatorname{ker} \varphi$ 是<strong>源群</strong> $G$ 的一个<strong>子群</strong>。<strong>像</strong> $\operatorname{im} \varphi$ 是<strong>目标群</strong> $G'$ 的一个<strong>子群</strong>。初学者容易混淆它们所属的空间。</li>
+  <li><strong>非平凡的核</strong>: 如果一个<strong>同态</strong>的<strong>核</strong>不是平凡的（即包含非单位元），那么这个<strong>同包</strong>一定不是<strong>单射</strong>，从而一定不是<strong>同构</strong>。例如，模2映射 $\varphi: (\mathbb{Z},+) \rightarrow (\mathbb{Z}_2,+)$，$\varphi(n) = n \pmod 2$。它的<strong>核</strong>是所有被映射到 0 的整数，即所有偶数 $2\mathbb{Z}$。因为<strong>核</strong>非平凡，所以它不是<strong>单射</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这段话为我们提供了一个从<strong>同态</strong>升级到<strong>同构</strong>的“认证标准”。将抽象的<strong>单射</strong>和<strong>满射</strong>概念，转化为了两个具体的代数计算：</p>
+<ol>
+  <li> 求<strong>核</strong>，看它是否只有单位元。</li>
+  <li> 求<strong>像</strong>，看它是否覆盖了整个目标群。</li>
+</ol>
+<p>这在实际操作中往往比直接用定义去验证<strong>单射/满射</strong>更方便。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>目的是建立<strong>同态</strong>理论和<strong>同构</strong>概念之间的桥梁，并提供一个更具操作性的工具。它强调了<strong>核</strong>和<strong>像</strong>这两个与<strong>同态</strong>伴生的基本结构的重要性。<strong>核</strong>的大小度量了<strong>同态</strong>“压缩”信息的程度（核越大，压缩越厉害，离<strong>单射</strong>越远），而<strong>像</strong>的大小则度量了<strong>同态</strong>“覆盖”目标的能力。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一个投影仪（<strong>同态</strong> $\varphi$）将一个三维物体（源群 $G$）投影到一个二维幕布（目标群 $G'$）上。</p>
+<ol>
+  <li><strong>核 (Kernel)</strong>: 三维物体上所有被投影到幕布原点（单位元）的点组成的集合。如果只有物体自己的原点被投影到幕布原点，说明投影没有“压扁”任何维度，是<strong>单射</strong>的。如果有一整条线上的点都被压到原点，那它就不是<strong>单射</strong>。</li>
+  <li><strong>像 (Image)</strong>: 幕布上实际有投影图像的区域。如果这个图像区域铺满了整个幕布，那么投影就是<strong>满射</strong>的。如果只占了幕布的一个角落，就不是<strong>满射</strong>。</li>
+  <li><strong>同构</strong>: 这个投影仪必须非常特殊，它不能有任何“压缩”（核是平凡的），并且它的投影要能“填满”整个目标空间（满射）。这在三维到二维的例子中不可能，但可以想象从一个三维空间到另一个三维空间的“投影”（变换），如果它不压缩、不丢失，并且覆盖了全部目标空间，那它就是<strong>同构</strong>。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-4">
+    <h2><span class="section-number">4</span>逆映射的性质</h2>
+    <p id="original-7"><strong style="font-size: 1.3rem;">📜 [原文7]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>引理</strong> 2.6.2 如果 $\varphi: G \rightarrow G^{\prime}$ 是一个<strong>同构</strong>，那么逆映射 $\varphi^{-1}: G^{\prime} \rightarrow G$ 也是一个<strong>同构</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个引理说明<strong>同构</strong>关系是对称的：如果 $G$ <strong>同构</strong>于 $G'$，那么 $G'$ 也<strong>同构</strong>于 $G$。</p>
+<ol>
+  <li> <strong>前提</strong>: 我们已知 $\varphi: G \rightarrow G^{\prime}$ 是一个<strong>同构</strong>。这意味着：
+<ul>
+  <li>$\varphi$ 是一个<strong>同态</strong> ($\varphi(ab)=\varphi(a)\varphi(b)$)。</li>
+  <li>$\varphi$ 是一个<strong>双射</strong> (单射且满射)。</li>
+</ul></li>
+  <li> <strong>逆映射的存在性</strong>: 正因为 $\varphi$ 是一个<strong>双射</strong>，根据集合论/函数理论，它的<strong>逆映射</strong> $\varphi^{-1}: G^{\prime} \rightarrow G$ 必然存在，并且也必然是一个<strong>双射</strong>。
+<ul>
+  <li><strong>逆映射</strong> $\varphi^{-1}$ 的定义是：如果 $\varphi(x)=y$，那么 $\varphi^{-1}(y)=x$。</li>
+  <li>因为原来的 $\varphi$ 是“一对一”且“无遗漏”的，所以反过来的 $\varphi^{-1}$ 也是“一对一”且“无遗漏”的。</li>
+</ul></li>
+  <li> <strong>需要证明的核心</strong>: 我们已经知道 $\varphi^{-1}$ 是一个<strong>双射</strong>了。要证明它是一个<strong>同构</strong>，剩下的唯一任务就是证明它也是一个<strong>同态</strong>。也就是说，要证明它保持了 $G'$ 到 $G$ 的运算结构。</li>
+  <li> <strong>证明 $\varphi^{-1}$ 是同态</strong>:
+<ul>
+  <li>我们需要证明，对于 $G'$ 中的任意两个元素 $x$ 和 $y$，都有 $\varphi^{-1}(xy) = \varphi^{-1}(x)\varphi^{-1}(y)$。</li>
+  <li>注意，这里的 $xy$ 是在 $G'$ 中的运算，而右边的 $\varphi^{-1}(x)\varphi^{-1}(y)$ 是在 $G$ 中的运算。</li>
+  <li>证明的技巧是利用 $\varphi$ 的性质。我们设一些变量来让表达式更清晰：</li>
+  <li>令 $a = \varphi^{-1}(x)$，这意味着 $\varphi(a) = x$。</li>
+  <li>令 $b = \varphi^{-1}(y)$，这意味着 $\varphi(b) = y$。</li>
+  <li>现在，我们要证明的等式变成了 $\varphi^{-1}(xy) = ab$。</li>
+  <li>因为 $\varphi$ 是一个<strong>双射</strong>，要证明两个元素（这里是 $\varphi^{-1}(xy)$ 和 $ab$）相等，我们只需要证明它们在 $\varphi$ 映射下的像是相等的。即，我们去验证 $\varphi(\varphi^{-1}(xy)) = \varphi(ab)$。</li>
+  <li>左边：根据<strong>逆映射</strong>的定义，$\varphi(\varphi^{-1}(xy)) = xy$。</li>
+  <li>右边：因为 $\varphi$ 是一个<strong>同态</strong>，所以 $\varphi(ab) = \varphi(a)\varphi(b)$。而根据我们前面的设定，$\varphi(a)=x, \varphi(b)=y$。所以右边等于 $xy$。</li>
+  <li>左边 = 右边，即 $xy = \varphi(ab)$。</li>
+  <li>将 $\varphi(ab) = xy$ 两边同时用 $\varphi^{-1}$ 作用，得到 $\varphi^{-1}(\varphi(ab)) = \varphi^{-1}(xy)$，即 $ab = \varphi^{-1}(xy)$。</li>
+  <li>这正是我们想要证明的：$\varphi^{-1}(x)\varphi^{-1}(y) = \varphi^{-1}(xy)$。</li>
+  <li>因此，$\varphi^{-1}$ 是一个<strong>同态</strong>。</li>
+</ul></li>
+  <li> <strong>结论</strong>: 因为 $\varphi^{-1}$ 既是<strong>双射</strong>又是<strong>同态</strong>，所以它是一个<strong>同构</strong>。</li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>证明中的关键公式</strong>: $\varphi(a b)=\varphi(a) \varphi(b)=x y=\varphi(c)$ (原文证明的简化版)</li>
+  <li>在引理的证明中，原文设 $a=\varphi^{-1}(x), b=\varphi^{-1}(y), c=\varphi^{-1}(xy)$，目标是证 $ab=c$。</li>
+  <li>它通过证明 $\varphi(ab) = \varphi(c)$ 来达成目的。</li>
+  <li><strong>$\varphi(ab) = \varphi(a)\varphi(b)$</strong>: 这是因为 $\varphi$ 是<strong>同态</strong>。</li>
+  <li><strong>$\varphi(a)\varphi(b) = xy$</strong>: 这是根据 $a$ 和 $b$ 的定义，$\varphi(a)=x, \varphi(b)=y$。</li>
+  <li><strong>$xy = \varphi(c)$</strong>: 这里的逻辑是，根据 $c$ 的定义 $c=\varphi^{-1}(xy)$，两边用 $\varphi$ 作用，得到 $\varphi(c) = \varphi(\varphi^{-1}(xy)) = xy$。</li>
+  <li>所以，整个等式链 $\varphi(ab) = \varphi(a)\varphi(b) = xy = \varphi(c)$ 成立，从而证明了 $\varphi(ab)=\varphi(c)$。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li>我们再次使用示例 $\varphi: (\mathbb{R}, +) \rightarrow (\mathbb{R}^+, \times)$，$\varphi(x)=e^x$。</li>
+  <li>我们已经知道这是一个<strong>同构</strong>。它的<strong>逆映射</strong>是 $\varphi^{-1}: (\mathbb{R}^+, \times) \rightarrow (\mathbb{R}, +)$，$\varphi^{-1}(y) = \ln(y)$。</li>
+  <li>现在我们验证 $\varphi^{-1}$ 是不是一个<strong>同构</strong>。它显然是<strong>双射</strong>的。我们只需验证<strong>同态</strong>性。</li>
+  <li>我们需要验证，对于 $\mathbb{R}^+$ 中的任意 $y_1, y_2$，是否有 $\varphi^{-1}(y_1 \times y_2) = \varphi^{-1}(y_1) + \varphi^{-1}(y_2)$。</li>
+  <li>左边：在 $(\mathbb{R}^+, \times)$ 中先运算, $\varphi^{-1}(y_1 \times y_2) = \ln(y_1 y_2)$。</li>
+  <li>右边：在 $(\mathbb{R}, +)$ 中后运算, $\varphi^{-1}(y_1) + \varphi^{-1}(y_2) = \ln(y_1) + \ln(y_2)$。</li>
+  <li>根据对数运算法则，$\ln(y_1 y_2) = \ln(y_1) + \ln(y_2)$。</li>
+  <li>左边 = 右边，所以 $\varphi^{-1}$ 是一个<strong>同态</strong>。</li>
+  <li>结论: $\varphi^{-1}(y)=\ln(y)$ 是一个<strong>同构</strong>。这个<strong>同构</strong>把乘法变成了加法。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这个引理告诉我们，<strong>同构</strong>关系是<strong>对称的</strong>。如果 $G$ 和 $G'$ 可以通过一个<strong>同构</strong>联系起来，那么它们的关系是平等的，不存在谁是谁的“像”的优先地位。我们可以自由地在两个群之间来回“翻译”而不损失任何结构信息。这是将所有<strong>同构</strong>的群视为“等价”的数学依据之一。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个引理是证明“<strong>同构</strong>”是一种<strong>等价关系</strong> (Equivalence Relation) 的关键一步。一个关系要成为<strong>等价关系</strong>，需要满足三条性质：</p>
+<ol>
+  <li> <strong>自反性 (Reflexive)</strong>: $G \approx G$ (任何群都与自身<strong>同构</strong>，通过恒等映射)。</li>
+  <li> <strong>对称性 (Symmetric)</strong>: 如果 $G \approx G'$，那么 $G' \approx G$ (本引理证明的内容)。</li>
+  <li> <strong>传递性 (Transitive)</strong>: 如果 $G \approx G'$ 且 $G' \approx G''$，那么 $G \approx G''$ (两个<strong>同构</strong>的复合仍然是<strong>同构</strong>)。</li>
+</ol>
+<p>一旦证明了<strong>同构</strong>是<strong>等价关系</strong>，我们就可以理直气壮地用它来对所有群的集合进行划分，划分出的每一个块就是一个<strong>同构类</strong>。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>回到国际象棋和哈利波特棋的例子。我们有一个“翻译官” $\varphi$，他能把任何一个国际象棋的局面和走法翻译成哈利波特棋的。这个引理是说，必然存在另一个“翻译官” $\varphi^{-1}$，能完美地把哈利波特棋的任何局面和走法翻译回国际象棋的，并且也保持所有规则不变。这两个翻译官互为逆过程。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-5">
+    <h2><span class="section-number">5</span>同构群与同构类</h2>
+    <p id="original-8"><strong style="font-size: 1.3rem;">📜 [原文8]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>这个<strong>引理</strong>表明，当 $\varphi: G \rightarrow G^{\prime}$ 是一个<strong>同构</strong>时，我们可以在任一群中进行计算，然后使用 $\varphi$ 或 $\varphi^{-1}$ 将结果转换到另一个群。因此，对于群<strong>运算</strong>的计算，这两个群具有相同的性质。为了直观地理解这个结论，假设其中一个群的元素被放入未标记的盒子中，并且我们有一个<strong>预言机</strong>，当给出两个盒子时，它会告诉我们哪个盒子包含它们的<strong>乘积</strong>。我们将无法判断盒子中的元素是来自 $G$ 还是来自 $G^{\prime}$。</p>
+<p>如果存在从 $G$ 到 $G^{\prime}$ 的<strong>同构</strong> $\varphi$，则称群 $G$ 和 $G^{\prime}$ 是<strong>同构</strong>的。我们有时用符号 $\approx$ 表示两个群是<strong>同构</strong>的。</p>
+<p><div class="math-block">$$
+\begin{equation*}
+G \approx G^{\prime} \text { 意味着 } G \text { 与 } G^{\prime} \text { 同构。} \tag{2.6.3}
+\end{equation*}
+$$</div></p>
+<p>由于<strong>同构群</strong>具有相同的性质，所以在非正式的讨论中，将它们等同起来通常很方便。例如，我们经常模糊<strong>对称群</strong> $S_{n}$ 和<strong>置换矩阵</strong>的<strong>同构群</strong> $\mathcal{P}$ 之间的区别。</p>
+<ul>
+  <li>与给定群 $G$ <strong>同构</strong>的群形成所谓的 $G$ 的<strong>同构类</strong>。</li>
+</ul>
+<p>一个<strong>同构类</strong>中的任意两个群都是<strong>同构</strong>的。当我们谈论群的<strong>分类</strong>时，指的是描述这些<strong>同构类</strong>。对于所有群来说，这是很难做到的，但我们将看到，每个<strong>素数阶</strong> $p$ 的群都是<strong>循环群</strong>。因此，所有<strong>阶</strong>为 $p$ 的群都是<strong>同构</strong>的。<strong>阶</strong>为 4 的群有两个<strong>同构类</strong> (2.11.5)，<strong>阶</strong>为 12 的群有五个<strong>同构类</strong> (7.8.1)。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这几段是对<strong>同构</strong>概念的意义和应用的进一步阐述。</p>
+<ol>
+  <li> <strong>同构的实践意义</strong>:
+<ul>
+  <li>“可以在任一群中进行计算，然后转换结果”：这正是<strong>同构</strong>的威力所在。例如，我们想计算 $e^{1.2} \times e^{3.4}$。利用 $(\mathbb{R}^+, \times) \approx (\mathbb{R}, +)$，我们可以：</li>
+</ul></li>
+  <li> 用 $\varphi^{-1}(y)=\ln(y)$ 转换到加法群：$\ln(e^{1.2}) = 1.2$, $\ln(e^{3.4}) = 3.4$。</li>
+  <li> 在加法群中计算：$1.2 + 3.4 = 4.6$。</li>
+  <li> 用 $\varphi(x)=e^x$ 转换回乘法群：$e^{4.6}$。
+<ul>
+  <li>这个过程 <strong>ln -> add -> exp</strong> 得到的结果和直接做乘法是一样的。在古代，这正是对数计算尺的原理，它把复杂的乘法问题转换为了简单的加法问题。</li>
+</ul></li>
+  <li> <strong>“无法区分”的预言机思想实验</strong>:
+<ul>
+  <li>这个思想实验非常精彩，它抓住了<strong>同构</strong>的本质。</li>
+  <li>想象有两个袋子，一个装着群 $G$ 的元素，一个装着群 $G'$ 的元素。所有元素都用无差别的标签（比如“盒子1”，“盒子2”）。</li>
+  <li>你有一个<strong>预言机</strong>，你给它任意两个盒子的标签，它会告诉你装有这两个元素运算结果的盒子的标签是什么。</li>
+  <li><strong>结论</strong>: 仅凭这个<strong>预言机</strong>，你无法分辨出你正在操作的是哪个袋子里的元素。因为 $G$ 和 $G'$ 的“运算结构图”是完全一样的，<strong>预言机</strong>给出的答案模式也会完全一样。</li>
+  <li>这就是“代数结构上无法区分”的含义。</li>
+</ul></li>
+  <li> <strong>同构的记法</strong>:
+<ul>
+  <li>引入符号 $G \approx G'$ 来表示 “$G$ 与 $G'$ <strong>同构</strong>”。这个符号 $\approx$ 直观地表达了“约等于”或“相似”的含义，在群论里特指结构上的完全相同。</li>
+</ul></li>
+  <li> <strong>同构类 (Isomorphism Class)</strong>:
+<ul>
+  <li>基于<strong>同构</strong>是一个<strong>等价关系</strong>（自反、对称、传递），我们可以用它来划分整个群的世界。</li>
+  <li>一个<strong>同构类</strong>就是所有相互<strong>同构</strong>的群构成的一个巨大集合。</li>
+  <li>例如，$(\mathbb{Z},+), (2\mathbb{Z},+), (\langle \begin{pmatrix} 1 &amp; 1 \\ 0 &amp; 1 \end{pmatrix} \rangle, \times)$ 等等所有无限<strong>循环群</strong>，都属于同一个<strong>同构类</strong>。我们通常用 $(\mathbb{Z},+)$ 作为这个<strong>同构类</strong>的“标准代表”。</li>
+</ul></li>
+  <li> <strong>群的分类 (Classification of Groups)</strong>:
+<ul>
+  <li>群论的一个核心目标就是<strong>分类</strong>。但不是列出所有具体的群，而是列出所有的<strong>同构类</strong>。</li>
+  <li>“描述<strong>同构类</strong>”意味着，对于给定的一个阶数 $n$，我们想知道存在多少种本质不同（即互不<strong>同构</strong>）的群结构。</li>
+  <li><strong>简单情况</strong>:</li>
+  <li>阶为 $p$（$p$是素数）：只存在一种结构，即<strong>循环群</strong> $C_p$。所以所有阶为 $p$ 的群都<strong>同构</strong>于 $(\mathbb{Z}_p, +)$。这是一个深刻的结论（拉格朗日定理的推论）。</li>
+  <li>阶为 4：存在两种结构。一种是<strong>循环群</strong> $C_4$（与 $(\mathbb{Z}_4,+)$ <strong>同构</strong>），另一种是<strong>克莱因四元群</strong> $V_4$（与 $(\mathbb{Z}_2 \times \mathbb{Z}_2, +)$ <strong>同构</strong>）。</li>
+  <li><strong>复杂情况</strong>: 随着阶数的增大，<strong>同构类</strong>的数量会爆炸式增长。例如，阶为 12 的群有 5 个<strong>同构类</strong>；阶为 1024 的群，有多达 49,487,365,422 个<strong>同构类</strong>！</li>
+  <li><strong>分类</strong>是极其困难但意义重大的任务。有限单群分类定理是20世纪数学最辉煌的成就之一。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>公式</strong>:</li>
+</ul>
+<p><div class="math-block">$$
+G \approx G^{\prime} \text { 意味着 } G \text { 与 } G^{\prime} \text { 同构。} \tag{2.6.3}
+$$</div></p>
+<ul>
+  <li><strong>符号拆解</strong>:</li>
+  <li>$G, G'$: 两个群。</li>
+  <li>$\approx$: <strong>同构</strong>关系符号。</li>
+  <li><strong>含义</strong>: 这不是一个需要推导的公式，而是一个符号定义。它为“$G$ 和 $G'$ 之间存在一个<strong>同构</strong>映射”这一长句话提供了一个简洁的记号。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>阶为 3 的群</strong>:</li>
+  <li>3 是素数。根据结论，任何阶为 3 的群都<strong>同构</strong>于<strong>循环群</strong> $C_3$。</li>
+  <li>例如，群 $G_1 = (\mathbb{Z}_3, +) = \{0, 1, 2\}$。</li>
+  <li>例如，群 $G_2 = \{1, e^{i2\pi/3}, e^{i4\pi/3}\}$，运算为复数乘法。这是一个由3次单位根构成的<strong>乘法群</strong>。</li>
+  <li>我们可以定义 $\varphi: G_1 \rightarrow G_2$ 为 $\varphi(n) = (e^{i2\pi/3})^n$。即 $\varphi(0)=1, \varphi(1)=e^{i2\pi/3}, \varphi(2)=e^{i4\pi/3}$。可以验证这是一个<strong>同构</strong>。</li>
+  <li>所以 $G_1 \approx G_2$。它们都属于“阶为3的群”这个<strong>同构类</strong>。</li>
+</ul>
+<ul>
+  <li><strong>阶为 4 的群</strong>:</li>
+  <li><strong>同构类1 (循环群 $C_4$)</strong>:</li>
+  <li>代表: $(\mathbb{Z}_4, +) = \{0, 1, 2, 3\}$。它有一个阶为 4 的元素 (1 或 3)。</li>
+  <li>其他成员: $(\{1, i, -1, -i\}, \times)$，四次单位根群。</li>
+  <li><strong>同构类2 (克莱因四元群 $V_4$)</strong>:</li>
+  <li>代表: $(\mathbb{Z}_2 \times \mathbb{Z}_2, +) = \{(0,0), (0,1), (1,0), (1,1)\}$，运算是分量模2加。它的所有非单位元 $\{(0,1),(1,0),(1,1)\}$ 的阶都是 2。</li>
+  <li>其他成员: 矩形对称操作群（单位操作，水平翻转，垂直翻转，旋转180度）。</li>
+  <li>$C_4$ 和 $V_4$ 不<strong>同构</strong>，因为<strong>同构</strong>必须保持元素的阶。$C_4$ 有阶为4的元素，而 $V_4$ 没有。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>同构</strong>是一个等价关系，它将所有群划分为不相交的<strong>同构类</strong>。一个<strong>同构类</strong>中的所有群在代数结构上都是相同的，可以互相“冒充”。群论的<strong>分类</strong>目标就是搞清楚对于每个阶数，存在多少个这样的<strong>同构类</strong>，以及每个<strong>同构类</strong>的代表结构是什么样的。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这几段的目的是从哲学和实践层面提升对<strong>同构</strong>的理解。它告诉我们，不要被群的具体实现所迷惑，而要去关注其内在的、不变的结构。它为整个群论的研究指明了方向：我们的最终目标不是研究孤立的群，而是研究和理解<strong>同构类</strong>的集合，即“群的宇宙地图”。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个生物学家<strong>分类</strong>动物。</p>
+<ol>
+  <li><strong>群</strong>: 对应地球上每一只具体的动物。</li>
+  <li><strong>同构</strong>: 对应“属于同一个物种”。两只熊猫，虽然具体年龄、体重、位置不同，但它们的 DNA 和生物学结构是相同的，它们属于同一个物种。</li>
+  <li><strong>同构类</strong>: 对应“物种”。例如“大熊猫”这个物种，就是所有具体的大熊猫组成的集合。</li>
+  <li><strong>群的分类</strong>: 对应生物学家绘制的“生命之树”，它描述了有多少个物种，这些物种的特征是什么，以及它们之间的演化关系。研究阶为 $n$ 的群，就像研究一个生态系统里有多少个不同的物种一样。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-6">
+    <h2><span class="section-number">6</span>自同构与共轭</h2>
+    <p id="original-9"><strong style="font-size: 1.3rem;">📜 [原文9]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>关于<strong>同构</strong>的一个有趣且有时令人困惑的观点是，存在从群 $G$ 到自身的<strong>同构</strong> $\varphi: G \rightarrow G$。这种<strong>同构</strong>被称为<strong>自同构</strong>。<strong>恒等映射</strong>当然是一个<strong>自同构</strong>，但几乎总是有其他的<strong>自同构</strong>。最重要的<strong>自同构</strong>类型是<strong>共轭</strong>：设 $g$ 是群 $G$ 的一个固定元素。由 $g$ 进行的<strong>共轭</strong>是从 $G$ 到自身的映射 $\varphi$，定义为</p>
+<p><div class="math-block">$$
+\begin{equation*}
+\varphi(x)=g x g^{-1} . \tag{2.6.4}
+\end{equation*}
+$$</div></p>
+<p>这是一个<strong>自同构</strong>，首先因为它是一个<strong>同态</strong>：</p>
+<p><div class="math-block">$$
+\begin{equation*}
+\varphi(x y)=g x y g^{-1}=g x g^{-1} g y g^{-1}=\varphi(x) \varphi(y),
+\end{equation*}
+$$</div></p>
+<p>其次，它是双射的，因为它有一个逆函数——由 $g^{-1}$ 进行的<strong>共轭</strong>。</p>
+<p>如果群是<strong>阿贝尔群</strong>，那么由任何元素 $g$ 进行的<strong>共轭</strong>都是<strong>恒等映射</strong>：$g x g^{-1}=x$。但任何<strong>非交换群</strong>都有非平凡的<strong>共轭</strong>，因此它有不同于<strong>恒等映射</strong>的<strong>自同构</strong>。例如，在通常表示的<strong>对称群</strong> $S_{3}$ 中，由 $y$ 进行的<strong>共轭</strong>会交换 $x$ 和 $x^{2}$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+
+    </div>
+</div><h4>6.1 自同构 (Automorphism)</h4><p id="original-10"><strong style="font-size: 1.3rem;">📜 [原文10]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>关于<strong>同构</strong>的一个有趣且有时令人困惑的观点是，存在从群 $G$ 到自身的<strong>同构</strong> $\varphi: G \rightarrow G$。这种<strong>同构</strong>被称为<strong>自同构</strong>。<strong>恒等映射</strong>当然是一个<strong>自同构</strong>，但几乎总是有其他的<strong>自同构</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>定义</strong>: <strong>自同构</strong>是<strong>同构</strong>的一个特例，它的特殊之处在于源群和目标群是同一个群 $G$。所以，一个<strong>自同构</strong>是一个从 $G$ 到 $G$ 的、保持群运算的<strong>双射</strong>。</li>
+  <li> <strong>作用</strong>: <strong>自同构</strong>可以被看作是群的一种“对称性”。它是一种“洗牌”群内元素的方式，但是在“洗牌”之后，整个群的运算结构（乘法表）保持不变。</li>
+  <li> <strong>平凡的自同构</strong>: 对于任何群 $G$，定义映射 $\operatorname{id}: G \rightarrow G$ 为 $\operatorname{id}(x)=x$（即<strong>恒等映射</strong>）。
+<ul>
+  <li><strong>同态性</strong>: $\operatorname{id}(xy) = xy$，而 $\operatorname{id}(x)\operatorname{id}(y) = xy$。所以是<strong>同态</strong>。</li>
+  <li><strong>双射性</strong>: 恒等映射显然是<strong>双射</strong>。</li>
+  <li>所以<strong>恒等映射</strong>总是一个<strong>自同构</strong>，被称为“平凡的”<strong>自同构</strong>。</li>
+</ul></li>
+  <li> <strong>非平凡的自同构</strong>: 有趣的是那些不是恒等映射的<strong>自同构</strong>。它们揭示了群内部更深层的对称性。</li>
+</ol>
+    </div>
+</div><h4>6.2 共轭 (Conjugation)</h4><p id="original-11"><strong style="font-size: 1.3rem;">📜 [原文11]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>最重要的<strong>自同构</strong>类型是<strong>共轭</strong>：设 $g$ 是群 $G$ 的一个固定元素。由 $g$ 进行的<strong>共轭</strong>是从 $G$ 到自身的映射 $\varphi_g$，定义为 $\varphi_g(x)=g x g^{-1}$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>定义</strong>: <strong>共轭</strong>是一种非常特殊的<strong>自同构</strong>，它是由群中的某个固定元素 $g$ 诱导的。
+<ul>
+  <li>我们选定一个元素 $g \in G$。</li>
+  <li>然后我们定义一个映射 $\varphi_g: G \rightarrow G$，它对任何输入的元素 $x \in G$，输出 $gxg^{-1}$。</li>
+  <li>这个操作 $x \mapsto gxg^{-1}$ 就叫做“用 $g$ 对 $x$ 进行<strong>共轭</strong>”。</li>
+</ul></li>
+  <li> <strong>验证共轭是自同构</strong>:
+<ul>
+  <li><strong>(a) 证明是同态</strong>: 我们要验证 $\varphi_g(xy) = \varphi_g(x)\varphi_g(y)$。</li>
+  <li>左边：$\varphi_g(xy) = g(xy)g^{-1}$。</li>
+  <li>右边：$\varphi_g(x)\varphi_g(y) = (gxg^{-1})(gyg^{-1})$。</li>
+  <li>关键技巧：在中间插入一个“单位元”，即 $g^{-1}g$。</li>
+  <li>$\varphi_g(xy) = gxyg^{-1} = g x (e) y g^{-1} = g x (g^{-1}g) y g^{-1} = (gxg^{-1})(gyg^{-1}) = \varphi_g(x)\varphi_g(y)$。</li>
+  <li>所以，<strong>共轭</strong>映射确实是<strong>同态</strong>。</li>
+  <li><strong>(b) 证明是双射</strong>:</li>
+  <li>要证明一个映射是<strong>双射</strong>，一个快捷方法是找到它的<strong>逆映射</strong>。</li>
+  <li>我们猜测 $\varphi_g$ 的逆是 $\varphi_{g^{-1}}$。来验证一下：</li>
+  <li>$(\varphi_{g^{-1}} \circ \varphi_g)(x) = \varphi_{g^{-1}}(\varphi_g(x)) = \varphi_{g^{-1}}(gxg^{-1})$</li>
+  <li>$(\varphi_g \circ \varphi_{g^{-1}})(x) = \varphi_g(\varphi_{g^{-1}}(x)) = \varphi_g(g^{-1}xg)$</li>
+  <li>因为我们找到了一个双向的<strong>逆映射</strong>，所以 $\varphi_g$ 是一个<strong>双射</strong>。</li>
+  <li><strong>结论</strong>: 既然<strong>共轭</strong>映射既是<strong>同态</strong>又是<strong>双射</strong>，那么它就是一个<strong>自同构</strong>。这种由<strong>共轭</strong>产生的<strong>自同构</strong>也叫<strong>内自同构</strong> (Inner Automorphism)。</li>
+</ul></li>
+  <li> <strong>共轭在不同群中的表现</strong>:
+<ul>
+  <li><strong>阿贝尔群 (交换群)</strong>: 如果群是<strong>阿贝尔群</strong>，那么对于任何 $g, x$，都有 $gx=xg$。因此 $\varphi_g(x) = gxg^{-1} = xgg^{-1} = xe = x$。所以，在<strong>阿贝尔群</strong>中，任何元素的<strong>共轭</strong>操作都等于<strong>恒等映射</strong>。所有的<strong>内自同构</strong>都是平凡的。</li>
+  <li><strong>非交换群</strong>: 只要群中存在一对元素 $g, x$ 使得 $gx \neq xg$，那么 $\varphi_g(x) = gxg^{-1} \neq x$。这意味着<strong>共轭</strong>操作会实际地移动元素，产生非平凡的<strong>自同构</strong>。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>公式</strong>:</li>
+</ul>
+<p><div class="math-block">$$
+\varphi(x)=g x g^{-1} . \tag{2.6.4}
+$$</div></p>
+<ul>
+  <li><strong>符号拆解</strong>:</li>
+  <li>$\varphi$: 在这里特指由 $g$ 导出的<strong>共轭</strong>映射，更精确的记法是 $\varphi_g$。</li>
+  <li>$g$: 群 $G$ 中一个<strong>固定</strong>的元素，用来定义这个映射。</li>
+  <li>$x$: 群 $G$ 中任意一个<strong>变量</strong>元素，是映射的输入。</li>
+  <li>$g^{-1}$: 元素 $g$ 的<strong>逆元</strong>。</li>
+  <li>$gxg^{-1}$: 整个表达式是在群 $G$ 中的一连串运算，结果是 $x$ 在映射下的像。</li>
+</ul>
+<ul>
+  <li><strong>公式 (同态性证明)</strong>:</li>
+</ul>
+<p><div class="math-block">$$
+\varphi(x y)=g x y g^{-1}=g x g^{-1} g y g^{-1}=\varphi(x) \varphi(y)
+$$</div></p>
+<ul>
+  <li><strong>推导步骤</strong>:</li>
+</ul>
+<ol>
+  <li> $\varphi(xy) = g(xy)g^{-1}$ (根据定义)。</li>
+  <li> $g(xy)g^{-1} = g(x(g^{-1}g)y)g^{-1}$ (核心技巧：在 $x$ 和 $y$ 之间插入 $e = g^{-1}g$ )。</li>
+  <li> $g(xg^{-1}gy)g^{-1} = (gxg^{-1})(gyg^{-1})$ (利用结合律重新组合括号)。</li>
+  <li> $(gxg^{-1})(gyg^{-1}) = \varphi(x)\varphi(y)$ (根据定义)。</li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例</strong>: 使用<strong>对称群</strong> $S_3 = \{e, (12), (13), (23), (123), (132)\}$。这是一个<strong>非交换群</strong>。</li>
+  <li>我们选定 $g = (12)$。那么 $g^{-1}=(12)$。</li>
+  <li>我们来计算 $\varphi_g$ 对 $S_3$ 中每个元素的作用：</li>
+  <li>$\varphi_g(e) = (12)e(12) = e$。</li>
+  <li>$\varphi_g((12)) = (12)(12)(12) = e(12) = (12)$。</li>
+  <li>$\varphi_g((13)) = (12)(13)(12)$。计算复合：$1 \to 2 \to 2 \to 1$，$2 \to 1 \to 3 \to 3$，$3 \to 3 \to 1 \to 2$。结果是 $(23)$。所以 $\varphi_g$ 把 $(13)$ 变成了 $(23)$。</li>
+  <li>$\varphi_g((23)) = (12)(23)(12)$。计算复合：$1 \to 2 \to 3 \to 3$，$2 \to 1 \to 1 \to 2$，$3 \to 3 \to 2 \to 1$。结果是 $(13)$。所以 $\varphi_g$ 把 $(23)$ 变成了 $(13)$。</li>
+  <li>$\varphi_g((123)) = (12)(123)(12)$。计算复合：$1 \to 2 \to 3 \to 3$，$2 \to 1 \to 2 \to 1$，$3 \to 3 \to 1 \to 2$。结果是 $(132)$。</li>
+  <li>$\varphi_g((132)) = (12)(132)(12)$。计算复合：$1 \to 2 \to 1 \to 2$，$2 \to 1 \to 3 \to 3$，$3 \to 3 \to 2 \to 1$。结果是 $(123)$。</li>
+  <li><strong>观察</strong>: 这个由 $g=(12)$ 诱导的<strong>自同构</strong> $\varphi_g$ 交换了 $(13)$ 和 $(23)$，交换了 $(123)$ 和 $(132)$，同时保持 $e$ 和 $(12)$ 不变。这显然不是<strong>恒等映射</strong>，是一个非平凡的<strong>自同构</strong>。它就像对 $S_3$ 的元素进行了一次“洗牌”，但保持了整个群的乘法表结构不变。</li>
+  <li><strong>原文中提到的例子</strong>: "在通常表示的<strong>对称群</strong> $S_{3}$ 中，由 $y$ 进行的<strong>共轭</strong>会交换 $x$ 和 $x^{2}$"。</li>
+  <li>这里的 $x, y$ 是 $S_3$ 的生成元，通常 $x=(123)$, $y=(12)$。</li>
+  <li>$x^2 = (123)(123) = (132)$。</li>
+  <li>我们刚刚计算了 $\varphi_y(x) = yxy^{-1} = (12)(123)(12) = (132) = x^2$。</li>
+  <li>我们再计算 $\varphi_y(x^2) = yx^2y^{-1} = (12)(132)(12) = (123) = x$。</li>
+  <li>所以，由 $y=(12)$ 进行的<strong>共轭</strong>，确实交换了 $x=(123)$ 和 $x^2=(132)$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>谁是变量</strong>: 在表达式 $gxg^{-1}$ 中，$g$ 是一个选定了就不变的元素，而 $x$ 是跑遍整个群的变量。</li>
+  <li><strong>内自同构不等于所有自同构</strong>: 由<strong>共轭</strong>产生的<strong>自同构</strong>称为<strong>内自同构</strong>。但群可能存在一些不</li>
+</ol>
+<p>能由任何<strong>共轭</strong>操作表示的<strong>自同构</strong>，这些称为<strong>外自同构</strong> (Outer Automorphism)。所有<strong>自同构</strong>构成的群 $\operatorname{Aut}(G)$ 中，所有<strong>内自同构</strong>构成一个<strong>正规子群</strong> $\operatorname{Inn}(G)$。</p>
+<ol>
+  <li><strong>阿贝尔群的自同构</strong>: 阿贝尔群的<strong>内自同构</strong>都是平凡的，但它们可以有非平凡的（<strong>外</strong>）<strong>自同构</strong>。例如，在<strong>克莱因四元群</strong> $V_4 = \{e, a, b, c\}$ 中，映射 $a \to b, b \to a, c \to c$ 就是一个非平凡的<strong>自同构</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>自同构</strong>是一个群到自身的<strong>同构</strong>，可以看作是保持结构的一种“对称”变换。其中，最重要的一类<strong>自同构</strong>是由群内元素 $g$ 引发的<strong>共轭</strong>操作 $x \mapsto gxg^{-1}$。在<strong>非交换群</strong>中，<strong>共轭</strong>操作能以非平凡的方式重排群内元素，揭示群的内部结构。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>引入<strong>自同构</strong>和<strong>共轭</strong>是为了研究群的“内部对称性”。<strong>同构</strong>是研究两个不同群之间的关系，而<strong>自同构</strong>是研究一个群内部的结构关系。<strong>共轭</strong>操作尤其重要，因为它引出了<strong>共轭类</strong>、<strong>正规子群</strong>和<strong>商群</strong>等一系列核心概念，是深入理解群结构的关键工具。</p>
+<p>[直觉心- <strong>自同构</strong>: 想象你有一个正方形。旋转90度、180度、270度，或者沿着对角线、中线翻转，这些操作都会使正方形看起来和原来一样，占据同样的空间。这些对称操作的集合就构成一个群 $D_4$。对于这个群本身，它的<strong>自同构</strong>就是一种更抽象的“对称操作的对称操作”。</p>
+<ol>
+  <li><strong>共轭</strong>: 想象你在一个大厅里，你在 A 点。现在你想执行一个动作，比如“向前走五步”（这是 $x$）。</li>
+  <li>如果你直接执行，就是 $x$。</li>
+  <li>现在，你的朋友让你先“旋转90度”（这是 $g$），然后“向前走五步”（这是 $x$），最后“转回来90度”（这是 $g^{-1}$）。这一整套操作 $gxg^{-1}$ 的最终效果是什么？你并没有真的去到“前方”，而是去到了“侧方”。</li>
+  <li><strong>共轭</strong> $gxg^{-1}$ 可以理解为“在变换了参考系（坐标系）之后，执行同一个操作 $x$，再把参考系变回来”。在新的参考系里看，你做的还是“向前走五- <strong>自同构</strong>: 想象你有一个正方形。旋转90度、180度、270度，或者沿着对角线、中线翻转，这些操作都会使正方形看起来和原来一样，占据同样的空间。这些对称操作的集合就构成一个群 $D_4$。对于这个群本身，它的<strong>自同构</strong>就是一种更抽象的“对称操作的对称操作”。</li>
+</ol>
+<ol>
+  <li><strong>共轭</strong>: 想象你在一个大厅里，你在 A 点。现在你想执行一个动作，比如“向前走五步”（这是 $x$）。</li>
+  <li>如果你直接执行，就是 $x$。</li>
+  <li>现在，你的朋友让你先“旋转90度”（这是 $g$），然后“向前走五步”（这是 $x$），最后“转回来90度”（这是 $g^{-1}$）。这一整套操作 $gxg^{-1}$ 的最终效果是什么？你并没有真的去到“前方”，而是去到了“侧方”。</li>
+  <li><strong>共轭</strong> $gxg^{-1}$ 可以理解为“在变换了参考系（坐标系）之后，执行同一个操作 $x$，再把参考系变回来”。在新的参考系里看，你做的还是“向前走五步”，但在原始参考系里的人看来，你完成了一个完全不同的动作。</li>
+  <li>在 $S_3$ 的例子中，$x=(123)$ 是一个“轮换”，$g=(12)$ 是一个“交换1和2的观察视角”。在交换了1和2的视角后，原来的“轮换”看起来就变成了 $(132)$。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-7">
+    <h2><span class="section-number">7</span>共轭元素</h2>
+    <p id="original-12"><strong style="font-size: 1.3rem;">📜 [原文12]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>如前所述，元素 $g x g^{-1}$ 是 $x$ 关于 $g$ 的<strong>共轭</strong>，群 $G$ 的两个元素 $x$ 和 $x^{\prime}$ 是<strong>共轭</strong>的，如果存在 $G$ 中的某个 $g$，使得 $x^{\prime}=g x g^{-1}$。<strong>共轭</strong> $g x g^{-1}$ 的行为方式与元素 $x$ 本身非常相似；例如，它在群中具有相同的<strong>阶</strong>。这是因为它是一个<strong>自同构</strong>下 $x$ 的<strong>像</strong>。（参见<strong>引理</strong> 2.6.2 之后的讨论。）</p>
+<p>注意：有时可能希望确定群 $G$ 的两个元素 $x$ 和 $y$ 是否<strong>共轭</strong>，即是否存在 $G$ 中的元素 $g$，使得 $y=g x g^{-1}$。将方程改写为 $y g=g x$ 以求解 $g$ 几乎总是更简单。 $\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+
+    </div>
+</div><h4>7.1 共轭元素定义与性质</h4><p id="original-13"><strong style="font-size: 1.3rem;">📜 [原文13]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>如前所述，元素 $g x g^{-1}$ 是 $x$ 关于 $g$ 的<strong>共轭</strong>，群 $G$ 的两个元素 $x$ 和 $x^{\prime}$ 是<strong>共轭</strong>的，如果存在 $G$ 中的某个 $g$，使得 $x^{\prime}=g x g^{-1}$。<strong>共轭</strong> $g x g^{-1}$ 的行为方式与元素 $x$ 本身非常相似；例如，它在群中具有相同的<strong>阶</strong>。这是因为它是一个<strong>自同构</strong>下 $x$ 的<strong>像</strong>。（参见<strong>引理</strong> 2.6.2 之后的讨论。）</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>共轭元素 (Conjugate Elements)</strong>:
+<ul>
+  <li>这是一个关系定义。我们说元素 $x'$ 与元素 $x$ <strong>共轭</strong>，意思是 $x'$ 可以通过用某个 $g$ 对 $x$ 进行<strong>共轭</strong>操作得到。</li>
+  <li>这个关系也是一个<strong>等价关系</strong>：</li>
+  <li><strong>自反性</strong>: $x = exe^{-1}$，所以 $x$ 与自身<strong>共轭</strong>（取 $g=e$）。</li>
+  <li><strong>对称性</strong>: 如果 $x' = gxg^{-1}$，那么两边左乘 $g^{-1}$ 右乘 $g$，得到 $g^{-1}x'g = x$。令 $h=g^{-1}$，则 $x = hx'h^{-1}$。所以 $x$ 也与 $x'$ <strong>共轭</strong>。</li>
+  <li><strong>传递性</strong>: 如果 $x' = g_1 x g_1^{-1}$ 且 $x'' = g_2 x' g_2^{-1}$，那么 $x'' = g_2 (g_1 x g_1^{-1}) g_2^{-1} = (g_2 g_1) x (g_1^{-1}g_2^{-1}) = (g_2 g_1) x (g_2 g_1)^{-1}$。令 $h=g_2g_1$，则 $x''=hxh^{-1}$。所以 $x''$ 与 $x$ <strong>共轭</strong>。</li>
+  <li>由于是<strong>等价关系</strong>，<strong>共轭</strong>关系可以将群 $G$ 划分为不相交的集合，这些集合称为<strong>共轭类</strong> (Conjugacy Classes)。</li>
+</ul></li>
+  <li> <strong>共轭元素的相似性</strong>:
+<ul>
+  <li>“行为方式非常相似”是一个关键洞察。为什么？因为 $x'$ 是 $x$ 在一个<strong>自同构</strong>下的像。</li>
+  <li><strong>同构</strong>（包括<strong>自同构</strong>）的本质就是保持所有群论性质。</li>
+  <li>例如，<strong>元素的阶 (Order)</strong>:</li>
+  <li>元素的阶是使得 $x^n=e$ 的最小正整数 $n$。</li>
+  <li>假设 $x$ 的阶是 $n$，即 $x^n=e$。</li>
+  <li>那么 $(gxg^{-1})^n = (gxg^{-1})(gxg^{-1})\dots(gxg^{-1})$ (共 $n$ 个)。</li>
+  <li>中间的 $g^{-1}g$ 会抵消，所以上式等于 $gx^ng^{-1}$。</li>
+  <li>因为 $x^n=e$，所以 $gx^ng^{-1} = geg^{-1} = e$。</li>
+  <li>这说明 $gxg^{-1}$ 的阶<strong>至多</strong>为 $n$。</li>
+  <li>反过来，如果 $(gxg^{-1})^k = e$，即 $gx^kg^{-1}=e$，两边左乘 $g^{-1}$ 右乘 $g$，得到 $x^k=e$。这说明 $k$ 必须是 $n$ 的倍数。</li>
+  <li>结合两点， $gxg^{-1}$ 的阶<strong>恰好</strong>也是 $n$。</li>
+  <li>结论：<strong>共轭</strong>操作不改变元素的阶。一个<strong>共轭类</strong>里所有元素的阶都相同。</li>
+</ul></li>
+</ol>
+    </div>
+</div><h4>7.2 求解共轭元素的实用技巧</h4><p id="original-14"><strong style="font-size: 1.3rem;">📜 [原文14]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>注意：有时可能希望确定群 $G$ 的两个元素 $x$ 和 $y$ 是否<strong>共轭</strong>，即是否存在 $G$ 中的元素 $g$，使得 $y=g x g^{-1}$。将方程改写为 $y g=g x$ 以求解 $g$ 几乎总是更简单。 $\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>问题</strong>: 给定 $x, y \in G$，如何找到一个 $g \in G$ (如果存在的话) 使得 $y = gxg^{-1}$。</li>
+  <li> <strong>直接求解的困难</strong>: 方程 $y = gxg^{-1}$ 中，未知数 $g$ 出现在了两侧，还有一个逆 $g^{-1}$，直接代入 $g$ 的可能值去试算会很麻烦。</li>
+  <li> <strong>变形</strong>: 将方程 $y = gxg^{-1}$ 两边同时右乘 $g$。
+<ul>
+  <li>$y g = (gxg^{-1})g$</li>
+  <li>$y g = gx(g^{-1}g)$</li>
+  <li>$y g = gxe$</li>
+  <li>$y g = gx$</li>
+</ul></li>
+  <li> <strong>新方程的优势</strong>:
+<ul>
+  <li>方程 $yg = gx$ 中，未知数 $g$ 只以 $g$ 的形式出现，没有 $g^{-1}$ 了。</li>
+  <li>它变成了一个关于 $g$ 的线性方程（在群的意义下）。</li>
+  <li>在具体的群（如矩阵群或置换群）中，这个形式通常更容易设立一个方程组来求解构成 $g$ 的未知参数。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例</strong>: 在 $S_3$ 中，我们想判断 $x=(123)$ 和 $y=(132)$ 是否<strong>共轭</strong>。</li>
+  <li>它们的阶都是 3，所以它们<strong>可能</strong>是共轭的。</li>
+  <li>我们需要找到一个 $g \in S_3$ 使得 $(132) = g(123)g^{-1}$。</li>
+  <li>我们使用技巧，解方程 $(132)g = g(123)$。</li>
+  <li>我们来逐个尝试 $g \in S_3 = \{e, (12), (13), (23), (123), (132)\}$。</li>
+  <li>$g=e$: $(132)e \neq e(123)$。</li>
+  <li>$g=(12)$:</li>
+  <li>左边: $(132)(12) = (13)$。</li>
+  <li>右边: $(12)(123) = (23)$。</li>
+  <li>不相等。</li>
+  <li>$g=(13)$:</li>
+  <li>左边: $(132)(13) = (12)$。</li>
+  <li>右边: $(13)(123) = (23)$。</li>
+  <li>不相等。</li>
+  <li>$g=(23)$:</li>
+  <li>左边: $(132)(23) = (12)$。</li>
+  <li>右边: $(23)(123) = (13)$。</li>
+  <li>不相等。</li>
+  <li>$g=(123)$:</li>
+  <li>左边: $(132)(123) = e$。</li>
+  <li>右边: $(123)(123) = (132)$。</li>
+  <li>不相等。</li>
+  <li>$g=(132)$:</li>
+  <li>左边: $(132)(132) = (123)$。</li>
+  <li>右边: $(132)(123) = e$。</li>
+  <li>不相等。</li>
+  <li><strong>反思</strong>: 我的手动计算似乎出错了，让我们重新检查一下之前的计算。</li>
+  <li>在 6.2 节，我们计算了 $\varphi_{(12)}(123) = (12)(123)(12)^{-1} = (132)$。</li>
+  <li>所以 $g=(12)$ 就是一个解。让我们验证 $yg=gx$ 是否成立。</li>
+  <li>$y=(132), x=(123), g=(12)$。</li>
+  <li>左边 $yg = (132)(12) = (13)$。</li>
+  <li>右边 $gx = (12)(123) = (23)$。</li>
+  <li>啊哈，它们不相等！这意味着 $yg=gx$ 这个技巧虽然简化了形式，但在非交换群中，直接代入检查仍然是必须的。我之前的计算 $(12)(123)(12)=(132)$ 是正确的，但是验证 $yg=gx$ 那个环节我算错了置换复合。让我们重新计算：</li>
+  <li>$yg = (132)(12)$: $1 \to 2 \to 1$, $2 \to 1 \to 3$, $3 \to 3 \to 2$。结果是 $(23)$。</li>
+  <li>$gx = (12)(123)$: $1 \to 2 \to 3$, $2 \to 3 \to 2$, $3 \to 1 \to 1$。结果是 $(13)$。</li>
+  <li>我之前的计算还是错了，我需要非常小心地进行置换复合。</li>
+  <li><strong>正确地重新计算 $yg=gx$</strong></li>
+  <li>$g=(12)$: $y=(132), x=(123)$</li>
+  <li>$yg = (132)(12)$. $1 \to 2 \to 1$. $2 \to 1 \to 3$. $3 \to 3 \to 2$. 结果是 $(23)$.</li>
+  <li>$gx = (12)(123)$. $1 \to 2 \to 3$. $2 \to 3 \to 2$. $3 \to 1 \to 1$. 结果是 $(13)$. 不相等。</li>
+  <li><strong>让我们换一个g</strong>，比如 $g=(23)$。$g^{-1}=(23)$。</li>
+  <li>$y' = gxg^{-1} = (23)(123)(23)$. $1 \to 1 \to 2 \to 3$. $2 \to 3 \to 1 \to 1$. $3 \to 2 \to 3 \to 2$. 结果是 $(132)$。</li>
+  <li>所以 $y=(132)$ 和 $x=(123)$ 共轭，一个共轭元是 $g=(23)$。</li>
+  <li><strong>现在用 $g=(23)$ 验证 $yg=gx$</strong>:</li>
+  <li>$yg = (132)(23)$. $1 \to 1 \to 3$. $2 \to 3 \to 2$. $3 \to 2 \to 1$. 结果是 $(13)$.</li>
+  <li>$gx = (23)(123)$. $1 \to 2 \to 3$. $2 \to 3 \to 1$. $3 \to 1 \to 2$. 结果是 $(132)$. 不相等。</li>
+  <li><strong>结论</strong>: 我在手动计算置换复合时多次出错，这说明了代数计算需要非常谨慎。但理论上 $y=gxg^{-1}$ 与 $yg=gx$ 是等价的。我最初的计算 $(12)(123)(12) = (132)$ 是正确的，让我们再验证一次 $yg=gx$ for $g=(12)$:</li>
+  <li>$y=(132), g=(12), x=(123)$</li>
+  <li>$yg=(132)(12)$: $1 \to 2 \to 1$ (不动); $2 \to 1 \to 3$; $3 \to 3 \to 2$. So $2 \to 3 \to 2$. 复合是 $(23)$.</li>
+  <li>$gx=(12)(123)$: $1 \to 2 \to 3$; $2 \to 3 \to 2$ (不动); $3 \to 1 \to 1$. So $1 \to 3 \to 1$. 复合是 $(13)$.</li>
+  <li>看来我之前的计算 $yg=(13)$ 和 $gx=(23)$ 是正确的。它们不相等。这说明 $y=gxg^{-1}$ 和 $yg=gx$ 虽然是代数等价的，但在 $S_3$ 这个具体例子中，$g=(12)$ 使得 $gxg^{-1}=y$，但 $gx \neq yg$。这是为什么？</li>
+  <li>让我们回到代数推导： $y=gxg^{-1} \iff yg = gxg^{-1}g \iff yg=gx$。这个推导是无懈可击的。</li>
+  <li>这说明我至少有一个置换复合计算是错的。让我们用“函数作用在数字上”的写法来避免错误：</li>
+  <li>$y=(132)$, $g=(12)$, $x=(123)$</li>
+  <li>$gxg^{-1}$: 让它作用于 1: $g^{-1}(1)=2$, $x(2)=3$, $g(3)=3$. 所以 $1 \to 3$.</li>
+  <li>作用于 3: $g^{-1}(3)=3$, $x(3)=1$, $g(1)=2$. 所以 $3 \to 2$.</li>
+  <li>作用于 2: $g^{-1}(2)=1$, $x(1)=2$, $g(2)=1$. 所以 $2 \to 1$.</li>
+  <li>结果是 $(132)$。<strong>所以 $y=gxg^{-1}$ 对于 $g=(12)$ 是成立的</strong>。</li>
+  <li>现在计算 $yg$: $y=(132), g=(12)$.</li>
+  <li>作用于 1: $g(1)=2$, $y(2)=1$. 所以 $1 \to 1$.</li>
+  <li>作用于 2: $g(2)=1$, $y(1)=3$. 所以 $2 \to 3$.</li>
+  <li>作用于 3: $g(3)=3$, $y(3)=2$. 所以 $3 \to 2$.</li>
+  <li>结果是 $(23)$。<strong>所以 $yg=(23)$ 是成立的</strong>。</li>
+  <li>现在计算 $gx$: $g=(12), x=(123)$.</li>
+  <li>作用于 1: $x(1)=2$, $g(2)=1$. 所以 $1 \to 1$.</li>
+  <li>作用于 2: $x(2)=3$, $g(3)=3$. 所以 $2 \to 3$.</li>
+  <li>作用于 3: $x(3)=1$, $g(1)=2$. 所以 $3 \to 2$.</li>
+  <li>结果是 $(23)$。<strong>所以 $gx=(23)$ 是成立的</strong>。</li>
+  <li><strong>最终结论</strong>: $yg = gx = (23)$ 是成立的！之前的计算错误导致了困惑。这个例子最终成功地验证了 $y=gxg^{-1} \iff yg=gx$ 的等价性，以及这个技巧的有效性。</li>
+</ul>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-8">
+    <h2><span class="section-number">8</span>换位子</h2>
+    <p id="original-15"><strong style="font-size: 1.3rem;">📜 [原文15]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ul>
+  <li><strong>换位子</strong> $a b a^{-1} b^{-1}$ 是与群元素对 $a, b$ 相关的另一个元素。</li>
+</ul>
+<p>下一个<strong>引理</strong>是通过将项从方程的一边移动到另一边得出的。</p>
+<p><strong>引理</strong> 2.6.5 群的两个元素 $a$ 和 $b$ <strong>交换</strong>，即 $a b=b a$，当且仅当 $a b a^{-1}=b$，这又当且仅当 $a b a^{-1} b^{-1}=1$。 $\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+
+    </div>
+</div><h4>8.1 换位子 (Commutator)</h4><p id="original-16"><strong style="font-size: 1.3rem;">📜 [原文16]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ul>
+  <li><strong>换位子</strong> $a b a^{-1} b^{-1}$ 是与群元素对 $a, b$ 相关的另一个元素。</li>
+</ul>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>定义</strong>: 两个元素 $a, b$ 的<strong>换位子</strong>，通常记作 $[a, b]$，定义为 $[a, b] = aba^{-1}b^{-1}$。</li>
+  <li> <strong>意义</strong>: <strong>换位子</strong>测量了 $a$ 和 $b$ 的<strong>不交换程度</strong>。
+<ul>
+  <li>如果 $a$ 和 $b$ <strong>交换</strong>，即 $ab=ba$，那么 $[a, b] = aba^{-1}b^{-1} = (ba)a^{-1}b^{-1} = b(aa^{-1})b^{-1} = beb^{-1} = bb^{-1} = e$。</li>
+  <li>反之，如果 $[a, b] = e$，即 $aba^{-1}b^{-1}=e$，那么两边右乘 $b$ 再右乘 $a$，得到 $ab = ba$。</li>
+  <li>所以，<strong>$a,b$ 交换 当且仅当 它们的换位子是单位元</strong>。</li>
+</ul></li>
+  <li> <strong>换位子子群</strong>: 由所有<strong>换位子</strong>生成的<strong>子群</strong> $[G,G]$ 称为 $G$ 的<strong>导群</strong> (derived subgroup) 或<strong>换位子子群</strong>，它在研究群的<strong>阿贝尔性</strong>和<strong>可解性</strong>中扮演核心角色。</li>
+</ol>
+    </div>
+</div><h4>8.2 引理 2.6.5</h4><p id="original-17"><strong style="font-size: 1.3rem;">📜 [原文17]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>引理</strong> 2.6.5 群的两个元素 $a$ 和 $b$ <strong>交换</strong>，即 $a b=b a$，当且仅当 $a b a^{-1}=b$，这又当且仅当 $a b a^{-1} b^{-1}=1$。 $\square$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个引理列出了三个等价的陈述。</p>
+<ul>
+  <li><strong>陈述 A</strong>: $a$ 和 $b$ 交换，即 $ab=ba$。</li>
+  <li><strong>陈述 B</strong>: $aba^{-1} = b$。</li>
+  <li><strong>陈述 C</strong>: $aba^{-1}b^{-1} = 1$ (这里的1指单位元 $e$)。</li>
+</ul>
+<p>我们要证明 $A \iff B \iff C$。</p>
+<ol>
+  <li> <strong>证明 $A \iff B$</strong>:
+<ul>
+  <li>($A \Rightarrow B$): 假设 $ab=ba$。我们想证明 $aba^{-1}=b$。</li>
+  <li>在 $ab=ba$ 的两边同时右乘 $a^{-1}$。</li>
+  <li>$aba^{-1} = baa^{-1}$。</li>
+  <li>$aba^{-1} = be$。</li>
+  <li>$aba^{-1} = b$。得证。</li>
+  <li>($B \Rightarrow A$): 假设 $aba^{-1}=b$。我们想证明 $ab=ba$。</li>
+  <li>在 $aba^{-1}=b$ 的两边同时右乘 $a$。</li>
+  <li>$aba^{-1}a = ba$。</li>
+  <li>$abe = ba$。</li>
+  <li>$ab = ba$。得证。</li>
+</ul></li>
+  <li> <strong>证明 $B \iff C$</strong>:
+<ul>
+  <li>($B \Rightarrow C$): 假设 $aba^{-1}=b$。我们想证明 $aba^{-1}b^{-1}=e$。</li>
+  <li>在 $aba^{-1}=b$ 的两边同时右乘 $b^{-1}$。</li>
+  <li>$aba^{-1}b^{-1} = bb^{-1}$。</li>
+  <li>$aba^{-1}b^{-1} = e$。得证。</li>
+  <li>($C \Rightarrow B$): 假设 $aba^{-1}b^{-1}=e$。我们想证明 $aba^{-1}=b$。</li>
+  <li>在 $aba^{-1}b^{-1}=e$ 的两边同时右乘 $b$。</li>
+  <li>$aba^{-1}b^{-1}b = eb$。</li>
+  <li>$aba^{-1}e = b$。</li>
+  <li>$aba^{-1} = b$。得证。</li>
+</ul></li>
+  <li> <strong>结论</strong>: 由于 $A \iff B$ 且 $B \iff C$，所以这三个陈述是完全等价的。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这个引理通过简单的代数变形，将“两元素可交换”这个性质与另外两种形式联系起来。</p>
+<ol>
+  <li>$aba^{-1}=b$ 的形式揭示了交换性与<strong>共轭</strong>的关系：$a,b$ 交换，等价于用 $a$ 对 $b$ 进行<strong>共轭</strong>操作后 $b$ 保持不变。</li>
+  <li>$aba^{-1}b^{-1}=e$ 的形式则引出了<strong>换位子</strong>的概念，将交换性量化为<strong>换位子</strong>是否为单位元。</li>
+</ol>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个引理本身很简单，但它起到了承上启下的作用。它将本节介绍的<strong>共轭</strong>概念 ($gxg^{-1}$) 与群的基本性质（交换性）联系起来，并自然地引入了<strong>换位子</strong>这个将在后续章节中变得非常重要的新工具。它展示了如何通过移动方程中的项来获得对同一概念的不同视角。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-9">
+    <h2><span class="section-number">9</span>行间公式索引</h2>
+    <p>1.  <div class="math-block">$$
+ \varphi(a b)=\varphi(a) \varphi(b) 
+$$</div></p><p><strong>解释</strong>: 这是<strong>群同态</strong>的定义，要求映射保持群的运算结构。</p><p>2.  <div class="math-block">$$
+ \varphi(a b)=\varphi(a) \varphi(b)=x y=\varphi(c) . 
+$$</div></p><p><strong>解释</strong>: 这是引理 2.6.2 证明过程中的关键等式链，用于证明逆映射的同态性。</p><p>3.  <div class="math-block">$$
+ G \approx G^{\prime} \text { 意味着 } G \text { 与 } G^{\prime} \text { 同构。} \tag{2.6.3} 
+$$</div></p><p><strong>解释</strong>: 定义了符号 $\approx$ 作为两个群之间存在<strong>同构</strong>关系的简写。</p><p>4.  <div class="math-block">$$
+ \varphi(x)=g x g^{-1} . \tag{2.6.4} 
+$$</div></p><p><strong>解释</strong>: 定义了由元素 $g$ 诱导的<strong>共轭</strong>映射，它将元素 $x$ 映射到 $gxg^{-1}$。</p><p>5.  <div class="math-block">$$
+ \varphi(x y)=g x y g^{-1}=g x g^{-1} g y g^{-1}=\varphi(x) \varphi(y), 
+$$</div></p><p><strong>解释</strong>: 证明了<strong>共轭</strong>映射是一个<strong>同态</strong>，通过在 $x,y$ 之间巧妙地插入 $g^{-1}g$ 来实现。</p>
+</section>
+
+<section class="content-section" id="section-10">
+    <h2><span class="section-number">8</span>3 换位子与交换性</h2>
+    <div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个引理通过简单的代数变形，将“两元素可交换”这个性质与另外两种形式联系起来。</p>
+<ul>
+  <li><strong>陈述 A</strong>: $a$ 和 $b$ 交换，即 $ab=ba$。</li>
+  <li><strong>陈述 B</strong>: $aba^{-1} = b$。</li>
+  <li><strong>陈述 C</strong>: $aba^{-1}b^{-1} = 1$ (这里的1指单位元 $e$)。</li>
+</ul>
+<p>这三个陈述是等价的。</p>
+<ol>
+  <li> <strong>$A \iff B$</strong>:
+<ul>
+  <li>从 $ab=ba$ 出发，两边右乘 $a^{-1}$，得到 $aba^{-1} = baa^{-1} = b$，所以 $A \Rightarrow B$。</li>
+  <li>从 $aba^{-1}=b$ 出发，两边右乘 $a$，得到 $aba^{-1}a = ba$，即 $ab=ba$，所以 $B \Rightarrow A$。</li>
+</ul></li>
+  <li> <strong>$B \iff C$</strong>:
+<ul>
+  <li>从 $aba^{-1}=b$ 出发，两边右乘 $b^{-1}$，得到 $aba^{-1}b^{-1} = bb^{-1} = e$，所以 $B \Rightarrow C$。</li>
+  <li>从 $aba^{-1}b^{-1}=e$ 出发，两边右乘 $b$，得到 $aba^{-1}b^{-1}b = eb$，即 $aba^{-1}=b$，所以 $C \Rightarrow B$。</li>
+</ul></li>
+</ol>
+<p>这个引理将本节介绍的<strong>共轭</strong>概念 ($gxg^{-1}$) 与群的基本性质（交换性）联系起来，并自然地引入了<strong>换位子</strong>这个将在后续章节中变得非常重要的新工具。它揭示了交换性等价于用一个元素对另一个元素进行<strong>共轭</strong>操作后，后者保持不变。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li>在<strong>阿贝尔群</strong> $(\mathbb{Z}, +)$ 中，任取 $a=3, b=5$。运算是加法，逆元是相反数。</li>
+  <li><strong>换位子</strong>是 $a+b+(-a)+(-b) = 3+5-3-5 = 0$。0是加法单位元。所以它们交换。</li>
+  <li>在<strong>非交换群</strong> $S_3$ 中，取 $a=(12), b=(13)$。</li>
+  <li>$ab = (12)(13) = (132)$。</li>
+  <li>$ba = (13)(12) = (123)$。$ab \neq ba$。</li>
+  <li><strong>换位子</strong> $aba^{-1}b^{-1} = (12)(13)(12)^{-1}(13)^{-1} = (12)(13)(12)(13) = (132)(12)(13) = (13)(13) = e$。等一下，计算错误。</li>
+  <li>$aba^{-1}b^{-1} = (132)(12)(13) = (23)(13) = (123)$。</li>
+  <li><strong>换位子</strong>是 $(123)$，不是单位元 $e$。这证实了 $(12)$ 和 $(13)$ 不交换。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>换位子</strong> $aba^{-1}b^{-1}$ 是衡量群中两个元素 $a, b$ 不交换程度的工具。当且仅当两个元素可交换时，它们的<strong>换位子</strong>为单位元。这个概念是研究群的可解性等高级主题的基石。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-11">
+    <h2><span class="section-number">9</span>行间公式索引</h2>
+    <p>1.  $$</p><p>\varphi(a b)=\varphi(a) \varphi(b)=x y=\varphi(c) .</p><p><div class="math-block">$$
+    **解释**: 这是引理 2.6.2 证明过程中的关键等式链，通过应用 $\varphi$ 的同态性和逆映射的定义，证明逆映射 $\varphi^{-1}$ 也是同态。
+
+2.  
+$$</div></p><p>\begin{equation*}</p><p>G \approx G^{\prime} \text { 意味着 } G \text { 与 } G^{\prime} \text { 同构。} \tag{2.6.3}</p><p>\end{equation*}</p><p><div class="math-block">$$
+    **解释**: 这是一个符号定义，引入了 $\approx$ 符号来简洁地表示“群 $G$ 与群 $G'$ 同构”。
+
+3.  
+$$</div></p><p>\begin{equation*}</p><p>\varphi(x)=g x g^{-1} . \tag{2.6.4}</p><p>\end{equation*}</p><p><div class="math-block">$$
+    **解释**: 定义了由群中固定元素 $g$ 诱导的**共轭**映射，该映射是群的一个重要的**自同构**（内自同构）。
+
+4.  
+$$</div></p><p>\begin{equation*}</p><p>\varphi(x y)=g x y g^{-1}=g x g^{-1} g y g^{-1}=\varphi(x) \varphi(y),</p><p>\end{equation*}</p><p><div class="math-block">$$
+    **解释**: 该公式通过在 $x$ 和 $y$ 之间巧妙地插入单位元 $e = g^{-1}g$ ，证明了由**共轭**定义的映射 $\varphi$ 满足**同态**性质。
+
+
+$$</div></p>
+</section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>行间公式索引</p>
+    </footer>
+
+
+    <!-- 手机端点击翻页功能 -->
+    <script>
+        (function() {
+            // 点击翻页功能（在所有设备上启用）
+            
+            document.addEventListener('click', function(e) {
+                // 如果 TOC 目录面板处于打开状态，不触发翻页
+                var tocPanel = document.getElementById('tocPanel');
+                if (tocPanel && tocPanel.classList.contains('active')) {
+                    return;
+                }
+                
+                // 排除对链接、按钮、输入框等交互元素的点击
+                var target = e.target;
+                var tagName = target.tagName.toLowerCase();
+                if (tagName === 'a' || tagName === 'button' || tagName === 'input' || 
+                    tagName === 'textarea' || tagName === 'select' || 
+                    target.closest('a') || target.closest('button') ||
+                    target.closest('.toc-panel') || target.closest('.toc-toggle') ||
+                    target.closest('.toc-overlay')) {
+                    return;
+                }
+                
+                var clickY = e.clientY;
+                var windowHeight = window.innerHeight;
+                var scrollAmount = windowHeight * 0.85; // 滚动85%的屏幕高度
+                
+                if (clickY > windowHeight / 2) {
+                    // 点击下半部分：向下翻页
+                    window.scrollBy({
+                        top: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 点击上半部分：向上翻页
+                    window.scrollBy({
+                        top: -scrollAmount,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        })();
+    </script>
+
+    <!-- TOC 目录控制脚本 -->
+    <script>
+        (function() {
+            var tocToggle = document.getElementById('tocToggle');
+            var tocPanel = document.getElementById('tocPanel');
+            var tocOverlay = document.getElementById('tocOverlay');
+            
+            // 切换目录显示/隐藏
+            function toggleTOC() {
+                var isOpen = tocPanel.classList.contains('active');
+                if (isOpen) {
+                    closeTOC();
+                } else {
+                    openTOC();
+                }
+            }
+            
+            // 打开目录
+            function openTOC() {
+                tocPanel.classList.add('active');
+                tocOverlay.classList.add('active');
+                tocToggle.setAttribute('aria-label', '关闭目录');
+            }
+            
+            // 关闭目录
+            function closeTOC() {
+                tocPanel.classList.remove('active');
+                tocOverlay.classList.remove('active');
+                tocToggle.setAttribute('aria-label', '打开目录');
+            }
+            
+            // 点击按钮切换目录
+            tocToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTOC();
+            });
+            
+            // 点击遮罩层关闭目录
+            tocOverlay.addEventListener('click', function() {
+                closeTOC();
+            });
+            
+            // 点击目录项后关闭目录
+            var tocLinks = tocPanel.querySelectorAll('a');
+            tocLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    closeTOC();
+                });
+            });
+            
+            // ESC 键关闭目录
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && tocPanel.classList.contains('active')) {
+                    closeTOC();
+                }
+            });
+            
+            // 高亮当前可见的目录条目
+            function updateActiveItem() {
+                var scrollPos = window.scrollY + 150;  // 偏移量
+                var activeSection = null;
+                var activeOriginal = null;
+                
+                // 查找当前可见的 section
+                var sections = document.querySelectorAll('section[id^="section-"]');
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    if (section.offsetTop <= scrollPos) {
+                        activeSection = section.id;
+                    }
+                }
+                
+                // 查找当前可见的原文区块
+                var originals = document.querySelectorAll('[id^="original-"]');
+                for (var j = 0; j < originals.length; j++) {
+                    var original = originals[j];
+                    if (original.offsetTop <= scrollPos) {
+                        activeOriginal = original.id;
+                    }
+                }
+                
+                // 先移除所有 active 类
+                var allHeadings = tocPanel.querySelectorAll('.toc-heading');
+                for (var h = 0; h < allHeadings.length; h++) {
+                    allHeadings[h].classList.remove('active');
+                }
+                
+                var allOriginals = tocPanel.querySelectorAll('.toc-original');
+                for (var o = 0; o < allOriginals.length; o++) {
+                    allOriginals[o].classList.remove('active');
+                }
+                
+                // 只给当前活动的条目添加 active 类
+                if (activeSection) {
+                    var activeHeadingLink = tocPanel.querySelector('.toc-heading a[href="#' + activeSection + '"]');
+                    if (activeHeadingLink) {
+                        activeHeadingLink.parentElement.classList.add('active');
+                    }
+                }
+                
+                if (activeOriginal) {
+                    var activeOriginalLink = tocPanel.querySelector('.toc-original a[href="#' + activeOriginal + '"]');
+                    if (activeOriginalLink) {
+                        activeOriginalLink.parentElement.classList.add('active');
+                    }
+                }
+            }
+            
+            // 节流函数
+            var scrollTimeout;
+            function throttledUpdate() {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(function() {
+                    updateActiveItem();
+                    scrollTimeout = null;
+                }, 100);
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', throttledUpdate);
+            
+            // 打开目录时立即更新高亮
+            var originalOpenTOC = openTOC;
+            openTOC = function() {
+                originalOpenTOC();
+                updateActiveItem();
+            };
+            
+            // 初始化
+            updateActiveItem();
+        })();
+    </script>
+</body>
+</html>

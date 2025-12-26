@@ -1,0 +1,2477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行间公式索引</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- MathJax v4 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            output: {
+                displayOverflow: 'linebreak',
+                linebreaks: {
+                    inline: true,
+                    width: '100%',
+                    lineleading: 0.2
+                }
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            /* 五大区块主题色 */
+            --original-color: #8b5cf6;
+            --explain-color: #0ea5e9;
+            --formula-color: #6366f1;
+            --example-color: #10b981;
+            --warning-color: #f59e0b;
+            /* Q1修复：总结、存在目的、直觉心智模型、直观想象 统一使用 #36828C 青色主题 */
+            --summary-color: #36828C;     /* 青色主题 */
+            --purpose-color: #36828C;     /* 青色主题 */
+            --intuition-color: #36828C;   /* 青色主题 */
+            --imagination-color: #36828C; /* 青色主题 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .authors {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
+        .content-section h4 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h5 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 18px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h6 {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            margin: 15px 0 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        /* ===============================
+           五大内容区块 - 统一风格不同主题色
+           =============================== */
+
+        /* 原文区 - 紫色 */
+        .original-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid var(--original-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .original-box .box-label {
+            color: var(--original-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-box .box-content {
+            font-style: italic;
+            color: #6b21a8;
+        }
+
+        /* 📜 [原文]区块内容 - 使用统一的黑色 */
+        .original-content {
+            color: #2d3748; /* 统一的深灰黑色 */
+        }
+
+        .original-content * {
+            color: #2d3748; /* 所有子元素 */
+        }
+
+        .original-content .MathJax, .original-content .MathJax * {
+            color: #2d3748 !important; /* 行内公式 */
+        }
+
+        /* 通用 .box-content 换行规则 - 确保长文本（如代码调用）能自动换行 */
+        .box-content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .box-content strong, .box-content code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            display: inline;
+        }
+
+        /* 逐步解释区 - 蓝色 */
+        .explain-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--explain-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .explain-box .box-label {
+            color: var(--explain-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explain-box .box-content {
+            color: #1a365d; /* Dark Blue */
+        }
+
+        .explain-box .box-content * {
+            color: #1a365d; /* Dark Blue - 所有子元素 */
+        }
+
+        .explain-box .box-content .MathJax, .explain-box .box-content .MathJax * {
+            color: #1a365d !important; /* Dark Blue - 行内公式 */
+        }
+
+        .explain-box ul, .explain-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .explain-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 公式拆解区 - 靛蓝色 */
+        .formula-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--formula-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .formula-box .box-label {
+            color: var(--formula-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .formula-box .box-content {
+            color: var(--text-color); /* 统一使用默认黑色，与原文区块一致 */
+            overflow-x: auto;
+        }
+
+        .formula-box .box-content * {
+            color: var(--text-color); /* 所有子元素 */
+        }
+
+        .formula-box .box-content .MathJax, .formula-box .box-content .MathJax * {
+            color: var(--text-color) !important; /* 行内公式 */
+        }
+
+        /* 数值示例区 - 绿色 */
+        .example-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--example-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .example-box .box-label {
+            color: var(--example-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-box .box-content {
+            color: #166534; /* Dark Green from edstem5 .answer-en */
+        }
+
+        .example-box .box-content * {
+            color: #166534; /* Dark Green - 所有子元素 */
+        }
+
+        .example-box .box-content .MathJax, .example-box .box-content .MathJax * {
+            color: #166534 !important; /* Dark Green - 行内公式 */
+        }
+
+        .example-box ul, .example-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .example-box li {
+            margin-bottom: 6px;
+        }
+
+        .example-box code {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* 易错点区 - 橙色 */
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .warning-box .box-label {
+            color: var(--warning-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warning-box .box-content {
+            color: #92400e;
+        }
+
+        .warning-box .box-content * {
+            color: #92400e; /* 所有子元素 */
+        }
+
+        .warning-box .box-content .MathJax, .warning-box .box-content .MathJax * {
+            color: #92400e !important; /* 行内公式 */
+        }
+
+        .warning-box ul, .warning-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .warning-box li {
+            margin-bottom: 6px;
+        }
+
+        /* 总结区 - Q1修复：使用#36828C青色主题 */
+        .summary-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--summary-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .summary-box .box-label {
+            color: var(--summary-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .summary-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .summary-box .box-content .MathJax, .summary-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 存在目的区 - Q1修复：使用#36828C青色主题 */
+        .purpose-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--purpose-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .purpose-box .box-label {
+            color: var(--purpose-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .purpose-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .purpose-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .purpose-box .box-content .MathJax, .purpose-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直觉心智模型区 - Q1修复：使用#36828C青色主题 */
+        .intuition-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--intuition-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .intuition-box .box-label {
+            color: var(--intuition-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .intuition-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .intuition-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .intuition-box .box-content .MathJax, .intuition-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直观想象区 - Q1修复：使用#36828C青色主题 */
+        .imagination-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--imagination-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .imagination-box .box-label {
+            color: var(--imagination-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .imagination-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .imagination-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .imagination-box .box-content .MathJax, .imagination-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 高亮术语 */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* 代码块 */
+        code {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            margin: 15px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 表格样式 - 紧凑型，行高列宽适应文字最小值 */
+        table {
+            border-collapse: collapse;
+            width: auto;  /* 列宽适应内容 */
+            margin: 15px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;  /* 减小padding使行高更紧凑 */
+            text-align: left;
+            white-space: nowrap;  /* 防止不必要的换行，列宽适应文字 */
+            line-height: 1.4;  /* 紧凑的行高 */
+        }
+
+        th {
+            background: #e0f7fa;
+            color: #006064;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #e2e8f0;
+        }
+
+        /* 表格对齐 */
+        .align-left {
+            text-align: left;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        /* 图例区域 */
+        .legend-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .legend-bar {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .legend-bar.original { background: #8b5cf6; }
+        .legend-bar.explain { background: #0ea5e9; }
+        .legend-bar.formula { background: #6366f1; }
+        .legend-bar.example { background: #10b981; }
+        .legend-bar.warning { background: #f59e0b; }
+        .legend-bar.summary { background: #36828C; }
+        .legend-bar.purpose { background: #36828C; }
+        .legend-bar.intuition { background: #36828C; }
+        .legend-bar.imagination { background: #36828C; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive - 移动端适配 */
+        @media (max-width: 768px) {
+            /* 容器宽度适配 */
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 20px 12px;
+                box-sizing: border-box;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+                padding: 0 15px;
+            }
+            
+            .hero {
+                padding: 50px 15px;
+            }
+            
+            .hero h1 {
+                font-size: 1.6rem;
+                word-break: break-word;
+            }
+            
+            .authors {
+                font-size: 1rem;
+            }
+            
+            /* 内容区块适配 */
+            .content-section {
+                padding: 20px 15px;
+                margin-left: 5px;
+                margin-right: 5px;
+                border-radius: 12px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.4rem;
+                flex-wrap: wrap;
+            }
+            
+            .content-section h3 {
+                font-size: 1.2rem;
+            }
+            
+            .content-section h4 {
+                font-size: 1.1rem;
+            }
+            
+            .section-number {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            /* 各区块box适配 */
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 15px 12px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .original-box .box-label,
+            .explain-box .box-label,
+            .formula-box .box-label,
+            .example-box .box-label,
+            .warning-box .box-label,
+            .summary-box .box-label,
+            .purpose-box .box-label,
+            .intuition-box .box-label,
+            .imagination-box .box-label {
+                font-size: 1.1rem;
+            }
+            
+            /* 图例区域移动端适配 */
+            .legend-section {
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
+            
+            .legend-row {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            
+            .legend-item {
+                font-size: 0.8rem;
+                gap: 5px;
+            }
+            
+            .legend-bar {
+                width: 3px;
+                height: 16px;
+            }
+            
+            /* 列表适配 */
+            ul, ol {
+                margin-left: 15px;
+                padding-left: 5px;
+            }
+            
+            /* 表格移动端适配 */
+            table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.9rem;
+                min-width: 80px;
+            }
+            
+            /* 代码块适配 */
+            pre {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            
+            /* 数学公式适配 */
+            .math-block {
+                padding: 10px 8px;
+                margin: 15px 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* MathJax公式溢出处理 - 只处理块级公式，保持行内公式inline */
+            mjx-container[jax="CHTML"][display="true"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                display: block !important;
+            }
+            
+            /* 行内公式 - 超宽时自动换行 */
+            mjx-container:not([display="true"]) {
+                display: inline-block !important;
+                max-width: 100% !important;
+                overflow-wrap: break-word !important;
+                word-wrap: break-word !important;
+            }
+            
+            /* MathJax内部元素换行支持 */
+            mjx-math {
+                white-space: normal !important;
+            }
+            
+            mjx-mrow {
+                flex-wrap: wrap !important;
+            }
+            
+            /* Footer适配 */
+            .footer {
+                padding: 25px 15px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* 超小屏幕适配 (手机竖屏) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 8px;
+            }
+            
+            .hero {
+                padding: 40px 10px;
+            }
+            
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+            
+            .content-section {
+                padding: 15px 10px;
+                margin-left: 3px;
+                margin-right: 3px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 12px 10px;
+            }
+            
+            .legend-section {
+                padding: 12px 8px;
+            }
+            
+            .legend-row {
+                gap: 8px;
+            }
+            
+            .legend-item {
+                font-size: 0.75rem;
+            }
+            
+            ul, ol {
+                margin-left: 12px;
+            }
+        }
+        
+        /* 确保所有内容不溢出 */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* ========================================
+           TOC 目录样式
+           ======================================== */
+        
+        /* TOC 触发按钮 - 左上角小方块 */
+        .toc-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(54, 130, 140, 0.5);  /* 青色 50% 透明度 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .toc-toggle:hover {
+            background: rgba(54, 130, 140, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .toc-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* TOC 目录面板 */
+        .toc-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 95vw;  /* 手机浏览器宽度的 95% */
+            height: 80vh; /* 手机浏览器高度的 80% */
+            max-width: 450px;  /* 桌面端最大宽度 */
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0 0 16px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .toc-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* TOC 头部 - 标题在图标右侧 */
+        .toc-header {
+            padding: 15px 20px 15px 80px;  /* 左侧留出按钮空间 */
+            background: linear-gradient(135deg, #36828C 0%, #2a6a72 100%);
+            color: white;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .toc-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* TOC 内容区 */
+        .toc-content {
+            flex: 1;
+            overflow-y: auto;   /* 允许垂直滚动 */
+            overflow-x: hidden; /* 禁止水平滚动 */
+            padding: 15px 0;
+        }
+        
+        /* TOC 列表 */
+        .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc-item {
+            margin: 0;
+        }
+        
+        .toc-item a {
+            display: block;
+            padding: 4px 20px;  /* 更紧凑的行间距 */
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #2d3748;
+            text-decoration: none;
+            word-wrap: break-word;   /* 自动换行 */
+            overflow-wrap: break-word;
+            white-space: normal;     /* 允许换行 */
+            line-height: 1.3;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .toc-item a:hover {
+            background: #e8f4f5;
+            color: #36828C;
+            border-left-color: #36828C;
+        }
+        
+        /* 标题项样式 */
+        .toc-heading a {
+            font-weight: 600;
+            color: #1a365d;
+            background: #f7fafc;
+        }
+        
+        .toc-heading a:hover {
+            background: #e8f4f5;
+        }
+        
+        /* 当前活动的标题项样式 */
+        .toc-heading.active a {
+            background: #d0e8ea;
+            color: #36828C;
+            border-left-color: #36828C;
+            font-weight: 700;
+        }
+        
+        /* 当前活动的原文项样式 */
+        .toc-original.active a {
+            background: #36828C;
+            color: white;
+            box-shadow: 0 3px 8px rgba(54, 130, 140, 0.35);
+        }
+        
+        /* 原文项容器 - 横向排列自动换行 */
+        .toc-originals-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 8px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* 原文项样式 - 浅青色带阴影 */
+        .toc-original {
+            margin: 0;
+        }
+        
+        .toc-original a {
+            display: inline-block;
+            width: 64px;  /* 固定宽度确保每行显示数量一致 */
+            padding: 6px 4px;
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #36828C;  /* 青色主题色 */
+            text-decoration: none;
+            text-align: center;
+            background: #e8f4f5;
+            border-radius: 6px;
+            border-left: none;
+            box-shadow: 0 2px 4px rgba(54, 130, 140, 0.2);  /* 青色阴影 */
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .toc-original a:hover {
+            background: #e0f2f4;
+            color: #36828C;
+            box-shadow: 0 3px 6px rgba(54, 130, 140, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        /* TOC 遮罩层 */
+        .toc-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .toc-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 移动端 TOC 适配 */
+        @media (max-width: 768px) {
+            .toc-toggle {
+                top: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .toc-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .toc-panel {
+                width: 90vw;
+                height: 80vh;
+                max-width: none;
+            }
+            
+            .toc-header {
+                padding: 12px 15px 12px 65px;
+            }
+            
+            .toc-header h3 {
+                font-size: 16px;
+            }
+            
+            .toc-item a {
+                padding: 4px 15px;
+                font-size: 15.5px;
+            }
+            
+            .toc-originals-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            .toc-original a {
+                padding: 5px 10px;
+                font-size: 15.5px;
+            }
+        }
+
+        /* 特殊术语着色 */
+        .spectral {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .periodicity {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .fourier {
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        /* 列表样式增强 */
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 - 已移除重复定义，使用上方第602-633行的紧凑型样式 */
+
+        /* 分隔线 */
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 30px 0;
+        }
+
+        /* 数学公式样式 - Q7: 行间公式颜色用黑色 */
+        .math-block {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            color: #000000; /* Q7: 黑色文字 */
+        }
+
+        /* Q7: 确保MathJax渲染的公式为黑色 */
+        .math-block .MathJax {
+            color: #000000 !important;
+        }
+
+        mjx-container {
+            color: #000000 !important;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- TOC 目录按钮 -->
+    <button class="toc-toggle" id="tocToggle" aria-label="打开目录">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+        </svg>
+    </button>
+    
+    <!-- TOC 遮罩层 -->
+    <div class="toc-overlay" id="tocOverlay"></div>
+    
+    <!-- TOC 目录面板 -->
+    <nav class="toc-panel" id="tocPanel">
+        <div class="toc-header">
+            <h3>📑 目录</h3>
+        </div>
+        <div class="toc-content">
+            <ul class="toc-list">
+                <li class="toc-item toc-heading"><a href="#section-1">1. 四元数群 $Q_{8}$</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-1">原文1</a></span><span class="toc-original"><a href="#original-2">原文2</a></span><span class="toc-original"><a href="#original-3">原文3</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-2">2. 练习</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-4">原文4</a></span><span class="toc-original"><a href="#original-5">原文5</a></span><span class="toc-original"><a href="#original-6">原文6</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-3">3. 行间公式索引</a></li>
+                <li class="toc-item toc-heading"><a href="#section-4">3. 深入探讨</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-7">原文7</a></span><span class="toc-original"><a href="#original-8">原文8</a></span><span class="toc-original"><a href="#original-9">原文9</a></span></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>行间公式索引</h1>
+            <p class="authors"></p>
+            <p class="date"></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 图例区域 -->
+        <div class="legend-section">
+            <!-- 第一行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar original"></div>
+                    <span>📜 原文</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar explain"></div>
+                    <span>📖 逐步解释</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar formula"></div>
+                    <span>∑ 公式拆解</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar example"></div>
+                    <span>💡 数值示例</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar warning"></div>
+                    <span>⚠️ 易错点</span>
+                </div>
+            </div>
+            <!-- 第二行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar summary"></div>
+                    <span>📝 总结</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar purpose"></div>
+                    <span>🎯 存在目的</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar intuition"></div>
+                    <span>🧠 直觉心智模型</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar imagination"></div>
+                    <span>💭 直观想象</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="content-section" id="section-1">
+    <h2><span class="section-number">1</span>四元数群 $Q_{8}$</h2>
+    <h4>1.1 群的定义与元素</h4><p id="original-1"><strong style="font-size: 1.3rem;">📜 [原文1]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>1.5 <strong>四元数</strong>群</p>
+<p><strong>四元数</strong>群 $Q_{8}$ 定义为</p>
+<p>$$</p>
+<p>Q_{8}=\{1,-1, i,-i, j,-j, k,-k\}</p>
+<p>$$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话引入了一个在<strong>抽象代数</strong>中非常重要的群，名为<strong>四元数群</strong>，记作$Q_8$。</p>
+<ol>
+  <li> <strong>“群”是什么？</strong> 在数学中，<strong>群 (Group)</strong> 是一个基础的代数结构。它由一个集合和在这个集合上定义的一种运算（比如加法或乘法）组成。这个集合和运算必须满足四个基本条件（我们称之为<strong>群公理</strong>）：<strong>封闭性</strong>、<strong>结合律</strong>、存在<strong>单位元</strong>、以及每个元素都有<strong>逆元</strong>。我们稍后会逐一验证 $Q_8$ 是否满足这些条件。</li>
+  <li> <strong>“四元数群 $Q_8$”</strong>：这个名字告诉我们两件事。首先，“<strong>四元数</strong>”这个词源于一种比复数更复杂的数系，由威廉·哈密顿在1843年发现。$Q_8$ 群的元素和运算规则正是从<strong>四元数</strong>的核心部分抽象出来的。其次，下标“8”表示这个群里有8个元素，我们称之为群的<strong>阶 (Order)</strong>。</li>
+  <li> <strong>“定义为”</strong>：这句话表明接下来要给出这个群的精确、无歧义的数学描述。</li>
+  <li> <strong>$Q_{8}=\{1,-1, i,-i, j,-j, k,-k\}$</strong>：这是对 $Q_8$ 这个集合内容的明确陈述。它使用集合的标准表示法，即花括号 <strong>{}</strong> 把所有元素都列出来。这8个元素分别是：
+<ul>
+  <li>$1$：可以看作是实数中的1。</li>
+  <li>$-1$：可以看作是实数中的-1。</li>
+  <li>$i, -i$：类似于复数中的虚数单位 $i$ 和它的相反数。</li>
+  <li>$j, -j, k, -k$：这是<strong>四元数</strong>特有的“虚数单位”。它们是 $i$ 的“兄弟”，与 $i$ 一样，它们的平方也是-1，但它们之间有着独特的相互关系。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>$Q_{8}$</strong></li>
+  <li><strong>Q</strong>：通常用来代表<strong>四元数 (Quaternions)</strong>。</li>
+  <li><strong>$_{8}$</strong>：下标 (subscript)，表示该群的<strong>阶</strong>（元素的个数）为8。</li>
+  <li><strong>$\{ ... \}$</strong></li>
+  <li>这是数学中定义<strong>集合 (Set)</strong> 的标准符号，花括号内列出了该集合的所有成员。</li>
+  <li><strong>$1, -1, i, -i, j, -j, k, -k$</strong></li>
+  <li>这些是集合 $Q_8$ 的八个<strong>元素 (Elements)</strong>。它们是独立的、离散的实体。虽然它们看起来像数字，但在<strong>群论</strong>的语境下，我们首先应将它们视为抽象的符号，它们之间的关系由后续的运算规则来定义。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p>这个群的元素就是这8个符号本身，所以“数值示例”在这里就是指这些元素。</p>
+<ul>
+  <li><strong>示例 1</strong>: 元素 <strong>$i$</strong> 是 $Q_8$ 中的一个成员。</li>
+  <li><strong>示例 2</strong>: 元素 <strong>$-k$</strong> 是 $Q_8$ 中的一个成员。</li>
+  <li><strong>示例 3</strong>: 数字 <strong>$2$</strong> 不是 $Q_8$ 中的成员。</li>
+  <li><strong>示例 4</strong>: 符号 <strong>$m$</strong> 不是 $Q_8$ 中的成员。</li>
+</ul>
+<p>这个集合是有限的，并且是封闭的，我们之后进行的任何运算，其结果都必须是这8个元素之一。</p>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>不仅仅是复数</strong>：初学者容易将 $i, j, k$ 混淆为同一个虚数单位。在复数中，只有一个 $i$ 满足 $i^2 = -1$。但在<strong>四元数</strong>群中，$i, j, k$ 是三个不同的元素，它们都满足这个属性，但它们之间的乘法关系是不同的。</li>
+  <li><strong>符号的抽象性</strong>：必须理解这些元素是抽象符号。虽然 $1$ 和 $-1$ 的行为和我们熟悉的实数很像，但 $i, j, k$ 的行为完全由接下来的规则定义，不要先入为主地假设它们具有我们熟悉的数的其他性质（比如交换律）。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段定义了<strong>四元数群</strong> $Q_8$ 是一个包含八个特定元素的有限集合。这八个元素 $\{1, -1, i, -i, j, -j, k, -k\}$ 是构建这个代数结构的“积木”。这个定义为后续介绍其运算规则铺平了道路。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>定义群的第一步就是明确其包含的元素。这部分的核心目的就是清晰、无歧议地界定<strong>四元数群</strong>的“舞台”——即这个群由哪些演员（元素）构成。没有这个基础，后续的所有讨论（如运算规则、性质）都将无从谈起。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>你可以把 $Q_8$ 想象成一个有8个房间的“城堡”。每个房间都有一个名字（$1, -1, i, \dots, k$）。我们接下来要学习的是从一个房间到另一个房间的“传送”规则（即群的乘法运算）。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你有8张卡片，每张卡片上分别写着 $1, -1, i, -i, j, -j, k, -k$。现在你把这8张卡片放进一个不透明的袋子里。这个袋子里的所有卡片就构成了集合 $Q_8$。我们现在只知道袋子里有什么，还不知道这些卡片之间有什么“魔法”联系。</p>
+    </div>
+</div><h4>1.2 乘法运算规则</h4><p id="original-2"><strong style="font-size: 1.3rem;">📜 [原文2]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>其乘积 ⋅ 计算如下：</p>
+<p>$$</p>
+<p>\begin{gathered}</p>
+<p>1 \cdot a=a \cdot 1=a, \quad \text { for all } a \in Q_{8} \\</p>
+<p>(-1) \cdot(-1)=1, \quad(-1) \cdot a=a \cdot(-1)=-a, \quad \text { for all } a \in Q_{8} \\</p>
+<p>i \cdot i=j \cdot j=k \cdot k=-1 \\</p>
+<p>i \cdot j=k, \quad j \cdot i=-k \\</p>
+<p>j \cdot k=i, \quad k \cdot j=-i \\</p>
+<p>k \cdot i=j, \quad i \cdot k=-j .</p>
+<p>\end{gathered}</p>
+<p>$$</p>
+<p>像往常一样，我们今后将 $a \cdot b$ 写成 $a b$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分定义了 $Q_8$ 群的<strong>二元运算</strong>，即“乘法”。这个乘法是定义这些抽象符号之间如何相互作用的关键。让我们逐条分析这些规则。</p>
+<ol>
+  <li> <strong>$1 \cdot a = a \cdot 1 = a$, for all $a \in Q_{8}$</strong>:
+<ul>
+  <li>这条规则说明元素 $1$ 是<strong>单位元 (Identity Element)</strong>。任何元素乘以 $1$（无论从左乘还是从右乘），结果都等于那个元素本身，就像实数乘法中的 $1$ 一样。这是<strong>群公理</strong>之一。</li>
+  <li><strong>for all a ∈ Q_8</strong> 的意思是“对于 $Q_8$ 集合中的任何一个元素 $a$”。</li>
+</ul></li>
+  <li> <strong>$(-1) \cdot (-1) = 1$</strong>:
+<ul>
+  <li>元素 $-1$ 乘以自身得到单位元 $1$。这表明 $-1$ 的<strong>逆元</strong>是它自己。</li>
+</ul></li>
+  <li> <strong>$(-1) \cdot a = a \cdot (-1) = -a$, for all $a \in Q_{8}$</strong>:
+<ul>
+  <li>这条规则描述了 $-1$ 的行为。它乘以任何元素 $a$，效果就是得到 $a$ 的“相反”元素 $-a$。例如，如果 $a=i$，那么 $(-1) \cdot i = -i$。如果 $a=-j$，那么 $(-1) \cdot (-j) = j$。</li>
+  <li>一个非常重要的推论是，$-1$ 与任何元素都<strong>交换</strong>位置，即 $(-1)a = a(-1)$。在群论中，能与所有元素交换的元素被称为群的<strong>中心 (Center)</strong> 的一部分。</li>
+</ul></li>
+  <li> <strong>$i \cdot i = j \cdot j = k \cdot k = -1$</strong>:
+<ul>
+  <li>这是<strong>四元数</strong>的核心关系！它告诉我们三个“虚数单位”$i, j, k$ 的平方都是 $-1$。这再次让人联想到复数 $i^2 = -1$，但这里有三个这样的元素。</li>
+</ul></li>
+  <li> <strong>$i \cdot j = k, \quad j \cdot i = -k$</strong>:
+<ul>
+  <li>这是最关键的一组规则，它揭示了 $Q_8$ 的<strong>非阿贝尔性</strong>（即<strong>非交换性</strong>）。</li>
+  <li>$i$ 乘以 $j$ 得到 $k$。</li>
+  <li>但是，$j$ 乘以 $i$（交换了顺序）得到的是 $-k$。</li>
+  <li>因为 $k \neq -k$，所以 $i \cdot j \neq j \cdot i$。这就证明了 $Q_8$ 的乘法不满足<strong>交换律</strong>，所以它是一个<strong>非阿贝尔群 (Non-Abelian Group)</strong>。</li>
+</ul></li>
+  <li> <strong>$j \cdot k = i, \quad k \cdot j = -i$</strong> 和 <strong>$k \cdot i = j, \quad i \cdot k = -j$</strong>:
+<ul>
+  <li>这两组规则与上一条类似，展现了 $i, j, k$ 之间的一种“轮换”关系。</li>
+  <li>$j$ 乘 $k$ 得到 $i$，反过来 $k$ 乘 $j$ 得到 $-i$。</li>
+  <li>$k$ 乘 $i$ 得到 $j$，反过来 $i$ 乘 $k$ 得到 $-j$。</li>
+</ul></li>
+  <li> <strong>“像往常一样，我们今后将 $a \cdot b$ 写成 $ab$”</strong>:
+<ul>
+  <li>这是一个符号简化的说明。为了书写方便，我们将省略乘法点 <strong>⋅</strong>，直接把两个元素并列写在一起表示乘法。例如，$i \cdot j = k$ 将被简写为 $ij = k$。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>$1 \cdot a=a \cdot 1=a$</strong>: 定义了 $1$ 是<strong>单位元</strong>。</li>
+  <li><strong>$(-1) \cdot (-1)=1$</strong>: 表明 $-1$ 的阶是2，它的逆元是自身。</li>
+  <li><strong>$(-1)a = -a$</strong>: 这里的 $-a$ 是一种记号，表示 $a$ 对应的“负”元素。例如，当 $a=i$ 时，$-a$ 是指 $-i$ 这个元素。当 $a=-j$ 时，$-a$ 是指 $-(-j)=j$ 这个元素。所以这个等式实际上定义了符号 <strong>-</strong> 的含义。</li>
+  <li><strong>$i^2 = j^2 = k^2 = -1$</strong>: 注意这里 $i \cdot i$ 被写成了 $i^2$。这个关系是<strong>四元数</strong>代数的基础。</li>
+  <li><strong>$ij = k$ 和 $ji = -k$</strong>: 这两个公式必须一起记忆。它们揭示了<strong>非交换性</strong>。我们可以推导出 $ji = -ij$。</li>
+  <li><strong>轮换关系</strong>:</li>
+  <li>$ij=k$</li>
+  <li>$jk=i$</li>
+  <li>$ki=j$</li>
+</ul>
+<p>这形成了一个正向的轮换圈：$i \to j \to k \to i \dots$。如果按这个顺序相乘，结果是下一个元素。如果反向相乘，例如 $ji$，则会得到带负号的结果 $-k$。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p>让我们用这些规则来计算一些更复杂的乘积。</p>
+<ul>
+  <li><strong>示例 1: 计算 $ik$</strong></li>
+  <li>根据规则，$i \cdot k = -j$。</li>
+  <li>所以，$ik = -j$。</li>
+</ul>
+<ul>
+  <li><strong>示例 2: 计算 $(-j)(-k)$</strong></li>
+  <li>我们可以把负号提出来：$(-j)(-k) = ((-1)j)((-1)k)$。</li>
+  <li>因为 $-1$ 可以和任何元素交换位置，所以可以写成 $(-1)(-1)jk$。</li>
+  <li>根据规则，$(-1)(-1)=1$，以及 $jk=i$。</li>
+  <li>所以，结果是 $1 \cdot i = i$。</li>
+</ul>
+<ul>
+  <li><strong>示例 3: 计算 $ijk$</strong></li>
+  <li>我们必须遵守<strong>结合律</strong>（虽然原文说验证它很乏味，但我们在使用时必须假设它成立）。我们先算前面两个：</li>
+  <li>$(ij)k$</li>
+  <li>根据规则，$ij=k$。</li>
+  <li>所以原式变为 $k \cdot k$。</li>
+  <li>根据规则，$k \cdot k = -1$。</li>
+  <li>所以，$ijk = -1$。</li>
+</ul>
+<ul>
+  <li><strong>示例 4: 验证 $ji = -ij$</strong></li>
+  <li>左边：$ji = -k$。</li>
+  <li>右边：$-ij = -(ij) = -(k) = -k$。</li>
+  <li>两边相等，所以关系 $ji = -ij$ 成立。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>交换律的陷阱</strong>: 最常见的错误就是不自觉地使用交换律。例如，计算 $ijk$ 时，如果错误地交换了 $j$ 和 $k$ 变成 $ikj$，结果就会不同：$i(kj) = i(-i) = -(i^2) = -(-1) = 1$。而我们刚才算出的正确结果是 $-1$。</li>
+  <li><strong>负号的处理</strong>: $-a$ 不是一个数，而是 $Q_8$ 中的一个元素。例如，$-i$ 是一个单一的符号。计算时，可以把它看作 $(-1) \cdot i$ 来处理，这样就不容易出错。</li>
+  <li><strong>记忆规则</strong>: $i, j, k$ 之间的轮换关系是核心。可以借助图像记忆：在一个圆上顺时针写上 $i, j, k$。顺时针方向两个相邻元素相乘得到下一个，例如 $ij=k$。逆时针方向相乘得到下一个元素的负值，例如 $ji=-k$。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这部分通过一系列精确的等式，定义了 $Q_8$ 群中8个元素之间的乘法运算。这些规则不仅确保了运算的<strong>封闭性</strong>（任何乘法的结果仍然是这8个元素之一），还揭示了 $Q_8$ 的两个核心特性：存在一个行为类似于 $-1$ 的中心元素，以及 $i,j,k$ 之间的非交换轮换关系。这使得 $Q_8$ 成为一个结构丰富且重要的<strong>非阿贝尔群</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>一个群不仅需要元素集合，还需要定义在这些元素上的运算。本段的目的就是给出这个运算的完整定义。没有这些规则，$\{1, -1, i, \dots, k\}$ 就只是一个毫无生气的符号列表。这些乘法规则赋予了它生命，使其成为一个动态的、可以进行计算的代数系统。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>回到我们的“8房间城堡”模型。这些规则就是“传送门”的使用手册。</p>
+<ol>
+  <li>规则“$1 \cdot a = a$”表示：如果你在任何一个房间（比如 <strong>$i$</strong> 房），然后使用了 <strong>$1$</strong> 号传送门，你会留在原地。</li>
+  <li>规则“$ij=k$”表示：如果你在城堡的起点（可以认为是<strong>1</strong>房），先走进<strong>i</strong>号传送门，紧接着走进<strong>j</strong>号传送门，你最终会到达<strong>k</strong>房。</li>
+  <li>规则“$ji=-k$”表示：如果你先走<strong>j</strong>门，再走<strong>i</strong>门，你会到达<strong>-k</strong>房。这说明“路径”的顺序至关重要。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象三维空间中的三个基本单位向量 $\vec{x}, \vec{y}, \vec{z}$。让 $i, j, k$ 分别代表围绕 X, Y, Z 轴右手定则下旋转90度的操作。</p>
+<ol>
+  <li>$i^2=-1$：围绕 X 轴旋转两次（180度）。这个 <strong>-1</strong> 状态很奇特，它不是回到原点。你需要再旋转两次（总共360度，$i^4=1$）才能完全复位。这个 <strong>-1</strong> 状态可以想象成虽然物体朝向和原来一样，但它与周围空间的“连接”被扭转了。（这就是所谓的“旋量”或“自旋”行为，在物理学中描述粒子时会遇到）。</li>
+  <li>$ij=k$：先绕 X 轴转90度，再绕 Y 轴转90度，其最终姿态可以通过一次性绕 Z 轴转90度得到。</li>
+  <li>$ji=-k$：先绕 Y 轴转90度，再绕 X 轴转90度，最终姿态不同，需要绕 Z 轴<strong>反向</strong>旋转90度才能得到。你可以拿起手机或一本书亲自试试，这直观地展示了旋转的<strong>非交换性</strong>。</li>
+</ol>
+    </div>
+</div><h4>1.3 群的性质与验证</h4><p id="original-3"><strong style="font-size: 1.3rem;">📜 [原文3]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>检查<strong>结合律</strong>是乏味的（我们稍后将通过较少计算的方法证明这一点），但其他<strong>公理</strong>很容易验证。请注意，$Q_{8}$ 是一个 8 阶非<strong>阿贝尔群</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分对 $Q_8$ 的群属性进行了总结和评论。</p>
+<ol>
+  <li> <strong>“检查结合律是乏味的”</strong>:
+<ul>
+  <li><strong>结合律 (Associative Law)</strong> 是指对于群里的任意三个元素 $a, b, c$，都要满足 $(ab)c = a(bc)$。也就是说，先计算 $ab$ 再乘以 $c$，和先计算 $bc$ 再让 $a$ 乘以它，结果是一样的。</li>
+  <li>为什么“乏味”？因为 $Q_8$ 有8个元素，要验证所有可能的组合，理论上需要检查 $8 \times 8 \times 8 = 512$ 个等式。例如，我们需要验证 $(ij)k = i(jk)$。</li>
+  <li>左边：$(ij)k = (k)k = k^2 = -1$。</li>
+  <li>右边：$i(jk) = i(i) = i^2 = -1$。</li>
+  <li>这个组合成立。但我们还需要检查像 $(i(-j))k$ vs $i((-j)k)$ 这样的所有组合。这个工作量巨大，所以作者说它是“乏味的”。</li>
+  <li><strong>“我们稍后将通过较少计算的方法证明这一点”</strong>: 作者暗示了有更聪明的办法。通常，如果一个群可以被表示为某个更大、已知满足结合律的系统（如矩阵或四元数代数本身）的子群，那么它的结合律就自然成立，无需逐一验证。</li>
+</ul></li>
+  <li> <strong>“但其他公理很容易验证”</strong>:
+<ul>
+  <li><strong>封闭性 (Closure)</strong>: 任意两个元素相乘，结果是否还在 $Q_8$ 集合里？是的。我们从上一节的规则和例子中可以看到，任何乘积的结果都是 $\{1, -1, i, \dots, k\}$ 中的一员。例如 $ij=k$, $k^2=-1$, $(-j)(-k)=i$。</li>
+  <li><strong>单位元 (Identity)</strong>: 我们已经看到，$1$ 就是单位元，因为 $1a=a1=a$ 对所有 $a$ 成立。</li>
+  <li><strong>逆元 (Inverse)</strong>: 每个元素 $a$ 是否都有一个“逆元” $a^{-1}$，使得 $aa^{-1} = a^{-1}a = 1$？</li>
+  <li>$1$ 的逆元是 $1$。</li>
+  <li>$(-1)$ 的逆元是 $-1$，因为 $(-1)(-1)=1$。</li>
+  <li>$i$ 的逆元是什么？$i \cdot (-i) = (-1)(i^2) = (-1)(-1) = 1$。所以 $i$ 的逆元是 $-i$。同理，$-i$ 的逆元是 $i$。</li>
+  <li>$j$ 的逆元是 $-j$，$k$ 的逆元是 $-k$。</li>
+  <li>因为四个<strong>群公理</strong>（封闭性、结合律、单位元、逆元）都成立，所以 $Q_8$ 确实是一个<strong>群</strong>。</li>
+</ul></li>
+  <li> <strong>“请注意，$Q_{8}$ 是一个 8 阶非阿贝尔群”</strong>:
+<ul>
+  <li>这是一个重要的总结。</li>
+  <li><strong>“8阶”</strong>: 因为它有8个元素。</li>
+  <li><strong>“非阿贝尔群”</strong>: 因为它不满足交换律，我们已经看到 $ij=k$ 但 $ji=-k$。<strong>阿贝尔群</strong>是以数学家尼尔斯·阿贝尔命名的，特指那些满足交换律的群。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例 1: 验证封闭性</strong></li>
+  <li>取两个元素，比如 $-i$ 和 $j$。</li>
+  <li>计算它们的乘积：$(-i)j = ((-1)i)j = (-1)(ij) = (-1)k = -k$。</li>
+  <li>结果 $-k$ 是 $Q_8$ 的成员。封闭性得到验证。</li>
+</ul>
+<ul>
+  <li><strong>示例 2: 寻找逆元</strong></li>
+  <li>元素 $k$ 的逆元是什么？我们要找一个元素 $x$ 使得 $kx=1$。</li>
+  <li>我们知道 $k^2 = -1$。那么 $k \cdot k \cdot (-1) = 1$。</li>
+  <li>这没用。让我们试试乘以 $-k$。</li>
+  <li>$k(-k) = k(-1)k = (-1)kk = (-1)k^2 = (-1)(-1) = 1$。</li>
+  <li>所以 $k$ 的逆元是 $-k$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>混淆“乏味”与“不成立”</strong>: 作者说验证结合律是乏味的，不代表结合律不成立。结合律是群定义的核心部分，它对于 $Q_8$ 是<strong>成立</strong>的。只是手工验证太繁琐。</li>
+  <li><strong>忘记验证所有公理</strong>: 在判断一个结构是否为群时，必须严格检查所有四个公理。任何一个不满足，它就不是一个群。</li>
+  <li><strong>非阿贝尔与阿贝尔</strong>: 不要想当然地认为所有运算都像加法和乘法一样可以交换顺序。在抽象代数中，非交换性是常态，交换性（阿贝尔性）反而是特殊而美好的性质。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段从理论上确认了 $Q_8$ 符合<strong>群</strong>的定义。它指出了验证<strong>结合律</strong>的繁琐性，同时快速验证了其他三个<strong>群公理</strong>：<strong>封闭性</strong>、<strong>单位元</strong>和<strong>逆元</strong>的存在。最后，它给出了 $Q_8$ 的最终定性：一个<strong>阶</strong>为8的<strong>非阿贝尔群</strong>，这是对 $Q_8$ 最重要和最简洁的描述。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>在定义了元素和运算之后，这一步是为了完成逻辑闭环，正式地、严谨地确认我们所构建的这个数学对象 $(Q_8, \cdot)$ 确实是一个<strong>群</strong>。这赋予了它“群”的身份，意味着所有关于群的一般性理论和定理都可以应用在 $Q_8$ 身上了。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>我们的“8房间城堡”和“传送门手册”现在被确认为一个合格的“交通系统”。</p>
+<ol>
+  <li><strong>封闭性</strong>: 从任何房间出发，使用任何传送门，你总会到达这8个房间中的某一个，绝不会跑到城堡外面去。</li>
+  <li><strong>结合律</strong>: “路径叠加”是可靠的。先走 $i$ 门再走 $j$ 门，这作为一个“组合路径”，再接着走 $k$ 门；和你先走 $i$ 门，然后去走那个“先 $j$ 后 $k$”的组合路径，最终会把你带到同一个目的地。</li>
+  <li><strong>单位元</strong>: <strong>$1$</strong>号门是“原地踏步”门。</li>
+  <li><strong>逆元</strong>: 每个传送门（如<strong>i</strong>门）都有一个“返回”门（<strong>-i</strong>门），连续走这两个门会把你送回起点（<strong>1</strong>房）。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>继续我们的“旋转书本”想象。</p>
+<ol>
+  <li><strong>结合律</strong>: (先绕X轴转90°, 再绕Y轴转90°)，然后绕Z轴转90°。与 “先绕X轴转90°，然后执行(先绕Y轴转90°, 再绕Z轴转90°)的操作”。这两种复合操作最终会让书本达到完全相同的姿态。这在三维旋转中是成立的，因此从这个模型来看，<strong>结合律</strong>是自然的。</li>
+  <li><strong>非阿贝尔性</strong>: 正如我们已经看到的，操作的顺序很重要。先穿袜子再穿鞋，和先穿鞋再穿袜子，结果天差地别。$Q_8$ 就是这样一个“顺序敏感”的系统。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-2">
+    <h2><span class="section-number">2</span>练习</h2>
+    <h4>2.1 练习 1</h4><p id="original-4"><strong style="font-size: 1.3rem;">📜 [原文4]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ol>
+  <li>计算 $Q_{8}$ 中每个元素的<strong>阶</strong>。</li>
+</ol>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题要求我们找出 $Q_8$ 中每一个元素的<strong>阶 (Order of an element)</strong>。</p>
+<p><strong>什么是元素的阶？</strong></p>
+<p>在一个群中，一个元素 $a$ 的<strong>阶</strong>被定义为最小的正整数 $n$，使得 $a^n = 1$（这里的 $1$ 是群的单位元）。$a^n$ 指的是 $a$ 与自身相乘 $n$ 次。如果不存在这样的正整数 $n$，我们就说这个元素的阶是无限的。由于 $Q_8$ 是一个有限群，其中所有元素的阶都必然是有限的。</p>
+<p><strong>计算步骤</strong>：</p>
+<p>对于每个元素，我们从1次方开始，不停地乘以它自己，直到结果第一次为 $1$ 为止。这个次数就是它的阶。</p>
+<ul>
+  <li><strong>元素 $1$</strong>:</li>
+  <li>$1^1 = 1$。</li>
+  <li>第一次得到 $1$ 的幂次是 $1$。所以 $1$ 的阶是 $1$。单位元的阶永远是 $1$。</li>
+</ul>
+<ul>
+  <li><strong>元素 $-1$</strong>:</li>
+  <li>$(-1)^1 = -1 \neq 1$。</li>
+  <li>$(-1)^2 = (-1)(-1) = 1$。</li>
+  <li>第一次得到 $1$ 的幂次是 $2$。所以 $-1$ 的阶是 $2$。</li>
+</ul>
+<ul>
+  <li><strong>元素 $i$</strong>:</li>
+  <li>$i^1 = i \neq 1$。</li>
+  <li>$i^2 = -1 \neq 1$。</li>
+  <li>$i^3 = i^2 \cdot i = (-1)i = -i \neq 1$。</li>
+  <li>$i^4 = i^2 \cdot i^2 = (-1)(-1) = 1$。</li>
+  <li>第一次得到 $1$ 的幂次是 $4$。所以 $i$ 的阶是 $4$。</li>
+</ul>
+<ul>
+  <li><strong>元素 $-i$</strong>:</li>
+  <li>$(-i)^1 = -i \neq 1$。</li>
+  <li>$(-i)^2 = (-1)^2 i^2 = (1)(-1) = -1 \neq 1$。</li>
+  <li>$(-i)^3 = (-1)^3 i^3 = (-1)(-i) = i \neq 1$。</li>
+  <li>$(-i)^4 = (-1)^4 i^4 = (1)(1) = 1$。</li>
+  <li>所以 $-i$ 的阶是 $4$。</li>
+</ul>
+<ul>
+  <li><strong>元素 $j, -j, k, -k$</strong>:</li>
+  <li>由于 $i, j, k$ 在定义中具有对称的地位（它们的平方都是 $-1$，并且以相似的方式相互作用），我们可以推断它们的行为是类似的。</li>
+  <li>对于 $j$：$j^1=j, j^2=-1, j^3=-j, j^4=1$。所以 $j$ 的阶是 $4$。</li>
+  <li>对于 $-j$：$(-j)^1=-j, (-j)^2=-1, (-j)^3=j, (-j)^4=1$。所以 $-j$ 的阶是 $4$。</li>
+  <li>对于 $k$：$k^1=k, k^2=-1, k^3=-k, k^4=1$。所以 $k$ 的阶是 $4$。</li>
+  <li>对于 $-k$：$(-k)^1=-k, (-k)^2=-1, (-k)^3=k, (-k)^4=1$。所以 $-k$ 的阶是 $4$。</li>
+</ul>
+<p><strong>答案总结</strong>:</p>
+<ul>
+  <li>阶为 1 的元素: $\{1\}$ (1个)</li>
+  <li>阶为 2 的元素: $\{-1\}$ (1个)</li>
+  <li>阶为 4 的元素: $\{i, -i, j, -j, k, -k\}$ (6个)</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例 1: 验证 $i$ 的阶是4</strong></li>
+  <li>$i^1 = i$</li>
+  <li>$i^2 = -1$</li>
+  <li>$i^3 = i^2 \cdot i = -i$</li>
+  <li>$i^4 = (i^2)^2 = (-1)^2 = 1$</li>
+  <li>因为4是第一个让 $i$ 的幂等于1的正整数，所以 $i$ 的阶是4。</li>
+</ul>
+<ul>
+  <li><strong>示例 2: 为什么 $-1$ 的阶不是1？</strong></li>
+  <li>因为 $(-1)^1 = -1$，结果不等于单位元 $1$。所以阶不是1。下一个尝试是 $n=2$， $(-1)^2=1$，所以阶是2。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>阶必须是正整数</strong>: 阶不能是0或负数。</li>
+  <li><strong>最小的正整数</strong>: 比如对于元素 $i$，$i^8 = (i^4)^2 = 1^2 = 1$ 也成立，但8不是<strong>最小</strong>的那个正整数，4才是。所以阶是4，不是8。</li>
+  <li><strong>不要混淆元素的阶和群的阶</strong>: 群的阶是群中元素的总数（这里是8）。元素的阶是单个元素重复运算回到单位元所需的次数。拉格朗日定理告诉我们，在一个有限群中，任何元素的阶都必须能整除群的阶。在这里，1, 2, 4 都能整除 8，这与我们的计算结果相符。</li>
+</ol>
+    </div>
+</div><h4>2.2 练习 2</h4><p id="original-5"><strong style="font-size: 1.3rem;">📜 [原文5]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ol>
+  <li>写出 $S_{3}$、$D_{8}$ 和 $Q_{8}$ 的<strong>群表</strong>。</li>
+</ol>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题要求我们画出三个特定群的<strong>群表 (Group Table)</strong>，也叫<strong>凯莱表 (Cayley Table)</strong>。群表是一个正方形的表格，用于完整地展示一个有限群的乘法运算结果。表格的行和列都由群的元素标记，表格中第 $r$ 行第 $c$ 列的单元格内容是“行元素 $r$ 乘以列元素 $c$”的结果。</p>
+<p><strong>1. $Q_{8}$ 的群表</strong></p>
+<p>我们已经知道了 $Q_8$ 的所有乘法规则，现在只需要把它们填进一个 $8 \times 8$ 的表格里。为了方便，我们把 $-1, -i, -j, -k$ 分别记作 $m, i', j', k'$。</p>
+<p>$Q_8 = \{1, m, i, i', j, j', k, k'\}$</p>
+<table>
+  <thead>
+    <tr>
+      <th class="align-left">⋅</th>
+      <th class="align-left">1</th>
+      <th class="align-left">m</th>
+      <th class="align-left">i</th>
+      <th class="align-left">i'</th>
+      <th class="align-left">j</th>
+      <th class="align-left">j'</th>
+      <th class="align-left">k</th>
+      <th class="align-left">k'</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="align-left"><strong>1</strong></td>
+      <td class="align-left">1</td>
+      <td class="align-left">m</td>
+      <td class="align-left">i</td>
+      <td class="align-left">i'</td>
+      <td class="align-left">j</td>
+      <td class="align-left">j'</td>
+      <td class="align-left">k</td>
+      <td class="align-left">k'</td>
+    </tr>
+    <tr>
+      <td class="align-left"><strong>m</strong></td>
+      <td class="align-left">m</td>
+      <td class="align-left">1</td>
+      <td class="align-left">i'</td>
+      <td class="align-left">i</td>
+      <td class="align-left">j'</td>
+      <td class="align-left">j</td>
+      <td class="align-left">k'</td>
+      <td class="align-left">k</td>
+    </tr>
+    <tr>
+      <td class="align-left"><strong>i</strong></td>
+      <td class="align-left">i</td>
+      <td class="align-left">i'</td>
+      <td class="align-left">m</td>
+      <td class="align-left">1</td>
+      <td class="align-left">k</td>
+      <td class="align-left">k'</td>
+      <td class="align-left">j'</td>
+      <td class="align-left">j</td>
+    </tr>
+    <tr>
+      <td class="align-left"><strong>i'</strong></td>
+      <td class="align-left">i'</td>
+      <td class="align-left">i</td>
+      <td class="align-left">1</td>
+      <td class="align-left">m</td>
+      <td class="align-left">k'</td>
+      <td class="align-left">k</td>
+      <td class="align-left">j</td>
+      <td class="align-left">j'</td>
+    </tr>
+    <tr>
+      <td class="align-left"><strong>j</strong></td>
+      <td class="align-left">j</td>
+      <td class="align-left">j'</td>
+      <td class="align-left">k'</td>
+      <td class="align-left">k</td>
+      <td class="align-left">m</td>
+      <td class="align-left">1</td>
+      <td class="align-left">i</td>
+      <td class="align-left">i'</td>
+    </tr>
+    <tr>
+      <td class="align-left"><strong>j'</strong></td>
+      <td class="align-left">j'</td>
+      <td class="align-left">j</td>
+      <td class="align-left">k</td>
+      <td class="align-left">k'</td>
+      <td class="align-left">1</td>
+      <td class="align-left">m</td>
+      <td class="align-left">i'</td>
+      <td class="align-left">i</td>
+    </tr>
+    <tr>
+      <td class="align-left"><strong>k</strong></td>
+      <td class="align-left">k</td>
+      <td class="align-left">k'</td>
+      <td class="align-left">j</td>
+      <td class="align-left">j'</td>
+      <td class="align-left">i'</td>
+      <td class="align-left">i</td>
+      <td class="align-left">m</td>
+      <td class="align-left">1</td>
+    </tr>
+    <tr>
+      <td class="align-left"><strong>k'</strong></td>
+      <td class="align-left">k'</td>
+      <td class="align-left">k</td>
+      <td class="align-left">j'</td>
+      <td class="align-left">j</td>
+      <td class="align-left">i</td>
+      <td class="align-left">i'</td>
+      <td class="align-left">1</td>
+      <td class="align-left">m</td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>如何填充这个表</strong>:</p>
+<ul>
+  <li>第一行和第一列是因为 $1$ 是单位元，所以直接抄写表头。</li>
+  <li>第二行，$m \cdot 1=m, m \cdot m=1, m \cdot i = -i=i', m \cdot i' = m \cdot(-i) = (-1)(-i)=i$，以此类推。</li>
+  <li>第三行，$i \cdot 1=i, i \cdot m = -i = i', i \cdot i = -1=m, i \cdot i' = i(-i) = -(i^2) = -(-1)=1, i \cdot j=k, i \cdot j' = i(-j)=-k=k', i \cdot k = -j=j', i \cdot k' = i(-k) = -(-j) = j$。</li>
+  <li>其他行也按此规律计算。注意 $ij=k$ 但 $ji=-k=k'$，这在表中体现为关于主对角线不对称，这是非阿贝尔群的特征。</li>
+</ul>
+<p><strong>2. $S_{3}$ 的群表</strong></p>
+<p>$S_3$ 是<strong>3次对称群 (Symmetric group of degree 3)</strong>，代表了对3个物体进行所有可能的排列。它的阶是 $3! = 6$。</p>
+<p>设这3个物体是 $\{1, 2, 3\}$。</p>
+<p>元素如下 (使用轮换表示法):</p>
+<ul>
+  <li>$e = (1)(2)(3)$: 单位元，什么都不动。</li>
+  <li>$\rho_1 = (1 2 3)$: 轮换，$1 \to 2, 2 \to 3, 3 \to 1$。</li>
+  <li>$\rho_2 = (1 3 2)$: 轮换，$1 \to 3, 3 \to 2, 2 \to 1$。 ($\rho_2 = \rho_1^2$)</li>
+  <li>$\mu_1 = (2 3)$: 对换，交换2和3，保持1不动。</li>
+  <li>$\mu_2 = (1 3)$: 对换，交换1和3，保持2不动。</li>
+  <li>$\mu_3 = (1 2)$: 对换，交换1和2，保持3不动。</li>
+</ul>
+<p>运算是函数复合，从右向左进行。例如，计算 $\rho_1 \mu_1$：</p>
+<p>$\rho_1 \mu_1 = (1 2 3)(2 3)$。</p>
+<ul>
+  <li>对 1: $\mu_1$ 保持1不动，$\rho_1$ 把 $1 \to 2$。所以净效果是 $1 \to 2$。</li>
+  <li>对 2: $\mu_1$ 把 $2 \to 3$，$\rho_1$ 把 $3 \to 1$。所以净效果是 $2 \to 1$。</li>
+  <li>对 3: $\mu_1$ 把 $3 \to 2$，$\rho_1$ 把 $2 \to 3$。所以净效果是 $3 \to 3$。</li>
+</ul>
+<p>结果是 $(1 2)$，即 $\mu_3$。所以 $\rho_1 \mu_1 = \mu_3$。</p>
+<p>群表如下：</p>
+<table>
+  <thead>
+    <tr>
+      <th class="align-left">⋅</th>
+      <th class="align-left">$e$</th>
+      <th class="align-left">$\rho_1$</th>
+      <th class="align-left">$\rho_2$</th>
+      <th class="align-left">$\mu_1$</th>
+      <th class="align-left">$\mu_2$</th>
+      <th class="align-left">$\mu_3$</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="align-left"><strong>$e$</strong></td>
+      <td class="align-left">$e$</td>
+      <td class="align-left">$\rho_1$</td>
+      <td class="align-left">$\rho_2$</td>
+      <td class="align-left">$\mu_1$</td>
+      <td class="align-left">$\mu_2$</td>
+      <td class="align-left">$\mu_3$</td>
+    </tr>
+    <tr>
+      <td class="align-left"><strong>$\rho_1$</strong></td>
+      <td class="align-left">$\rho_1$</td>
+      <td class="align-left">$\rho_2$</td>
+      <td class="align-left">$e$</td>
+      <td class="align-left">$\mu_3$</td>
+      <td class="align-left">$\mu_1$</td>
+      <td class="align-left">$\mu_2$</td>
+    </tr>
+    <tr>
+      <td class="align-left"><strong>$\rho_2$</strong></td>
+      <td class="align-left">$\rho_2$</td>
+      <td class="align-left">$e$</td>
+      <td class="align-left">$\rho_1$</td>
+      <td class="align-left">$\mu_2$</td>
+      <td class="align-left">$\mu_3$</td>
+      <td class="align-left">$\mu_1$</td>
+    </tr>
+    <tr>
+      <td class="align-left"><strong>$\mu_1$</strong></td>
+      <td class="align-left">$\mu_1$</td>
+      <td class="align-left">$\mu_2$</td>
+      <td class="align-left">$\mu_3$</td>
+      <td class="align-left">$e$</td>
+      <td class="align-left">$\rho_1$</td>
+      <td class="align-left">$\rho_2$</td>
+    </tr>
+    <tr>
+      <td class="align-left"><strong>$\mu_2$</strong></td>
+      <td class="align-left">$\mu_2$</td>
+      <td class="align-left">$\mu_3$</td>
+      <td class="align-left">$\mu_1$</td>
+      <td class="align-left">$\rho_2$</td>
+      <td class="align-left">$e$</td>
+      <td class="align-left">$\rho_1$</td>
+    </tr>
+    <tr>
+      <td class="align-left"><strong>$\mu_3$</strong></td>
+      <td class="align-left">$\mu_3$</td>
+      <td class="align-left">$\mu_1$</td>
+      <td class="align-left">$\mu_2$</td>
+      <td class="align-left">$\rho_1$</td>
+      <td class="align-left">$\rho_2$</td>
+      <td class="align-left">$e$</td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>3. $D_{8}$ 的群表</strong></p>
+<p>$D_8$ 是<strong>8阶二面体群 (Dihedral group of order 8)</strong>，代表了正方形的所有对称操作。它有8个元素：4个旋转和4个翻转。</p>
+<ul>
+  <li>$R_0$: 旋转0度（单位元）。</li>
+  <li>$R_{90}$: 顺时针旋转90度。</li>
+  <li>$R_{180}$: 旋转180度。</li>
+  <li>$R_{270}$: 旋转270度。</li>
+  <li>$H$: 水平翻转。</li>
+  <li>$V$: 垂直翻转。</li>
+  <li>$D$: 主对角线翻转。</li>
+  <li>$D'$: 副对角线翻转。</li>
+</ul>
+<p>设旋转为 $r=R_{90}$，水平翻转为 $s=H$。则所有元素可表示为 $\{e, r, r^2, r^3, s, sr, sr^2, sr^3\}$。</p>
+<p>运算是操作的复合。例如，$R_{90} H$ (先水平翻转，再旋转90度) 等于 $D'$。</p>
+<p>群表如下 (使用 $r, s$ 表示)：</p>
+<table>
+  <thead>
+    <tr>
+      <th class="align-left">⋅</th>
+      <th class="align-left">$e$</th>
+      <th class="align-left">$r$</th>
+      <th class="align-left">$r^2$</th>
+      <th class="align-left">$r^3$</th>
+      <th class="align-left">$s$</th>
+      <th class="align-left">$sr$</th>
+      <th class="align-left">$sr^2$</th>
+      <th class="align-left">$sr^3$</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="align-left"><strong>$e$</strong></td>
+      <td class="align-left">$e$</td>
+      <td class="align-left">$r$</td>
+      <td class="align-left">$r^2$</td>
+      <td class="align-left">$r^3$</td>
+      <td class="align-left">$s$</td>
+      <td class="align-left">$sr$</td>
+      <td class="align-left">$sr^2$</td>
+      <td class="align-left">$sr^3$</td>
+    </tr>
+    <tr>
+      <td class="align-left"><strong>$r$</strong></td>
+      <td class="align-left">$r$</td>
+      <td class="align-left">$r^2$</td>
+      <td class="align-left">$r^3$</td>
+      <td class="align-left">$e$</td>
+      <td class="align-left">$sr^3$</td>
+      <td class="align-left">$s$</td>
+      <td class="align-left">$sr$</td>
+      <td class="align-left">$sr^2$</td>
+    </tr>
+    <tr>
+      <td class="align-left"><strong>$r^2$</strong></td>
+      <td class="align-left">$r^2$</td>
+      <td class="align-left">$r^3$</td>
+      <td class="align-left">$e$</td>
+      <td class="align-left">$r$</td>
+      <td class="align-left">$sr^2$</td>
+      <td class="align-left">$sr^3$</td>
+      <td class="align-left">$s$</td>
+      <td class="align-left">$sr$</td>
+    </tr>
+    <tr>
+      <td class="align-left"><strong>$r^3$</strong></td>
+      <td class="align-left">$r^3$</td>
+      <td class="align-left">$e$</td>
+      <td class="align-left">$r$</td>
+      <td class="align-left">$r^2$</td>
+      <td class="align-left">$sr$</td>
+      <td class="align-left">$sr^2$</td>
+      <td class="align-left">$sr^3$</td>
+      <td class="align-left">$s$</td>
+    </tr>
+    <tr>
+      <td class="align-left"><strong>$s$</strong></td>
+      <td class="align-left">$s$</td>
+      <td class="align-left">$sr$</td>
+      <td class="align-left">$sr^2$</td>
+      <td class="align-left">$sr^3$</td>
+      <td class="align-left">$e$</td>
+      <td class="align-left">$r$</td>
+      <td class="align-left">$r^2$</td>
+      <td class="align-left">$r^3$</td>
+    </tr>
+    <tr>
+      <td class="align-left"><strong>$sr$</strong></td>
+      <td class="align-left">$sr$</td>
+      <td class="align-left">$sr^2$</td>
+      <td class="align-left">$sr^3$</td>
+      <td class="align-left">$s$</td>
+      <td class="align-left">$r^3$</td>
+      <td class="align-left">$e$</td>
+      <td class="align-left">$r$</td>
+      <td class="align-left">$r^2$</td>
+    </tr>
+    <tr>
+      <td class="align-left"><strong>$sr^2$</strong></td>
+      <td class="align-left">$sr^2$</td>
+      <td class="align-left">$sr^3$</td>
+      <td class="align-left">$s$</td>
+      <td class="align-left">$sr$</td>
+      <td class="align-left">$r^2$</td>
+      <td class="align-left">$r^3$</td>
+      <td class="align-left">$e$</td>
+      <td class="align-left">$r$</td>
+    </tr>
+    <tr>
+      <td class="align-left"><strong>$sr^3$</strong></td>
+      <td class="align-left">$sr^3$</td>
+      <td class="align-left">$s$</td>
+      <td class="align-left">$sr$</td>
+      <td class="align-left">$sr^2$</td>
+      <td class="align-left">$r$</td>
+      <td class="align-left">$r^2$</td>
+      <td class="align-left">$r^3$</td>
+      <td class="align-left">$e$</td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>比较 $D_8$ 和 $Q_8$</strong>:</p>
+<ul>
+  <li>两者都是8阶非阿贝尔群。</li>
+  <li>但它们的结构不同。一个关键区别是元素的阶：$Q_8$ 有1个2阶元素($-1$)和6个4阶元素。而 $D_8$ 有5个2阶元素($R_{180}, H, V, D, D'$)和2个4阶元素($R_{90}, R_{270}$)。</li>
+  <li>由于元素的阶的分布不同，所以 $D_8$ 和 $Q_8$ 是<strong>不同构 (non-isomorphic)</strong> 的。它们是仅有的两种8阶非阿贝尔群的结构类型。</li>
+</ul>
+    </div>
+</div><h4>2.3 练习 3</h4><p id="original-6"><strong style="font-size: 1.3rem;">📜 [原文6]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ol>
+  <li>找出 $Q_{8}$ 的<strong>生成元</strong>和<strong>关系</strong>的集合。</li>
+</ol>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题要求我们为 $Q_8$ 提供一个<strong>生成元与关系表示 (Presentation of a group)</strong>。</p>
+<p><strong>什么是生成元和关系？</strong></p>
+<ul>
+  <li><strong>生成元 (Generators)</strong>: 是群中的一个子集，通过这些元素和它们的逆元的乘法运算，可以“生成”出群中的所有元素。我们希望找到尽可能少的生成元。</li>
+  <li><strong>关系 (Relations)</strong>: 是生成元之间必须满足的“规则”或“等式”。这些规则限制了生成元的组合方式，从而确保我们生成的群恰好是 $Q_8$，不多也不少。</li>
+</ul>
+<p>一个群的<strong>表示</strong>通常写成 $\langle G \mid R \rangle$，其中 $G$ 是生成元的集合，R 是关系的集合。</p>
+<p><strong>1. 寻找生成元</strong></p>
+<p>我们需要找到一个最小的集合，能通过乘法得到 $Q_8$ 的所有8个元素。</p>
+<ul>
+  <li>只用一个元素可以吗？</li>
+  <li>比如用 $i$：我们可以生成 $\langle i \rangle = \{i, i^2=-1, i^3=-i, i^4=1\}$。这只有4个元素，不够。</li>
+  <li>同理，$\langle j \rangle$ 和 $\langle k \rangle$ 也都只能生成4个元素。</li>
+  <li>那用两个元素呢？</li>
+  <li>让我们试试用 $\{i, j\}$ 作为生成元。</li>
+  <li>我们可以生成 $i, i^2=-1, i^3=-i, i^4=1$。</li>
+  <li>我们也可以生成 $j$。</li>
+  <li>我们还可以生成它们的乘积：$ij = k$。</li>
+  <li>有了 $k$，我们就能生成 $-k$：$ij \cdot i^2 = k(-1) = -k$。等等，更简单的是 $j \cdot i = -k$。</li>
+  <li>有了 $-1$ 和 $j$，我们就能生成 $-j$：$i^2 j = -j$。</li>
+  <li>我们现在已经生成了 $\{1, -1, i, -i, j, -j, k, -k\}$。全了！</li>
+  <li>所以，$\{i, j\}$ 是 $Q_8$ 的一组生成元。同理，$\{i, k\}$ 和 $\{j, k\}$ 也可以。</li>
+</ul>
+<p><strong>2. 寻找关系</strong></p>
+<p>现在我们选定生成元为 $\{i, j\}$，需要找出它们满足的等式。这些等式应该足以推导出整个群表。</p>
+<ul>
+  <li><strong>关系1：$i$ 的阶</strong>。我们知道 $i^4 = 1$。这是一个关系。</li>
+  <li><strong>关系2：$j$ 和 $i$ 的联系</strong>。我们知道 $j^2 = -1$。我们也知道 $i^2 = -1$。所以一个很重要的关系是 $i^2 = j^2$。</li>
+  <li><strong>关系3：交换性质</strong>。我们知道 $ij$ 和 $ji$ 的关系。$ji = -k$ 而 $ij=k$。所以 $ji = -ij$。这个关系涉及到 $-1$ 和 $k$，不是最基本的关系。一个更基本的表示方法是描述 $j$ 如何与 $i$“共轭”。</li>
+  <li>让我们计算 $jij^{-1}$。</li>
+  <li>$j^{-1}$ 是 $-j$。</li>
+  <li>$jij^{-1} = ji(-j) = (-k)(-j) = (-1)k(-1)j = (-1)(-1)kj = kj = -i$。</li>
+  <li>这个关系 $jij^{-1} = -i = i^{-1}$ 看起来很基本。</li>
+  <li>通常，这个关系会写成 $bab^{-1}=a^{-1}$ 的形式，或者等价地 $ba=a^{-1}b$。</li>
+</ul>
+<p><strong>一个标准的表示</strong></p>
+<p>$Q_8$ 的一个常用表示是：</p>
+<p><div class="math-block">$$
+Q_8 = \langle i, j \mid i^4 = 1, i^2 = j^2, jij^{-1} = i^{-1} \rangle
+$$</div></p>
+<p>让我们来解读这个表示：</p>
+<ul>
+  <li><strong>生成元</strong>: $\langle i, j \dots \rangle$ 表示群由 $i$ 和 $j$ 生成。</li>
+  <li><strong>关系</strong>:</li>
+</ul>
+<ol>
+  <li> $i^4=1$: $i$ 的阶是4（或者是4的因子）。</li>
+  <li> $i^2=j^2$: $j$ 的平方等于 $i$ 的平方。结合 $i^4=1$，我们知道 $i^2 \neq 1$。所以 $i^2$ 是一个阶为2的元素。这个关系也告诉我们 $j^4 = (j^2)^2 = (i^2)^2 = i^4 = 1$。</li>
+  <li> $jij^{-1}=i^{-1}$: 这是非交换规则的核心。$i^{-1}$ 就是 $i^3$ (或 $-i$)。这个关系可以变形为 $ji = i^{-1}j = i^3j$。让我们验证一下这在 $Q_8$ 中是否成立：
+<ul>
+  <li>左边：$ji = -k$。</li>
+  <li>右边：$i^3j = (-i)j = -(ij) = -k$。</li>
+  <li>等式成立。</li>
+</ul></li>
+</ol>
+<p>这组生成元和关系足以完整地定义整个 $Q_8$ 群的结构。任何满足这些关系的由两个元素生成的群，都和 $Q_8$ 是同构的。</p>
+<p><strong>另一个可能的表示</strong></p>
+<p><div class="math-block">$$
+Q_8 = \langle a, b \mid a^4=1, b^2=a^2, aba^{-1}=b^{-1} \rangle
+$$</div></p>
+<p>这只是把生成元的名字换成了 $a, b$。</p>
+<p><strong>总结答案</strong>:</p>
+<ul>
+  <li><strong>生成元的集合</strong>: $\{i, j\}$ (这是一个有效的选择)。</li>
+  <li><strong>关系的集合</strong>: $\{ i^4 = 1, i^2 = j^2, jij^{-1} = i^{-1} \}$。</li>
+</ul>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-3">
+    <h2><span class="section-number">3</span>行间公式索引</h2>
+    <p>1.  <strong>$Q_{8}=\{1,-1, i,-i, j,-j, k,-k\}$</strong></p><p>*   一句话解释：此公式定义了四元数群$Q_8$是由八个特定元素组成的集合。</p><p>2.  <strong>$\begin{gathered} 1 \cdot a=a \cdot 1=a, \quad \text { for all } a \in Q_{8} \\ (-1) \cdot(-1)=1, \quad(-1) \cdot a=a \cdot(-1)=-a, \quad \text { for all } a \in Q_{8} \\ i \cdot i=j \cdot j=k \cdot k=-1 \\ i \cdot j=k, \quad j \cdot i=-k \\ j \cdot k=i, \quad k \cdot j=-i \\ k \cdot i=j, \quad i \cdot k=-j . \end{gathered}$</strong></p><p>*   一句话解释：此公式组详细定义了四元数群$Q_8$中所有元素之间的乘法运算规则。</p>
+</section>
+
+<section class="content-section" id="section-4">
+    <h2><span class="section-number">3</span>深入探讨</h2>
+    <h4>3.1 结构比较：$Q_8$ vs $D_8$ vs $S_3$</h4><p id="original-7"><strong style="font-size: 1.3rem;">📜 [原文7]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>(此部分为补充解释，原文中无对应内容，基于练习2进行扩展)</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>练习2要求我们写出三个群的群表。这三个群 $S_3, D_8, Q_8$ 都是<strong>抽象代数</strong>入门时非常重要的<strong>非阿贝尔群</strong>。通过比较它们的结构，我们可以更深刻地理解群的性质，特别是“同构”与“不同构”的概念。</p>
+<ol>
+  <li> <strong>阶 (Order) 的比较</strong>:
+<ul>
+  <li>$S_3$: 阶为 $3! = 6$。</li>
+  <li>$D_8$: 阶为 $8$。</li>
+  <li>$Q_8$: 阶为 $8$。</li>
+  <li><strong>结论</strong>: 阶是群最基本的分类标准。$S_3$ 因为阶不同，必然与 $D_8$ 和 $Q_8$ 不同构。我们的主要问题是：同为8阶非阿贝尔群的 $D_8$ 和 $Q_8$ 是否同构？</li>
+</ul></li>
+  <li> <strong>元素阶分布的比较 (Element Order Distribution)</strong>: 这是判断两个群是否同构的强力工具。如果两个群同构，它们的元素阶分布必须完全相同。一个同构映射会保持元素的阶不变。
+<ul>
+  <li><strong>$S_3$</strong>:</li>
+  <li>阶 1: $e$ (1个)</li>
+  <li>阶 2: $\mu_1=(23), \mu_2=(13), \mu_3=(12)$ (3个对换)</li>
+  <li>阶 3: $\rho_1=(123), \rho_2=(132)$ (2个三轮换)</li>
+  <li>分布: <strong>{1阶:1个, 2阶:3个, 3阶:2个}</strong></li>
+  <li><strong>$D_8$ (8阶二面体群)</strong>:</li>
+  <li>阶 1: $R_0$ (1个，旋转0度)</li>
+  <li>阶 2: $R_{180}, H, V, D, D'$ (5个元素：一个180度旋转和四个翻转)</li>
+  <li>阶 4: $R_{90}, R_{270}$ (2个90度/270度旋转)</li>
+  <li>分布: <strong>{1阶:1个, 2阶:5个, 4阶:2个}</strong></li>
+  <li><strong>$Q_8$ (四元数群)</strong>:</li>
+  <li>阶 1: $1$ (1个)</li>
+  <li>阶 2: $-1$ (1个)</li>
+  <li>阶 4: $i, -i, j, -j, k, -k$ (6个)</li>
+  <li>分布: <strong>{1阶:1个, 2阶:1个, 4阶:6个}</strong></li>
+  <li><strong>结论</strong>: $D_8$ 和 $Q_8$ 的元素阶分布完全不同。$D_8$ 有5个2阶元素，而 $Q_8$ 只有1个。因此，$D_8$ 和 $Q_8$ <strong>不同构</strong>。它们是仅有的两种8阶非阿贝尔群的结构类型。</li>
+</ul></li>
+  <li> <strong>中心 (Center) 的比较</strong>: 群的中心 $Z(G)$ 是指能与群中所有元素交换的元素所构成的集合, 即 $Z(G) = \{z \in G \mid zg = gz \text{ for all } g \in G\}$。中心本身是一个<strong>阿贝尔子群</strong>，也是判断群结构的重要指标。同构的群其中心也必然同构。
+<ul>
+  <li><strong>$Z(S_3)$</strong>: 只有单位元 $e$ 能与所有元素交换。所以 $Z(S_3) = \{e\}$。中心的阶是1，是平凡中心。</li>
+  <li><strong>$Z(D_8)$</strong>: 在正方形的对称操作中，只有“旋转0度”($R_0$)和“旋转180度”($R_{180}$)能与所有其他操作（包括翻转）交换。所以 $Z(D_8) = \{R_0, R_{180}\}$。中心的阶是2，与 $C_2$ 同构。</li>
+  <li><strong>$Z(Q_8)$</strong>: 在 $Q_8$ 中，我们看到 $1$ 和 $-1$ 能与所有元素交换。例如 $(-1)i = -i$ 且 $i(-1)=-i$。而 $i, j, k$ 都不在中心里 (例如 $ij \neq ji$)。所以 $Z(Q_8) = \{1, -1\}$。中心的阶是2，与 $C_2$ 同构。</li>
+  <li><strong>结论</strong>: $D_8$ 和 $Q_8$ 的中心阶数都是2，但 $S_3$ 的中心是平凡的，这也从另一个角度说明了 $S_3$ 与它们的区别。</li>
+</ul></li>
+  <li> <strong>子群结构 (Subgroup Structure) 的比较</strong>:
+<ul>
+  <li><strong>$Q_8$</strong>: $Q_8$ 的所有真子群（除了它自己和 $\{1\}$）都是<strong>循环群</strong>，并且都是<strong>正规子群</strong>。它的子群有：</li>
+  <li>阶 1: $\{1\}$</li>
+  <li>阶 2: $\{1, -1\}$</li>
+  <li>阶 4: $\langle i \rangle = \{1, -1, i, -i\}$, $\langle j \rangle = \{1, -1, j, -j\}$, $\langle k \rangle = \{1, -1, k, -k\}$</li>
+  <li>这种所有子群都是正规子群的非阿贝尔群被称为<strong>哈密顿群 (Hamiltonian group)</strong>。$Q_8$ 是最简单的哈密顿群。</li>
+  <li><strong>$D_8$</strong>: $D_8$ 含有非正规子群。例如，由水平翻转 $H$ 生成的子群 $S_H = \{R_0, H\}$ 就不是正规子群。</li>
+  <li>验证: 取 $g=R_{90}$，计算 $g S_H g^{-1} = \{R_{90} R_0 R_{90}^{-1}, R_{90} H R_{90}^{-1}\}$。$R_{90} H R_{270}$ 的效果是先旋转-90度，再水平翻转，再旋转90度，最终效果是一个垂直翻转 $V$。因为 $V \notin S_H$，所以 $S_H$ 不是正规子群。</li>
+  <li><strong>结论</strong>: 子群结构，特别是正规子群的有无，是区分 $D_8$ 和 $Q_8$ 的又一个根本性差异。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>虽然 $D_8$ 和 $Q_8$ 都是8阶非阿贝尔群，但它们在内部结构上有着本质的不同。通过比较<strong>元素阶的分布</strong>、<strong>中心的结构</strong>以及<strong>子群的性质 (特别是正规性)</strong>，我们可以清晰地证明它们是两个完全不同的群。这揭示了在抽象代数中，仅仅阶数相同是远远不够的，群的“性格”由其内部错综复杂的关系网决定。</p>
+    </div>
+</div><h4>3.2 四元数群的应用与意义</h4><p id="original-8"><strong style="font-size: 1.3rem;">📜 [原文8]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>(此部分为补充解释，原文中无对应内容)</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>$Q_8$ 不仅仅是一个有趣的数学玩具，它在更广阔的数学和物理领域中扮演着重要角色。</p>
+<ol>
+  <li> <strong>与四元数代数的关系</strong>: $Q_8$ 是构成<strong>四元数代数</strong> $\mathbb{H}$ 基础的乘法群。一个四元数 $q$ 的一般形式是 $q = a + bi + cj + dk$，其中 $a,b,c,d$ 是实数。这个代数系统中的乘法规则正是由 $Q_8$ 的规则扩展而来的。四元数代数是第一个被发现的非交换除环，它的发明极大地扩展了“数”的概念，为向量代数和现代物理学的发展铺平了道路。</li>
+  <li> <strong>在三维空间旋转中的应用</strong>: 虽然 $Q_8$ 本身只有8个元素，但它所属的<strong>单位四元数</strong>群（范数为1的四元数构成的群，记作 $Sp(1)$ 或 $S^3$）与三维空间的旋转有着深刻的联系。具体来说，存在一个从单位四元数群到三维旋转群 $SO(3)$ 的“2对1”<strong>满同态</strong>映射。
+<ul>
+  <li><strong>“2对1”的含义</strong>: 对于三维空间中的任意一个旋转操作，都有<strong>两个</strong>单位四元数（$q$ 和 $-q$）与之对应。这反映了旋转的某种拓扑性质，即旋转360度后虽然物体复位，但其与周围空间的“连接”状态并未复位，需要旋转720度才能完全复位，这种现象在描述费米子（如电子）自旋的物理学中有深刻体现。</li>
+  <li><strong>优点</strong>: 使用四元数来表示旋转比使用欧拉角或旋转矩阵更有优势。它可以避免“万向节死锁 (Gimbal Lock)”问题，并且在计算上更高效、更稳定，对旋转进行插值也更平滑自然。</li>
+  <li><strong>应用领域</strong>: 因此，四元数被广泛应用于<strong>计算机图形学</strong>（3D游戏、电影特效）、<strong>航空航天</strong>（卫星和飞行器姿态控制）、<strong>机器人学</strong>和<strong>虚拟现实 (VR)/增强现实(AR)</strong> 等领域。你玩的每一个3D游戏，背后几乎都有四元数的影子在计算着物体的旋转。</li>
+</ul></li>
+  <li> <strong>在群论中的独特地位</strong>:
+<ul>
+  <li><strong>最小的哈密顿群</strong>: 如前所述，$Q_8$ 是一个<strong>哈密顿群</strong>（所有子群都是正规子群的非阿贝尔群）。它是满足这个条件的最小的群。这使它成为群论中一个重要的反例和研究对象，用于界定某些定理的适用范围。</li>
+  <li><strong>伽罗瓦理论</strong>: 在<strong>伽罗瓦理论</strong>中，$Q_8$ 可以作为某个多项式的<strong>伽罗瓦群</strong>出现。这意味着存在一些代数方程，其根的对称性恰好由 $Q_8$ 描述。寻找并构造这样的方程是代数数论中的一个有趣问题。</li>
+  <li><strong>表示论</strong>: 在群的<strong>表示论</strong>中，$Q_8$ 也是一个基础的例子，用于展示如何构建群的线性表示，特别是不可约表示。它的表示论性质比同样阶数的$D_8$更为独特。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>四元数群 $Q_8$ 远不止是8个符号和一堆规则。它是通向更高级代数结构（四元数代数）的门户，是现代科技中处理三维旋转的核心数学工具，同时在纯数学的多个分支中都扮演着不可替代的“典型范例”角色。理解 $Q_8$ 是深入理解非交换世界的第一步。</p>
+    </div>
+</div><h4>3.3 $Q_8$的子群结构详解</h4><p id="original-9"><strong style="font-size: 1.3rem;">📜 [原文9]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>(此部分为补充解释，基于练习1和练习3进行扩展)</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>通过<strong>拉格朗日定理 (Lagrange's Theorem)</strong>，我们知道任何子群的阶必须是母群阶的因子。$Q_8$ 的阶是8，其因子有 1, 2, 4, 8。所以其子群的阶只可能是这些数。</p>
+<ol>
+  <li> <strong>阶为1的子群</strong>:
+<ul>
+  <li>只有一个，即由单位元构成的平凡子群: $\{1\}$。这是任何群都必然拥有的子群。</li>
+</ul></li>
+  <li> <strong>阶为2的子群</strong>:
+<ul>
+  <li>子群的元素必须由单位元和一个2阶元素组成。</li>
+  <li>在 $Q_8$ 中，我们通过练习1计算出，只有 $-1$ 是2阶元素。</li>
+  <li>因此，只有一个阶为2的子群: $\langle -1 \rangle = \{1, -1\}$。</li>
+  <li>这个子群非常特殊，它就是 $Q_8$ 的<strong>中心</strong> $Z(Q_8)$，并且是所有4阶子群的交集。</li>
+</ul></li>
+  <li> <strong>阶为4的子群</strong>:
+<ul>
+  <li>根据群论，任何4阶群都必然是阿贝尔群，且只与两种结构同构：4阶循环群 $C_4$ 或克莱因四元群 $V_4 \cong C_2 \times C_2$。</li>
+  <li>一个4阶子群，如果它包含一个4阶元素，那么它必然是由这个元素生成的<strong>循环群</strong>。</li>
+  <li>在 $Q_8$ 中，我们有6个4阶元素: $i, -i, j, -j, k, -k$。</li>
+  <li>让我们由这些元素生成子群：</li>
+  <li>$\langle i \rangle = \{i^0, i^1, i^2, i^3\} = \{1, i, -1, -i\}$。</li>
+  <li>$\langle -i \rangle = \{(-i)^0, (-i)^1, (-i)^2, (-i)^3\} = \{1, -i, -1, i\}$。这和 $\langle i \rangle$ 是同一个集合。</li>
+  <li>$\langle j \rangle = \{1, j, -1, -j\}$。</li>
+  <li>$\langle -j \rangle = \{1, -j, -1, j\}$。这和 $\langle j \rangle$ 是同一个集合。</li>
+  <li>$\langle k \rangle = \{1, k, -1, -k\}$。</li>
+  <li>$\langle -k \rangle = \{1, -k, -1, k\}$。这和 $\langle k \rangle$ 是同一个集合。</li>
+  <li>因此，总共有 <strong>3个</strong> 不同的4阶子群，它们都与 $C_4$ 同构。</li>
+  <li>$Q_8$ 中有没有与克莱因四元群同构的子群呢？克莱因四元群的特点是除了单位元外，所有元素都是2阶。$Q_8$ 只有一个2阶元素 $-1$，所以不可能从中挑出三个2阶元素来组成一个克莱因四元群。所以答案是没有。</li>
+</ul></li>
+  <li> <strong>阶为8的子群</strong>:
+<ul>
+  <li>只有一个，即 $Q_8$ 本身。</li>
+</ul></li>
+</ol>
+<p><strong>子群格 (Subgroup Lattice)</strong></p>
+<p>我们可以用一个图来展示所有子群以及它们之间的包含关系，这被称为<strong>子群格</strong>。它清晰地描绘了群的内部结构。</p>
+<p>```mermaid</p>
+<p>graph TD</p>
+<p>subgraph Q8 的子群格</p>
+<p>Q8(Q_8, 阶8)</p>
+<p>C4_i(&lt; i &gt;, 阶4)</p>
+<p>C4_j(&lt; j &gt;, 阶4)</p>
+<p>C4_k(&lt; k &gt;, 阶4)</p>
+<p>C2({1, -1}, 阶2)</p>
+<p>C1({1}, 阶1)</p>
+<p>Q8 --&gt; C4_i</p>
+<p>Q8 --&gt; C4_j</p>
+<p>Q8 --&gt; C4_k</p>
+<p>C4_i --&gt; C2</p>
+<p>C4_j --&gt; C2</p>
+<p>C4_k --&gt; C2</p>
+<p>C2 --&gt; C1</p>
+<p>end</p>
+<p>```</p>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>$Q_8$ 的子群结构相当整洁和对称。它拥有一个平凡子群、一个由中心构成的2阶子群、三个由 $i,j,k$ 分别生成的4阶循环子群，以及它自身。一个显著的特点是，它的所有子群（无论阶数）都是<strong>正规子群</strong>（这需要单独验证，但结论是正确的），这使得 $Q_8$ 成为一个<strong>哈密顿群</strong>。这个清晰的子群结构是研究其代数性质的重要基础。</p>
+    </div>
+</div>
+</section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>行间公式索引</p>
+    </footer>
+
+
+    <!-- 手机端点击翻页功能 -->
+    <script>
+        (function() {
+            // 点击翻页功能（在所有设备上启用）
+            
+            document.addEventListener('click', function(e) {
+                // 如果 TOC 目录面板处于打开状态，不触发翻页
+                var tocPanel = document.getElementById('tocPanel');
+                if (tocPanel && tocPanel.classList.contains('active')) {
+                    return;
+                }
+                
+                // 排除对链接、按钮、输入框等交互元素的点击
+                var target = e.target;
+                var tagName = target.tagName.toLowerCase();
+                if (tagName === 'a' || tagName === 'button' || tagName === 'input' || 
+                    tagName === 'textarea' || tagName === 'select' || 
+                    target.closest('a') || target.closest('button') ||
+                    target.closest('.toc-panel') || target.closest('.toc-toggle') ||
+                    target.closest('.toc-overlay')) {
+                    return;
+                }
+                
+                var clickY = e.clientY;
+                var windowHeight = window.innerHeight;
+                var scrollAmount = windowHeight * 0.85; // 滚动85%的屏幕高度
+                
+                if (clickY > windowHeight / 2) {
+                    // 点击下半部分：向下翻页
+                    window.scrollBy({
+                        top: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 点击上半部分：向上翻页
+                    window.scrollBy({
+                        top: -scrollAmount,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        })();
+    </script>
+
+    <!-- TOC 目录控制脚本 -->
+    <script>
+        (function() {
+            var tocToggle = document.getElementById('tocToggle');
+            var tocPanel = document.getElementById('tocPanel');
+            var tocOverlay = document.getElementById('tocOverlay');
+            
+            // 切换目录显示/隐藏
+            function toggleTOC() {
+                var isOpen = tocPanel.classList.contains('active');
+                if (isOpen) {
+                    closeTOC();
+                } else {
+                    openTOC();
+                }
+            }
+            
+            // 打开目录
+            function openTOC() {
+                tocPanel.classList.add('active');
+                tocOverlay.classList.add('active');
+                tocToggle.setAttribute('aria-label', '关闭目录');
+            }
+            
+            // 关闭目录
+            function closeTOC() {
+                tocPanel.classList.remove('active');
+                tocOverlay.classList.remove('active');
+                tocToggle.setAttribute('aria-label', '打开目录');
+            }
+            
+            // 点击按钮切换目录
+            tocToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTOC();
+            });
+            
+            // 点击遮罩层关闭目录
+            tocOverlay.addEventListener('click', function() {
+                closeTOC();
+            });
+            
+            // 点击目录项后关闭目录
+            var tocLinks = tocPanel.querySelectorAll('a');
+            tocLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    closeTOC();
+                });
+            });
+            
+            // ESC 键关闭目录
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && tocPanel.classList.contains('active')) {
+                    closeTOC();
+                }
+            });
+            
+            // 高亮当前可见的目录条目
+            function updateActiveItem() {
+                var scrollPos = window.scrollY + 150;  // 偏移量
+                var activeSection = null;
+                var activeOriginal = null;
+                
+                // 查找当前可见的 section
+                var sections = document.querySelectorAll('section[id^="section-"]');
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    if (section.offsetTop <= scrollPos) {
+                        activeSection = section.id;
+                    }
+                }
+                
+                // 查找当前可见的原文区块
+                var originals = document.querySelectorAll('[id^="original-"]');
+                for (var j = 0; j < originals.length; j++) {
+                    var original = originals[j];
+                    if (original.offsetTop <= scrollPos) {
+                        activeOriginal = original.id;
+                    }
+                }
+                
+                // 先移除所有 active 类
+                var allHeadings = tocPanel.querySelectorAll('.toc-heading');
+                for (var h = 0; h < allHeadings.length; h++) {
+                    allHeadings[h].classList.remove('active');
+                }
+                
+                var allOriginals = tocPanel.querySelectorAll('.toc-original');
+                for (var o = 0; o < allOriginals.length; o++) {
+                    allOriginals[o].classList.remove('active');
+                }
+                
+                // 只给当前活动的条目添加 active 类
+                if (activeSection) {
+                    var activeHeadingLink = tocPanel.querySelector('.toc-heading a[href="#' + activeSection + '"]');
+                    if (activeHeadingLink) {
+                        activeHeadingLink.parentElement.classList.add('active');
+                    }
+                }
+                
+                if (activeOriginal) {
+                    var activeOriginalLink = tocPanel.querySelector('.toc-original a[href="#' + activeOriginal + '"]');
+                    if (activeOriginalLink) {
+                        activeOriginalLink.parentElement.classList.add('active');
+                    }
+                }
+            }
+            
+            // 节流函数
+            var scrollTimeout;
+            function throttledUpdate() {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(function() {
+                    updateActiveItem();
+                    scrollTimeout = null;
+                }, 100);
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', throttledUpdate);
+            
+            // 打开目录时立即更新高亮
+            var originalOpenTOC = openTOC;
+            openTOC = function() {
+                originalOpenTOC();
+                updateActiveItem();
+            };
+            
+            // 初始化
+            updateActiveItem();
+        })();
+    </script>
+</body>
+</html>

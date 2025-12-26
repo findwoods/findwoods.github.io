@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1. 第38节 自由阿贝尔群</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- MathJax v4 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            output: {
+                displayOverflow: 'linebreak',
+                linebreaks: {
+                    inline: true,
+                    width: '100%',
+                    lineleading: 0.2
+                }
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            /* 五大区块主题色 */
+            --original-color: #8b5cf6;
+            --explain-color: #0ea5e9;
+            --formula-color: #6366f1;
+            --example-color: #10b981;
+            --warning-color: #f59e0b;
+            /* Q1修复：总结、存在目的、直觉心智模型、直观想象 统一使用 #36828C 青色主题 */
+            --summary-color: #36828C;     /* 青色主题 */
+            --purpose-color: #36828C;     /* 青色主题 */
+            --intuition-color: #36828C;   /* 青色主题 */
+            --imagination-color: #36828C; /* 青色主题 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .authors {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
+        .content-section h4 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h5 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 18px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h6 {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            margin: 15px 0 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        /* ===============================
+           五大内容区块 - 统一风格不同主题色
+           =============================== */
+
+        /* 原文区 - 紫色 */
+        .original-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid var(--original-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .original-box .box-label {
+            color: var(--original-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-box .box-content {
+            font-style: italic;
+            color: #6b21a8;
+        }
+
+        /* 📜 [原文]区块内容 - 使用统一的黑色 */
+        .original-content {
+            color: #2d3748; /* 统一的深灰黑色 */
+        }
+
+        .original-content * {
+            color: #2d3748; /* 所有子元素 */
+        }
+
+        .original-content .MathJax, .original-content .MathJax * {
+            color: #2d3748 !important; /* 行内公式 */
+        }
+
+        /* 通用 .box-content 换行规则 - 确保长文本（如代码调用）能自动换行 */
+        .box-content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .box-content strong, .box-content code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            display: inline;
+        }
+
+        /* 逐步解释区 - 蓝色 */
+        .explain-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--explain-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .explain-box .box-label {
+            color: var(--explain-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explain-box .box-content {
+            color: #1a365d; /* Dark Blue */
+        }
+
+        .explain-box .box-content * {
+            color: #1a365d; /* Dark Blue - 所有子元素 */
+        }
+
+        .explain-box .box-content .MathJax, .explain-box .box-content .MathJax * {
+            color: #1a365d !important; /* Dark Blue - 行内公式 */
+        }
+
+        .explain-box ul, .explain-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .explain-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 公式拆解区 - 靛蓝色 */
+        .formula-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--formula-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .formula-box .box-label {
+            color: var(--formula-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .formula-box .box-content {
+            color: var(--text-color); /* 统一使用默认黑色，与原文区块一致 */
+            overflow-x: auto;
+        }
+
+        .formula-box .box-content * {
+            color: var(--text-color); /* 所有子元素 */
+        }
+
+        .formula-box .box-content .MathJax, .formula-box .box-content .MathJax * {
+            color: var(--text-color) !important; /* 行内公式 */
+        }
+
+        /* 数值示例区 - 绿色 */
+        .example-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--example-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .example-box .box-label {
+            color: var(--example-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-box .box-content {
+            color: #166534; /* Dark Green from edstem5 .answer-en */
+        }
+
+        .example-box .box-content * {
+            color: #166534; /* Dark Green - 所有子元素 */
+        }
+
+        .example-box .box-content .MathJax, .example-box .box-content .MathJax * {
+            color: #166534 !important; /* Dark Green - 行内公式 */
+        }
+
+        .example-box ul, .example-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .example-box li {
+            margin-bottom: 6px;
+        }
+
+        .example-box code {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* 易错点区 - 橙色 */
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .warning-box .box-label {
+            color: var(--warning-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warning-box .box-content {
+            color: #92400e;
+        }
+
+        .warning-box .box-content * {
+            color: #92400e; /* 所有子元素 */
+        }
+
+        .warning-box .box-content .MathJax, .warning-box .box-content .MathJax * {
+            color: #92400e !important; /* 行内公式 */
+        }
+
+        .warning-box ul, .warning-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .warning-box li {
+            margin-bottom: 6px;
+        }
+
+        /* 总结区 - Q1修复：使用#36828C青色主题 */
+        .summary-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--summary-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .summary-box .box-label {
+            color: var(--summary-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .summary-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .summary-box .box-content .MathJax, .summary-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 存在目的区 - Q1修复：使用#36828C青色主题 */
+        .purpose-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--purpose-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .purpose-box .box-label {
+            color: var(--purpose-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .purpose-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .purpose-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .purpose-box .box-content .MathJax, .purpose-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直觉心智模型区 - Q1修复：使用#36828C青色主题 */
+        .intuition-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--intuition-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .intuition-box .box-label {
+            color: var(--intuition-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .intuition-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .intuition-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .intuition-box .box-content .MathJax, .intuition-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直观想象区 - Q1修复：使用#36828C青色主题 */
+        .imagination-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--imagination-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .imagination-box .box-label {
+            color: var(--imagination-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .imagination-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .imagination-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .imagination-box .box-content .MathJax, .imagination-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 高亮术语 */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* 代码块 */
+        code {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            margin: 15px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 表格样式 - 紧凑型，行高列宽适应文字最小值 */
+        table {
+            border-collapse: collapse;
+            width: auto;  /* 列宽适应内容 */
+            margin: 15px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;  /* 减小padding使行高更紧凑 */
+            text-align: left;
+            white-space: nowrap;  /* 防止不必要的换行，列宽适应文字 */
+            line-height: 1.4;  /* 紧凑的行高 */
+        }
+
+        th {
+            background: #e0f7fa;
+            color: #006064;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #e2e8f0;
+        }
+
+        /* 表格对齐 */
+        .align-left {
+            text-align: left;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        /* 图例区域 */
+        .legend-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .legend-bar {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .legend-bar.original { background: #8b5cf6; }
+        .legend-bar.explain { background: #0ea5e9; }
+        .legend-bar.formula { background: #6366f1; }
+        .legend-bar.example { background: #10b981; }
+        .legend-bar.warning { background: #f59e0b; }
+        .legend-bar.summary { background: #36828C; }
+        .legend-bar.purpose { background: #36828C; }
+        .legend-bar.intuition { background: #36828C; }
+        .legend-bar.imagination { background: #36828C; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive - 移动端适配 */
+        @media (max-width: 768px) {
+            /* 容器宽度适配 */
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 20px 12px;
+                box-sizing: border-box;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+                padding: 0 15px;
+            }
+            
+            .hero {
+                padding: 50px 15px;
+            }
+            
+            .hero h1 {
+                font-size: 1.6rem;
+                word-break: break-word;
+            }
+            
+            .authors {
+                font-size: 1rem;
+            }
+            
+            /* 内容区块适配 */
+            .content-section {
+                padding: 20px 15px;
+                margin-left: 5px;
+                margin-right: 5px;
+                border-radius: 12px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.4rem;
+                flex-wrap: wrap;
+            }
+            
+            .content-section h3 {
+                font-size: 1.2rem;
+            }
+            
+            .content-section h4 {
+                font-size: 1.1rem;
+            }
+            
+            .section-number {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            /* 各区块box适配 */
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 15px 12px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .original-box .box-label,
+            .explain-box .box-label,
+            .formula-box .box-label,
+            .example-box .box-label,
+            .warning-box .box-label,
+            .summary-box .box-label,
+            .purpose-box .box-label,
+            .intuition-box .box-label,
+            .imagination-box .box-label {
+                font-size: 1.1rem;
+            }
+            
+            /* 图例区域移动端适配 */
+            .legend-section {
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
+            
+            .legend-row {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            
+            .legend-item {
+                font-size: 0.8rem;
+                gap: 5px;
+            }
+            
+            .legend-bar {
+                width: 3px;
+                height: 16px;
+            }
+            
+            /* 列表适配 */
+            ul, ol {
+                margin-left: 15px;
+                padding-left: 5px;
+            }
+            
+            /* 表格移动端适配 */
+            table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.9rem;
+                min-width: 80px;
+            }
+            
+            /* 代码块适配 */
+            pre {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            
+            /* 数学公式适配 */
+            .math-block {
+                padding: 10px 8px;
+                margin: 15px 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* MathJax公式溢出处理 - 只处理块级公式，保持行内公式inline */
+            mjx-container[jax="CHTML"][display="true"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                display: block !important;
+            }
+            
+            /* 行内公式 - 超宽时自动换行 */
+            mjx-container:not([display="true"]) {
+                display: inline-block !important;
+                max-width: 100% !important;
+                overflow-wrap: break-word !important;
+                word-wrap: break-word !important;
+            }
+            
+            /* MathJax内部元素换行支持 */
+            mjx-math {
+                white-space: normal !important;
+            }
+            
+            mjx-mrow {
+                flex-wrap: wrap !important;
+            }
+            
+            /* Footer适配 */
+            .footer {
+                padding: 25px 15px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* 超小屏幕适配 (手机竖屏) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 8px;
+            }
+            
+            .hero {
+                padding: 40px 10px;
+            }
+            
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+            
+            .content-section {
+                padding: 15px 10px;
+                margin-left: 3px;
+                margin-right: 3px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 12px 10px;
+            }
+            
+            .legend-section {
+                padding: 12px 8px;
+            }
+            
+            .legend-row {
+                gap: 8px;
+            }
+            
+            .legend-item {
+                font-size: 0.75rem;
+            }
+            
+            ul, ol {
+                margin-left: 12px;
+            }
+        }
+        
+        /* 确保所有内容不溢出 */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* ========================================
+           TOC 目录样式
+           ======================================== */
+        
+        /* TOC 触发按钮 - 左上角小方块 */
+        .toc-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(54, 130, 140, 0.5);  /* 青色 50% 透明度 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .toc-toggle:hover {
+            background: rgba(54, 130, 140, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .toc-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* TOC 目录面板 */
+        .toc-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 95vw;  /* 手机浏览器宽度的 95% */
+            height: 80vh; /* 手机浏览器高度的 80% */
+            max-width: 450px;  /* 桌面端最大宽度 */
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0 0 16px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .toc-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* TOC 头部 - 标题在图标右侧 */
+        .toc-header {
+            padding: 15px 20px 15px 80px;  /* 左侧留出按钮空间 */
+            background: linear-gradient(135deg, #36828C 0%, #2a6a72 100%);
+            color: white;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .toc-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* TOC 内容区 */
+        .toc-content {
+            flex: 1;
+            overflow-y: auto;   /* 允许垂直滚动 */
+            overflow-x: hidden; /* 禁止水平滚动 */
+            padding: 15px 0;
+        }
+        
+        /* TOC 列表 */
+        .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc-item {
+            margin: 0;
+        }
+        
+        .toc-item a {
+            display: block;
+            padding: 4px 20px;  /* 更紧凑的行间距 */
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #2d3748;
+            text-decoration: none;
+            word-wrap: break-word;   /* 自动换行 */
+            overflow-wrap: break-word;
+            white-space: normal;     /* 允许换行 */
+            line-height: 1.3;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .toc-item a:hover {
+            background: #e8f4f5;
+            color: #36828C;
+            border-left-color: #36828C;
+        }
+        
+        /* 标题项样式 */
+        .toc-heading a {
+            font-weight: 600;
+            color: #1a365d;
+            background: #f7fafc;
+        }
+        
+        .toc-heading a:hover {
+            background: #e8f4f5;
+        }
+        
+        /* 当前活动的标题项样式 */
+        .toc-heading.active a {
+            background: #d0e8ea;
+            color: #36828C;
+            border-left-color: #36828C;
+            font-weight: 700;
+        }
+        
+        /* 当前活动的原文项样式 */
+        .toc-original.active a {
+            background: #36828C;
+            color: white;
+            box-shadow: 0 3px 8px rgba(54, 130, 140, 0.35);
+        }
+        
+        /* 原文项容器 - 横向排列自动换行 */
+        .toc-originals-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 8px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* 原文项样式 - 浅青色带阴影 */
+        .toc-original {
+            margin: 0;
+        }
+        
+        .toc-original a {
+            display: inline-block;
+            width: 64px;  /* 固定宽度确保每行显示数量一致 */
+            padding: 6px 4px;
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #36828C;  /* 青色主题色 */
+            text-decoration: none;
+            text-align: center;
+            background: #e8f4f5;
+            border-radius: 6px;
+            border-left: none;
+            box-shadow: 0 2px 4px rgba(54, 130, 140, 0.2);  /* 青色阴影 */
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .toc-original a:hover {
+            background: #e0f2f4;
+            color: #36828C;
+            box-shadow: 0 3px 6px rgba(54, 130, 140, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        /* TOC 遮罩层 */
+        .toc-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .toc-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 移动端 TOC 适配 */
+        @media (max-width: 768px) {
+            .toc-toggle {
+                top: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .toc-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .toc-panel {
+                width: 90vw;
+                height: 80vh;
+                max-width: none;
+            }
+            
+            .toc-header {
+                padding: 12px 15px 12px 65px;
+            }
+            
+            .toc-header h3 {
+                font-size: 16px;
+            }
+            
+            .toc-item a {
+                padding: 4px 15px;
+                font-size: 15.5px;
+            }
+            
+            .toc-originals-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            .toc-original a {
+                padding: 5px 10px;
+                font-size: 15.5px;
+            }
+        }
+
+        /* 特殊术语着色 */
+        .spectral {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .periodicity {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .fourier {
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        /* 列表样式增强 */
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 - 已移除重复定义，使用上方第602-633行的紧凑型样式 */
+
+        /* 分隔线 */
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 30px 0;
+        }
+
+        /* 数学公式样式 - Q7: 行间公式颜色用黑色 */
+        .math-block {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            color: #000000; /* Q7: 黑色文字 */
+        }
+
+        /* Q7: 确保MathJax渲染的公式为黑色 */
+        .math-block .MathJax {
+            color: #000000 !important;
+        }
+
+        mjx-container {
+            color: #000000 !important;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- TOC 目录按钮 -->
+    <button class="toc-toggle" id="tocToggle" aria-label="打开目录">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+        </svg>
+    </button>
+    
+    <!-- TOC 遮罩层 -->
+    <div class="toc-overlay" id="tocOverlay"></div>
+    
+    <!-- TOC 目录面板 -->
+    <nav class="toc-panel" id="tocPanel">
+        <div class="toc-header">
+            <h3>📑 目录</h3>
+        </div>
+        <div class="toc-content">
+            <ul class="toc-list">
+                <li class="toc-item toc-heading"><a href="#section-1">1. 1. 第38节 自由阿贝尔群</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-1">原文1</a></span><span class="toc-original"><a href="#original-2">原文2</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-2">2. 行间公式索引</a></li>
+                <li class="toc-item toc-heading"><a href="#section-3">3. 最终检查清单</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>1. 第38节 自由阿贝尔群</h1>
+            <p class="authors"></p>
+            <p class="date"></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 图例区域 -->
+        <div class="legend-section">
+            <!-- 第一行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar original"></div>
+                    <span>📜 原文</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar explain"></div>
+                    <span>📖 逐步解释</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar formula"></div>
+                    <span>∑ 公式拆解</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar example"></div>
+                    <span>💡 数值示例</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar warning"></div>
+                    <span>⚠️ 易错点</span>
+                </div>
+            </div>
+            <!-- 第二行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar summary"></div>
+                    <span>📝 总结</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar purpose"></div>
+                    <span>🎯 存在目的</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar intuition"></div>
+                    <span>🧠 直觉心智模型</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar imagination"></div>
+                    <span>💭 直观想象</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="content-section" id="section-1">
+    <h2><span class="section-number">1</span>1. 第38节 自由阿贝尔群</h2>
+    <h3>1.1 引言</h3><p id="original-1"><strong style="font-size: 1.3rem;">📜 [原文1]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>在本节中，我们介绍<strong>自由阿贝尔群</strong>的概念，并证明一些与它们相关的结果。本节最后将演示<strong>有限生成阿贝尔群基本定理</strong>（定理11.12）。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话是本节内容的开场白和路线图，它精确地指出了本节要学习的两个核心主题。</p>
+<ol>
+  <li> <strong>介绍自由阿贝尔群的概念</strong>：这是本节的第一个目标。
+<ul>
+  <li>“介绍...概念”意味着我们将从定义出发，理解什么是<strong>自由阿贝尔群</strong>。在抽象代数中，“<strong>自由</strong>”这个词通常意味着这个结构是“最一般”或“没有多余关系”的。对于<strong>自由阿贝尔群</strong>，我们可以直观地理解为它是由一组“互相独立”的生成元构造而成的，这些生成元之间除了满足<strong>阿贝尔群</strong>的基本运算律（交换律、结合律等）外，没有任何额外的约束方程。就像在二维平面中的向量基底 $\vec{i}$ 和 $\vec{j}$，它们是独立的，任何平面向量都可以唯一地表示为 $a\vec{i} + b\vec{j}$ 的形式。<strong>自由阿贝尔群</strong>在<strong>阿贝尔群</strong>的世界里扮演着类似基底的角色。</li>
+  <li>“证明一些与它们相关的结果”：在定义之后，我们会学习并证明一系列围绕<strong>自由阿贝尔群</strong>的性质和定理。这可能包括它们的结构、子群的性质、以及它们如何作为构建其他更复杂群的基石。</li>
+</ul></li>
+  <li> <strong>演示有限生成阿贝尔群基本定理</strong>：这是本节的最终目标，也是<strong>阿贝尔群</strong>理论中一个里程碑式的定理。
+<ul>
+  <li>“演示...定理”意味着我们不仅会陈述这个定理，很可能还会给出其证明的概要或者关键步骤。</li>
+  <li><strong>有限生成阿贝尔群</strong>：这个概念比<strong>自由阿贝尔群</strong>更广泛。它指的是任何一个可以由有限个元素通过群运算生成的<strong>阿贝尔群</strong>。这些生成元之间可能存在各种关系。例如，循环群 $\mathbb{Z}_n$ 就是一个<strong>有限生成阿贝尔群</strong>，它由单个元素 $1$ 生成，但满足关系 $n \cdot 1 = 0$。</li>
+  <li><strong>基本定理</strong>（Fundamental Theorem）：这个定理的威力在于它告诉我们，任何一个<strong>有限生成阿贝尔群</strong>的结构都是非常清晰和简单的。它都可以被“分解”成一堆最基本的、我们最熟悉的<strong>阿贝尔群</strong>的<strong>直积</strong>。这些基本构件就是无限循环群 $\mathbb{Z}$（其实就是<strong>自由阿贝尔群</strong>的基石）和有限循环群 $\mathbb{Z}_{p^k}$（$p$是素数）。所以，这个定理就像是化学中的元素周期表，它告诉我们所有<strong>有限生成阿贝尔群</strong>都是由几种基本的“原子”搭建而成的。</li>
+  <li>（定理11.12）：这只是一个书中的定理编号，用于索引。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p>本段为介绍性文字，不包含数学公式。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p>虽然本段没有公式，但我们可以预先举例来理解即将出现的概念。</p>
+<ul>
+  <li><strong>自由阿贝尔群的例子</strong>：</li>
+</ul>
+<ol>
+  <li> 最简单的非平凡例子是整数加法群 $(\mathbb{Z}, +)$。它由单个元素 $1$ “自由”地生成，因为 $1$ 没有任何附加关系（比如 $n \cdot 1 = 0$ 对任何非零整数 $n$ 都不成立）。</li>
+  <li> 另一个例子是 $\mathbb{Z} \times \mathbb{Z}$，即整数对的加法群。它可以被看作是由 $(1, 0)$ 和 $(0, 1)$ 这两个元素自由生成的。任何元素 $(m, n)$ 都可以唯一地表示为 $m(1, 0) + n(0, 1)$，且 $m(1, 0) + n(0, 1) = (0, 0)$ 当且仅当 $m=0, n=0$。这体现了“自由”和“无额外关系”的含义。</li>
+</ol>
+<ul>
+  <li><strong>有限生成阿贝尔群（但非自由）的例子</strong>：</li>
+</ul>
+<ol>
+  <li> 有限循环群 $\mathbb{Z}_6$。它由元素 $1$ 生成，但生成元之间有关系 $6 \cdot 1 = 0$。因此它不是自由的。</li>
+  <li> 群 $\mathbb{Z} \times \mathbb{Z}_2$。它由 $(1, 0)$ 和 $(0, 1)$ 生成。这是一个<strong>有限生成阿贝尔群</strong>，但它不是<strong>自由阿贝尔群</strong>，因为其中一部分（$\mathbb{Z}_2$）包含了“扭曲”的元素，即 $2 \cdot (0, 1) = (0, 0)$，而 $(0, 1)$ 本身并非单位元。</li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>混淆“有限生成”与“有限群”</strong>：一个群是<strong>有限生成</strong>的，不代表它是一个<strong>有限群</strong>。例如，整数群 $(\mathbb{Z}, +)$ 是由一个元素（如 $1$）生成的，所以是<strong>有限生成</strong>的，但它有无限个元素。反之，一个<strong>有限群</strong>必然是<strong>有限生成</strong>的（最坏情况下，可以把所有元素都作为生成元）。</li>
+  <li><strong>误认为所有阿贝尔群都是有限生成的</strong>：存在不是<strong>有限生成</strong>的<strong>阿贝尔群</strong>。例如，有理数加法群 $(\mathbb{Q}, +)$ 就不能由有限个有理数生成。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段是本节的学习导航，明确了两个核心任务：首先，定义和理解作为基本构造块的<strong>自由阿贝尔群</strong>；然后，运用这些知识去理解和证明<strong>阿贝尔群</strong>理论的基石——<strong>有限生成阿贝尔群基本定理</strong>，该定理揭示了所有这类群的统一结构。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的存在是为了给读者一个清晰的心理预期和学习框架。在深入研究技术细节之前，它首先描绘了本节内容的宏观蓝图，让读者知道将要前往何方（学习<strong>自由阿贝尔群</strong>）以及最终目的地是什么（掌握<strong>基本定理</strong>）。这种“自顶向下”的介绍方式有助于组织知识，提高学习效率。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>乐高积木模型</strong>：把<strong>有限生成阿贝尔群</strong>想象成一个复杂的乐高模型。<strong>有限生成阿贝尔群基本定理</strong>告诉你，任何这样的模型，无论看起来多复杂，都只由两种基本积木搭建而成：一种是无限长的直条积木（代表 $\mathbb{Z}$），另一种是特定长度的圆形积木（代表 $\mathbb{Z}_n$）。<strong>自由阿贝尔群</strong>则完全由第一种直条积木构成，没有任何闭合的环路。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一条无限长的直线，上面均匀地标记着整数点 ...-2, -1, 0, 1, 2...。这是群 $\mathbb{Z}$ 的图像。现在想象一个由这样的直线构成的网格。一个二维网格（像棋盘一样无限延伸）可以代表 $\mathbb{Z} \times \mathbb{Z}$。这些网格就是<strong>自由阿贝尔群</strong>的直观形象。它们结构规整、无限延伸、没有任何“缠绕”或“循环”。而一个像 $\mathbb{Z}_6$ 这样的群，你可以想象成一个只有6个点的时钟面，你从一个点出发，走6步就会回到原点，这就是“扭曲”或“循环”的体现。<strong>基本定理</strong>告诉我们，任何<strong>有限生成阿贝尔群</strong>都可以看作是若干个无限网格和若干个这种时钟面的组合体。</p>
+    </div>
+</div><hr><h3>1.2 符号与约定</h3><p id="original-2"><strong style="font-size: 1.3rem;">📜 [原文2]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>我们应该回顾第7节中给出的<strong>群</strong> $G$ 的<strong>生成集</strong>和<strong>有限生成群</strong>的概念。在本节中，我们将专门处理<strong>阿贝尔群</strong>，并使用如下<strong>加法记号</strong>：</p>
+<p>0 表示<strong>单位元</strong>，+ 表示<strong>运算</strong>，</p>
+<p><div class="math-block">$$
+\left.\begin{array}{c}
+n a=\underbrace{a+a+\cdots+a}_{n \text { 个和项 }} \\
+-n a=\underbrace{(-a)+(-a)+\cdots+(-a)}_{n \text { 个和项 }}
+\end{array}\right\} \text { 对于 } n \in \mathbb{Z}^{+} \text {且 } a \in G .
+$$</div></p>
+<p>我们将继续使用符号 × 表示<strong>群的直积</strong>，而不是改为<strong>直和记号</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这一段为本节的讨论设定了语言和符号的基础。它提醒我们已有的知识，并引入专门用于<strong>阿贝尔群</strong>的符号体系，以简化后续的表达。</p>
+<ol>
+  <li> <strong>回顾旧概念</strong>：
+<ul>
+  <li><strong>生成集</strong> (generating set)：对于一个<strong>群</strong> $G$，它的一个<strong>生成集</strong> $S$ 是 $G$ 的一个子集，使得 $G$ 中的每一个元素都可以表示为 $S$ 中元素和它们的逆元的有限次运算的组合。</li>
+  <li><strong>有限生成群</strong> (finitely generated group)：如果一个<strong>群</strong>存在一个有限的<strong>生成集</strong>，那么这个群就是<strong>有限生成群</strong>。这极大地简化了对群的研究，因为我们只需要理解这有限个生成元的行为和它们之间的关系，就能掌握整个群。</li>
+</ul></li>
+  <li> <strong>限定研究对象</strong>：
+<ul>
+  <li><strong>阿贝尔群</strong> (Abelian group)：本节明确指出，我们只讨论<strong>阿贝尔群</strong>。<strong>阿贝尔群</strong>是指其群运算满足交换律的群，即对于群中任意两个元素 $a, b$，都有 $a \cdot b = b \cdot a$。这个特性使得它们的结构比非<strong>阿贝尔群</strong>简单得多，也让我们能够使用更直观的记号。</li>
+</ul></li>
+  <li> <strong>引入加法记号</strong>：
+<ul>
+  <li>这是<strong>阿贝尔群</strong>研究中的一个通用惯例。由于运算满足交换律，很像我们熟悉的数字加法，所以借用加法符号来增强直觉。</li>
+  <li><strong>单位元</strong>记为 $0$：在通用群论中，单位元通常记为 $e$ 或 $1$。在<strong>阿贝尔群</strong>的加法记号下，它被记为 $0$。这完全是为了符合加法的习惯，$a+0=0+a=a$。</li>
+  <li><strong>运算</strong>记为 $+$：原来的运算符号（如 $\cdot, *, \circ$）被 $+$ 替代。$a \cdot b$ 写成 $a+b$。</li>
+  <li>元素的<strong>逆</strong>记为 $-a$：元素 $a$ 的逆元 $a^{-1}$ 在加法记号下写成 $-a$，因为 $a + (-a) = 0$。</li>
+</ul></li>
+  <li> <strong>定义整数“数乘”</strong>：
+<ul>
+  <li>这是加法记号带来的最核心的便利。我们可以像向量空间中的标量乘法一样，定义一个整数 $n$ 与一个群元素 $a$ 的“乘积” $na$。这本质上是群运算的简写。</li>
+  <li>当 $n$ 是正整数时 ($n \in \mathbb{Z}^{+}$)，$na$ 就是 $n$ 个 $a$ 相加。</li>
+  <li>当 $n$ 是负整数时，可以写作 $n = -m$（其中$m$是正整数），此时 $na = (-m)a$ 被定义为 $m$ 个 $-a$ 相加。这与 $-na$ 的记法吻合，后者表示 $n$ 个 $-a$ 相加。</li>
+  <li>虽然没有明说，但这个定义可以自然地扩展：$0a = 0$（将0个$a$相加，结果是单位元），以及 $1a = a$。</li>
+  <li>这个 $na$ 的运算使得<strong>阿贝尔群</strong>成为一个“<strong>$\mathbb{Z}$-模</strong>”，这是一个更高等的代数概念，但直观上就是说我们可以用整数来“伸缩”群中的元素。</li>
+</ul></li>
+  <li> <strong>明确直积符号</strong>：
+<ul>
+  <li><strong>群的直积</strong> (direct product) 是一种从已知群构造新群的方法。对于两个群 $(G, \cdot)$ 和 $(H, *)$，它们的<strong>直积</strong> $G \times H$ 是集合 $\{(g, h) | g \in G, h \in H\}$，其上的运算是逐分量进行的：$(g_1, h_1) \circ (g_2, h_2) = (g_1 \cdot g_2, h_1 * h_2)$。</li>
+  <li>在<strong>阿贝尔群</strong>的语境下，<strong>直积</strong>也常被称为<strong>直和</strong> (direct sum)，并用符号 $\oplus$ 表示。例如 $G \oplus H$。</li>
+  <li>作者在此明确指出，尽管我们使用加法记号，但在表示群的这种组合时，将继续沿用乘法风格的符号 $\times$，而不是切换到加法风格的 $\oplus$。这是一个纯粹的记号选择，为了保持全书的一致性。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><div class="math-block">$$
+\left.\begin{array}{c}
+n a=\underbrace{a+a+\cdots+a}_{n \text { 个和项 }} \\
+-n a=\underbrace{(-a)+(-a)+\cdots+(-a)}_{n \text { 个和项 }}
+\end{array}\right\} \text { 对于 } n \in \mathbb{Z}^{+} \text {且 } a \in G .
+$$</div></p>
+<ul>
+  <li><strong>$n a$</strong>: 读作“$n$ 乘以 $a$”或“$n$ 倍的 $a$”。这不是一个新发明的运算，而是群原有运算的重复执行的简记法。</li>
+  <li><strong>$n \in \mathbb{Z}^{+}$</strong>: 这里的整数 $n$ 是一个正整数。它不属于群 $G$，而是来自整数集 $\mathbb{Z}$。它扮演着一个“计数器”或“操作次数”的角色。</li>
+  <li><strong>$a \in G$</strong>: $a$ 是群 $G$ 中的一个元素。</li>
+  <li><strong>$\underbrace{a+a+\cdots+a}_{n \text { 个和项 }}$</strong>: 这部分是 $na$ 的严格定义。它表示将元素 $a$ 与自身通过群的加法运算，连续进行 $n-1$ 次。结果是 $n$ 个 $a$ 的和。例如，$3a = a+a+a$。</li>
+</ul>
+<ul>
+  <li><strong>$-n a$</strong>: 读作“负 $n$ 乘以 $a$”。</li>
+  <li><strong>$-a$</strong>: 这是元素 $a$ 在群 $G$ 中的加法逆元，满足 $a + (-a) = 0$ (单位元)。</li>
+  <li><strong>$\underbrace{(-a)+(-a)+\cdots+(-a)}_{n \text { 个和项 }}$</strong>: 这是 $-na$ 的定义，表示将 $a$ 的逆元 $-a$ 与自身相加 $n$ 次。</li>
+  <li><strong>推导/关系</strong>: 注意到 $(-n)a$ 也可以被定义为 $n$ 个 $-a$ 相加。在<strong>阿贝尔群</strong>中，可以证明 $n(-a) = -(na)$。</li>
+  <li>证明： $na + n(-a) = (a+\dots+a) + ((-a)+\dots+(-a))$。因为群是<strong>阿贝尔</strong>的，我们可以重新排列，变成 $(a+(-a)) + \dots + (a+(-a)) = 0 + \dots + 0 = 0$。根据逆元的唯一定义，这表明 $n(-a)$ 就是 $na$ 的逆元，即 $n(-a) = -(na)$。这里的 $-na$ 符号有一点歧义，它可以被理解为 $-(na)$ 或是 $(-n)a$，但幸运的是，在<strong>阿贝尔群</strong>中它们是相等的。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p>考虑<strong>阿贝尔群</strong> $(\mathbb{Z}_{12}, +_{12})$，其中运算是模12加法。单位元是 $0$。</p>
+<ul>
+  <li><strong>示例 1: 计算 $na$</strong></li>
+  <li>令 $a = 4 \in \mathbb{Z}_{12}$，取 $n=3 \in \mathbb{Z}^{+}$。</li>
+  <li>根据定义，$3a = 3 \cdot 4 = \underbrace{4+4+4}_{3 \text{ 个和项}} = 8+4 = 12 \equiv 0 \pmod{12}$。</li>
+  <li>所以，在 $\mathbb{Z}_{12}$ 中，$3 \cdot 4 = 0$。</li>
+</ul>
+<ul>
+  <li><strong>示例 2: 计算另一个 $na$</strong></li>
+  <li>令 $a = 5 \in \mathbb{Z}_{12}$，取 $n=5 \in \mathbb{Z}^{+}$。</li>
+  <li>$5a = 5 \cdot 5 = 5+5+5+5+5 = 10+5+5+5 = 15+5+5 \equiv 3+5+5 = 8+5 = 13 \equiv 1 \pmod{12}$。</li>
+  <li>所以，在 $\mathbb{Z}_{12}$ 中，$5 \cdot 5 = 1$。</li>
+</ul>
+<ul>
+  <li><strong>示例 3: 计算 $-na$</strong></li>
+  <li>令 $a = 4 \in \mathbb{Z}_{12}$，取 $n=2 \in \mathbb{Z}^{+}$。</li>
+  <li>首先，找到 $a$ 的逆元：$-a = -4$。在 $\mathbb{Z}_{12}$ 中，$-4 \equiv 8 \pmod{12}$，因为 $4+8=12 \equiv 0$。</li>
+  <li>根据定义，$-2a = \underbrace{(-a)+(-a)}_{2 \text{ 个和项}} = (-4)+(-4) = 8+8 = 16 \equiv 4 \pmod{12}$。</li>
+  <li>所以，在 $\mathbb{Z}_{12}$ 中，$-2 \cdot 4 = 4$。我们可以验证：$-(2 \cdot 4) = -(4+4) = -8 \equiv 4 \pmod{12}$，结果一致。</li>
+</ul>
+<ul>
+  <li><strong>示例 4: 直积 $G \times H$</strong></li>
+  <li>考虑 $G=\mathbb{Z}_2$ 和 $H=\mathbb{Z}_3$。</li>
+  <li>直积群是 $\mathbb{Z}_2 \times \mathbb{Z}_3 = \{(0,0), (0,1), (0,2), (1,0), (1,1), (1,2)\}$。</li>
+  <li>运算示例：$(1,2) + (1,1) = (1+_{2}1, 2+_{3}1) = (0, 0)$。</li>
+  <li>这个群同构于 $\mathbb{Z}_6$，但我们这里将它作为两个群的<strong>直积</strong>来研究。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>$na$ 不是乘法</strong>：最重要的易错点是，不要把 $na$ 误认为是群内定义的某种乘法运算。群 $G$ 上只定义了一个运算（这里是加法）。$na$ 只是重复加法的简写。例如，在 $\mathbb{Z}_{12}$ 中，$3 \cdot 4$ 不是指整数乘法 $12$，而是指 $4+4+4$。</li>
+  <li><strong>$n$ 的来源</strong>：要时刻记着 $n$ 来自于 $\mathbb{Z}$，而 $a$ 来自于 $G$。$n$ 不是群里的元素（除非 $G$ 恰好是 $\mathbb{Z}$ 或包含 $\mathbb{Z}$ 的结构）。</li>
+  <li><strong>$0a=0$ 的双重含义</strong>：在表达式 $0a=0$ 中，左边的 $0$ 是整数 $0 \in \mathbb{Z}$，右边的 $0$ 是群 $G$ 的单位元。它们是不同集合里的元素，代表不同的概念。</li>
+  <li><strong>对非阿贝尔群不适用</strong>：这套加法记号和 $na$ 的简写约定，通常只在<strong>阿贝尔群</strong>的上下文中才被广泛使用。在非<strong>阿贝尔群</strong>中，虽然也可以定义 $a^n$，但 $a^n b^n$ 一般不等于 $(ab)^n$，这使得加法记号的很多直觉会失效。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段是技术准备，它通过回顾<strong>生成集</strong>的概念，将我们的焦点缩小到<strong>阿贝尔群</strong>，并为之引入了一套方便、直观的<strong>加法记号系统</strong>。核心是定义了整数与群元素的“数乘”运算 $na$，这本质上是重复群运算的简写。最后，它澄清了在构造组合群时将继续使用<strong>直积</strong>符号 $\times$。这为后续所有定理的陈述和证明铺平了道路。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是“统一语言，简化表达”。抽象代数充满了各种符号，为特定的研究对象（这里是<strong>阿贝尔群</strong>）建立一套符合直觉的、一致的符号约定，可以大大降低认知负担，使证明和计算更加简洁明了。如果不做这个约定，我们就得一直拖着冗长的 $a \cdot a \cdot \ldots \cdot a$ 和 $a^{-1} \cdot a^{-1} \cdot \ldots \cdot a^{-1}$，非常繁琐。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>向量空间类比</strong>：将<strong>阿贝尔群</strong> $(G, +)$ 想象成一个特殊的“向量空间”。群里的元素 $a \in G$ 是“向量”，而整数 $n \in \mathbb{Z}$ 是“标量”。运算 $na$ 就完全类似于向量空间中的标量乘法（scalar multiplication），它将向量 $a$ 沿着自身的方向“拉伸”或“压缩” $n$ 倍。这个类比非常强大，因为<strong>自由阿贝尔群</strong>就可以被看作是“整数标量”下的“向量空间”，它的“基”就是自由生成元。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你在一个巨大的棋盘上，你只能沿着格点移动。你的群元素 $a$ 代表一步特定的位移，例如“向右2格，向上1格”，记为向量 $\vec{v}=(2,1)$。群运算就是位移的叠加。那么 $3a$ 或 $3\vec{v}$ 就意味着你重复执行这个位移三次，最终你的总位移是 $(6,3)$。$-2a$ 或 $-2\vec{v}$ 意味着你执行反向位移（向左2格，向下1格）两次，总位移是 $(-4,-2)$。整个棋盘上的所有格点构成了一个<strong>自由阿贝尔群</strong> $\mathbb{Z} \times \mathbb{Z}$，而你的每一种特定位移都是这个群里的一个元素。整数 $n$ 就是你重复这个动作的次数。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-2">
+    <h2><span class="section-number">2</span>行间公式索引</h2>
+    <p>1.  <strong>阿贝尔群中整数与元素的乘法定义</strong></p><p><div class="math-block">$$
+    \left.\begin{array}{c}
+    n a=\underbrace{a+a+\cdots+a}_{n \text { 个和项 }} \\
+    -n a=\underbrace{(-a)+(-a)+\cdots+(-a)}_{n \text { 个和项 }}
+    \end{array}\right\} \text { 对于 } n \in \mathbb{Z}^{+} \text {且 } a \in G .
+$$</div></p><p>我将继续执行您的请求。</p>
+</section>
+
+<section class="content-section" id="section-3">
+    <h2><span class="section-number">3</span>最终检查清单</h2>
+    <p>*   <strong>行间公式完整性</strong>:</p><p>*   源文件 <strong>ZH.md</strong> 包含 1 个行间公式。</p><p>*   本解释内容包含了 1 个行间公式，并在末尾的“行间公式索引”部分全部列出。</p><p>*   <strong>检查通过</strong>。</p><p>*   <strong>字数超越</strong>:</p><p>*   源文件 <strong>ZH.md</strong> 字数约为 200 字。</p><p>*   本解释内容字数远超 1000 字，满足“解释.md字数 > 源文件字数”的要求。</p><p>*   <strong>检查通过</strong>。</p><p>*   <strong>段落结构映射</strong>:</p><p>*   源文件的标题和段落结构均已在新标题体系下（<strong># 1. ...</strong>, <strong>## 1.1 ...</strong>, <strong>## 1.2 ...</strong>）得到完整映射和解释。</p><p>*   所有原文内容均已包含在 <strong>[原文]</strong> 部分。</p><p>*   <strong>检查通过</strong>。</p><p>*   <strong>阅读友好</strong>:</p><p>*   内容遵循了 <strong>[原文]</strong>, <strong>[逐步解释]</strong>, <strong>[公式与符号逐项拆解和推导]</strong>, <strong>[具体数值示例]</strong>, <strong>[易错点与边界情况]</strong>, <strong>[总结]</strong>, <strong>[存在目的]</strong>, <strong>[直觉心智模型]</strong>, <strong>[直观想象]</strong> 的结构，便于理解。</p><p>*   引入了自增数字标题，提供了清晰的导航。</p><p>*   对专有名词进行了加粗和解释。</p><p>*   提供了 <strong>行间公式索引</strong> 方便查阅。</p><p>*   <strong>检查通过</strong>。</p>
+</section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>1. 第38节 自由阿贝尔群</p>
+    </footer>
+
+
+    <!-- 手机端点击翻页功能 -->
+    <script>
+        (function() {
+            // 点击翻页功能（在所有设备上启用）
+            
+            document.addEventListener('click', function(e) {
+                // 如果 TOC 目录面板处于打开状态，不触发翻页
+                var tocPanel = document.getElementById('tocPanel');
+                if (tocPanel && tocPanel.classList.contains('active')) {
+                    return;
+                }
+                
+                // 排除对链接、按钮、输入框等交互元素的点击
+                var target = e.target;
+                var tagName = target.tagName.toLowerCase();
+                if (tagName === 'a' || tagName === 'button' || tagName === 'input' || 
+                    tagName === 'textarea' || tagName === 'select' || 
+                    target.closest('a') || target.closest('button') ||
+                    target.closest('.toc-panel') || target.closest('.toc-toggle') ||
+                    target.closest('.toc-overlay')) {
+                    return;
+                }
+                
+                var clickY = e.clientY;
+                var windowHeight = window.innerHeight;
+                var scrollAmount = windowHeight * 0.85; // 滚动85%的屏幕高度
+                
+                if (clickY > windowHeight / 2) {
+                    // 点击下半部分：向下翻页
+                    window.scrollBy({
+                        top: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 点击上半部分：向上翻页
+                    window.scrollBy({
+                        top: -scrollAmount,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        })();
+    </script>
+
+    <!-- TOC 目录控制脚本 -->
+    <script>
+        (function() {
+            var tocToggle = document.getElementById('tocToggle');
+            var tocPanel = document.getElementById('tocPanel');
+            var tocOverlay = document.getElementById('tocOverlay');
+            
+            // 切换目录显示/隐藏
+            function toggleTOC() {
+                var isOpen = tocPanel.classList.contains('active');
+                if (isOpen) {
+                    closeTOC();
+                } else {
+                    openTOC();
+                }
+            }
+            
+            // 打开目录
+            function openTOC() {
+                tocPanel.classList.add('active');
+                tocOverlay.classList.add('active');
+                tocToggle.setAttribute('aria-label', '关闭目录');
+            }
+            
+            // 关闭目录
+            function closeTOC() {
+                tocPanel.classList.remove('active');
+                tocOverlay.classList.remove('active');
+                tocToggle.setAttribute('aria-label', '打开目录');
+            }
+            
+            // 点击按钮切换目录
+            tocToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTOC();
+            });
+            
+            // 点击遮罩层关闭目录
+            tocOverlay.addEventListener('click', function() {
+                closeTOC();
+            });
+            
+            // 点击目录项后关闭目录
+            var tocLinks = tocPanel.querySelectorAll('a');
+            tocLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    closeTOC();
+                });
+            });
+            
+            // ESC 键关闭目录
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && tocPanel.classList.contains('active')) {
+                    closeTOC();
+                }
+            });
+            
+            // 高亮当前可见的目录条目
+            function updateActiveItem() {
+                var scrollPos = window.scrollY + 150;  // 偏移量
+                var activeSection = null;
+                var activeOriginal = null;
+                
+                // 查找当前可见的 section
+                var sections = document.querySelectorAll('section[id^="section-"]');
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    if (section.offsetTop <= scrollPos) {
+                        activeSection = section.id;
+                    }
+                }
+                
+                // 查找当前可见的原文区块
+                var originals = document.querySelectorAll('[id^="original-"]');
+                for (var j = 0; j < originals.length; j++) {
+                    var original = originals[j];
+                    if (original.offsetTop <= scrollPos) {
+                        activeOriginal = original.id;
+                    }
+                }
+                
+                // 先移除所有 active 类
+                var allHeadings = tocPanel.querySelectorAll('.toc-heading');
+                for (var h = 0; h < allHeadings.length; h++) {
+                    allHeadings[h].classList.remove('active');
+                }
+                
+                var allOriginals = tocPanel.querySelectorAll('.toc-original');
+                for (var o = 0; o < allOriginals.length; o++) {
+                    allOriginals[o].classList.remove('active');
+                }
+                
+                // 只给当前活动的条目添加 active 类
+                if (activeSection) {
+                    var activeHeadingLink = tocPanel.querySelector('.toc-heading a[href="#' + activeSection + '"]');
+                    if (activeHeadingLink) {
+                        activeHeadingLink.parentElement.classList.add('active');
+                    }
+                }
+                
+                if (activeOriginal) {
+                    var activeOriginalLink = tocPanel.querySelector('.toc-original a[href="#' + activeOriginal + '"]');
+                    if (activeOriginalLink) {
+                        activeOriginalLink.parentElement.classList.add('active');
+                    }
+                }
+            }
+            
+            // 节流函数
+            var scrollTimeout;
+            function throttledUpdate() {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(function() {
+                    updateActiveItem();
+                    scrollTimeout = null;
+                }, 100);
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', throttledUpdate);
+            
+            // 打开目录时立即更新高亮
+            var originalOpenTOC = openTOC;
+            openTOC = function() {
+                originalOpenTOC();
+                updateActiveItem();
+            };
+            
+            // 初始化
+            updateActiveItem();
+        })();
+    </script>
+</body>
+</html>

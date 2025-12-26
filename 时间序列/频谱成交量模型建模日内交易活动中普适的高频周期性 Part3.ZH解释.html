@@ -1,0 +1,3004 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1 成交量谱模型详解</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- MathJax v4 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            output: {
+                displayOverflow: 'linebreak',
+                linebreaks: {
+                    inline: true,
+                    width: '100%',
+                    lineleading: 0.2
+                }
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            /* 五大区块主题色 */
+            --original-color: #8b5cf6;
+            --explain-color: #0ea5e9;
+            --formula-color: #6366f1;
+            --example-color: #10b981;
+            --warning-color: #f59e0b;
+            /* Q1修复：总结、存在目的、直觉心智模型、直观想象 统一使用 #36828C 青色主题 */
+            --summary-color: #36828C;     /* 青色主题 */
+            --purpose-color: #36828C;     /* 青色主题 */
+            --intuition-color: #36828C;   /* 青色主题 */
+            --imagination-color: #36828C; /* 青色主题 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .authors {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
+        .content-section h4 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h5 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 18px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h6 {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            margin: 15px 0 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        /* ===============================
+           五大内容区块 - 统一风格不同主题色
+           =============================== */
+
+        /* 原文区 - 紫色 */
+        .original-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid var(--original-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .original-box .box-label {
+            color: var(--original-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-box .box-content {
+            font-style: italic;
+            color: #6b21a8;
+        }
+
+        /* 📜 [原文]区块内容 - 使用统一的黑色 */
+        .original-content {
+            color: #2d3748; /* 统一的深灰黑色 */
+        }
+
+        .original-content * {
+            color: #2d3748; /* 所有子元素 */
+        }
+
+        .original-content .MathJax, .original-content .MathJax * {
+            color: #2d3748 !important; /* 行内公式 */
+        }
+
+        /* 通用 .box-content 换行规则 - 确保长文本（如代码调用）能自动换行 */
+        .box-content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .box-content strong, .box-content code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            display: inline;
+        }
+
+        /* 逐步解释区 - 蓝色 */
+        .explain-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--explain-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .explain-box .box-label {
+            color: var(--explain-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explain-box .box-content {
+            color: #1a365d; /* Dark Blue */
+        }
+
+        .explain-box .box-content * {
+            color: #1a365d; /* Dark Blue - 所有子元素 */
+        }
+
+        .explain-box .box-content .MathJax, .explain-box .box-content .MathJax * {
+            color: #1a365d !important; /* Dark Blue - 行内公式 */
+        }
+
+        .explain-box ul, .explain-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .explain-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 公式拆解区 - 靛蓝色 */
+        .formula-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--formula-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .formula-box .box-label {
+            color: var(--formula-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .formula-box .box-content {
+            color: var(--text-color); /* 统一使用默认黑色，与原文区块一致 */
+            overflow-x: auto;
+        }
+
+        .formula-box .box-content * {
+            color: var(--text-color); /* 所有子元素 */
+        }
+
+        .formula-box .box-content .MathJax, .formula-box .box-content .MathJax * {
+            color: var(--text-color) !important; /* 行内公式 */
+        }
+
+        /* 数值示例区 - 绿色 */
+        .example-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--example-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .example-box .box-label {
+            color: var(--example-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-box .box-content {
+            color: #166534; /* Dark Green from edstem5 .answer-en */
+        }
+
+        .example-box .box-content * {
+            color: #166534; /* Dark Green - 所有子元素 */
+        }
+
+        .example-box .box-content .MathJax, .example-box .box-content .MathJax * {
+            color: #166534 !important; /* Dark Green - 行内公式 */
+        }
+
+        .example-box ul, .example-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .example-box li {
+            margin-bottom: 6px;
+        }
+
+        .example-box code {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* 易错点区 - 橙色 */
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .warning-box .box-label {
+            color: var(--warning-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warning-box .box-content {
+            color: #92400e;
+        }
+
+        .warning-box .box-content * {
+            color: #92400e; /* 所有子元素 */
+        }
+
+        .warning-box .box-content .MathJax, .warning-box .box-content .MathJax * {
+            color: #92400e !important; /* 行内公式 */
+        }
+
+        .warning-box ul, .warning-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .warning-box li {
+            margin-bottom: 6px;
+        }
+
+        /* 总结区 - Q1修复：使用#36828C青色主题 */
+        .summary-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--summary-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .summary-box .box-label {
+            color: var(--summary-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .summary-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .summary-box .box-content .MathJax, .summary-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 存在目的区 - Q1修复：使用#36828C青色主题 */
+        .purpose-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--purpose-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .purpose-box .box-label {
+            color: var(--purpose-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .purpose-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .purpose-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .purpose-box .box-content .MathJax, .purpose-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直觉心智模型区 - Q1修复：使用#36828C青色主题 */
+        .intuition-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--intuition-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .intuition-box .box-label {
+            color: var(--intuition-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .intuition-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .intuition-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .intuition-box .box-content .MathJax, .intuition-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直观想象区 - Q1修复：使用#36828C青色主题 */
+        .imagination-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--imagination-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .imagination-box .box-label {
+            color: var(--imagination-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .imagination-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .imagination-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .imagination-box .box-content .MathJax, .imagination-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 高亮术语 */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* 代码块 */
+        code {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            margin: 15px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 表格样式 - 紧凑型，行高列宽适应文字最小值 */
+        table {
+            border-collapse: collapse;
+            width: auto;  /* 列宽适应内容 */
+            margin: 15px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;  /* 减小padding使行高更紧凑 */
+            text-align: left;
+            white-space: nowrap;  /* 防止不必要的换行，列宽适应文字 */
+            line-height: 1.4;  /* 紧凑的行高 */
+        }
+
+        th {
+            background: #e0f7fa;
+            color: #006064;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #e2e8f0;
+        }
+
+        /* 表格对齐 */
+        .align-left {
+            text-align: left;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        /* 图例区域 */
+        .legend-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .legend-bar {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .legend-bar.original { background: #8b5cf6; }
+        .legend-bar.explain { background: #0ea5e9; }
+        .legend-bar.formula { background: #6366f1; }
+        .legend-bar.example { background: #10b981; }
+        .legend-bar.warning { background: #f59e0b; }
+        .legend-bar.summary { background: #36828C; }
+        .legend-bar.purpose { background: #36828C; }
+        .legend-bar.intuition { background: #36828C; }
+        .legend-bar.imagination { background: #36828C; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive - 移动端适配 */
+        @media (max-width: 768px) {
+            /* 容器宽度适配 */
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 20px 12px;
+                box-sizing: border-box;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+                padding: 0 15px;
+            }
+            
+            .hero {
+                padding: 50px 15px;
+            }
+            
+            .hero h1 {
+                font-size: 1.6rem;
+                word-break: break-word;
+            }
+            
+            .authors {
+                font-size: 1rem;
+            }
+            
+            /* 内容区块适配 */
+            .content-section {
+                padding: 20px 15px;
+                margin-left: 5px;
+                margin-right: 5px;
+                border-radius: 12px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.4rem;
+                flex-wrap: wrap;
+            }
+            
+            .content-section h3 {
+                font-size: 1.2rem;
+            }
+            
+            .content-section h4 {
+                font-size: 1.1rem;
+            }
+            
+            .section-number {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            /* 各区块box适配 */
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 15px 12px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .original-box .box-label,
+            .explain-box .box-label,
+            .formula-box .box-label,
+            .example-box .box-label,
+            .warning-box .box-label,
+            .summary-box .box-label,
+            .purpose-box .box-label,
+            .intuition-box .box-label,
+            .imagination-box .box-label {
+                font-size: 1.1rem;
+            }
+            
+            /* 图例区域移动端适配 */
+            .legend-section {
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
+            
+            .legend-row {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            
+            .legend-item {
+                font-size: 0.8rem;
+                gap: 5px;
+            }
+            
+            .legend-bar {
+                width: 3px;
+                height: 16px;
+            }
+            
+            /* 列表适配 */
+            ul, ol {
+                margin-left: 15px;
+                padding-left: 5px;
+            }
+            
+            /* 表格移动端适配 */
+            table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.9rem;
+                min-width: 80px;
+            }
+            
+            /* 代码块适配 */
+            pre {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            
+            /* 数学公式适配 */
+            .math-block {
+                padding: 10px 8px;
+                margin: 15px 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* MathJax公式溢出处理 - 只处理块级公式，保持行内公式inline */
+            mjx-container[jax="CHTML"][display="true"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                display: block !important;
+            }
+            
+            /* 行内公式 - 超宽时自动换行 */
+            mjx-container:not([display="true"]) {
+                display: inline-block !important;
+                max-width: 100% !important;
+                overflow-wrap: break-word !important;
+                word-wrap: break-word !important;
+            }
+            
+            /* MathJax内部元素换行支持 */
+            mjx-math {
+                white-space: normal !important;
+            }
+            
+            mjx-mrow {
+                flex-wrap: wrap !important;
+            }
+            
+            /* Footer适配 */
+            .footer {
+                padding: 25px 15px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* 超小屏幕适配 (手机竖屏) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 8px;
+            }
+            
+            .hero {
+                padding: 40px 10px;
+            }
+            
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+            
+            .content-section {
+                padding: 15px 10px;
+                margin-left: 3px;
+                margin-right: 3px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 12px 10px;
+            }
+            
+            .legend-section {
+                padding: 12px 8px;
+            }
+            
+            .legend-row {
+                gap: 8px;
+            }
+            
+            .legend-item {
+                font-size: 0.75rem;
+            }
+            
+            ul, ol {
+                margin-left: 12px;
+            }
+        }
+        
+        /* 确保所有内容不溢出 */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* ========================================
+           TOC 目录样式
+           ======================================== */
+        
+        /* TOC 触发按钮 - 左上角小方块 */
+        .toc-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(54, 130, 140, 0.5);  /* 青色 50% 透明度 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .toc-toggle:hover {
+            background: rgba(54, 130, 140, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .toc-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* TOC 目录面板 */
+        .toc-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 95vw;  /* 手机浏览器宽度的 95% */
+            height: 80vh; /* 手机浏览器高度的 80% */
+            max-width: 450px;  /* 桌面端最大宽度 */
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0 0 16px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .toc-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* TOC 头部 - 标题在图标右侧 */
+        .toc-header {
+            padding: 15px 20px 15px 80px;  /* 左侧留出按钮空间 */
+            background: linear-gradient(135deg, #36828C 0%, #2a6a72 100%);
+            color: white;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .toc-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* TOC 内容区 */
+        .toc-content {
+            flex: 1;
+            overflow-y: auto;   /* 允许垂直滚动 */
+            overflow-x: hidden; /* 禁止水平滚动 */
+            padding: 15px 0;
+        }
+        
+        /* TOC 列表 */
+        .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc-item {
+            margin: 0;
+        }
+        
+        .toc-item a {
+            display: block;
+            padding: 4px 20px;  /* 更紧凑的行间距 */
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #2d3748;
+            text-decoration: none;
+            word-wrap: break-word;   /* 自动换行 */
+            overflow-wrap: break-word;
+            white-space: normal;     /* 允许换行 */
+            line-height: 1.3;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .toc-item a:hover {
+            background: #e8f4f5;
+            color: #36828C;
+            border-left-color: #36828C;
+        }
+        
+        /* 标题项样式 */
+        .toc-heading a {
+            font-weight: 600;
+            color: #1a365d;
+            background: #f7fafc;
+        }
+        
+        .toc-heading a:hover {
+            background: #e8f4f5;
+        }
+        
+        /* 当前活动的标题项样式 */
+        .toc-heading.active a {
+            background: #d0e8ea;
+            color: #36828C;
+            border-left-color: #36828C;
+            font-weight: 700;
+        }
+        
+        /* 当前活动的原文项样式 */
+        .toc-original.active a {
+            background: #36828C;
+            color: white;
+            box-shadow: 0 3px 8px rgba(54, 130, 140, 0.35);
+        }
+        
+        /* 原文项容器 - 横向排列自动换行 */
+        .toc-originals-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 8px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* 原文项样式 - 浅青色带阴影 */
+        .toc-original {
+            margin: 0;
+        }
+        
+        .toc-original a {
+            display: inline-block;
+            width: 64px;  /* 固定宽度确保每行显示数量一致 */
+            padding: 6px 4px;
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #36828C;  /* 青色主题色 */
+            text-decoration: none;
+            text-align: center;
+            background: #e8f4f5;
+            border-radius: 6px;
+            border-left: none;
+            box-shadow: 0 2px 4px rgba(54, 130, 140, 0.2);  /* 青色阴影 */
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .toc-original a:hover {
+            background: #e0f2f4;
+            color: #36828C;
+            box-shadow: 0 3px 6px rgba(54, 130, 140, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        /* TOC 遮罩层 */
+        .toc-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .toc-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 移动端 TOC 适配 */
+        @media (max-width: 768px) {
+            .toc-toggle {
+                top: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .toc-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .toc-panel {
+                width: 90vw;
+                height: 80vh;
+                max-width: none;
+            }
+            
+            .toc-header {
+                padding: 12px 15px 12px 65px;
+            }
+            
+            .toc-header h3 {
+                font-size: 16px;
+            }
+            
+            .toc-item a {
+                padding: 4px 15px;
+                font-size: 15.5px;
+            }
+            
+            .toc-originals-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            .toc-original a {
+                padding: 5px 10px;
+                font-size: 15.5px;
+            }
+        }
+
+        /* 特殊术语着色 */
+        .spectral {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .periodicity {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .fourier {
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        /* 列表样式增强 */
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 - 已移除重复定义，使用上方第602-633行的紧凑型样式 */
+
+        /* 分隔线 */
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 30px 0;
+        }
+
+        /* 数学公式样式 - Q7: 行间公式颜色用黑色 */
+        .math-block {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            color: #000000; /* Q7: 黑色文字 */
+        }
+
+        /* Q7: 确保MathJax渲染的公式为黑色 */
+        .math-block .MathJax {
+            color: #000000 !important;
+        }
+
+        mjx-container {
+            color: #000000 !important;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- TOC 目录按钮 -->
+    <button class="toc-toggle" id="tocToggle" aria-label="打开目录">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+        </svg>
+    </button>
+    
+    <!-- TOC 遮罩层 -->
+    <div class="toc-overlay" id="tocOverlay"></div>
+    
+    <!-- TOC 目录面板 -->
+    <nav class="toc-panel" id="tocPanel">
+        <div class="toc-header">
+            <h3>📑 目录</h3>
+        </div>
+        <div class="toc-content">
+            <ul class="toc-list">
+                <li class="toc-item toc-heading"><a href="#section-1">1. 1 成交量谱模型详解</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-1">原文1</a></span><span class="toc-original"><a href="#original-2">原文2</a></span><span class="toc-original"><a href="#original-3">原文3</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-2">2. 2 揭示与量化周期性</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-4">原文4</a></span><span class="toc-original"><a href="#original-5">原文5</a></span><span class="toc-original"><a href="#original-6">原文6</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-3">3. 3 参数估计的细节</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-7">原文7</a></span><span class="toc-original"><a href="#original-8">原文8</a></span><span class="toc-original"><a href="#original-9">原文9</a></span><span class="toc-original"><a href="#original-10">原文10</a></span><span class="toc-original"><a href="#original-11">原文11</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-4">4. 行间公式索引</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>1 成交量<span class="highlight">谱</span>模型详解</h1>
+            <p class="authors"></p>
+            <p class="date"></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 图例区域 -->
+        <div class="legend-section">
+            <!-- 第一行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar original"></div>
+                    <span>📜 原文</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar explain"></div>
+                    <span>📖 逐步解释</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar formula"></div>
+                    <span>∑ 公式拆解</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar example"></div>
+                    <span>💡 数值示例</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar warning"></div>
+                    <span>⚠️ 易错点</span>
+                </div>
+            </div>
+            <!-- 第二行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar summary"></div>
+                    <span>📝 总结</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar purpose"></div>
+                    <span>🎯 存在目的</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar intuition"></div>
+                    <span>🧠 直觉心智模型</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar imagination"></div>
+                    <span>💭 直观想象</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="content-section" id="section-1">
+    <h2><span class="section-number">1</span>1 成交量谱模型详解</h2>
+    <h3>1.1 模型设定与谱表示</h3><p id="original-1"><strong style="font-size: 1.3rem;">📜 [原文1]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>令 $V_{t}, t=1,2, \ldots, T$ 表示以<strong>金额成交量</strong>、<strong>成交股数</strong>或<strong>成交笔数</strong>计的日内<strong>成交量</strong><strong>时间序列</strong>。我们假设 $V_{t}$ 具有以下<strong>谱表示</strong>：</p>
+<p><div class="math-block">$$
+\begin{equation*}
+V_{t}:=m_{t}+X_{t}=m_{t}+\sum_{j=1}^{n} a_{j} \cos \left(\lambda_{j} t\right)+\varepsilon_{t}, \quad 0&lt;\lambda_{1}&lt;\cdots&lt;\lambda_{j}&lt;\cdots&lt;\lambda_{n}&lt;\pi \tag{1}
+\end{equation*}
+$$</div></p>
+<p>其中 $m_{t}$ 是<strong>非随机趋势项</strong>，$X_{t}$ 是<strong>去趋势过程</strong>。$X_{t}$ 被进一步分解为 $n$ 个<strong>周期项</strong>，其中每个项 $\cos \left(\lambda_{j} t\right)$ 对应于一个特定的<strong>频率</strong>，而 $a_{j}$ 是第 $j$ 个<strong>周期项</strong>的<strong>系数</strong>，对于 $j=1, \ldots, n$。最后，$\varepsilon_{t}$ 是一个<strong>白噪声过程</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话是整篇论文的基石，它提出了一个数学模型来描述和解构日内<strong>成交量</strong>的动态变化。让我们从头开始，一步步理解。</p>
+<ol>
+  <li><strong>研究对象</strong>: 我们的研究对象是“日内<strong>成交量</strong><strong>时间序列</strong>”，用 $V_t$ 表示。</li>
+</ol>
+<ul>
+  <li>“日内” (Intraday) 指的是在一个交易日内部。比如从早上9:30开盘到下午3:00收盘。</li>
+  <li>“<strong>成交量</strong>” (Volume) 可以是不同的度量，比如<strong>成交的股票总金额</strong>（<strong>金额成交量</strong>）、<strong>成交的总股数</strong>（<strong>成交股数</strong>）或者<strong>发生交易的次数</strong>（<strong>成交笔数</strong>）。</li>
+  <li>“<strong>时间序列</strong>” (Time Series) 是指我们按照固定的时间间隔来记录<strong>成交量</strong>的数值。例如，每3秒钟记录一次<strong>成交量</strong>。$t$ 就是时间的标记，从第一个时间点 $t=1$ 一直记录到最后一个时间点 $t=T$。所以，$V_1, V_2, \dots, V_T$ 就是一个长长的数字序列，代表了一天内<strong>成交量</strong>随时间的变化。</li>
+</ul>
+<ol>
+  <li><strong>核心思想：分解</strong>: 论文的核心思想是，任何看起来复杂的<strong>成交量</strong>变化曲线 ($V_t$)，都可以被拆解成三个更简单的组成部分：一个平滑的<strong>趋势</strong>，若干个规律的<strong>周期性波动</strong>，以及一些随机的<strong>噪声</strong>。这就像把一道复杂的菜肴的味道分解成咸味、甜味、酸味等基本味道一样。</li>
+  <li><strong>模型的三个组成部分</strong>:</li>
+</ol>
+<ul>
+  <li><strong>趋势项 ($m_t$)</strong>: 这部分代表了<strong>成交量</strong>在一个交易日内总体的、缓慢变化的<strong>趋势</strong>。最著名的就是“U型”<strong>趋势</strong>：早上刚开盘和下午快收盘的时候<strong>成交量</strong>巨大，而中午交易比较平淡。这个 $m_t$ 就是用来捕捉这种大的、可预测的形状。它被假设为“<strong>非随机</strong>”的，意味着它更多地反映了交易者群体的确定性行为模式。</li>
+  <li><strong>周期项 ($\sum_{j=1}^{n} a_{j} \cos \left(\lambda_{j} t\right)$)</strong>: 这是模型最有趣的部分。它假设在大的<strong>趋势</strong>之上，还叠加了很多有规律的、重复出现的<strong>周期性波动</strong>。</li>
+  <li>想象一下，除了开盘和收盘的大量交易，可能每隔5分钟、10分钟、30分钟，市场上都会出现一些小的交易高峰。这些就是<strong>周期性</strong>的。</li>
+  <li>模型用一系列的<strong>余弦函数</strong> ($\cos$) 来捕捉这些<strong>周期</strong>。每一个<strong>余弦函数</strong> $\cos(\lambda_j t)$ 都代表一种特定频率的<strong>波动</strong>。</li>
+  <li>$\lambda_j$ 是<strong>频率</strong>，决定了<strong>波动</strong>有多快。$\lambda$ 越大，<strong>波动</strong>越快（<strong>周期</strong>越短）。</li>
+  <li>$a_j$ 是<strong>振幅</strong>或者说<strong>强度系数</strong>，决定了这个频率的<strong>波动</strong>有多强。$a_j$ 的绝对值越大，这个<strong>周期性</strong>就越显著。</li>
+  <li>$\sum$ 符号表示我们将 $n$ 个不同频率、不同强度的<strong>周期性波动</strong>全部加起来，共同构成了<strong>成交量</strong>的复杂<strong>波动</strong>部分。</li>
+  <li><strong>噪声项 ($\varepsilon_t$)</strong>: 也叫<strong>扰动项</strong>或<strong>残差项</strong>。它代表了那些无法被<strong>趋势</strong>和<strong>周期</strong>解释的、完全随机的、不可预测的<strong>成交量</strong>变化。比如某个投资者突然下了一个大单，或者某个新闻事件引发的短暂交易，这些都属于<strong>噪声</strong>。模型假设它是“<strong>白噪声</strong>”，意味着这些<strong>噪声</strong>是独立的，没有规律可循。</li>
+</ul>
+<ol>
+  <li><strong>去趋势过程 ($X_t$)</strong>: 论文将<strong>周期项</strong>和<strong>噪声项</strong>合在一起，称为“<strong>去趋势过程</strong>” $X_t$。也就是说，$X_t = V_t - m_t$。如果我们从原始的<strong>成交量</strong>数据中把那个大的U型<strong>趋势</strong>给减掉，剩下的部分就是 $X_t$，它包含了所有有趣的<strong>周期性波动</strong>和<strong>随机噪声</strong>。</li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p>公式 (1): $V_{t}:=m_{t}+\sum_{j=1}^{n} a_{j} \cos \left(\lambda_{j} t\right)+\varepsilon_{t}, \quad 0&lt;\lambda_{1}&lt;\cdots&lt;\lambda_{j}&lt;\cdots&lt;\lambda_{n}&lt;\pi$</p>
+<ul>
+  <li>$V_t$: <strong>成交量</strong> (Volume) 在时间点 $t$ 的观测值。这是一个因变量，是我们想要解释和建模的对象。</li>
+  <li>$t$: 时间索引 (time index)，是一个离散的整数，从 $1, 2, \ldots$ 一直到 $T$。例如，如果每3秒记录一次，交易日有6.5小时，那么 $T = (6.5 \times 3600) / 3 = 7800$。$t=1$ 就是开盘后第一个3秒， $t=7800$ 就是收盘前最后一个3秒。</li>
+  <li>$T$: <strong>时间序列</strong>的总长度，即总的观测点个数。</li>
+  <li>$:=$: 定义符号，表示左边的项被定义为右边的表达式。</li>
+  <li>$m_t$: <strong>趋势项</strong> (trend component) 在时间点 $t$ 的值。这是一个函数，描述了<strong>成交量</strong>随时间变化的平滑<strong>趋势</strong>。注意下标 $t$ 表明这个<strong>趋势</strong>本身可以是随时间变化的（非恒定）。</li>
+  <li>$X_t$: <strong>去趋势过程</strong> (detrended process) 在时间点 $t$ 的值。它等于 $V_t - m_t$。</li>
+  <li>$\sum_{j=1}^{n}$: 求和符号 (summation)，表示将从 $j=1$ 到 $j=n$ 的所有项相加。这代表模型考虑了 $n$ 个不同的<strong>周期分量</strong>。</li>
+  <li>$j$: <strong>周期分量</strong>的索引，从 $1$ 到 $n$。每个 $j$ 对应一个特定的<strong>周期</strong>。</li>
+  <li>$n$: 模型中包含的<strong>周期分量</strong>的总个数。这是一个超参数，需要我们预先设定。</li>
+  <li>$a_j$: 第 $j$ 个<strong>周期分量</strong>的<strong>系数</strong> (coefficient) 或<strong>振幅</strong> (amplitude)。它是一个实数，衡量了第 $j$ 个<strong>周期</strong>模式对总体<strong>成交量</strong>变化的贡献强度。$a_j$ 的绝对值越大，该<strong>周期</strong>越重要。$a_j$ 可以是正数也可以是负数，但后面我们会看到，在估计其影响时，我们更关心它的平方 $a_j^2$。</li>
+  <li>$\cos(\cdot)$: <strong>余弦函数</strong> (cosine function)。它是一个在 $[-1, 1]$ 之间规律振荡的函数，非常适合用来模拟<strong>周期性</strong>。</li>
+  <li>$\lambda_j$: 第 $j$ 个<strong>周期分量</strong>的<strong>角频率</strong> (angular frequency)。它决定了<strong>余弦波</strong>动的速度。</li>
+  <li><strong>频率</strong>和<strong>周期</strong>的关系是：<strong>周期</strong> $P_j = 2\pi / \lambda_j$。$\lambda_j$ 越大，<strong>周期</strong> $P_j$ 就越短，意味着<strong>波动</strong>得越快。</li>
+  <li>约束 $0&lt;\lambda_{1}&lt;\cdots&lt;\lambda_{j}&lt;\cdots&lt;\lambda_{n}&lt;\pi$ 表示我们考虑的<strong>频率</strong>是递增的，且都在 $(0, \pi)$ 区间内。$\lambda=0$ 对应无穷长的<strong>周期</strong>（即<strong>趋势</strong>），$\lambda=\pi$ 对应最短的、在离散时间点上能够被识别的<strong>周期</strong>（奈奎斯特频率）。</li>
+  <li>$\varepsilon_t$: <strong>白噪声</strong> (white noise) 在时间点 $t$ 的值。它是一个<strong>随机变量</strong>，代表了模型无法解释的随机扰动。</li>
+</ul>
+<p><strong>推导/逻辑关联</strong>:</p>
+<p>这个公式不是通过数学推导出来的，而是一个“假设”或“设定”。作者基于对金融市场<strong>成交量</strong>数据的观察，假设其内在结构可以用这三个部分来很好地近似。这个设定借鉴了信号处理领域的<strong>傅里叶分析</strong>思想，即任何信号都可以表示为不同频率正弦/余弦波的叠加。这里，作者将这个思想应用到了<strong>金融时间序列</strong>上。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>示例1：一个极简的成交量序列</strong></p>
+<p>假设我们有一个非常短的<strong>时间序列</strong>，只有 $T=4$ 个时间点。模型也极其简单，只有一个<strong>周期项</strong> ($n=1$)。</p>
+<ul>
+  <li><strong>趋势项</strong>: 设为一个常数，$m_t = 100$ 股（表示平均<strong>成交量</strong>水平是100股）。</li>
+  <li><strong>周期项</strong>: 设 $n=1$, $a_1=20$, $\lambda_1 = \pi/2$。</li>
+  <li>这个<strong>频率</strong> $\lambda_1=\pi/2$ 对应的<strong>周期</strong>是 $P_1 = 2\pi / (\pi/2) = 4$ 个时间单位。也就是说，每4个时间点，这个<strong>波动</strong>会完整重复一次。</li>
+  <li><strong>噪声项</strong>: 为了清晰，我们先假设没有<strong>噪声</strong>，即 $\varepsilon_t=0$ for all $t$。</li>
+</ul>
+<p>现在我们来计算每个时间点的<strong>成交量</strong> $V_t$:</p>
+<ul>
+  <li>$t=1$: $V_1 = m_1 + a_1 \cos(\lambda_1 \cdot 1) + \varepsilon_1 = 100 + 20 \cos(\pi/2 \cdot 1) + 0 = 100 + 20 \cdot 0 = 100$ 股。</li>
+  <li>$t=2$: $V_2 = m_2 + a_1 \cos(\lambda_1 \cdot 2) + \varepsilon_2 = 100 + 20 \cos(\pi/2 \cdot 2) + 0 = 100 + 20 \cos(\pi) = 100 + 20 \cdot (-1) = 80$ 股。</li>
+  <li>$t=3$: $V_3 = m_3 + a_1 \cos(\lambda_1 \cdot 3) + \varepsilon_3 = 100 + 20 \cos(\pi/2 \cdot 3) + 0 = 100 + 20 \cdot 0 = 100$ 股。</li>
+  <li>$t=4$: $V_4 = m_4 + a_1 \cos(\lambda_1 \cdot 4) + \varepsilon_4 = 100 + 20 \cos(\pi/2 \cdot 4) + 0 = 100 + 20 \cos(2\pi) = 100 + 20 \cdot 1 = 120$ 股。</li>
+</ul>
+<p>我们的<strong>成交量</strong><strong>时间序列</strong>就是：$\{100, 80, 100, 120\}$。这个序列的均值是100，并且围绕这个均值以振幅20、<strong>周期</strong>为4进行<strong>波动</strong>。</p>
+<p><strong>示例2：加入噪声和更复杂的趋势</strong></p>
+<p>现在让模型更真实一点。设 $T=4$, $n=1$。</p>
+<ul>
+  <li><strong>趋势项</strong>: 设为一个线性<strong>趋势</strong>，$m_t = 100 + 2t$。这表示<strong>成交量</strong>在缓慢增长。</li>
+  <li>$m_1=102, m_2=104, m_3=106, m_4=108$。</li>
+  <li><strong>周期项</strong>: 保持不变，$a_1=20, \lambda_1 = \pi/2$。</li>
+  <li><strong>噪声项</strong>: 假设我们观测到一组<strong>随机噪声</strong>：$\varepsilon_1 = 3, \varepsilon_2 = -5, \varepsilon_3 = 1, \varepsilon_4 = -2$。</li>
+</ul>
+<p>计算新的<strong>成交量</strong> $V_t$:</p>
+<ul>
+  <li>$t=1$: $V_1 = (100+2) + 20 \cos(\pi/2) + 3 = 102 + 0 + 3 = 105$ 股。</li>
+  <li>$t=2$: $V_2 = (100+4) + 20 \cos(\pi) - 5 = 104 - 20 - 5 = 79$ 股。</li>
+  <li>$t=3$: $V_3 = (100+6) + 20 \cos(3\pi/2) + 1 = 106 + 0 + 1 = 107$ 股。</li>
+  <li>$t=4$: $V_4 = (100+8) + 20 \cos(2\pi) - 2 = 108 + 20 - 2 = 126$ 股。</li>
+</ul>
+<p>现在的<strong>成交量</strong><strong>时间序列</strong>是 $\{105, 79, 107, 126\}$。它看起来更不规则，因为它同时包含了<strong>上升趋势</strong>、<strong>周期性波动</strong>和<strong>随机噪声</strong>。这更接近我们真实世界中观察到的数据。这篇论文的目标，就是从这样一个复杂的序列中，反向推断出 $m_t$, $a_j$ 和 $\lambda_j$ 是什么。</p>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>模型设定的普适性</strong>: 这个模型是一个近似。真实世界的<strong>成交量</strong>不一定“正好”是这些成分的简单线性相加。例如，<strong>波动</strong>的振幅 $a_j$ 本身可能随时间变化（即<strong>随机波动率</strong>），但在这个模型中被假设为常数。</li>
+  <li><strong>正弦 vs 余弦</strong>: 使用<strong>余弦</strong>（cos）还是<strong>正弦</strong>（sin）其实没有本质区别，因为 $\sin(x) = \cos(x - \pi/2)$。一个带有相移的<strong>余弦波</strong>和一个<strong>正弦波</strong>是等价的。包含<strong>余弦</strong>和<strong>正弦</strong>项的完整<strong>傅里叶级数</strong>可以表达任意形状的<strong>周期</strong>，但这里为了简化，只用了<strong>余弦</strong>项，这隐含地假设了<strong>周期</strong>在 $t=0$ 时刻处于峰值（或谷值），没有相位移。在实践中，这通常足够好了。</li>
+  <li><strong>频率 $\lambda_j$ 的选择</strong>: 约束 $0 &lt; \lambda_j &lt; \pi$ 是针对离散时间的。$\lambda=0$ 对应直流分量（均值或<strong>趋势</strong>），已经被 $m_t$ 捕捉。$\lambda=\pi$ 对应最高频率，即<strong>成交量</strong>在每个相邻时间点之间来回反转符号（例如 1, -1, 1, -1...）。超过 $\pi$ 的频率在离散采样下会发生“混叠”，看起来和 $\pi$ 以内的某个频率一样，所以没有必要考虑。</li>
+  <li><strong>$n$ 的选择</strong>: $n$（<strong>周期</strong>个数）的选择很关键。如果 $n$太小，模型可能无法捕捉到所有重要的<strong>周期</strong>，导致模型欠拟合。如果 $n$ 太大，模型可能把一些<strong>随机噪声</strong>也当成了<strong>周期</strong>，导致过拟合，估计结果不稳定。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本节提出了一个核心的数学模型（公式1），将复杂的日内<strong>成交量</strong><strong>时间序列</strong> ($V_t$) 分解为三个可理解的部分：一个代表宏观行为模式的<strong>非随机趋势项</strong> ($m_t$)，一个由多个不同频率的<strong>余弦波</strong>叠加而成、代表各种规律性波动的<strong>周期部分</strong> ($\sum a_j \cos(\lambda_j t)$)，以及一个代表无法预测的随机事件的<strong>白噪声项</strong> ($\varepsilon_t$)。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本节的目的是为后续的所有分析提供一个统一的理论框架和数学语言。通过建立这个模型，作者将一个模糊的“寻找<strong>成交量</strong>规律”的问题，转化为了一个精确的统计估计问题：如何从观测到的<strong>成交量</strong>数据 $V_t$ 中，估计出未知的<strong>趋势</strong> $m_t$、各个<strong>周期</strong>的<strong>强度</strong> $a_j$ 和<strong>频率</strong> $\lambda_j$。这个公式是连接<strong>金融现象</strong>和<strong>数学工具</strong>的桥梁。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你在听一首交响乐。你听到的声音 ($V_t$) 是复杂而丰富的。这个模型就像一位专业的音乐分析师告诉你：</p>
+<ol>
+  <li>这首交响乐有一个主旋律，时而高亢，时而低沉，但整体上有一个发展的脉络。这就是<strong>趋势项</strong> $m_t$。</li>
+  <li>同时，有很多乐器在演奏各自的声部。小提琴在拉一个快速的、重复的片段；大提琴在演奏一个缓慢而稳定的<strong>周期性</strong>旋律；长笛在吹奏一个中速的装饰音。这些就是不同频率 ($\lambda_j$) 和不同音量 ($a_j$) 的<strong>周期项</strong> $\cos(\lambda_j t)$。</li>
+  <li>在演奏过程中，偶尔会听到一些细微的杂音，比如观众的咳嗽声、乐手不小心碰倒谱架的声音。这些就是<strong>噪声项</strong> $\varepsilon_t$。</li>
+</ol>
+<p>你听到的总声音，就是主旋律、所有乐器的声音和杂音的叠加。这个模型就是要从复杂的总声音中，分辨出各个组成部分。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一条蜿蜒起伏的海岸线，这是我们观测到的<strong>成交量</strong>数据 $V_t$。</p>
+<ol>
+  <li><strong>趋势项 $m_t$</strong>: 就像是潮汐的长期影响。每天有两次涨潮和两次退潮，这形成了一个大的、平滑的“U”型或“W”型轮廓。这是海岸线的大体形状。</li>
+  <li><strong>周期项 $\sum a_j \cos(\lambda_j t)$</strong>: 就像是拍打在岸边的海浪。有大的、间隔很久的巨浪（低频，$\lambda$小，$a$大），也有一波接一波的、间隔很短的小浪花（高频，$\lambda$大，$a$小）。所有这些不同大小和速度的波浪叠加在一起，使得海岸线在潮汐的大轮廓上呈现出复杂的锯齿状。</li>
+  <li><strong>噪声项 $\varepsilon_t$</strong>: 就像是偶尔有一条鱼跳出水面，或者一只海鸟掠过水面，在某一个瞬间改变了水面的形状。这些是瞬时的、不可预测的、微小的扰动。</li>
+</ol>
+<p>我们看到的海岸线 $V_t$ = 潮汐轮廓 $m_t$ + 所有海浪的叠加 $\sum a_j \cos(\lambda_j t)$ + 随机的水花 $\varepsilon_t$。</p>
+    </div>
+</div><hr><h3>1.2 模型的技术假设</h3><p id="original-2"><strong style="font-size: 1.3rem;">📜 [原文2]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>我们做出以下<strong>技术假设</strong>：</p>
+<p>假设 1。<strong>趋势项</strong> $m_{t}$ 是<strong>一致有界</strong>的，即存在一个常数 $M$ 使得 $\left|m_{t}\right|&lt;M, \forall t$。</p>
+<p>假设 2。<strong>趋势项</strong> $m_{t}$ 不包含任何已被<strong>周期项</strong> $\cos \left(\lambda_{j} t\right)$ 捕捉到的<strong>周期分量</strong>，即 $\lim _{T \rightarrow \infty} \frac{1}{T} \sum_{t=1}^{T} m_{t} \cos \left(\lambda_{j} t\right)=0, j=1, \ldots, n$。</p>
+<p>假设 3。<strong>白噪声</strong> $\varepsilon_{t}$ 是<strong>独立同分布</strong>的，且随时间的<strong>均值</strong>为 0，<strong>方差</strong>为 $\sigma^{2}$。</p>
+<p>假设 2 要求 (1) 中的项 $\cos \left(\lambda_{j} t\right)$ 充分捕捉了这些<strong>频率</strong>下的所有<strong>周期模式</strong>。因此，<strong>趋势项</strong> $m_{t}$ 与 $\cos \left(\lambda_{j} t\right)$ 是<strong>正交</strong>的。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>任何数学模型都需要一些假设来保证其理论上的合理性和可解性。这些假设为模型的建立和后续的推导提供了必要的数学约束。</p>
+<ol>
+  <li><strong>假设 1</strong>: 这个假设说<strong>趋势项</strong> $m_t$ 不会增长到无穷大或跌到负无穷。它始终被限制在一个有限的范围内（由常数 $M$ 限定）。</li>
+</ol>
+<ul>
+  <li><strong>为什么需要这个假设？</strong> 在金融实践中，一个交易日内的<strong>成交量</strong>不可能是无限的，它总会有一个上限。这个假设保证了模型的数学性质良好，防止出现一些理论上的极端情况，使得后续的数学运算（如求和、求极限）能够正常进行。它是一个非常合理且符合实际的<strong>技术性假设</strong>。</li>
+</ul>
+<ol>
+  <li><strong>假设 2</strong>: 这是三个假设中最核心、最具洞察力的一个。它说<strong>趋势项</strong> $m_t$ 和所有的<strong>周期项</strong> $\cos(\lambda_j t)$ 是“<strong>正交</strong>”的。</li>
+</ol>
+<ul>
+  <li><strong>什么是“正交”？</strong> 在几何上，两条线<strong>正交</strong>意味着它们互相垂直。在信号处理和<strong>时间序列</strong>分析中，两个序列<strong>正交</strong>意味着它们在长期来看没有相关性，它们的内积（这里用长期平均的乘积来表示）为0。</li>
+  <li><strong>这个假设的含义是</strong>：我们已经把特定频率 $\lambda_j$ 的<strong>周期性</strong>完全地、干净地分离出来，放进了<strong>周期项</strong> $a_j \cos(\lambda_j t)$ 中。剩下的<strong>趋势项</strong> $m_t$ 里，不应该再含有任何与这些 $\lambda_j$ 频率相关的<strong>周期性</strong>成分了。</li>
+  <li><strong>打个比方</strong>: 如果我们正在把一篮子水果分类，假设 2 就好比说：“苹果”这个类别（对应<strong>周期项</strong>）已经把所有的苹果都拿走了，那么在“其他水果”这个篮子（对应<strong>趋势项</strong> $m_t$）里，就不应该再找到苹果了。这保证了模型分解的唯一性和清晰性，避免了“一个<strong>周期</strong>模式既被算作<strong>趋势</strong>又被算作<strong>周期</strong>”的混淆。</li>
+</ul>
+<ol>
+  <li><strong>假设 3</strong>: 这是关于<strong>噪声项</strong> $\varepsilon_t$ 的标准统计假设。</li>
+</ol>
+<ul>
+  <li><strong>独立同分布 (i.i.d.)</strong>:</li>
+  <li>“独立”意味着今天的<strong>噪声</strong>和昨天的<strong>噪声</strong>没有任何关系。一个随机扰动发生了，并不会增加或减少下一个随机扰动发生的概率。</li>
+  <li>“同分布”意味着所有这些<strong>噪声</strong>都来自同一个“<strong>噪声</strong>生成器”，它们有相同的统计特性，比如相同的<strong>概率分布</strong>。</li>
+  <li><strong>均值为0</strong>: <strong>噪声</strong>在长期来看是平均为零的。有时是正的扰动（<strong>成交量</strong>意外增加），有时是负的扰动（<strong>成交量</strong>意外减少），但平均下来它们相互抵消。这保证了<strong>噪声</strong>不会系统性地推高或拉低<strong>成交量</strong>的整体水平。</li>
+  <li><strong>方差为 $\sigma^2$</strong>: <strong>方差</strong>衡量了<strong>噪声</strong>的波动幅度。$\sigma^2$ 是一个常数，意味着<strong>噪声</strong>的波动剧烈程度是稳定的，不会随时间变化。这被称为“<strong>同方差性</strong>”。</li>
+</ul>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><strong>假设 2 的公式</strong>: $\lim _{T \rightarrow \infty} \frac{1}{T} \sum_{t=1}^{T} m_{t} \cos \left(\lambda_{j} t\right)=0, j=1, \ldots, n$</p>
+<ul>
+  <li>$\lim _{T \rightarrow \infty}$: 取极限符号，表示当<strong>时间序列</strong>的长度 $T$ 趋向于无穷大时。这考察的是一种长期的、渐近的性质。</li>
+  <li>$\frac{1}{T} \sum_{t=1}^{T}$: 这是计算时间平均值的操作。</li>
+  <li>$m_{t} \cos \left(\lambda_{j} t\right)$: 在每个时间点 $t$，将<strong>趋势项</strong>的值与第 $j$ 个<strong>周期分量</strong>的<strong>余弦函数</strong>值相乘。</li>
+  <li>整个表达式的含义是：<strong>趋势项序列</strong> $\{m_t\}$ 与任何一个<strong>周期基函数序列</strong> $\{\cos(\lambda_j t)\}$ 的长期<strong>样本协方差</strong>为0。这正是“<strong>正交</strong>”的数学定义。如果两个序列是<strong>正交</strong>的，那么我们可以把它们看作是描述数据不同维度的“基”，互不干扰。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>示例1：验证假设2 (正交性)</strong></p>
+<p>让我们构建一个满足假设2的<strong>趋势项</strong>和一个<strong>周期项</strong>。</p>
+<ul>
+  <li>设<strong>周期项</strong>为 $\cos(\pi t)$，其<strong>频率</strong> $\lambda = \pi$。这个序列在 $t=1,2,3,4$ 上的值是 $\{-1, 1, -1, 1\}$。</li>
+  <li>设<strong>趋势项</strong> $m_t$ 为一个简单的线性<strong>趋势</strong> $m_t = t$。在 $t=1,2,3,4$ 上的值是 $\{1, 2, 3, 4\}$。</li>
+</ul>
+<p>我们来计算它们的“内积”（这里用有限样本的和来近似）：</p>
+<p>$\sum_{t=1}^{4} m_{t} \cos (\pi t) = (1 \times -1) + (2 \times 1) + (3 \times -1) + (4 \times 1) = -1 + 2 - 3 + 4 = 2$。</p>
+<p>平均值为 $2/4=0.5$。这在有限样本下不为0。</p>
+<p>但是，让我们看看一个更符合“<strong>趋势</strong>”定义的 $m_t$。一个好的<strong>去趋势</strong>方法（比如移动平均）通常会产生一个非常平滑的 $m_t$。假设 $m_t$ 是一个常数 $m_t = C$。</p>
+<p>$\frac{1}{T} \sum_{t=1}^{T} C \cos(\lambda_j t) = C \cdot \frac{1}{T} \sum_{t=1}^{T} \cos(\lambda_j t)$。</p>
+<p>当 $T \to \infty$ 且 $\lambda_j \neq 0$ 时，一个完整的<strong>余弦函数</strong>在很多个<strong>周期</strong>上的平均值趋近于0。因此，常数<strong>趋势</strong>是与<strong>周期项</strong>正交的。</p>
+<p>再看一个更复杂的<strong>趋势</strong>，比如 $m_t$ 是一个<strong>U型</strong>。假设它在对称的区间上是偶函数。而 $\cos(\lambda_j t)$ 也是偶函数。那么它们的乘积也是偶函数。这并不能保证积分为0。</p>
+<p>这个假设的关键在于，我们在估计 $m_t$ 时，所用的方法（比如移动平均）会自动地“滤掉”高频的<strong>波动</strong>。因此，估计出的 $\hat{m}_t$ 天然地与高频的 $\cos(\lambda_j t)$ 近似<strong>正交</strong>。这是一个理论上的要求，指导我们选择合适的<strong>趋势</strong>估计方法。</p>
+<p><strong>示例2：理解假设3 (白噪声)</strong></p>
+<p>想象我们有一枚公平的硬币，我们连续抛掷它。</p>
+<ul>
+  <li>正面记为 +1，反面记为 -1。这个序列就是我们的 $\varepsilon_t$。</li>
+  <li><strong>独立</strong>: 每次抛硬币的结果都与上一次无关。</li>
+  <li><strong>同分布</strong>: 每次抛硬币，出现正面和反面的概率都是1/2。</li>
+  <li><strong>均值为0</strong>: $E[\varepsilon_t] = (+1) \times 0.5 + (-1) \times 0.5 = 0$。</li>
+  <li><strong>方差为常数</strong>: $Var(\varepsilon_t) = E[\varepsilon_t^2] - (E[\varepsilon_t])^2 = ((+1)^2 \times 0.5 + (-1)^2 \times 0.5) - 0^2 = 1$。</li>
+</ul>
+<p>这就是一个典型的<strong>白噪声</strong>过程。它代表了纯粹的、不可预测的随机性。</p>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>假设的检验</strong>: 在实际应用中，这些假设是否成立需要被检验。例如，在估计出模型后，我们可以对<strong>残差项</strong> $\hat{\varepsilon}_t$ 进行检验，看它是否真的像<strong>白噪声</strong>（例如，使用Ljung-Box检验来检查其自相关性）。如果<strong>残差</strong>中仍有明显的<strong>周期</strong>或<strong>趋势</strong>，说明我们的模型（比如 $n$ 的选择或 $m_t$ 的估计方法）不充分。</li>
+  <li><strong>异方差性</strong>: 假设3中的“<strong>方差</strong>为常数 $\sigma^2$”是一个很强的假设。在金融市场中，<strong>波动性</strong>（即<strong>方差</strong>）常常是聚集的：大的波动之后倾向于跟随大的波动，小的波动之后倾向于跟随小的波动。这被称为<strong>异方差性</strong>（ARCH或GARCH效应）。这个模型为了简化，忽略了这一点。这意味着该模型主要关注<strong>成交量</strong>的均值结构，而不是其<strong>波动</strong>结构。</li>
+  <li><strong>正交性的实现</strong>: 假设2的<strong>正交性</strong>在理论上是清晰的，但在有限的样本和实际的估计中，只能做到近似<strong>正交</strong>。我们后面会看到，通过<strong>移动平均法</strong>来估计<strong>趋势</strong>，实际上是一种低通滤波器，它会移除高频成分，从而使得估计出的<strong>趋势</strong>与高频的<strong>周期项</strong>近似<strong>正交</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这三个<strong>技术假设</strong>为模型的数学处理铺平了道路。假设1保证了模型的稳定性；假设2通过<strong>正交性</strong>确保了<strong>趋势</strong>和<strong>周期</strong>的干净分离，使模型各部分的解释变得清晰；假设3对<strong>噪声</strong>项做了标准化的统计设定（<strong>独立</strong>、<strong>同分布</strong>、<strong>零均值</strong>、<strong>恒定方差</strong>），使得统计推断成为可能。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这些假设是数学模型与现实世界之间的“契约”。它们简化了现实，使得强大的数学工具可以被用来分析问题。没有这些假设，后续的定理证明和参数估计将变得极其困难甚至不可能。它们是进行严谨的<strong>谱分析</strong>所必需的理论前提。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>回到交响乐的比喻：</p>
+<ol>
+  <li><strong>假设 1 (有界)</strong>: 音乐的音量不会大到震破耳膜，也不会小到完全听不见。它总在一个合理的范围内。</li>
+  <li><strong>假设 2 (正交)</strong>: 我们分辨出的主旋律 ($m_t$)，不应该再包含小提琴的特定重复片段 ($\cos(\lambda_j t)$)。如果主旋律里还能听出小提琴的调子，说明我们的分辨工作没做好，主旋律和乐器声部混在一起了。</li>
+  <li><strong>假设 3 (白噪声)</strong>: 观众的咳嗽声 ($\varepsilon_t$) 是随机发生的，这次咳嗽和下次咳嗽没关系（<strong>独立</strong>），咳嗽的响度分布也差不多（<strong>同分布</strong>），平均来看不会让音乐变得更响或更轻（<strong>零均值</strong>），也不会越来越响或越来越轻（<strong>恒定方差</strong>）。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>回到海岸线的比喻：</p>
+<ol>
+  <li><strong>假设 1 (有界)</strong>: 潮汐再高也不会淹没整个大陆，再低也不会让海床完全干涸。海平面总是在一个有限的高度区间内变化。</li>
+  <li><strong>假设 2 (正交)</strong>: 我们画出的潮汐大轮廓 ($m_t$) 应该是平滑的，不应该本身就包含快速的、小规模的波浪起伏。所有波浪 ($\cos(\lambda_j t)$) 都应该被视为叠加在潮汐轮廓之上的独立现象。</li>
+  <li><strong>假设 3 (白噪声)</strong>: 随机跳出水面的鱼 ($\varepsilon_t$) 是独立事件，每次跳起的高度和力度都服从同一个随机规律，它们只是在海浪线上增加了一些不可预测的、平均为零的小水花。</li>
+</ol>
+    </div>
+</div><hr><h3>1.3 模型各组成部分的解释</h3><p id="original-3"><strong style="font-size: 1.3rem;">📜 [原文3]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>等式 (1) 将<strong>成交量</strong><strong>时间序列</strong>表示为三个部分的<strong>线性组合</strong>。第一个<strong>趋势项</strong>捕捉了众所周知的日内 <strong>U 型</strong>（或 <strong>W 型</strong>）<strong>成交量</strong>。第二部分包含 $n$ 个具有<strong>余弦基函数</strong>的<strong>周期项</strong>，它们代表了我们在第 2 节中观察到的、由不同<strong>频率</strong>驱动的<strong>周期性波动</strong>。它们的<strong>系数</strong> $a_{j}$ 代表了相应<strong>频率</strong>的<strong>强度</strong>。$a_{j}$ 的绝对值越高，代表第 $j$ 个分量的<strong>周期性</strong>越强。最后一部分是一个<strong>特异性噪声项</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这段话是对公式(1)的文字性总结和重申，强调了每个部分的金融学含义。</p>
+<ol>
+  <li><strong>线性组合</strong>: 模型是“<strong>线性</strong>的”，因为总<strong>成交量</strong> $V_t$ 是三个部分直接相加得到的。这是一种最简单、最直接的组合方式。如果模型是<strong>非线性</strong>的（例如，$V_t = m_t \times (\sum a_j \cos(\lambda_j t)) + \varepsilon_t$），分析会复杂得多。</li>
+  <li><strong>第一部分：趋势项 ($m_t$)</strong>:</li>
+</ol>
+<ul>
+  <li>这里明确指出了 $m_t$ 的实际形态：<strong>U型</strong> 或 <strong>W型</strong>。</li>
+  <li><strong>U型</strong>: 在美国等西方市场常见。开盘时（上午）交易活跃，大量信息被消化，<strong>成交量</strong>高；盘中（中午）交易清淡，<strong>成交量</strong>低；临近收盘时，基金经理调仓、日内交易者平仓等导致交易再次活跃，<strong>成交量</strong>高。连接起来就像一个字母“U”。</li>
+  <li><strong>W型</strong>: 在中国A股等市场常见。除了开盘和收盘的两个高峰，上午10:30-11:00左右还有一个小高峰，下午的交易相对平缓，形成了类似“W”的形状（或者说是一个双U型）。</li>
+  <li>这个<strong>趋势项</strong>捕捉的是一天之内确定性的、由市场结构和交易者习惯决定的宏观模式。</li>
+</ul>
+<ol>
+  <li><strong>第二部分：周期项 ($\sum a_j \cos(\lambda_j t)$)</strong>:</li>
+</ol>
+<ul>
+  <li>这部分被描述为由<strong>余弦基函数</strong>构成的 $n$ 个项。这里的“基函数”可以理解为搭建复杂<strong>波动</strong>的“积木”，每个 $\cos(\lambda_j t)$ 就是一块形状独特的积木。</li>
+  <li>它捕捉的是比日内U型<strong>趋势</strong>更“高频”的<strong>波动</strong>。论文的第2节（未在此处提供）应该通过<strong>谱分析</strong>等经验性证据，展示了<strong>成交量</strong>数据中存在着除了U型之外的、更快的<strong>周期性</strong>，比如5分钟、10分钟、30分钟的<strong>周期</strong>。</li>
+  <li><strong>$a_j$ 的解释</strong>: 这里再次强调了 $a_j$ 的重要性。它不是<strong>频率</strong>，而是<strong>强度</strong>。$a_j$ 的绝对值 $|a_j|$ 越大，说明<strong>频率</strong>为 $\lambda_j$ 的那种<strong>周期性波动</strong>在总的<strong>成交量</strong>变化中就越“响亮”、越“显著”。</li>
+</ul>
+<ol>
+  <li><strong>第三部分：特异性噪声项 ($\varepsilon_t$)</strong>:</li>
+</ol>
+<ul>
+  <li>这里用了“<strong>特异性</strong>”（idiosyncratic）这个词，强调这种<strong>噪声</strong>是特定于某个时间点 $t$ 的、与其它时间点无关的随机事件。它是<strong>成交量</strong>中那些“一次性”的、无法用系统性<strong>趋势</strong>或<strong>周期</strong>来解释的剩余部分。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p>假设我们正在分析某股票的3秒<strong>成交量</strong>数据。</p>
+<ul>
+  <li><strong>趋势项 $m_t$</strong>: 软件画出了一个平滑的U型曲线，这是当天开盘、盘中、收盘的宏观交易模式。比如开盘时 $m_t$ 在5000手，盘中下降到1000手，收盘前回升到6000手。</li>
+  <li><strong>周期项</strong>: 我们发现数据中有两种显著的<strong>周期</strong>。</li>
+  <li><strong>周期1</strong>: 每30分钟（即600个时间点）出现一个交易小高峰。这对应一个特定的<strong>频率</strong> $\lambda_1$，我们发现它的<strong>强度</strong> $a_1 = 500$ 手。这意味着有一个振幅为500手的、每30分钟重复的<strong>波动</strong>。</li>
+  <li><strong>周期2</strong>: 每5分钟（即100个时间点）有一个更微弱的<strong>波动</strong>。这对应<strong>频率</strong> $\lambda_2$，其<strong>强度</strong> $a_2 = 100$ 手。</li>
+  <li>总的<strong>周期项</strong>就是 $500\cos(\lambda_1 t) + 100\cos(\lambda_2 t) + \dots$ (可能还有其它更弱的<strong>周期</strong>)。</li>
+  <li><strong>噪声项 $\varepsilon_t$</strong>: 在上午10:15:03，一个大单突然成交，使得该3秒的<strong>成交量</strong>瞬间比模型预测值高了800手，那么 $\varepsilon_t$ 在那一刻的值就约等于+800。而在下一个3秒，可能又因为交易稀少而出现一个-300的负向扰动。</li>
+</ul>
+<p>最终在10:15:03这一刻的<strong>成交量</strong> $V_t$ 就是 (U型<strong>趋势</strong>在那一点的值) + (30分钟<strong>周期</strong>在那一点的值) + (5分钟<strong>周期</strong>在那一点的值) + ... + 800。</p>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>U型/W型的非普适性</strong>: 虽然U型/W型很常见，但不是所有股票、所有交易日都严格遵循。比如某天有重大新闻发布，可能在盘中引发巨大的<strong>成交量</strong>，完全打破U型。$m_t$ 应该被看作是“平均”或“典型”的形状。</li>
+  <li><strong>$a_j$ 的符号</strong>: $a_j$ 的正负号决定了<strong>周期</strong>的初始相位。但由于我们通常更关心<strong>周期</strong>的“能量”或“<strong>强度</strong>”，所以后续分析的重点会放在 $a_j^2$ 上，这样符号就不重要了。$a_j^2$ 直接与<strong>波动</strong>的能量成正比。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本段用更具金融学直觉的语言，再次诠释了模型（公式1）的三个组成部分：代表市场常规作息的<strong>U/W型趋势</strong>，代表各种交易策略和信息流引发的<strong>高频周期性波动</strong>，以及代表<strong>随机</strong>个体行为和新闻冲击的<strong>特异性噪声</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本段的目的是将抽象的数学符号与具体的<strong>金融市场</strong>现象联系起来，增强模型的可解释性和说服力。它告诉读者，这个模型不仅仅是一个数学游戏，它的每一个部分都对应着真实世界中一种可识别的经济或行为模式。这对于连接理论和实证至关重要。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你在分析一个城市一天的交通流量 $V_t$。</p>
+<ol>
+  <li><strong>趋势项 $m_t$</strong>: 这是早晚高峰的模式。早上7-9点进城方向车流量巨大，中午平缓，下午5-7点出城方向车流量巨大。这是一个巨大的、可预测的“双峰”<strong>趋势</strong>。</li>
+  <li><strong>周期项 $\sum a_j \cos(\lambda_j t)$</strong>: 这可能是由公共交通系统引起的。比如每10分钟有一班地铁到站，会带来一小波人流和车流高峰（高频<strong>周期</strong>）。每1小时有一班城际列车到站，会带来一个更大的<strong>周期性</strong>高峰（低频<strong>周期</strong>）。$a_j$ 就是每种<strong>周期性</strong>交通工具带来的流量大小。</li>
+  <li><strong>噪声项 $\varepsilon_t$</strong>: 某条路上发生了轻微的交通事故，导致短时间拥堵，或者某个路口红绿灯临时故障，这些都是<strong>特异性</strong>的、<strong>随机</strong>的扰动。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你在看一个人的心电图 ($V_t$)。</p>
+<ol>
+  <li><strong>趋势项 $m_t$</strong>: 这个人从静坐状态 ($m_t$较低) 开始缓慢起身散步，然后开始慢跑 ($m_t$逐渐升高)，心率有了一个总体的上升<strong>趋势</strong>。</li>
+  <li><strong>周期项 $\sum a_j \cos(\lambda_j t)$</strong>: 人的心跳本身就是最主要的<strong>周期项</strong>，比如每秒1-2次（高频）。呼吸也会引起心率的微小<strong>周期性</strong>变化（较低频）。这些是叠加在总体心率水平之上的规律<strong>波动</strong>。</li>
+  <li><strong>噪声项 $\varepsilon_t$</strong>: 这个人突然被吓了一跳，心跳瞬间漏了一拍或者加速了一下，这就是一个<strong>噪声</strong>事件。</li>
+</ol>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-2">
+    <h2><span class="section-number">2</span>2 揭示与量化周期性</h2>
+    <h3>2.1 通过自协方差函数揭示周期性</h3><p id="original-4"><strong style="font-size: 1.3rem;">📜 [原文4]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>为了根据 (1) 从我们的<strong>交易成交量</strong><strong>时间序列</strong>中揭示<strong>周期性</strong>，我们首先为三个过程 $p_{t} \in\left\{V_{t}, m_{t}, X_{t}\right\}$ 中的任何一个定义<strong>样本自协方差函数</strong>：</p>
+<p><div class="math-block">$$
+\begin{equation*}
+\gamma_{T}^{p}(h):=\frac{1}{T-h} \sum_{t=1}^{T-h}\left(p_{t}-\bar{p} .\right)\left(p_{t+h}-\bar{p} .\right) \tag{2}
+\end{equation*}
+$$</div></p>
+<p>其中 $\bar{p} .:=\frac{1}{T} \sum_{t=1}^{T} p_{t}$ 是<strong>时间平均值</strong>，$h$ 代表一个特定的<strong>滞后</strong>。我们的设定 (1) 意味着<strong>成交量</strong><strong>时间序列</strong>中的<strong>随机性</strong>来自<strong>特异性噪声</strong> $\varepsilon_{t}$。然而，作为一个<strong>时间序列</strong>，$V_{t}$（以及 $X_{t}$）的<strong>变异性</strong>也来自<strong>周期项</strong> $\cos \left(\lambda_{j} t\right)$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这一节开始进入技术核心：我们如何从数据中实际地“看到”并测量那些看不见的<strong>周期</strong>？答案是使用一个叫做“<strong>自协方差函数</strong>”的工具。</p>
+<ol>
+  <li><strong>目标</strong>: 我们想要揭示和量化模型(1)中 $\sum a_j \cos(\lambda_j t)$ 这部分。也就是说，我们想知道存在哪些<strong>周期</strong>（$\lambda_j$是什么），以及这些<strong>周期</strong>有多强（$a_j$是什么）。</li>
+  <li><strong>工具介绍</strong>: 作者引入了<strong>样本自协方差函数</strong>，记为 $\gamma_T^p(h)$。</li>
+</ol>
+<ul>
+  <li>这个函数是用来衡量一个<strong>时间序列</strong>“自己和自己”的相关性的。</li>
+  <li>$p_t$ 可以是我们关心的任何一个序列：原始<strong>成交量</strong> $V_t$，<strong>趋势</strong> $m_t$，或者<strong>去趋势</strong>后的序列 $X_t$。</li>
+  <li>$h$ 被称为“<strong>滞后</strong>”(lag)。它是一个时间差。</li>
+  <li>$\gamma_T^p(h)$ 回答的问题是：一个序列在 $t$ 时刻的取值，和它在 $h$ 个时间单位之后（即 $t+h$ 时刻）的取值，有多大的关联度？</li>
+</ul>
+<ol>
+  <li><strong>公式的直观理解</strong>:</li>
+</ol>
+<ul>
+  <li>$(p_t - \bar{p})$: 序列在 $t$ 时刻的值与平均值的偏差。</li>
+  <li>$(p_{t+h} - \bar{p})$: 序列在 $t+h$ 时刻的值与平均值的偏差。</li>
+  <li>$(p_t - \bar{p})(p_{t+h} - \bar{p})$: 将这两个偏差相乘。</li>
+  <li>如果序列在 $t$ 和 $t+h$ 时刻都倾向于高于平均值（两个偏差都为正），或者都倾向于低于平均值（两个偏差都为负），那么乘积就是正的。</li>
+  <li>如果一个高于平均值，一个低于平均值，乘积就是负的。</li>
+  <li>$\frac{1}{T-h}\sum_{t=1}^{T-h}(\dots)$: 把所有可能的 $(t, t+h)$ 对的偏差乘积加起来，再取一个平均。</li>
+  <li>所以，如果 $\gamma_T^p(h)$ 是一个大的正数，说明序列有“<strong>惯性</strong>”：当前值高，那么 $h$ 步之后的值也很可能高。如果它是一个大的负数，说明序列有“<strong>反转</strong>”性：当前值高，那么 $h$ 步之后的值倾向于变低。如果它接近0，说明两者没什么关系。</li>
+</ul>
+<ol>
+  <li><strong>与周期性的关系</strong>:</li>
+</ol>
+<ul>
+  <li><strong>关键洞察</strong>: 如果一个序列有很强的<strong>周期性</strong>，比如<strong>周期</strong>是 $P$，那么它在 $t$ 时刻的状态和在 $t+P$ 时刻的状态会非常相似。因此，它的<strong>自协方差函数</strong>在<strong>滞后</strong> $h=P$ 的时候，应该会有一个峰值。同样，在 $h=2P, 3P, \dots$ 时也会有峰值。</li>
+  <li>通过计算并画出 $\gamma_T^p(h)$ 关于不同 $h$ 的图像（这个图像被称为<strong>相关图</strong> an correlogram），我们就可以从峰值出现的位置，发现序列中隐藏的<strong>周期</strong>。</li>
+</ul>
+<ol>
+  <li><strong>变异性的来源</strong>:</li>
+</ol>
+<ul>
+  <li>文章最后指出，$V_t$ 和 $X_t$ 的“<strong>变异性</strong>”（variability，即上下波动的程度）有两个来源：</li>
+  <li>真正的<strong>随机性</strong>: 来自<strong>白噪声</strong> $\varepsilon_t$。</li>
+  <li>伪<strong>随机性</strong>: 来自<strong>周期项</strong> $\sum a_j \cos(\lambda_j t)$。一个<strong>余弦函数</strong>本身是确定性的、可预测的，但很多个不同频率的<strong>余弦波</strong>叠加在一起，看起来就像是随机波动一样。</li>
+  <li><strong>自协方差函数</strong>这个工具的强大之处在于，它能帮助我们区分这两种“<strong>变异性</strong>”，并从后者中提取出关于<strong>周期</strong>的信息。</li>
+</ul>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p>公式 (2): $\gamma_{T}^{p}(h):=\frac{1}{T-h} \sum_{t=1}^{T-h}\left(p_{t}-\bar{p} .\right)\left(p_{t+h}-\bar{p} .\right)$</p>
+<ul>
+  <li>$\gamma_{T}^{p}(h)$: <strong>样本自协方差函数</strong> (sample autocovariance function)。</li>
+  <li>上标 $p$ 指明这是关于序列 $p_t$ 的函数。</li>
+  <li>下标 $T$ 表示这是基于长度为 $T$ 的样本计算出来的估计值。</li>
+  <li>括号里的 $h$ 是变量，代表<strong>滞后</strong>长度。</li>
+  <li>$h$: <strong>滞后</strong> (lag)，一个非负整数。$h=0, 1, 2, \ldots$。</li>
+  <li>$p_t$: 我们正在分析的<strong>时间序列</strong> ($V_t$, $m_t$ 或 $X_t$)。</li>
+  <li>$\bar{p}.$: 序列 $p_t$ 的<strong>样本均值</strong> (sample mean)，$\bar{p} .:=\frac{1}{T} \sum_{t=1}^{T} p_{t}$。</li>
+  <li>$T-h$: 求和的项数。因为当 $t$ 取到最大值 $T-h$ 时，$t+h$ 正好是 $T$，这是我们能取到的最后一对数据。所以共有 $T-h$ 对 $(p_t, p_{t+h})$。分母是 $T-h$ 是为了做平均。在一些定义中，分母也可能用 $T$，这在 $T$ 很大时差别不大。</li>
+</ul>
+<p><strong>特殊情况</strong>:</p>
+<ul>
+  <li>当 $h=0$ 时，公式(2)变成：</li>
+</ul>
+<p>$\gamma_{T}^{p}(0) = \frac{1}{T} \sum_{t=1}^{T}\left(p_{t}-\bar{p} .\right)\left(p_{t}-\bar{p} .\right) = \frac{1}{T} \sum_{t=1}^{T}\left(p_{t}-\bar{p} .\right)^2$</p>
+<p>这正是序列 $p_t$ 的<strong>样本方差</strong> (sample variance)！所以，<strong>自协方差函数</strong>在<strong>滞后</strong>为0时，衡量的就是序列自身的<strong>方差</strong>，即其<strong>波动</strong>的总能量。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>示例1：计算一个简单序列的自协方差</strong></p>
+<p>回到我们之前的无<strong>噪声</strong>周期序列：$p_t = \{100, 80, 100, 120\}$。这里 $T=4$。</p>
+<ol>
+  <li><strong>计算均值</strong>:</li>
+</ol>
+<p>$\bar{p} = (100+80+100+120) / 4 = 400 / 4 = 100$。</p>
+<ol>
+  <li><strong>计算 $\gamma(0)$ (方差)</strong>:</li>
+</ol>
+<p>$p_t - \bar{p}$ 序列为 $\{0, -20, 0, 20\}$。</p>
+<p>$\gamma(0) = \frac{1}{4} [(0)^2 + (-20)^2 + (0)^2 + (20)^2] = \frac{1}{4}[0 + 400 + 0 + 400] = \frac{800}{4} = 200$。</p>
+<ol>
+  <li><strong>计算 $\gamma(1)$ (滞后1的自协方差)</strong>:</li>
+</ol>
+<p>我们需要计算 $(p_t - \bar{p})(p_{t+1}-\bar{p})$ 的和。</p>
+<ul>
+  <li>$t=1$: $(p_1-\bar{p})(p_2-\bar{p}) = (0)(-20) = 0$。</li>
+  <li>$t=2$: $(p_2-\bar{p})(p_3-\bar{p}) = (-20)(0) = 0$。</li>
+  <li>$t=3$: $(p_3-\bar{p})(p_4-\bar{p}) = (0)(20) = 0$。</li>
+</ul>
+<p>$\gamma(1) = \frac{1}{4-1} [0+0+0] = 0$。</p>
+<ol>
+  <li><strong>计算 $\gamma(2)$ (滞后2的自协方差)</strong>:</li>
+</ol>
+<p>我们需要计算 $(p_t - \bar{p})(p_{t+2}-\bar{p})$ 的和。</p>
+<ul>
+  <li>$t=1$: $(p_1-\bar{p})(p_3-\bar{p}) = (0)(0) = 0$。</li>
+  <li>$t=2$: $(p_2-\bar{p})(p_4-\bar{p}) = (-20)(20) = -400$。</li>
+</ul>
+<p>$\gamma(2) = \frac{1}{4-2} [0 + (-400)] = -200$。</p>
+<ol>
+  <li><strong>计算 $\gamma(3)$ (滞后3的自协方差)</strong>:</li>
+</ol>
+<ul>
+  <li>$t=1$: $(p_1-\bar{p})(p_4-\bar{p}) = (0)(20) = 0$。</li>
+</ul>
+<p>$\gamma(3) = \frac{1}{4-3} [0] = 0$。</p>
+<p><strong>结果分析</strong>: 我们的<strong>自协方差</strong>序列是 $\{ \gamma(0)=200, \gamma(1)=0, \gamma(2)=-200, \gamma(3)=0, \dots \}$。</p>
+<ul>
+  <li>$\gamma(2)$ 是一个很大的负值。这说明序列在间隔2个时间点后，倾向于反转。回顾我们的序列 $\{100, 80, 100, 120\}$，100之后隔2位是100（偏差0-&gt;0），80之后隔2位是120（偏差-20 -&gt; +20），负相关性很强！</li>
+  <li>这个序列的<strong>周期</strong>是4。我们看到 $\gamma(4)$ 如果能算的话，应该会等于 $\gamma(0)=200$（因为序列完美重复）。$\gamma(2)$ 处的谷值，恰好是半个<strong>周期</strong>的位置。</li>
+  <li>这个简单的例子展示了，<strong>自协方差函数</strong>的形状确实能反映序列的<strong>周期</strong>结构。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>样本量问题</strong>: 公式(2)是用有限样本 $T$ 来估计理论上的<strong>自协方差</strong>。当 $h$ 变得接近 $T$ 时，分母 $T-h$ 会很小，求和的项数也变得很少，这会导致估计结果 $\gamma_T^p(h)$ 非常不稳定，方差很大。因此，在实践中，我们通常只计算和信任 $h$ 远小于 $T$（例如 $h &lt; T/4$）时的<strong>自协方差</strong>。</li>
+  <li><strong>平稳性假设</strong>: <strong>自协方差函数</strong>的经典理论是建立在“<strong>弱平稳</strong>”<strong>时间序列</strong>上的。<strong>平稳序列</strong>意味着其均值、方差和<strong>自协方差</strong>不随时间变化。我们的 $V_t$ 因为有<strong>趋势项</strong> $m_t$（U型），所以它的均值是随时间 $t$ 变化的，它是一个<strong>非平稳序列</strong>。直接对 $V_t$ 计算<strong>自协方差</strong>会产生误导性的结果。这就是为什么作者在引出关键的定理1之前，强调要分析的是<strong>去趋势</strong>后的序列 $X_t = V_t - m_t$。$X_t$ 在模型设定下更接近于一个<strong>平稳序列</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本节引入了核心分析工具——<strong>样本自协方差函数</strong> $\gamma_T^p(h)$。它通过计算一个序列与其自身在不同<strong>时间滞后</strong> $h$ 下的相关性，来揭示序列内部的依赖结构。对于<strong>周期性</strong>序列，其<strong>自协方差函数</strong>也会呈现出相应的<strong>周期性</strong>，这为我们从数据中“钓出”<strong>周期</strong>信息提供了可能。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本节的目的是搭建从“模型设定”到“模型估计”的桥梁。我们有了模型（公式1），但不知道里面的参数（$a_j, \lambda_j$）是什么。本节说，我们可以先计算一个中间量——<strong>自协方差函数</strong> $\gamma_T^X(h)$，下一步（定理1）将告诉我们，这个中间量与我们最终想要的参数 $a_j$ 之间存在着美妙的数学关系。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你有一长段录音带，记录了某段音乐。你想知道这段音乐有没有重复的旋律。</p>
+<ol>
+  <li>你把录音带复制一份。</li>
+  <li>你把复制的录音带相对于原版，向后移动（<strong>滞后</strong>）一段距离 $h$。</li>
+  <li>然后你同时播放两条录音带，听听它们在多大程度上是和谐的（正相关）还是不和谐的（负相关）。这个“和谐度”就是 $\gamma(h)$。</li>
+  <li>你不断改变移动的距离 $h$，从很短的距离到很长的距离。</li>
+  <li>如果你发现在移动了 $h=30$ 秒时，两段音乐听起来惊人地合拍、一致，那么你就找到了一个30秒的<strong>周期</strong>！此时的 $\gamma(30)$ 会是一个峰值。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一条长长的壁纸，上面印着重复的图案。<strong>自协方差函数</strong>就像一个“图案匹配器”。</p>
+<ol>
+  <li>你把壁纸裁成两半，上下叠放。</li>
+  <li>你水平移动下半张壁纸（<strong>滞后</strong> $h$）。</li>
+  <li>在每个移动位置 $h$，你都比较一下上下两张壁纸的图案在多大程度上能够重合。重合度就是 $\gamma(h)$。</li>
+  <li>当移动的距离 $h$ 正好等于一个完整图案的宽度时，你会发现上下两张壁纸完美重合，此时“重合度”$\gamma(h)$ 达到最大值。通过找到让 $\gamma(h)$ 最大的那个 $h$，你就测量出了壁纸图案的<strong>周期</strong>。</li>
+</ol>
+    </div>
+</div><hr><h3>2.2 自协方差与周期强度的关系 (定理1)</h3><p id="original-5"><strong style="font-size: 1.3rem;">📜 [原文5]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>以下定理将<strong>自协方差函数</strong> (2) 与 (1) 中的<strong>周期项</strong>联系起来。</p>
+<p>定理 1。在假设 1.3 下，当 $T \rightarrow \infty$ 时，<strong>去趋势成交量</strong><strong>时间序列</strong> $X_{t}$ 的<strong>自协方差函数</strong> $\gamma_{T}^{X}(h)$ <strong>几乎确定地</strong>收敛如下：</p>
+<p><div class="math-block">$$
+\begin{equation*}
+\gamma_{T}^{X}(h) \xrightarrow{\text { a.s. }} \frac{1}{2} \sum_{j=1}^{n} a_{j}^{2} \cos \left(\lambda_{j} h\right)+\mathbf{1}_{h=0} \sigma^{2} \tag{3}
+\end{equation*}
+$$</div></p>
+<p>我们在附录 A 中提供证明。等式 (3) 将<strong>自协方差函数</strong>与每个<strong>周期项</strong>的<strong>强度</strong> $a_{j}^{2}$ 联系起来。这一结果提供了一种方法，一旦我们收集了足够的样本来估计<strong>自协方差函数</strong> $\gamma_{T}^{X}(h)$，就可以估计 $a_{j}$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是论文的第一个关键理论结果，它精确地揭示了我们计算出的<strong>自协方差函数</strong> $\gamma_T^X(h)$ 和我们想要求的<strong>周期强度</strong> $a_j$ 之间的数学关系。</p>
+<ol>
+  <li><strong>主角</strong>: 这个定理关注的是<strong>去趋势</strong>后的序列 $X_t = \sum a_j \cos(\lambda_j t) + \varepsilon_t$ 的<strong>自协方差</strong> $\gamma_T^X(h)$。为什么是 $X_t$ 而不是 $V_t$? 因为我们已经通过假设2，把<strong>趋势</strong> $m_t$ 和<strong>周期项</strong>分开了。<strong>趋势</strong>会干扰我们对<strong>周期</strong>的分析，所以我们先把它“扔掉”。</li>
+  <li><strong>前提条件</strong>: 这个定理成立需要前面的假设1-3。这些假设保证了数学推导的严谨性。</li>
+  <li><strong>核心结论 (公式3)</strong>: 当我们的数据量足够大时 ($T \to \infty$)，我们从数据中计算出的<strong>样本自协方差</strong> $\gamma_T^X(h)$ 会收敛到一个确定的理论形式。这个理论形式由两部分组成：</li>
+</ol>
+<ul>
+  <li><strong>第一部分</strong>: $\frac{1}{2} \sum_{j=1}^{n} a_{j}^{2} \cos \left(\lambda_{j} h\right)$。</li>
+  <li>这是一个关于<strong>滞后</strong> $h$ 的函数。</li>
+  <li>它本身也是一个由多个<strong>余弦波</strong>构成的和！</li>
+  <li>但请注意，这里的<strong>余弦波</strong>是 $\cos(\lambda_j h)$，变量是<strong>滞后</strong> $h$，而不是时间 $t$。</li>
+  <li>每个<strong>余弦波</strong>的<strong>频率</strong> $\lambda_j$ 与原始序列 $X_t$ 中的<strong>频率</strong>完全相同。</li>
+  <li>最关键的是，每个<strong>余弦波</strong>的<strong>振幅</strong>现在是 $\frac{1}{2}a_j^2$。它正比于原始<strong>周期项</strong>强度 $a_j$ 的平方！</li>
+  <li><strong>第二部分</strong>: $\mathbf{1}_{h=0} \sigma^{2}$。</li>
+  <li>$\mathbf{1}_{h=0}$ 是一个指示函数。当 $h=0$ 时，它的值为1；当 $h \neq 0$ 时，它的值为0。</li>
+  <li>$\sigma^2$ 是<strong>白噪声</strong> $\varepsilon_t$ 的<strong>方差</strong>。</li>
+  <li>所以，这部分的意思是：只有在<strong>滞后</strong>为0的情况下，<strong>自协方差</strong>中才包含<strong>噪声</strong>的<strong>方差</strong>。当<strong>滞后</strong> $h &gt; 0$ 时，<strong>噪声</strong>项的贡献是0。这是因为根据假设3，<strong>白噪声</strong>是<strong>独立</strong>的，$\varepsilon_t$ 和 $\varepsilon_{t+h}$ 之间没有相关性，所以它们的<strong>协方差</strong>为0。</li>
+</ul>
+<ol>
+  <li><strong>定理的意义</strong>:</li>
+</ol>
+<ul>
+  <li>这个定理建立了一座神奇的桥梁。桥的一头是我们能从数据中计算的东西（左边：$\gamma_T^X(h)$），桥的另一头是我们梦寐以求的东西（右边：$a_j^2$）。</li>
+  <li>它告诉我们：<strong>去趋势序列的自协方差函数，本身就是一个频谱！</strong> 它的形状直接反映了原始序列中各个<strong>周期</strong>成分的<strong>强度</strong>。</li>
+  <li>如果原始序列 $X_t$ 在<strong>频率</strong> $\lambda_j$ 上有一个很强的<strong>周期</strong>（即 $a_j^2$ 很大），那么它的<strong>自协方差函数</strong> $\gamma^X(h)$ 作为一个关于 $h$ 的函数，在<strong>频率</strong> $\lambda_j$ 上也会有一个很强的<strong>周期</strong>。</li>
+</ul>
+<ol>
+  <li><strong>如何使用这个结果</strong>:</li>
+</ol>
+<ul>
+  <li>第一步：我们从<strong>成交量</strong>数据 $V_t$ 中估计并移除<strong>趋势</strong> $m_t$，得到<strong>去趋势</strong>序列 $\hat{X}_t$。</li>
+  <li>第二步：利用公式(2)，计算出 $\hat{X}_t$ 的<strong>样本自协方差</strong> $\hat{\gamma}^X(h)$，对于 $h=0, 1, 2, \ldots, n$。</li>
+  <li>第三步：现在我们有了一组数字 $\hat{\gamma}^X(h)$。根据定理1，我们知道这组数字约等于 $\frac{1}{2} \sum_{j=1}^{n} a_{j}^{2} \cos \left(\lambda_{j} h\right)$ （对于 $h&gt;0$）。</li>
+  <li>第四步：这是一个“反演”问题。已知多个<strong>余弦波</strong>叠加后的结果，如何求出每个<strong>余弦波</strong>的<strong>振幅</strong>（$a_j^2$）？这正是<strong>离散傅里叶变换</strong>（DFT）的拿手好戏！我们将在3.2节看到具体操作。</li>
+</ul>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p>公式 (3): $\gamma_{T}^{X}(h) \xrightarrow{\text { a.s. }} \frac{1}{2} \sum_{j=1}^{n} a_{j}^{2} \cos \left(\lambda_{j} h\right)+\mathbf{1}_{h=0} \sigma^{2}$</p>
+<ul>
+  <li>$\gamma_{T}^{X}(h)$: <strong>去趋势序列</strong> $X_t$ 的<strong>样本自协方差</strong>，是根据数据计算的，是一个<strong>随机变量</strong>。</li>
+  <li>$\xrightarrow{\text { a.s. }}$: <strong>几乎确定收敛</strong> (converges almost surely)。这是一个很强的概率收敛概念。直观上说，当样本量 $T$ 无穷大时，左边的<strong>随机量</strong>（我们算出来的东西）等于右边的<strong>确定量</strong>（理论真值）的概率为1。</li>
+  <li>$\frac{1}{2}$: 这个常数来自于对<strong>余弦函数</strong>乘积的积分/求和。具体来说，当 $T\to\infty$ 时，$\frac{1}{T}\sum_{t=1}^T \cos(\lambda_j t)\cos(\lambda_k t)$ 在 $j=k$ 时等于 $1/2$，在 $j \neq k$ 时等于 $0$ （如果 $\lambda_j$ 选择得当）。</li>
+  <li>$a_j^2$: 第 $j$ 个<strong>周期</strong>的<strong>强度</strong>的平方。我们关心的是这个值。注意，原始的 $a_j$ 可能是负的，但这里 $a_j^2$ 总是非负的，它代表了该<strong>周期</strong>的“能量”或对总<strong>方差</strong>的贡献。</li>
+  <li>$\cos(\lambda_j h)$: <strong>余弦函数</strong>，但其变量是<strong>滞后</strong> $h$。这表明<strong>自协方差函数</strong>本身也是一个<strong>周期性</strong>的函数。</li>
+  <li>$\mathbf{1}_{h=0}$: 指示函数 (indicator function)。</li>
+  <li>$\mathbf{1}_{h=0} = 1$ 如果 $h=0$</li>
+  <li>$\mathbf{1}_{h=0} = 0$ 如果 $h \neq 0$</li>
+  <li>$\sigma^2$: <strong>白噪声</strong>的<strong>方差</strong>。</li>
+</ul>
+<p><strong>简要推导思路 (非严格证明)</strong>:</p>
+<p>考虑 $X_t = \sum_j a_j \cos(\lambda_j t) + \varepsilon_t$。</p>
+<p>其<strong>自协方差</strong>的定义是 $E[(X_t - \bar{X})(X_{t+h}-\bar{X})]$ (这里用期望代替样本平均)。</p>
+<p>假设 $\bar{X}=0$。</p>
+<p>$E[X_t X_{t+h}] = E[(\sum_j a_j \cos(\lambda_j t) + \varepsilon_t) (\sum_k a_k \cos(\lambda_k(t+h)) + \varepsilon_{t+h})]$</p>
+<p>展开这个乘积，会得到四项：</p>
+<ol>
+  <li>$E[\sum_j \sum_k a_j a_k \cos(\lambda_j t) \cos(\lambda_k(t+h))]$</li>
+  <li>$E[\sum_j a_j \cos(\lambda_j t) \varepsilon_{t+h}]$</li>
+  <li>$E[\sum_k a_k \cos(\lambda_k(t+h)) \varepsilon_t]$</li>
+  <li>$E[\varepsilon_t \varepsilon_{t+h}]$</li>
+</ol>
+<p>根据假设，$\varepsilon_t$ 与<strong>周期项</strong>无关，且均值为0，所以第2、3项的期望为0。</p>
+<p>对于第4项，因为<strong>白噪声</strong>是<strong>独立</strong>的，所以当 $h \neq 0$ 时 $E[\varepsilon_t \varepsilon_{t+h}]=0$。当 $h=0$ 时，$E[\varepsilon_t^2] = \sigma^2$。这一项就变成了 $\mathbf{1}_{h=0}\sigma^2$。</p>
+<p>对于第1项，当 $T\to\infty$ 时，不同频率的<strong>余弦项</strong>是<strong>正交</strong>的，即 $\frac{1}{T}\sum_t \cos(\lambda_j t)\cos(\lambda_k (\cdot)) \to 0$ 如果 $j \neq k$。所以我们只需要考虑 $j=k$ 的情况：</p>
+<p>$\sum_j a_j^2 \cdot \text{avg}_t[\cos(\lambda_j t)\cos(\lambda_j(t+h))]$</p>
+<p>使用三角函数和差化积公式 $\cos(A)\cos(B) = \frac{1}{2}[\cos(A-B)+\cos(A+B)]$:</p>
+<p>$\cos(\lambda_j t)\cos(\lambda_j(t+h)) = \frac{1}{2}[\cos(-\lambda_j h) + \cos(\lambda_j(2t+h))]$</p>
+<p>$= \frac{1}{2}[\cos(\lambda_j h) + \cos(\lambda_j(2t+h))]$</p>
+<p>在长时间 $t$ 上平均，第二项 $\cos(\lambda_j(2t+h))$ 会因为来回振荡而平均为0。只剩下第一项 $\frac{1}{2}\cos(\lambda_j h)$，它不随 $t$ 变化。</p>
+<p>所以，第1项最终收敛到 $\sum_j a_j^2 \cdot \frac{1}{2}\cos(\lambda_j h)$。</p>
+<p>把第1项和第4项的结果加起来，就得到了公式(3)。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p>假设一个<strong>去趋势</strong>序列 $X_t$ 只包含一个<strong>周期</strong>和一个<strong>噪声</strong>:</p>
+<p>$X_t = 10 \cos(\frac{\pi}{5} t) + \varepsilon_t$，其中 $\varepsilon_t$ 是<strong>均值</strong>为0，<strong>方差</strong> $\sigma^2=4$ 的<strong>白噪声</strong>。</p>
+<p>这里 $n=1, a_1=10, \lambda_1=\pi/5$。</p>
+<p>根据定理1，这个序列的理论<strong>自协方差函数</strong> $\gamma^X(h)$ 应该是：</p>
+<p>$\gamma^X(h) = \frac{1}{2} a_1^2 \cos(\lambda_1 h) + \mathbf{1}_{h=0} \sigma^2$</p>
+<p>$\gamma^X(h) = \frac{1}{2} (10^2) \cos(\frac{\pi}{5} h) + \mathbf{1}_{h=0} (4)$</p>
+<p>$\gamma^X(h) = 50 \cos(\frac{\pi}{5} h) + \mathbf{1}_{h=0} \cdot 4$</p>
+<p>现在我们来计算几个点的理论值：</p>
+<ul>
+  <li><strong>h=0</strong>: $\gamma^X(0) = 50 \cos(0) + 1 \cdot 4 = 50 \cdot 1 + 4 = 54$。</li>
+</ul>
+<p>这说明该序列的总<strong>方差</strong>是54。其中50来<strong>自周期</strong>项的贡献，4来<strong>自噪声</strong>的贡献。</p>
+<ul>
+  <li><strong>h=1</strong>: $\gamma^X(1) = 50 \cos(\pi/5) + 0 \cdot 4 \approx 50 \times 0.809 = 40.45$。</li>
+  <li><strong>h=2</strong>: $\gamma^X(2) = 50 \cos(2\pi/5) + 0 \approx 50 \times 0.309 = 15.45$。</li>
+  <li><strong>h=5</strong>: $\gamma^X(5) = 50 \cos(\pi) + 0 = -50$。</li>
+</ul>
+<p>这里的<strong>周期</strong>是 $P = 2\pi/\lambda_1 = 2\pi/(\pi/5) = 10$。在半个<strong>周期</strong> $h=5$ 的地方，<strong>自协方差</strong>达到负的最大值。</p>
+<ul>
+  <li><strong>h=10</strong>: $\gamma^X(10) = 50 \cos(2\pi) + 0 = 50$。</li>
+</ul>
+<p>在一个完整<strong>周期</strong> $h=10$ 的地方，<strong>自协方差</strong>达到正的最大值（不含$h=0$时）。</p>
+<p>定理1告诉我们，如果我们有很长的 $X_t$ 观测数据，我们算出来的 $\hat{\gamma}^X(h)$ 就会非常接近上面这个理论函数 $\{54, 40.45, 15.45, \dots, -50, \dots, 50, \dots \}$。</p>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>收敛速度</strong>: 定理说的是当 $T \to \infty$ 时的极限情况。在有限样本下，我们计算的 $\hat{\gamma}_T^X(h)$ 只是对理论值 $\gamma^X(h)$ 的一个有噪声的估计。$T$ 越大，这个估计就越准。</li>
+  <li><strong>$h=0$的特殊性</strong>: 必须时刻注意 $h=0$ 这一点是特殊的，因为它包含了<strong>噪声</strong>的<strong>方差</strong> $\sigma^2$。而所有 $h \neq 0$ 的点，都不包含 $\sigma^2$。这个性质非常有用，可以帮助我们把<strong>周期</strong>的贡献和<strong>噪声</strong>的贡献分离开来。</li>
+  <li><strong>$a_j$ vs $a_j^2$</strong>: 我们从<strong>自协方差</strong>中能直接估计出的是 $a_j^2$，而不是 $a_j$。这意味着我们能知道每个<strong>周期</strong>的<strong>强度</strong>或能量，但无法知道它的初始相位（即 $a_j$ 是正还是负）。在大多数应用中，这已经足够了，因为<strong>强度</strong>才是更重要的信息。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>定理1是连接“<strong>数据特征</strong>”和“<strong>模型参数</strong>”的关键。它将我们可观测的<strong>自协方差函数</strong> $\gamma^X(h)$，表示为了我们想知道的<strong>周期强度</strong> $a_j^2$ 的<strong>余弦变换</strong>。这个公式揭示了 $\gamma^X(h)$ 中隐藏的秘密，并为下一步使用<strong>傅里叶反变换</strong>来求解 $a_j^2$ 提供了理论依据。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本定理的目的是将<strong>时间域</strong>的分析（<strong>自协方差</strong>，研究信号随<strong>时间滞后</strong>的变化）和<strong>频率域</strong>的分析（<strong>谱</strong>，研究信号由哪些<strong>频率</strong>的波构成）联系起来。这个结果是所谓的“维纳-辛钦定理”在当前特定模型下的一个体现。它为从数据估计<strong>谱强度</strong>（即 $a_j^2$）提供了坚实的理论基础。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你有一把调音叉。你敲响它，它会发出一个特定<strong>频率</strong> $\lambda$ 的声音，<strong>振幅</strong>是 $a$。这个声音就是 $X_t$。</p>
+<p>现在你想测量这个声音的<strong>自协方差</strong> $\gamma^X(h)$（通过前面说的录音带移动的方法）。</p>
+<p>定理1告诉你，你测量出来的“和谐度”曲线 $\gamma^X(h)$，本身也会是一个完美的<strong>余弦波</strong>，它的<strong>频率</strong>也是 $\lambda$，但它的<strong>振幅</strong>是 $\frac{1}{2}a^2$！</p>
+<p>所以，通过测量输出的<strong>余弦波</strong>（$\gamma^X(h)$）的<strong>振幅</strong>，你就可以反推出原始调音叉声音（$X_t$）的<strong>振幅</strong>的平方。</p>
+<p>如果同时敲响了很多把不同<strong>频率</strong>、不同<strong>振幅</strong>的调音叉，那么你测量出的 $\gamma^X(h)$ 就是所有这些<strong>余弦波</strong>的叠加。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象水面上由多个波源产生的波纹 $X_t$。每个波源 $j$ 都在以<strong>频率</strong> $\lambda_j$ 和<strong>振幅</strong> $a_j$ 制造<strong>同心圆</strong>波浪。</p>
+<p>现在你在水面上相距为 $h$ 的两点A和B放下两个传感器，测量两点水面高度的<strong>协方差</strong>，这就是 $\gamma^X(h)$。</p>
+<p>你改变两点间的距离 $h$，并不断测量。</p>
+<p>定理1告诉你，你画出的<strong>协方差</strong> $\gamma^X(h)$ 随距离 $h$ 变化的图像，其本身看起来也像是一系列波纹的叠加。这个新的“<strong>协方差</strong>波纹”的成分，与原始水面波纹的成分一一对应：原始水面存在一个<strong>频率</strong>为 $\lambda_j$ 的波，那么“<strong>协方差</strong>波纹”里也存在一个<strong>频率</strong>为 $\lambda_j$ 的波，并且后者的“<strong>振幅</strong>”正比于前者<strong>振幅</strong>的平方 ($a_j^2$)。</p>
+    </div>
+</div><hr><h3>2.3 方差分解 (推论1)</h3><p id="original-6"><strong style="font-size: 1.3rem;">📜 [原文6]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>此外，以下结果通过在 (3) 中取 $h=0$，为日内<strong>成交量</strong> $V_{t}$ 的<strong>方差</strong>提供了一个有用的<strong>分解</strong>。</p>
+<p>推论 1。在假设 1.3 下，当 $T \rightarrow \infty$ 时，日内<strong>成交量过程</strong> $V_{t}$ 的<strong>方差</strong>可以<strong>分解</strong>为：</p>
+<p><div class="math-block">$$
+\begin{equation*}
+\gamma_{T}^{V}(0)-\gamma_{T}^{m}(0) \xrightarrow{\text { a.s. }} \sigma^{2}+\frac{1}{2} \sum_{j=1}^{n} a_{j}^{2} . \tag{4}
+\end{equation*}
+$$</div></p>
+<p>推论 1 表明，日内<strong>交易成交量</strong>的总<strong>方差</strong>可以<strong>分解</strong>为<strong>趋势项</strong>的<strong>方差</strong>、<strong>特异性方差</strong>以及对应于不同<strong>周期频率</strong>的 $n$ 个额外项。它还强调了 $a_{j}^{2}$ 的一个重要解释，因为它代表了总<strong>方差</strong>中——除了<strong>趋势</strong>和<strong>特异性项</strong>之外——可以由第 $j$ 个<strong>周期项</strong>解释的部分。此后，我们将 $a_{j}$ 称为<strong>强度系数</strong>。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个推论是定理1的一个直接且非常重要的应用，它解释了<strong>成交量</strong>的总<strong>波动</strong>究竟来自哪里。</p>
+<ol>
+  <li><strong>出发点</strong>: 推论的起点是定理1的公式(3)，并且特别关注 $h=0$ 的情况。</li>
+</ol>
+<ul>
+  <li>回顾一下，$\gamma_T^p(0)$ 就是序列 $p_t$ 的<strong>样本方差</strong>，它衡量了序列的总<strong>波动</strong>幅度。</li>
+</ul>
+<ol>
+  <li><strong>推导过程</strong>:</li>
+</ol>
+<ul>
+  <li>在公式(3)中，我们让 $h=0$：</li>
+</ul>
+<p>$\gamma_T^X(0) \xrightarrow{a.s.} \frac{1}{2} \sum_{j=1}^n a_j^2 \cos(\lambda_j \cdot 0) + \mathbf{1}_{0=0}\sigma^2$</p>
+<ul>
+  <li>因为 $\cos(0)=1$ 且 $\mathbf{1}_{0=0}=1$，上式简化为：</li>
+</ul>
+<p>$\gamma_T^X(0) \xrightarrow{a.s.} \frac{1}{2} \sum_{j=1}^n a_j^2 + \sigma^2$</p>
+<ul>
+  <li>这个公式告诉我们，<strong>去趋势序列</strong> $X_t$ 的总<strong>方差</strong> ($\gamma_T^X(0)$) 被分解成了两部分：所有<strong>周期项</strong>贡献的<strong>方差</strong>之和 ($\frac{1}{2}\sum a_j^2$)，加上<strong>白噪声</strong>自身的<strong>方差</strong> ($\sigma^2$)。</li>
+</ul>
+<ol>
+  <li><strong>关联到原始成交量 $V_t$</strong>:</li>
+</ol>
+<ul>
+  <li>我们最终关心的是原始<strong>成交量</strong> $V_t$ 的<strong>方差</strong> $\gamma_T^V(0)$。</li>
+  <li>我们有 $V_t = m_t + X_t$。</li>
+  <li>根据<strong>方差</strong>的性质，如果两个变量是<strong>不相关</strong>的，那么它们和的<strong>方差</strong>等于它们<strong>方差</strong>的和。即 $Var(A+B) = Var(A) + Var(B)$。</li>
+  <li>在我们的模型里，<strong>趋势项</strong> $m_t$ 是<strong>非随机</strong>的，而<strong>去趋势项</strong> $X_t$ 是<strong>随机</strong>的（来源是 $\varepsilon_t$）。在更一般的设定下，如果我们将 $m_t$ 和 $X_t$ 视为两个<strong>不相关</strong>的随机过程（这与假设2的精神一致），那么总<strong>方差</strong>可以近似分解：</li>
+</ul>
+<p>$\gamma_T^V(0) \approx \gamma_T^m(0) + \gamma_T^X(0)$</p>
+<p>（总<strong>方差</strong> = <strong>趋势</strong>的<strong>方差</strong> + <strong>去趋势部分</strong>的<strong>方差</strong>）</p>
+<ul>
+  <li>将 $\gamma_T^X(0)$ 移到左边，得到 $\gamma_T^V(0) - \gamma_T^m(0) \approx \gamma_T^X(0)$。</li>
+  <li>再结合我们从定理1推导出的 $\gamma_T^X(0)$ 的分解，就得到了公式(4)：</li>
+</ul>
+<p>$\gamma_{T}^{V}(0)-\gamma_{T}^{m}(0) \xrightarrow{\text { a.s. }} \sigma^{2}+\frac{1}{2} \sum_{j=1}^{n} a_{j}^{2}$</p>
+<ol>
+  <li><strong>公式(4)的解读</strong>:</li>
+</ol>
+<ul>
+  <li>左边：$\gamma_T^V(0) - \gamma_T^m(0)$ 是总<strong>成交量方差</strong>中，扣除了由日内<strong>U型趋势</strong>所贡献的<strong>方差</strong>之后，剩余的<strong>方差</strong>。我们可以称之为“<strong>去趋势方差</strong>”。</li>
+  <li>右边：这个“<strong>去趋势方差</strong>”由两部分构成：</li>
+  <li>$\sigma^2$: 无法解释的、纯粹随机的<strong>噪声</strong>所贡献的<strong>方差</strong>。</li>
+  <li>$\frac{1}{2} \sum a_j^2$: 所有 $n$ 个<strong>周期性</strong>成分所贡献的<strong>方差</strong>之和。</li>
+</ul>
+<ol>
+  <li><strong>$a_j^2$ 的重要解释</strong>:</li>
+</ol>
+<ul>
+  <li>这个推论给了 $a_j^2$ 一个非常清晰的物理解释。$\frac{1}{2}a_j^2$ 正是第 $j$ 个<strong>周期</strong>分量对“<strong>去趋势方差</strong>”的贡献量。</li>
+  <li>我们可以计算一个比例：$R_j^2 = \frac{\frac{1}{2} a_j^2}{\sigma^2 + \frac{1}{2}\sum_k a_k^2}$。这个比例告诉我们，在所有非<strong>趋势</strong>性的<strong>波动</strong>中，由第 $j$ 个<strong>周期</strong>所解释的百分比是多少。</li>
+  <li>这为我们比较不同<strong>周期</strong>的重要性提供了一个量化指标。如果 $a_1^2$ 远大于 $a_2^2$，我们就可以说<strong>频率</strong>为 $\lambda_1$ 的<strong>周期</strong>比<strong>频率</strong>为 $\lambda_2$ 的<strong>周期</strong>重要得多。</li>
+  <li>“<strong>强度系数</strong>”这个名字因此而得名，因为它直接量化了<strong>周期</strong>的<strong>强度</strong>。</li>
+</ul>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p>公式 (4): $\gamma_{T}^{V}(0)-\gamma_{T}^{m}(0) \xrightarrow{\text { a.s. }} \sigma^{2}+\frac{1}{2} \sum_{j=1}^{n} a_{j}^{2}$</p>
+<ul>
+  <li>$\gamma_T^V(0)$: 原始<strong>成交量</strong>序列 $V_t$ 的<strong>样本方差</strong>，代表总<strong>波动</strong>。</li>
+  <li>$\gamma_T^m(0)$: <strong>趋势项</strong>序列 $m_t$ 的<strong>样本方差</strong>，代表由<strong>U型</strong>等宏观模式引起的<strong>波动</strong>。</li>
+  <li>$\gamma_T^V(0) - \gamma_T^m(0)$: 总<strong>波动</strong>中，不能被<strong>趋势</strong>解释的部分。</li>
+  <li>$\sigma^2$: <strong>特异性方差</strong>，来自<strong>白噪声</strong>的贡献。</li>
+  <li>$\frac{1}{2} \sum_{j=1}^{n} a_{j}^{2}$: 所有<strong>周期项</strong>贡献的<strong>方差</strong>之和。</li>
+  <li>$\frac{1}{2} a_j^2$: 第 $j$ 个<strong>周期项</strong>对总<strong>方差</strong>的贡献。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p>继续使用定理1中的例子: $X_t = 10 \cos(\frac{\pi}{5} t) + \varepsilon_t$，且 $\sigma^2=4$。</p>
+<p>我们还假设有一个<strong>趋势项</strong> $m_t$，它的<strong>方差</strong>经计算为 $\gamma^m(0) = 200$。</p>
+<p>那么 $V_t = m_t + 10 \cos(\frac{\pi}{5} t) + \varepsilon_t$。</p>
+<p>根据推论1，我们来分解<strong>方差</strong>：</p>
+<ol>
+  <li><strong>去趋势方差</strong>:</li>
+</ol>
+<p>$\gamma^X(0) = \sigma^2 + \frac{1}{2} \sum a_j^2$</p>
+<p>在这个例子中，只有一个<strong>周期项</strong> ($n=1, a_1=10$)，所以：</p>
+<p>$\gamma^X(0) = 4 + \frac{1}{2} (10^2) = 4 + 50 = 54$。</p>
+<p>这与我们之前在定理1的例子中直接计算 $\gamma^X(0)$ 得到的结果一致。</p>
+<ol>
+  <li><strong>总方差</strong>:</li>
+</ol>
+<p>$\gamma^V(0) = \gamma^m(0) + \gamma^X(0) = 200 + 54 = 254$。</p>
+<p>这只股票<strong>成交量</strong>的总<strong>方差</strong>（总<strong>波动</strong>的量度）是254。</p>
+<ol>
+  <li><strong>方差贡献分解</strong>:</li>
+</ol>
+<ul>
+  <li>总<strong>方差</strong>254中，有200 (约78.7%) 是由日内<strong>U型趋势</strong>贡献的。</li>
+  <li>剩下的54 (约21.3%) 是<strong>去趋势</strong>部分的<strong>方差</strong>。</li>
+  <li>在这54的<strong>去趋势方差</strong>中：</li>
+  <li>有50 (占去趋势方差的 $50/54 \approx 92.6\%$) 是由<strong>周期</strong>为10的那个<strong>周期项</strong>贡献的。</li>
+  <li>只有4 (占去趋势方差的 $4/54 \approx 7.4\%$) 是由纯粹的<strong>随机噪声</strong>贡献的。</li>
+</ul>
+<p><strong>结论</strong>: 对于这只假想的股票，其<strong>成交量波动</strong>主要由<strong>U型趋势</strong>主导。在剔除<strong>趋势</strong>后，剩下的<strong>波动</strong>绝大部分都是由一个<strong>周期</strong>为10的规律性<strong>波动</strong>构成的，真正的<strong>随机噪声</strong>影响很小。这表明这个<strong>周期</strong>是该股票一个非常重要的特征。</p>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>方差分解的近似性</strong>: $Var(A+B)=Var(A)+Var(B)$ 严格成立要求A和B不相关。在我们的模型中，$m_t$ 是<strong>非随机</strong>的，而 $X_t$ 是<strong>随机</strong>的，它们之间的<strong>协方差</strong>为0，所以分解是精确的。但在实际估计中，我们估计出的 $\hat{m}_t$ 和 $\hat{X}_t$ 可能存在微小的相关性，导致等式 $\gamma^V(0) = \gamma^m(0) + \gamma^X(0)$ 只是一个近似。</li>
+  <li><strong>解释的归因</strong>: 这个分解非常清晰，但需要注意它完全依赖于模型(1)的设定是正确的。如果真实世界比模型更复杂（比如存在<strong>非线性</strong>关系），那么这个简单的<strong>方差</strong>相加分解可能会有误导。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>推论1为<strong>成交量</strong>的总<strong>波动</strong>提供了一个清晰的“归因分析”框架。它将总<strong>方差</strong>分解为三个来源：<strong>趋势</strong>的贡献、各个<strong>周期</strong>的贡献、以及<strong>随机噪声</strong>的贡献。这个分解不仅在理论上很优美，更重要的是，它为 $a_j^2$ 赋予了“<strong>方差</strong>贡献”这一具体而重要的经济解释，使得 $a_j$ “<strong>强度系数</strong>”的名称实至名归。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本推论的目的是将定理1的抽象数学结果转化为一个更具实践意义和解释力的结论。<strong>方差分解</strong>是统计学和计量经济学中一种非常强大的叙事工具，它能帮助研究者和读者直观地理解一个模型中不同因素的相对重要性。通过这个推论，作者强调了其模型在“解释<strong>波动</strong>来源”方面的能力。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>假设你的月度总支出 ($V_t$的<strong>方差</strong>) 有很大的<strong>波动</strong>。你想知道为什么。</p>
+<p>你使用一个模型进行分析，得到了如下<strong>方差分解</strong>结果：</p>
+<ol>
+  <li><strong>趋势项贡献</strong> ($\gamma^m(0)$): 这是由你生活中的固定<strong>趋势</strong>导致的，比如每年12月因为过节，开销固定会增加2000元。这部分<strong>波动</strong>是可预测的。</li>
+  <li><strong>周期项贡献</strong> ($\frac{1}{2}\sum a_j^2$):</li>
+  <li>你发现每周五都习惯出去大餐一顿，这导致了每周的<strong>周期性</strong>支出<strong>波动</strong>（$a_1^2$）。</li>
+  <li>你每个月15号要还信用卡，导致了每月的<strong>周期性</strong>支出<strong>波动</strong>（$a_2^2$）。</li>
+  <li><strong>噪声项贡献</strong> ($\sigma^2$): 这个月你突然生病看医生，或者捡到钱，这些都是<strong>随机</strong>的、不可预测的事件导致的支出<strong>波动</strong>。</li>
+</ol>
+<p>推论1就像是给了你这样一份账单分析报告，让你清楚地看到总支出的<strong>波动</strong>是由哪些部分构成的。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个装满水的大桶，水面在不停地晃动。水面的总晃动幅度（<strong>方差</strong>）是 $\gamma^V(0)$。</p>
+<ol>
+  <li><strong>趋势贡献</strong> $\gamma^m(0)$: 有人正在缓慢地、有规律地倾斜整个大桶，导致水面有一个大的、整体的晃动。</li>
+  <li><strong>周期贡献</strong> $\frac{1}{2}\sum a_j^2$: 水桶里有几个不同大小的波浪制造机，各自以不同的频率在制造波纹。所有这些波纹叠加起来，也造成了水面的晃动。</li>
+  <li><strong>噪声贡献</strong> $\sigma^2$: 你随机地往水里扔小石子，激起一些随机的水花。</li>
+</ol>
+<p>推论1告诉你，水面总的晃动幅度，可以被分解为“倾斜桶”造成的晃动、“波浪机”造成的晃动和“扔石子”造成的晃动之和。而 $a_j^2$ 就是告诉你，第 $j$ 个波浪制造机贡献了多大的晃动。</p>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-3">
+    <h2><span class="section-number">3</span>3 参数估计的细节</h2>
+    <h3>3.1 估计框架与数据设定</h3><p id="original-7"><strong style="font-size: 1.3rem;">📜 [原文7]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>为了估计<strong>强度系数</strong>，我们首先估计 (2) 中的<strong>自协方差函数</strong>，然后应用<strong>离散傅里叶反变换</strong> (<strong>DFT</strong>)。我们选择 $\lambda_{j}=\frac{j \pi}{n}, j=1, \ldots, n$，这对应于第 $j$ 项的<strong>周期</strong>为 $\frac{2 n}{j} \times 3$ 秒。根据图 1 中的<strong>经验观察</strong>，我们选择 $n=500$，以便我们的<strong>周期基</strong>能够捕捉对应于诸如 5 分钟和 10 分钟<strong>周期</strong>的<strong>频率</strong>。</p>
+<p>给定 $S$ 只股票在 $D$ 个不同交易日内的 $S \times D$ 个日内<strong>成交量</strong><strong>时间序列</strong>数据集 $\left\{\left\{\left(V_{t, s, d}\right)_{t=1}^{T}\right\}_{d=1}^{D}\right\}_{s=1}^{S}$，我们通过添加两个额外的下标，为每只股票 $s$ 在每个交易日 $d$ 明确地重写<strong>谱表示</strong> (1)：</p>
+<p><div class="math-block">$$
+\begin{equation*}
+V_{t, s, d}:=m_{t, s, d}+X_{t, s, d}=m_{t, s, d}+\sum_{j=1}^{n} a_{j, s, d} \cos \left(\lambda_{j} t\right)+\varepsilon_{t, s, d} \tag{5}
+\end{equation*}
+$$</div></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这一节开始从理论转向实践，详细说明如何具体操作来估计我们最关心的参数 $a_j$。</p>
+<ol>
+  <li><strong>总体策略</strong>:</li>
+</ol>
+<ul>
+  <li>第一步：估计<strong>自协方差函数</strong> $\gamma^X(h)$。我们已经知道怎么做了（公式2）。</li>
+  <li>第二步：应用“<strong>离散傅里叶反变换</strong>”（Inverse Discrete Fourier Transform, IDFT）到 $\gamma^X(h)$ 上，来求解 $a_j^2$。</li>
+  <li><strong>为什么是傅里叶反变换？</strong> 定理1的公式(3) $\gamma^X(h) \approx \sum_j (\frac{1}{2}a_j^2) \cos(\lambda_j h)$，本质上是一个<strong>傅里叶余弦级数</strong>。它说 $\gamma^X(h)$ 是由一系列<strong>系数</strong>为 $\frac{1}{2}a_j^2$ 的<strong>余弦波</strong>合成的。<strong>傅里叶分析</strong>告诉我们，如果知道一个信号是如何合成的，我们就可以通过<strong>傅里叶变换</strong>把它分解开，找出原始的<strong>系数</strong>。这个“分解”的过程，就是<strong>傅里叶反变换</strong>（或<strong>正变换</strong>，取决于定义）。</li>
+</ul>
+<ol>
+  <li><strong>频率的选择 ($\lambda_j$)</strong>:</li>
+</ol>
+<ul>
+  <li>在理论部分，$\lambda_j$ 可以是任意<strong>频率</strong>。但在实践中，我们必须选择一组离散的、固定的<strong>频率</strong>来做分析。</li>
+  <li>作者做了一个非常标准的选择：$\lambda_j = \frac{j\pi}{n}$，其中 $j=1, \ldots, n$。</li>
+  <li>这组<strong>频率</strong>被称为<strong>傅里叶频率</strong>。它们在<strong>频率</strong>空间 $(0, \pi]$ 中是等距分布的。</li>
+  <li><strong>对应的周期</strong>: <strong>周期</strong> $P_j = 2\pi / \lambda_j = 2\pi / (j\pi/n) = 2n/j$ 个时间单位。</li>
+  <li><strong>具体到本文</strong>: 作者提到一个时间单位是3秒。所以<strong>周期</strong>就是 $(2n/j) \times 3$ 秒。</li>
+  <li><strong>$n$的选择</strong>: 作者选择 $n=500$。这是一个很重要的实证选择。</li>
+  <li>$n$ 决定了我们能分辨的<strong>频率</strong>的精细程度。$n$ 越大，<strong>频率</strong>网格越密。</li>
+  <li>选择 $n=500$ 是为了确保这个<strong>频率</strong>网格足够密，能够“覆盖”到一些他们凭经验认为很重要的<strong>周期</strong>，比如5分钟和10分钟。</li>
+  <li>我们来验证一下：</li>
+  <li>5分钟 = 300秒。对应的<strong>周期</strong>是 $300/3 = 100$ 个时间单位。我们想找一个 $j$ 使得 $P_j = 2n/j = 2(500)/j = 1000/j = 100$，解得 $j=10$。所以 $\lambda_{10}$ 这个<strong>频率</strong>正好对应5分钟<strong>周期</strong>。</li>
+  <li>10分钟 = 600秒。对应的<strong>周期</strong>是 $600/3=200$ 个时间单位。我们想找一个 $j$ 使得 $1000/j = 200$，解得 $j=5$。所以 $\lambda_5$ 这个<strong>频率</strong>正好对应10分钟<strong>周期</strong>。</li>
+  <li>这个选择确保了模型有能力去捕捉5分钟和10分钟的<strong>周期</strong>效应。</li>
+</ul>
+<ol>
+  <li><strong>数据的扩展</strong>:</li>
+</ol>
+<ul>
+  <li>之前我们的模型 $V_t$ 看起来只针对一个<strong>时间序列</strong>。但在实证研究中，我们通常有大量的数据。</li>
+  <li>这里的数据结构是一个“面板数据”（Panel Data）：</li>
+  <li>$S$ 只不同的股票（$s=1, \ldots, S$）。</li>
+  <li>$D$ 个不同的交易日（$d=1, \ldots, D$）。</li>
+  <li>所以总共有 $S \times D$ 个<strong>时间序列</strong>。</li>
+  <li>为了体现这一点，模型(1)被扩展到了模型(5)，给所有的变量都加上了股票下标 $s$ 和日期下标 $d$。</li>
+</ul>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p>公式 (5): $V_{t, s, d}:=m_{t, s, d}+\sum_{j=1}^{n} a_{j, s, d} \cos \left(\lambda_{j} t\right)+\varepsilon_{t, s, d}$</p>
+<ul>
+  <li>这个公式的结构和公式(1)完全一样，只是在变量下方增加了两个下标：</li>
+  <li>$V_{t, s, d}$: 股票 $s$ 在日期 $d$ 的时间点 $t$ 的<strong>成交量</strong>。</li>
+  <li>$m_{t, s, d}$: 对应的<strong>趋势项</strong>。这允许每只股票、每一天的U型<strong>趋势</strong>都可以不一样。</li>
+  <li>$a_{j, s, d}$: 对应的第 $j$ 个<strong>周期</strong>的<strong>强度系数</strong>。这也允许每只股票、每一天的<strong>周期强度</strong>都可以不一样（例如，某天有关于股票 $s$ 的新闻，可能导致它的5分钟<strong>周期强度</strong> $a_{j,s,d}$ 异常地大）。</li>
+  <li>$\varepsilon_{t, s, d}$: 对应的<strong>噪声项</strong>。</li>
+  <li><strong>注意</strong>: $\lambda_j$ 和 $t$ 没有 $s,d$ 下标。因为<strong>时间</strong> $t$ 和我们预设的<strong>傅里叶频率</strong> $\lambda_j$ 对于所有股票和日期都是公共的、一致的。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>数据设定示例</strong>:</p>
+<p>假设我们研究2只股票 ($S=2$，比如苹果公司AAPL和谷歌公司GOOG)，观察它们在3个交易日 ($D=3$) 的数据。</p>
+<p>我们的数据集就包含 $2 \times 3 = 6$ 个<strong>时间序列</strong>。</p>
+<ul>
+  <li>$V_{t, \text{AAPL}, \text{Day1}}$: 苹果公司在第一天的<strong>成交量</strong>序列。</li>
+  <li>$V_{t, \text{AAPL}, \text{Day2}}$: 苹果公司在第二天的<strong>成交量</strong>序列。</li>
+  <li>...</li>
+  <li>$V_{t, \text{GOOG}, \text{Day3}}$: 谷歌公司在第三天的<strong>成交量</strong>序列。</li>
+</ul>
+<p>模型(5)假设，以上每一个<strong>时间序列</strong>都可以被分解成它自己独特的<strong>趋势</strong>、<strong>周期强度</strong>和<strong>噪声</strong>。</p>
+<p>例如，对于苹果公司在第一天，我们有：</p>
+<p>$V_{t, \text{AAPL}, \text{Day1}} = m_{t, \text{AAPL}, \text{Day1}} + \sum_j a_{j, \text{AAPL}, \text{Day1}} \cos(\lambda_j t) + \varepsilon_{t, \text{AAPL}, \text{Day1}}$</p>
+<p>这个设定非常灵活，但也意味着有海量的参数需要估计 (对于每个 $(j,s,d)$ 都有一个 $a_{j,s,d}$)。为了简化问题，作者在下一步做了平均。</p>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>傅里叶频率的局限性</strong>: 选择固定的<strong>傅里叶频率</strong> $\lambda_j = j\pi/n$ 意味着我们只能测量在这些特定<strong>频率</strong>上的能量。如果一个真实的<strong>周期</strong>，其<strong>频率</strong>正好落在两个<strong>傅里-叶频率</strong>之间（比如 $\lambda_{10}$ 和 $\lambda_{11}$ 之间），那么它的能量就会“泄露”到邻近的几个<strong>傅里叶频率</strong>上。这被称为<strong>频谱泄露</strong> (spectral leakage)。$n$ 越大，<strong>频率</strong>网格越密，泄露问题越轻。</li>
+  <li><strong>$n$与$T$的关系</strong>: $n$ 的选择也与<strong>时间序列</strong>长度 $T$ 有关。理论上，我们最多可以分辨出约 $T/2$ 个独立的<strong>频率</strong>。在实践中，$n$ 通常取得比 $T/2$ 小，以保证估计的稳定性。作者在这里选择 $n=500$，暗示了 $T$ 至少是1000。对于一个交易日6.5小时，每3秒采样一次， $T = 7800$，远大于 $n=500$，所以这个选择是合理的。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本节明确了参数估计的路线图（<strong>自协方差</strong> -&gt; <strong>傅里叶反变换</strong>），并做出了两个关键的实践设定：第一，将需要寻找的<strong>频率</strong> $\lambda_j$ 固定在一组标准的<strong>傅里叶频率</strong>上，并根据经验选择了<strong>频率</strong>网格的密度 $n=500$；第二，将基础模型扩展到包含多股票、多天数的面板数据场景，允许每个股票每天的参数都可以不同。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本节的目的是将抽象的理论模型转化为一个可操作的实证分析框架。它解决了在真实数据分析中必须面对的两个问题：1) 在连续的<strong>频率</strong>空间中，我们应该在哪些点上进行测量？2) 如何处理和表示拥有多只股票和多个观测日的大型数据集？</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>你是一个音频工程师，任务是分析一段复杂的录音 $V_t$ 的频谱。</p>
+<ol>
+  <li><strong>选择 $\lambda_j = j\pi/n$</strong>: 你的频谱分析仪上有很多个推子，每个推子对应一个固定的<strong>频率</strong>（比如60Hz, 120Hz, 240Hz, ...）。你不能分析任意<strong>频率</strong>，只能分析这些预设<strong>频率</strong>上的能量有多大。这就是选择了<strong>傅里叶频率</strong>。</li>
+  <li><strong>选择 $n=500$</strong>: 你选择了一个有500个推子的高级分析仪，而不是只有10个推子的入门级设备。因为你知道音乐中可能存在一些微妙的泛音，你需要足够多的推子（足够密的<strong>频率</strong>网格）才能捕捉到它们。</li>
+  <li><strong>扩展到 $V_{t,s,d}$</strong>: 你不是只分析一首歌，而是要分析一个专辑库，里面有$S$个歌手的$D$张专辑。你假设每个歌手的每张专辑（$V_{t,s,d}$）都有自己独特的频谱特性 ($a_{j,s,d}$)。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>你是一个质量检测员，需要分析一块布料 ($V_t$) 的编织结构。</p>
+<ol>
+  <li><strong>选择 $\lambda_j = j\pi/n$</strong>: 你有一套标准的网格筛子，孔径大小是固定的。你把布料的纤维结构投影到筛子上，看在哪些孔径的筛子上能看到最清晰的图案。这些筛子的孔径就是 $\lambda_j$。</li>
+  <li><strong>选择 $n=500$</strong>: 你用了一套包含500个不同孔径的精密筛子，从粗到细都有，以确保不会漏掉任何一种编织<strong>周期</strong>。</li>
+  <li><strong>扩展到 $V_{t,s,d}$</strong>: 你要检测的不是一块布料，而是来自 $S$ 个工厂、 $D$ 个批次的 $S \times D$ 批布料。你允许每个工厂、每个批次的布料 ($V_{t,s,d}$) 都有自己独特的编织缺陷或特点 ($a_{j,s,d}$)。</li>
+</ol>
+    </div>
+</div><hr><h3>3.2 跨时间平均</h3><p id="original-8"><strong style="font-size: 1.3rem;">📜 [原文8]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>然后，我们计算所有 $D$ 天的平均日内<strong>成交量</strong><strong>时间序列</strong> $\bar{V}_{t, s, \cdot}=\frac{1}{D} \sum_{d=1}^{D} V_{t, s, d}$，它具有相同的表示：</p>
+<p><div class="math-block">$$
+\bar{V}_{t, s, \cdot}=\bar{m}_{t, s, \cdot}+\bar{X}_{t, s, \cdot}=\bar{m}_{t, s, \cdot}+\sum_{j=1}^{n} \bar{a}_{j, s, \cdot} \cos \left(\lambda_{j} t\right)+\bar{\varepsilon}_{t, s, \cdot}
+$$</div></p>
+<p>其中 $\bar{m}_{t, s, \cdot}, \bar{X}_{t, s, \cdot}, \bar{a}_{j, s, \cdot}$ 和 $\bar{\varepsilon}_{t, s, \cdot}$ 是所有 $D$ 天对应的平均<strong>时间序列</strong>：</p>
+<p><div class="math-block">$$
+\bar{m}_{t, s, \cdot}=\frac{1}{D} \sum_{d=1}^{D} m_{t, s, d}, \quad \bar{X}_{t, s \cdot}=\frac{1}{D} \sum_{d=1}^{D} X_{t, s, d}, \quad \bar{a}_{j, s \cdot \cdot}=\frac{1}{D} \sum_{d=1}^{D} a_{j, s, d}, \quad \bar{\varepsilon}_{t, s \cdot \cdot}=\frac{1}{D} \sum_{d=1}^{D} \varepsilon_{t, s, d}
+$$</div></p>
+<p>对于每只股票，我们通过以下步骤估计所有 $D$ 个交易日的平均<strong>强度系数</strong> $\bar{a}_{j, s, \cdot}$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>上一步设定了一个非常灵活的模型，但参数太多 ($a_{j,s,d}$)，直接估计不现实。这一步通过一个非常简单而强大的方法来解决这个问题：<strong>平均</strong>。</p>
+<ol>
+  <li><strong>问题</strong>: 对于一只股票 $s$，它在不同日期 $d$ 的<strong>周期强度</strong> $a_{j,s,d}$ 可能是不同的。我们是想知道每一天独特的<strong>周期</strong>模式，还是想知道这只股票“通常”或“平均”的<strong>周期</strong>模式？</li>
+  <li><strong>解决方案</strong>: 作者选择研究后者。他们对于每一只股票 $s$，将它在所有 $D$ 天的<strong>成交量</strong>数据，在每个时间点 $t$ 上进行平均。</li>
+</ol>
+<ul>
+  <li>例如，计算股票 $s$ 在所有 $D$ 天里，开盘后第一个3秒 ($t=1$) 的平均<strong>成交量</strong> $\bar{V}_{1,s,\cdot}$。</li>
+  <li>再计算它在开盘后第二个3秒 ($t=2$) 的平均<strong>成交量</strong> $\bar{V}_{2,s,\cdot}$。</li>
+  <li>... 以此类推，直到收盘。</li>
+  <li>这样，对于每只股票 $s$，我们就得到了一个新的、长度为 $T$ 的<strong>时间序列</strong> $\bar{V}_{t,s,\cdot}$。这个序列代表了这只股票“典型交易日”的<strong>成交量</strong>模式。</li>
+</ul>
+<ol>
+  <li><strong>平均后的模型</strong>:</li>
+</ol>
+<ul>
+  <li>由于模型(5)是<strong>线性</strong>的（各项直接相加），对 $V_{t,s,d}$ 求平均，等价于对它右边的每一项分别求平均。</li>
+  <li>平均<strong>成交量</strong> ($\bar{V}_{t, s, \cdot}$) = 平均<strong>趋势</strong> ($\bar{m}_{t, s, \cdot}$) + 平均<strong>周期项</strong> ($\sum (\bar{a}_{j, s, \cdot}) \cos(\lambda_j t)$) + 平均<strong>噪声</strong> ($\bar{\varepsilon}_{t, s, \cdot}$)。</li>
+  <li>这个新的平均模型和原始模型长得一模一样，只是所有变量都变成了“平均版”。</li>
+</ul>
+<ol>
+  <li><strong>平均的好处 (信噪比)</strong>:</li>
+</ol>
+<ul>
+  <li><strong>核心思想</strong>: 信号加<strong>噪声</strong>，多次测量再平均，可以有效地降低<strong>噪声</strong>。</li>
+  <li><strong>信号</strong>: 我们认为，一只股票的<strong>周期性</strong>模式 $a_j$ 是其内在的、比较稳定的属性。所以不同日期的 $a_{j,s,d}$ 虽然有波动，但其均值 $\bar{a}_{j,s,\cdot}$ 代表了其稳定的<strong>周期强度</strong>。这是我们想保留的“信号”。</li>
+  <li><strong>噪声</strong>: <strong>噪声项</strong> $\varepsilon_{t,s,d}$ 是<strong>独立</strong>且<strong>均值</strong>为0的。根据大数定律，当我们将很多个（$D$个）这样的<strong>噪声</strong>相加再取平均时，其结果 $\bar{\varepsilon}_{t,s,\cdot} = \frac{1}{D}\sum_d \varepsilon_{t,s,d}$ 会趋近于0。</li>
+  <li><strong>结果</strong>: 通过对 $D$ 天的数据进行平均，我们有效地“平均掉”了大部分<strong>随机噪声</strong>，使得隐藏在数据中的“信号”（即平均<strong>趋势</strong> $\bar{m}$ 和平均<strong>周期强度</strong> $\bar{a}$）更加凸显出来。这会大大提高我们后续估计的准确性和稳定性。</li>
+</ul>
+<ol>
+  <li><strong>目标转变</strong>:</li>
+</ol>
+<ul>
+  <li>现在，我们的目标从估计海量的、每天都不同的 $a_{j,s,d}$，转变为对于每只股票 $s$，只估计一组“平均<strong>强度系数</strong>” $\bar{a}_{j,s,\cdot}$。参数数量大大减少，问题变得可行。</li>
+</ul>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li>$\bar{V}_{t, s, \cdot}=\frac{1}{D} \sum_{d=1}^{D} V_{t, s, d}$: 对股票 $s$，在固定时间点 $t$，跨越所有 $D$ 个交易日进行平均。下标中的点 "$\cdot$" 表示该维度（这里是日期 $d$）已经被平均掉了。</li>
+  <li>$\bar{a}_{j, s, \cdot}=\frac{1}{D} \sum_{d=1}^{D} a_{j, s, d}$: 股票 $s$ 的第 $j$ 个<strong>周期</strong>的<strong>平均强度系数</strong>。这是我们最终想要估计的目标。</li>
+  <li>$\bar{\varepsilon}_{t, s, \cdot}=\frac{1}{D} \sum_{d=1}^{D} \varepsilon_{t, s, d}$: 平均<strong>噪声项</strong>。</li>
+  <li>其<strong>方差</strong>为 $Var(\bar{\varepsilon}_{t, s, \cdot}) = Var(\frac{1}{D}\sum_d \varepsilon_{t,s,d}) = \frac{1}{D^2} \sum_d Var(\varepsilon_{t,s,d})$ (因为<strong>噪声</strong>独立)。</li>
+  <li>又因为 $Var(\varepsilon_{t,s,d})=\sigma_s^2$ (假设同一股票<strong>噪声方差</strong>不随日变)，所以 $Var(\bar{\varepsilon}_{t, s, \cdot}) = \frac{1}{D^2} (D \sigma_s^2) = \frac{\sigma_s^2}{D}$。</li>
+  <li>这个重要的结果表明，<strong>平均</strong>之后的<strong>噪声方差</strong>减小了 $D$ 倍！如果观察的天数 $D$ 足够多，平均<strong>噪声</strong>就可以忽略不计。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p>假设我们有AAPL在2天 ($D=2$) 的数据。</p>
+<p>在 $t=100$ (比如上午10点) 这个时刻：</p>
+<ul>
+  <li>Day 1: $V_{100, \text{AAPL}, 1} = 1500$ 股。</li>
+  <li>Day 2: $V_{100, \text{AAPL}, 2} = 1700$ 股。</li>
+</ul>
+<p>那么，AAPL在 $t=100$ 的平均<strong>成交量</strong>是：</p>
+<p>$\bar{V}_{100, \text{AAPL}, \cdot} = (1500 + 1700) / 2 = 1600$ 股。</p>
+<p>我们对所有 $t=1, \dots, T$ 都这样做，就得到了AAPL的“典型日”<strong>成交量</strong>曲线 $\bar{V}_{t, \text{AAPL}, \cdot}$。</p>
+<p>假设模型分解如下：</p>
+<ul>
+  <li>Day 1: $V_{100, \text{AAPL}, 1} = m_1 + a_1 \cos(\dots) + \varepsilon_1 = 1400 + 150 - 50 = 1500$</li>
+  <li>Day 2: $V_{100, \text{AAPL}, 2} = m_2 + a_2 \cos(\dots) + \varepsilon_2 = 1450 + 200 + 50 = 1700$</li>
+</ul>
+<p>平均之后：</p>
+<p>$\bar{V}_{100, \text{AAPL}, \cdot} = \bar{m} + \bar{a} \cos(\dots) + \bar{\varepsilon} = \frac{1400+1450}{2} + \frac{150+200}{2}\cos(\dots) + \frac{-50+50}{2}$</p>
+<p>$= 1425 + 175 \cos(\dots) + 0 = 1600$</p>
+<p>可以看到，平均<strong>成交量</strong>1600被分解为了平均<strong>趋势</strong>1425，平均<strong>周期</strong>贡献 $175 \cos(\dots)$，和被完全抵消掉的平均<strong>噪声</strong>0。</p>
+<p>我们的目标就是从 $\bar{V}_{t, \text{AAPL}, \cdot}$ 这条曲线上，估计出那个平均<strong>强度</strong> $\bar{a} = 175$。</p>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>平均的假设</strong>: 这种平均方法隐含了一个假设，即一只股票的<strong>周期</strong>结构在不同日期是“统计上相似的”。它旨在发现稳定的、重复出现的<strong>周期</strong>模式。如果某只股票的<strong>周期</strong>模式每天都发生根本性的、无规律的变化，那么平均可能会掩盖而不是揭示信息。</li>
+  <li><strong>样本代表性</strong>: 我们用来平均的 $D$ 天数据，需要能代表这只股票的“一般”情况。如果这 $D$ 天恰好都是财报发布日或者市场崩盘日，那么得到的“平均模式”将是有偏的，不能代表普通交易日的情况。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本小节提出通过对一只股票的多日<strong>成交量</strong>数据进行逐点平均，来构造一个代表“典型交易日”的平均<strong>成交量</strong>序列。这样做极大地提高了信噪比，并将一个复杂的、多参数的估计问题，简化为对每只股票估计一组更稳定、更有代表性的平均<strong>强度系数</strong> $\bar{a}_{j, s, \cdot}$ 的问题。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本节的目的是解决模型(5)带来的“维度灾难”（参数过多的问题），并提高估计的稳健性。在信号处理和实验科学中，通过重复实验和平均来降噪是一种最基本、最有效的方法。作者将这一思想应用到<strong>金融时间序列</strong>分析中，为后续的精确估计铺平了道路。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>你是一位肖像画家，要为一个很有名的、表情多变的人（股票 $s$）画一幅最能代表其神韵的肖像（$\bar{a}_{j,s,\cdot}$）。</p>
+<ol>
+  <li>你不在他某一天（日期 $d$）摆一个特定表情时画他，因为那可能只是他瞬间的情绪 ($a_{j,s,d}$)。</li>
+  <li>你的方法是，在连续 $D$ 天里，每天都给他拍成千上万张照片 ($V_{t,s,d}$)。</li>
+  <li>然后，你用电脑技术，将这 $D$ 天的所有照片进行“平均叠加”，生成一张“平均的脸” ($\bar{V}_{t,s,\cdot}$)。在这张平均脸上，所有瞬时的、<strong>随机</strong>的表情（比如眨眼、撇嘴，对应 $\varepsilon$）都被模糊和抵消了，而他最本质的、最稳定的五官特征（比如眼睛的大小、鼻梁的高度，对应 $\bar{a}_j$）则变得异常清晰。</li>
+  <li>你最终在这张“平均脸”上进行测量和绘画，得到的肖像就能最好地抓住这个人的神髓。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你站在一个固定的海岸观测点，连续观测了 $D=30$ 天的海浪情况。</p>
+<ol>
+  <li>每一天的海浪 ($V_{t,d}$) 都不完全一样。今天可能风大浪高，明天可能风平浪静。</li>
+  <li>你把这30天里，每一天的同一时刻（比如每天中午12:00:00, 12:00:03, ...）的海浪高度记录下来，然后计算这30个高度的平均值。</li>
+  <li>你对每个时刻都这样做，最终得到一条“平均海浪”曲线 ($\bar{V}_{t,\cdot}$)。</li>
+  <li>这条“平均海浪”曲线，会非常平滑地反映出由月亮和太阳引力决定的、非常稳定的潮汐<strong>周期</strong>（比如12.4小时的<strong>周期</strong>），而由每天天气变化引起的那些<strong>随机</strong>的大风大浪（$\varepsilon_{t,d}$）则在平均过程中被大大削弱了。</li>
+  <li>你在这条更干净的“平均海浪”曲线上进行分析，能更准确地测量出各种潮汐<strong>周期</strong>的<strong>强度</strong>。</li>
+</ol>
+    </div>
+</div><hr><h3>3.3 步骤1：消除趋势</h3><p id="original-9"><strong style="font-size: 1.3rem;">📜 [原文9]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>步骤 1。消除<strong>趋势</strong>。<strong>谱估计</strong>的第一步是消除<strong>趋势项</strong>，它对应于美国（或中国）市场典型日内<strong>交易成交量</strong>的一般 <strong>U 型</strong>（或<strong>双 U 型</strong>）。设 $q$ 为一个非负整数，在我们的<strong>实证分析</strong>中将其设为 100。我们通过<strong>滚动窗口移动平均</strong>来估计 $\bar{m}_{t, s, \cdot}$：</p>
+<p><div class="math-block">$$
+\hat{\bar{m}}_{t, s, \cdot}=\frac{1}{2 q+1} \sum_{j=-q}^{q} \bar{V}_{t+j, s, \cdot}, \quad q+1 \leq t \leq T-q
+$$</div></p>
+<p>因此，<strong>趋势项</strong>的<strong>方差</strong>可以通过 $\hat{\bar{m}}_{t, s, \cdot}$ 的<strong>样本方差</strong>来估计：</p>
+<p><div class="math-block">$$
+\hat{\gamma}_{T}^{\bar{m}_{s, \cdot}}(0)=\frac{1}{T-2 q} \sum_{t=q+1}^{T-q}\left(\hat{\bar{m}}_{t, s, \cdot}-\frac{1}{T-2 q} \sum_{t=q+1}^{T-q} \hat{\bar{m}}_{t, s, \cdot}\right)^{2}
+$$</div></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是估计流程的第一个具体操作步骤：从平均<strong>成交量</strong>序列 $\bar{V}_{t,s,\cdot}$ 中，估计并分离出<strong>趋势项</strong> $\bar{m}_{t,s,\cdot}$。</p>
+<ol>
+  <li><strong>目的</strong>: <strong>谱分析</strong>（即<strong>周期</strong>分析）对<strong>非平稳</strong>的<strong>趋势</strong>非常敏感。U型的<strong>趋势</strong>本身就是一个巨大的、<strong>周期</strong>为一天的低频信号，它的能量非常大，会掩盖掉我们感兴趣的那些更高频、更精细的<strong>周期</strong>。因此，在分析<strong>周期</strong>之前，必须先把这个强大的<strong>趋势</strong>项移除。这就像想听清楚乐队里的短笛声，得先把音量巨大的低音炮关掉一样。</li>
+  <li><strong>方法</strong>: 作者使用了<strong>金融时间序列</strong>分析中最常用的<strong>去趋势</strong>方法之一：<strong>滚动窗口移动平均</strong> (rolling window moving average)。</li>
+</ol>
+<ul>
+  <li><strong>思想</strong>: 一个时间点 $t$ 的<strong>趋势</strong>值，可以用它附近一段时间的<strong>成交量</strong>的平均值来近似。因为<strong>趋势</strong>是缓慢变化的，而<strong>周期</strong>和<strong>噪声</strong>是快速变化的，所以在一段时间内取平均，快速变化的成分会因为正负振荡而相互抵消，只剩下缓慢变化的<strong>趋势</strong>。</li>
+  <li><strong>窗口</strong>: 这个“附近的一段时间”被称为“<strong>窗口</strong>”，其大小由参数 $q$ 决定。窗口的总宽度是 $2q+1$ 个时间点。</li>
+  <li><strong>滚动</strong>: 之所以叫“<strong>滚动</strong>”，是因为这个窗口在<strong>时间序列</strong>上不断向前移动。为了计算 $t$ 时刻的<strong>趋势</strong>，我们用 $t$ 前后 $q$ 个点。为了计算 $t+1$ 时刻的<strong>趋势</strong>，我们把整个窗口向前移动一格，用 $t+1$ 前后 $q$ 个点。</li>
+</ul>
+<ol>
+  <li><strong>参数 $q$ 的选择</strong>:</li>
+</ol>
+<ul>
+  <li>作者选择 $q=100$。这意味着窗口宽度是 $2 \times 100 + 1 = 201$ 个时间点。</li>
+  <li>一个时间点是3秒，所以窗口的时间跨度是 $201 \times 3 = 603$ 秒，大约是10分钟。</li>
+  <li><strong>这个选择的含义是</strong>: 我们假设，任何<strong>周期</strong>短于10分钟的<strong>波动</strong>都属于我们想要分析的“<strong>周期项</strong>”，而任何比10分钟更长、更平滑的变化都属于“<strong>趋势</strong>”。</li>
+  <li>移动平均是一个“低通滤波器”，它让低频信号（长<strong>周期</strong>，慢变化）通过，而滤掉高频信号（短<strong>周期</strong>，快变化）。$q$ 越大，窗口越宽，滤波效果越强，得到的<strong>趋势</strong>线就越平滑。</li>
+</ul>
+<ol>
+  <li><strong>估计趋势方差</strong>:</li>
+</ol>
+<ul>
+  <li>在得到<strong>趋势</strong>序列 $\hat{\bar{m}}_{t,s,\cdot}$ 之后，我们可以用标准的<strong>样本方差</strong>公式来计算它的<strong>方差</strong> $\hat{\gamma}_T^{\bar{m}_{s,\cdot}}(0)$。</li>
+  <li>这个值将在后面的<strong>方差分解</strong>中用到，用来衡量U型<strong>趋势</strong>对总<strong>波动</strong>的贡献有多大。</li>
+  <li>注意求和的范围是从 $q+1$ 到 $T-q$，因为在序列的开头和结尾的 $q$ 个点，我们无法构成一个完整的窗口，所以无法计算它们的移动平均值。</li>
+</ul>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><strong>趋势估计公式</strong>: $\hat{\bar{m}}_{t, s, \cdot}=\frac{1}{2 q+1} \sum_{j=-q}^{q} \bar{V}_{t+j, s, \cdot}$</p>
+<ul>
+  <li>$\hat{\bar{m}}_{t, s, \cdot}$: <strong>趋势项</strong> $\bar{m}_{t,s,\cdot}$ 的估计值。帽子“$\hat{\;}$”表示这是从数据中估计出来的。</li>
+  <li>$q$: <strong>移动平均</strong>窗口的半宽度。</li>
+  <li>$2q+1$: <strong>移动平均</strong>窗口的总宽度。</li>
+  <li>$\sum_{j=-q}^{q}$: 对窗口内的所有点进行求和。当 $j=-q$ 时，是 $t-q$ 时刻的点；当 $j=0$ 时，是中心点 $t$；当 $j=q$ 时，是 $t+q$ 时刻的点。</li>
+  <li>$\bar{V}_{t+j, s, \cdot}$: 在窗口内的<strong>平均成交量</strong>序列的值。</li>
+  <li>$\frac{1}{2q+1}$: 除以窗口宽度，即求平均。</li>
+</ul>
+<p><strong>趋势方差估计公式</strong>: $\hat{\gamma}_{T}^{\bar{m}_{s, \cdot}}(0)=\frac{1}{T-2 q} \sum_{t=q+1}^{T-q}\left(\hat{\bar{m}}_{t, s, \cdot}-\text{avg}(\hat{\bar{m}})\right)^{2}$ (简化版)</p>
+<ul>
+  <li>$\hat{\gamma}_{T}^{\bar{m}_{s, \cdot}}(0)$: 估计出的<strong>趋势项方差</strong>。</li>
+  <li>$T-2q$: 有效的<strong>趋势</strong>序列的长度。</li>
+  <li>$\sum_{t=q+1}^{T-q}$: 对所有我们能计算出<strong>趋势</strong>值的点进行求和。</li>
+  <li>公式本身就是标准<strong>样本方差</strong>的定义，应用于我们刚刚得到的<strong>趋势</strong>序列 $\hat{\bar{m}}_{t,s,\cdot}$。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p>假设我们有一小段平均<strong>成交量</strong>序列 $\bar{V}_t = \{10, 20, 15, 80, 25, 30, 12\}$，并且选择 $q=1$。</p>
+<p>窗口宽度是 $2q+1 = 3$。</p>
+<ol>
+  <li><strong>计算 $\hat{\bar{m}}_t$</strong>:</li>
+</ol>
+<ul>
+  <li>$t=1$: 无法计算，因为需要 $t-1$ 的数据。</li>
+  <li>$t=2$: $\hat{\bar{m}}_2 = \frac{1}{3}(\bar{V}_1+\bar{V}_2+\bar{V}_3) = \frac{1}{3}(10+20+15) = 15$。</li>
+  <li>$t=3$: $\hat{\bar{m}}_3 = \frac{1}{3}(\bar{V}_2+\bar{V}_3+\bar{V}_4) = \frac{1}{3}(20+15+80) = \frac{115}{3} \approx 38.3$。</li>
+  <li>$t=4$: $\hat{\bar{m}}_4 = \frac{1}{3}(\bar{V}_3+\bar{V}_4+\bar{V}_5) = \frac{1}{3}(15+80+25) = \frac{120}{3} = 40$。</li>
+  <li>$t=5$: $\hat{\bar{m}}_5 = \frac{1}{3}(\bar{V}_4+\bar{V}_5+\bar{V}_6) = \frac{1}{3}(80+25+30) = \frac{135}{3} = 45$。</li>
+  <li>$t=6$: $\hat{\bar{m}}_6 = \frac{1}{3}(\bar{V}_5+\bar{V}_6+\bar{V}_7) = \frac{1}{3}(25+30+12) = \frac{67}{3} \approx 22.3$。</li>
+  <li>$t=7$: 无法计算。</li>
+</ul>
+<p>我们得到的<strong>趋势</strong>序列是（在有效范围内）: $\{15, 38.3, 40, 45, 22.3\}$。</p>
+<p>可以看到，原始序列中那个非常突兀的80，在<strong>趋势</strong>序列中被“平滑”掉了，变成了围绕40左右的一个小高峰。</p>
+<ol>
+  <li><strong>计算 $\hat{\gamma}^{\bar{m}}(0)$</strong>:</li>
+</ol>
+<ul>
+  <li>首先计算这个<strong>趋势</strong>序列的均值: $\text{avg} = (15+38.3+40+45+22.3)/5 \approx 32.1$。</li>
+  <li>然后计算<strong>方差</strong>: $\hat{\gamma}^{\bar{m}}(0) = \frac{1}{5}[ (15-32.1)^2 + \dots + (22.3-32.1)^2 ]$。这是一个直接的计算，这里不展开。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>$q$ 的选择是艺术</strong>: $q$ 的选择非常关键。</li>
+  <li>如果 $q$ 太小，窗口太窄，移动平均就不能有效地滤掉<strong>周期</strong>和<strong>噪声</strong>，估计出的<strong>趋势</strong> $\hat{\bar{m}}_t$ 会“过于晃动”，仍然包含很多高频成分。这违反了假设2（<strong>趋势</strong>和<strong>周期</strong>正交）。</li>
+  <li>如果 $q$ 太大，窗口太宽，移动平均会过度平滑，可能会把一些我们感兴趣的、较长的<strong>周期</strong>也当成<strong>趋势</strong>给滤掉了。</li>
+  <li>作者选择 $q=100$ (约10分钟)，是基于他们希望保留所有比10分钟短的<strong>周期</strong>来进行分析的意图。</li>
+  <li><strong>边界效应</strong>: <strong>移动平均</strong>法在序列的开头和结尾处会丢失 $q$ 个数据点。当 $T$ 很大而 $q$ 相对较小时，这影响不大。但如果 $q$ 很大，则会浪费不少数据。有一些更复杂的滤波方法可以减轻边界效应，但<strong>移动平均</strong>因其简单直观而被广泛使用。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>谱估计</strong>的第一步是<strong>去趋势</strong>。本节采用<strong>滚动窗口移动平均</strong>法，通过一个宽度为 $2q+1$ 的窗口来平滑平均<strong>成交量</strong>序列，从而得到对U型<strong>趋势</strong>的估计 $\hat{\bar{m}}_t$。这个过程可以被看作是一个低通滤波器，旨在分离慢变的<strong>趋势</strong>和快变的<strong>周期</strong>。同时，也给出了如何估计该<strong>趋势项方差</strong>的方法。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本步骤的目的是为后续的<strong>谱分析</strong>“清理场地”。如果不先移除强大的低频<strong>趋势</strong>，<strong>谱分析</strong>的结果将被这个<strong>趋势</strong>的巨大能量所主导，使得那些能量小但有意义的高频<strong>周期</strong>信号被淹没，无法被准确识别和测量。这是一个预处理步骤，对保证后续步骤的有效性至关重要。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>你是一位天文学家，想用望远镜研究一颗遥远恒星（高频<strong>周期</strong>）的微弱光变。</p>
+<ol>
+  <li><strong>问题</strong>: 你在城市里进行观测，城市的灯光（U型<strong>趋势</strong>）非常明亮，它把整个夜空都照亮了，使得你看不到那颗暗淡的恒星。</li>
+  <li><strong>解决方案 (移动平均)</strong>: 你给望远镜装上了一个特殊的滤光片。这个滤光片可以滤掉大片的、平滑的背景光（比如城市灯光），但能让那些点状的、快速闪烁的星光通过。这个滤光片就是<strong>移动平均</strong>。</li>
+  <li><strong>步骤1的目的</strong>: 就是先用这个滤光片，把城市灯光这个背景干扰给减掉，得到一张更“干净”的星空图像（<strong>去趋势</strong>序列 $X_t$），然后再对这张干净的图像进行精细分析。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>你有一张照片，上面有一只小猫，但照片是在一个有很强炫光的窗户前拍的，整个照片泛白，看不清小猫的细节。</p>
+<ol>
+  <li><strong>原始成交量 $V_t$</strong>: 有炫光的原始照片。</li>
+  <li><strong>U型趋势 $m_t$</strong>: 大面积的、平滑的炫光。</li>
+  <li><strong>周期和噪声 $X_t$</strong>: 小猫身上的花纹和细节。</li>
+  <li><strong>移动平均 (步骤1)</strong>: 你用Photoshop里的一个“去除背景”或“调整对比度”的工具。这个工具会识别出大片平滑的颜色（炫光），并将其整体调暗或移除。这个工具就是<strong>移动平均</strong>。</li>
+  <li><strong>结果</strong>: 得到一张去除了炫光的、小猫细节更清晰的照片。这就是<strong>去趋势</strong>后的序列 $\hat{X}_t$。</li>
+</ol>
+    </div>
+</div><hr><h3>3.4 步骤2：估计自协方差</h3><p id="original-10"><strong style="font-size: 1.3rem;">📜 [原文10]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>步骤 2。估计<strong>自协方差</strong>。我们将<strong>去趋势</strong><strong>时间序列</strong> $\bar{V}_{t, s, \cdot}-\hat{\bar{m}}_{t, s, \cdot}$ 作为观测到的 $\bar{X}_{t, s, \cdot}$，并估计其在 $-n \leq h \leq n$ 范围内的<strong>自协方差函数</strong> $\gamma_{T}^{\bar{X}_{s, \cdot}}(h)$：</p>
+<p><div class="math-block">$$
+\hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(h)=\frac{1}{T-2 q-h} \sum_{t=q+1}^{T-q-h}\left(\bar{X}_{t, s, \cdot}-\frac{1}{T-2 q} \sum_{t=q+1}^{T-q} \bar{X}_{t, s, \cdot}\right)\left(\bar{X}_{t+h, s, \cdot}-\frac{1}{T-2 q} \sum_{t=q+1}^{T-q} \bar{X}_{t, s, \cdot}\right) .
+$$</div></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是估计流程的第二步：在“清理好场地”之后，我们开始测量我们真正感兴趣的东西——<strong>去趋势</strong>序列的<strong>自协方差</strong>。</p>
+<ol>
+  <li><strong>构造去趋势序列</strong>:</li>
+</ol>
+<ul>
+  <li>第一步，我们得到了平均<strong>成交量</strong> $\bar{V}_{t,s,\cdot}$ 和它的<strong>趋势</strong>估计 $\hat{\bar{m}}_{t,s,\cdot}$。</li>
+  <li>现在，我们直接将两者相减，得到<strong>去趋势</strong>序列的估计值：</li>
+</ul>
+<p>$\hat{\bar{X}}_{t,s,\cdot} = \bar{V}_{t,s,\cdot} - \hat{\bar{m}}_{t,s,\cdot}$</p>
+<ul>
+  <li>这个新的序列 $\hat{\bar{X}}_{t,s,\cdot}$ 就是我们认为主要由<strong>周期项</strong>和<strong>噪声项</strong>构成的序列。它的U型<strong>趋势</strong>已经被移除了，看起来更像是在一个固定的均值上下<strong>波动</strong>的序列。</li>
+</ul>
+<ol>
+  <li><strong>应用自协方差公式</strong>:</li>
+</ol>
+<ul>
+  <li>接下来，我们对这个刚刚得到的 $\hat{\bar{X}}_{t,s,\cdot}$ 序列，使用标准<strong>样本自协方差</strong>公式（即公式2）来计算它的<strong>自协方差</strong>。</li>
+  <li>这个公式就是步骤2中给出的那个长公式，它看起来复杂，但本质上和公式(2)一模一样，只是把里面的 $p_t$ 换成了 $\hat{\bar{X}}_{t,s,\cdot}$，并且调整了求和的边界。</li>
+</ul>
+<ol>
+  <li><strong>计算范围</strong>:</li>
+</ol>
+<ul>
+  <li>我们需要计算<strong>滞后</strong> $h$ 从多少到多少的<strong>自协方差</strong>？</li>
+  <li>作者指出，计算范围是 $-n \leq h \leq n$。</li>
+  <li>回忆一下，$n=500$ 是我们在<strong>频率</strong>选择时设定的<strong>周期</strong>个数。我们需要计算从<strong>滞后</strong>-500到+500的<strong>自协方差</strong>值。</li>
+  <li>为什么是这个范围？因为下一步的<strong>傅里叶变换</strong>需要用到这一整段的<strong>自协方差</strong>信息，才能分辨出 $n=500$ 个不同<strong>频率</strong>的强度。输入序列的长度（这里是 $2n+1$）决定了<strong>傅里叶变换</strong>输出的<strong>频率</strong>分辨率。</li>
+  <li>由于<strong>自协方差函数</strong>是一个偶函数，即 $\gamma(h) = \gamma(-h)$，所以我们实际上只需要计算 $h=0, 1, \ldots, n$ 的值，然后就可以知道负<strong>滞后</strong>部分的值。</li>
+</ul>
+<ol>
+  <li><strong>公式细节</strong>:</li>
+</ol>
+<ul>
+  <li>公式中的 $\frac{1}{T-2q} \sum \bar{X}_{t,s,\cdot}$ 是在计算<strong>去趋势</strong>序列 $\hat{\bar{X}}_{t,s,\cdot}$ 的<strong>样本均值</strong>。理论上，如果<strong>去趋势</strong>很完美，这个均值应该接近于0。</li>
+  <li>求和的范围 $t$ 从 $q+1$ 到 $T-q-h$ 是为了确保 $t$ 和 $t+h$ 都落在我们有有效数据点的区间 $[q+1, T-q]$ 之内。</li>
+</ul>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p>$\hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(h)=\frac{1}{T-2 q-h} \sum_{t=q+1}^{T-q-h}\left(\bar{X}_{t, s, \cdot}-\text{mean}(\bar{X})\right)\left(\bar{X}_{t+h, s, \cdot}-\text{mean}(\bar{X})\right)$</p>
+<ul>
+  <li>$\hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(h)$: <strong>去趋势</strong>序列 $\bar{X}_{t,s,\cdot}$ 的<strong>样本自协方差函数</strong>的估计值。</li>
+  <li>$\bar{X}_{t, s, \cdot}$: $\bar{V}_{t,s,\cdot} - \hat{\bar{m}}_{t,s,\cdot}$，即我们计算出的<strong>去趋势</strong>序列。</li>
+  <li>$\frac{1}{T-2q} \sum_{t=q+1}^{T-q} \bar{X}_{t, s, \cdot}$: <strong>去趋势</strong>序列的<strong>样本均值</strong>，我们用 $\text{mean}(\bar{X})$ 来简化表示。</li>
+  <li>$T-2q-h$: 求和的项数，即在有效数据范围内，可以构成多少个<strong>滞后</strong>为 $h$ 的数据对。</li>
+  <li>整个公式是在我们构造的<strong>去趋势</strong>序列上，忠实地执行了<strong>自协方差</strong>的定义。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p>继续用步骤1的例子:</p>
+<p>原始序列 $\bar{V}_t = \{10, 20, 15, 80, 25, 30, 12\}$</p>
+<p>趋势序列 $\hat{\bar{m}}_t$ (在有效区间) = $\{15, 38.3, 40, 45, 22.3\}$</p>
+<ol>
+  <li><strong>计算 $\hat{\bar{X}}_t$</strong>:</li>
+</ol>
+<ul>
+  <li>$\hat{\bar{X}}_2 = \bar{V}_2 - \hat{\bar{m}}_2 = 20 - 15 = 5$</li>
+  <li>$\hat{\bar{X}}_3 = \bar{V}_3 - \hat{\bar{m}}_3 = 15 - 38.3 = -23.3$</li>
+  <li>$\hat{\bar{X}}_4 = \bar{V}_4 - \hat{\bar{m}}_4 = 80 - 40 = 40$</li>
+  <li>$\hat{\bar{X}}_5 = \bar{V}_5 - \hat{\bar{m}}_5 = 25 - 45 = -20$</li>
+  <li>$\hat{\bar{X}}_6 = \bar{V}_6 - \hat{\bar{m}}_6 = 30 - 22.3 = 7.7$</li>
+</ul>
+<p>我们得到的<strong>去趋势</strong>序列 $\hat{\bar{X}}_t$ (在有效区间) = $\{5, -23.3, 40, -20, 7.7\}$。</p>
+<p>可以看到，U型<strong>趋势</strong>没有了，序列现在围绕0上下<strong>波动</strong>。</p>
+<ol>
+  <li><strong>计算 $\hat{\gamma}^{\bar{X}}(h)$</strong>:</li>
+</ol>
+<ul>
+  <li>首先计算 $\hat{\bar{X}}_t$ 的均值: $\text{mean}(\hat{\bar{X}}) = (5-23.3+40-20+7.7)/5 = 1.88$。</li>
+  <li><strong>计算 $\hat{\gamma}^{\bar{X}}(0)$ (方差)</strong>:</li>
+</ul>
+<p>$\hat{\gamma}^{\bar{X}}(0) = \frac{1}{5-0} [ (5-1.88)^2 + (-23.3-1.88)^2 + (40-1.88)^2 + (-20-1.88)^2 + (7.7-1.88)^2 ]$</p>
+<p>这是一个纯粹的计算，结果会是一个正数。</p>
+<ul>
+  <li><strong>计算 $\hat{\gamma}^{\bar{X}}(1)$ (滞后1)</strong>:</li>
+</ul>
+<p>$\hat{\gamma}^{\bar{X}}(1) = \frac{1}{5-1} [ (5-1.88)(-23.3-1.88) + (-23.3-1.88)(40-1.88) + \dots ]$</p>
+<p>同样，这是一个直接的计算。</p>
+<p>我们会对 $h=0, 1, 2, \dots, n$ (这里是 $n=500$) 都计算一遍，得到一个长长的<strong>自协方差</strong>序列 $\{\hat{\gamma}(0), \hat{\gamma}(1), \ldots, \hat{\gamma}(500)\}$。这个序列就是我们送入下一步进行<strong>傅里叶变换</strong>的输入。</p>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>均值的处理</strong>: 在计算<strong>自协方差</strong>时，减去<strong>样本均值</strong>是标准做法。如果<strong>去趋势</strong>步骤做得很好，$\hat{\bar{X}}_t$ 的均值应该非常接近0，减不减影响不大。但严谨起见，最好还是减去。</li>
+  <li><strong>计算复杂度</strong>: 这一步的计算量是比较大的。对于每个<strong>滞后</strong> $h$，都需要遍历一次长度约为 $T$ 的序列。总的计算复杂度大约是 $O(n \times T)$。在本文的设定中 ($T=7800, n=500$)，这是完全可以接受的。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>步骤2是一个承上启下的步骤。它首先利用步骤1的结果，通过相减得到关键的分析对象——<strong>去趋势时间序列</strong> $\hat{\bar{X}}_t$。然后，它系统地计算了这个序列从<strong>滞后</strong>0到$n$的<strong>自协方差</strong>，生成了一个<strong>自协方差</strong>序列 $\hat{\gamma}^{\bar{X}}(h)$。这个序列是连接<strong>时域</strong>和<strong>频域</strong>的桥梁，也是下一步<strong>傅里叶分析</strong>的直接输入。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本步骤的目的是将理论上的分析工具（<strong>自协方差函数</strong>）应用到我们经过预处理的数据上，从而得到一个数值序列，这个序列根据定理1，包含了我们想要的所有关于<strong>周期强度</strong>的信息。这是从抽象理论走向数值计算的关键一步。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>回到肖像画家的比喻。</p>
+<ol>
+  <li>在步骤1，你得到了一张去除了背景炫光的“平均脸”照片 $\hat{\bar{X}}_t$。</li>
+  <li>在步骤2，你开始对这张干净的照片进行测量。你拿出各种尺寸的卡尺（对应<strong>滞后</strong> $h$）。</li>
+  <li>你测量照片上相距为 $h=1$ 毫米的任意两点的“相似度”（<strong>协方差</strong>），然后取平均，得到 $\hat{\gamma}(1)$。</li>
+  <li>你又测量相距为 $h=2$ 毫米的点的相似度，得到 $\hat{\gamma}(2)$。</li>
+  <li>...</li>
+  <li>你一直测量到 $h=500$ 毫米，得到了一组完整的测量数据 $\{\hat{\gamma}(0), \hat{\gamma}(1), \ldots, \hat{\gamma}(500)\}$。这组数据详细描述了这张“平均脸”在不同空间尺度上的结构特征。下一步，你就要分析这组数据，来判断这张脸上到底有哪些主要的特征（比如眼睛、鼻子，对应<strong>周期</strong>）。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>回到海浪分析的比喻。</p>
+<ol>
+  <li>在步骤1，你得到了一条剔除了宏观潮汐<strong>趋势</strong>的“纯波浪”数据曲线 $\hat{\bar{X}}_t$。</li>
+  <li>在步骤2，你开始分析这条曲线的内在结构。</li>
+  <li>你问：如果当前时刻是一个波峰，那么在1秒之后（$h=1$），它倾向于变成波峰还是波谷？你通过计算 $\hat{\gamma}(1)$ 来回答。</li>
+  <li>你又问：如果当前是波峰，那么在10秒之后（$h=10$）呢？你计算 $\hat{\gamma}(10)$。</li>
+  <li>你系统地计算了所有感兴趣的<strong>时间滞后</strong> $h=0, 1, \dots, 500$ 对应的<strong>自协方差</strong>，得到一个函数图像。这个图像本身可能也像波浪一样起伏，它蕴含了原始波浪中所有<strong>周期</strong>成分的信息。</li>
+</ol>
+    </div>
+</div><hr><h3>3.5 步骤3：估计强度系数</h3><p id="original-11"><strong style="font-size: 1.3rem;">📜 [原文11]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>步骤 3。估计<strong>强度系数</strong>。根据定理 1，当样本数量很大时，(3) 中的极限为：</p>
+<p><div class="math-block">$$
+\begin{aligned}
+\gamma_{T}^{\bar{X}_{s, \cdot}}(-h)=\gamma_{T}^{\bar{X}_{s, \cdot}}(h) &amp; \xrightarrow{\text { a.s. }} \frac{1}{2} \sum_{j=1}^{n} \bar{a}_{j, s, \cdot}^{2} \cos \left(\lambda_{j} h\right)+\frac{\mathbf{1}_{h=0}}{D} \sigma_{s}^{2} \\
+&amp; =\frac{1}{4} \sum_{j=1}^{n} \bar{a}_{j, s, \cdot}^{2}\left(e^{i \lambda_{j} h}+e^{-i \lambda_{j} h}\right)+\frac{\mathbf{1}_{h=0}}{D} \sigma_{s}^{2} \\
+&amp; =\sum_{j=-n}^{-1} \frac{1}{4} \bar{a}_{-j, s, \cdot}^{2} e^{i \frac{\pi}{n} j h}+\frac{\mathbf{1}_{h=0}}{D} \sigma_{s}^{2}+\sum_{j=1}^{n} \frac{1}{4} \bar{a}_{j, s, \cdot}^{2} e^{i \frac{\pi}{n} j h}
+\end{aligned}
+$$</div></p>
+<p>因此，当 $T$ 很大时，我们可以近似地将</p>
+<p><div class="math-block">$$
+\left(\hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(-n), \hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(-n+1), \ldots, \hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(0), \ldots, \hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(n-1), \hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(n)\right)
+$$</div></p>
+<p>视为 $\left(\bar{a}_{n, s, \cdot}^{2}, \bar{a}_{n-1, s, \cdot}^{2}, \ldots, \sigma_{s}^{2}, \ldots, \bar{a}_{n-1, s, \cdot}^{2}, \bar{a}_{n, s, \cdot}^{2}\right)$ 的 <strong>DFT</strong>。因此，我们通过对估计的<strong>自协方差</strong> $\gamma_{T}^{\bar{X}_{s, \cdot}}(h)$ 应用<strong>离散傅里叶反变换</strong>来估计<strong>强度系数</strong>：</p>
+<p><div class="math-block">$$
+\hat{\bar{a}}_{j, s, \cdot}^{2}=\frac{2}{n}\left(\sum_{h=1}^{n} \hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(h)\left(e^{-i \frac{\pi}{n} h j}+e^{i \frac{\pi}{n} h j}\right)+\hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(0)\right)=\frac{2}{n}\left(2 \sum_{h=1}^{n} \hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(h) \cos \left(\frac{j \pi}{n} h\right)+\hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(0)\right) .
+$$</div></p>
+<p>在附录 C 中，我们使用<strong>合成数据</strong>验证了我们模型的有效性。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这是整个估计流程的最后一步，也是最高潮的部分：从<strong>自协方差</strong>序列中“榨取”出我们最终想要的<strong>强度系数</strong> $a_j^2$。</p>
+<ol>
+  <li><strong>理论回顾与变形</strong>:</li>
+</ol>
+<ul>
+  <li>作者首先重写了定理1的结论，并做了一些数学上的变形，目的是把它变成一个标准的<strong>离散傅里叶变换</strong>（DFT）的形式。</li>
+  <li><strong>第一步变形</strong>: 利用欧拉公式 $\cos(x) = \frac{e^{ix} + e^{-ix}}{2}$，将 $\cos(\lambda_j h)$ 替换掉。这样，原来基于<strong>余弦</strong>的表达式就变成了基于<strong>复指数</strong> $e^{i\lambda_j h}$ 的表达式。这是<strong>傅里叶分析</strong>的标准语言。</li>
+  <li><strong>第二步变形</strong>: 作者将求和范围从 $j=1,\dots,n$ 扩展到了 $j=-n, \dots, n$。这是一个技巧，使得公式的形式与标准的DFT公式完全对应起来。这里定义了 $\bar{a}_{-j}^2 = \bar{a}_j^2$。</li>
+  <li><strong>变形后的结论</strong>: 这个变形说明，我们观测到的<strong>自协方差</strong>序列 $\gamma(h)$ （作为 $h$ 的函数），可以被看作是另一个序列（主要是我们想求的 $\frac{1}{4}\bar{a}_j^2$）的<strong>傅里叶变换</strong>的结果。</li>
+  <li><strong>噪声项的处理</strong>: 注意这里的<strong>噪声方差</strong>变成了 $\sigma_s^2 / D$。这是因为我们在分析的是平均了 $D$ 天的序列 $\bar{X}_{t,s,\cdot}$，之前我们推导过它的<strong>噪声方差</strong>会减小 $D$ 倍。</li>
+</ul>
+<ol>
+  <li><strong>傅里叶反变换</strong>:</li>
+</ol>
+<ul>
+  <li><strong>核心逻辑</strong>: 如果 A 是 B 的<strong>傅里叶变换</strong>，那么 B 就是 A 的<strong>傅里叶反变换</strong>。</li>
+  <li>既然<strong>自协方差</strong>序列 $\gamma(h)$ 是<strong>强度</strong>序列 $a_j^2$ 的<strong>傅里叶变换</strong>，那么反过来，我们想求的<strong>强度</strong>序列 $a_j^2$ 就是我们已知的<strong>自协方差</strong>序列 $\gamma(h)$ 的<strong>傅里叶反变换</strong>！</li>
+  <li>这就是本步骤的核心思想：对步骤2中计算出的<strong>自协方差</strong>序列 $\{\hat{\gamma}^{\bar{X}}(h)\}_{h=-n}^n$ 应用<strong>离散傅里叶反变换</strong>算法，就能得到<strong>强度</strong> $\{\hat{\bar{a}}_j^2\}_{j=1}^n$ 的估计值。</li>
+</ul>
+<ol>
+  <li><strong>最终的估计公式</strong>:</li>
+</ol>
+<ul>
+  <li>作者给出了最终的计算公式。它看起来很复杂，但它就是<strong>离散傅里叶余弦变换</strong> (Discrete Cosine Transform, DCT) 的一个具体表达式。</li>
+  <li><strong>第一个等号后的公式</strong>: 这是用复指数形式写的。注意 $e^{-i\frac{\pi}{n}hj} + e^{i\frac{\pi}{n}hj} = 2\cos(\frac{\pi}{n}hj)$。</li>
+  <li><strong>第二个等号后的公式</strong>: 这是更直观的、用<strong>余弦</strong>写的形式。它告诉我们，为了计算第 $j$ 个<strong>频率</strong>上的<strong>强度</strong> $\hat{\bar{a}}_j^2$，我们需要：</li>
+  <li>将<strong>自协方差</strong>序列 $\hat{\gamma}(h)$ (for $h=1..n$) 与一个对应的<strong>余弦波</strong> $\cos(\frac{j\pi}{n}h)$逐点相乘，然后求和。这本质上是在计算 $\hat{\gamma}(h)$ 与<strong>频率</strong>为 $j\pi/n$ 的<strong>余弦基函数</strong>的“相关性”。</li>
+  <li>如果 $\hat{\gamma}(h)$ 本身就含有很强的 $j\pi/n$ <strong>频率</strong>成分，那么这个乘积求和的结果就会很大。</li>
+  <li>最后加上 $\hat{\gamma}(0)$ 项，并乘以一个归一化常数 $\frac{2}{n}$。</li>
+</ul>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<p><strong>理论变形</strong>:</p>
+<p>$\gamma(h) \approx \frac{1}{2} \sum_{j=1}^{n} \bar{a}_{j}^{2} \cos(\lambda_{j} h) = \frac{1}{2} \sum_{j=1}^{n} \bar{a}_{j}^{2} \frac{e^{i\lambda_j h} + e^{-i\lambda_j h}}{2} = \sum_{j=1}^{n} \frac{\bar{a}_j^2}{4} e^{i\lambda_j h} + \sum_{j=1}^{n} \frac{\bar{a}_j^2}{4} e^{-i\lambda_j h}$</p>
+<p>令 $k=-j$，则第二项变为 $\sum_{k=-n}^{-1} \frac{\bar{a}_{-k}^2}{4} e^{i\lambda_k h}$ (假设 $\lambda_k = k\pi/n$, $\bar{a}_{-k}^2 = \bar{a}_k^2$)。</p>
+<p>这样就凑成了从 $-n$ 到 $n$ 求和的形式，这正是<strong>离散傅里叶变换</strong>的定义形式。</p>
+<p><strong>估计公式</strong>: $\hat{\bar{a}}_{j, s, \cdot}^{2}=\frac{2}{n}\left(2 \sum_{h=1}^{n} \hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(h) \cos \left(\frac{j \pi}{n} h\right)+\hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(0)\right)$</p>
+<ul>
+  <li>$\hat{\bar{a}}_{j, s, \cdot}^{2}$: 我们最终的目标，对股票 $s$ 的第 $j$ 个<strong>周期</strong>的平均<strong>强度平方</strong>的估计值。</li>
+  <li>$\frac{2}{n}$: 归一化常数，确保变换后的能量是正确的。</li>
+  <li>$\sum_{h=1}^{n}$: 对所有正的<strong>滞后</strong>进行求和。</li>
+  <li>$\hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(h)$: 我们在步骤2中计算出的，<strong>滞后</strong>为 $h$ 的<strong>样本自协方差</strong>。</li>
+  <li>$\cos \left(\frac{j \pi}{n} h\right)$: <strong>傅里叶变换</strong>的<strong>余弦基函数</strong>。对于每一个我们想计算的<strong>强度</strong> $\hat{\bar{a}}_j^2$，我们都会用一个不同<strong>频率</strong>的<strong>余弦波</strong>去“探测”<strong>自协方差</strong>序列。</li>
+  <li>$\hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(0)$: <strong>滞后</strong>为0的<strong>自协方差</strong>（即<strong>方差</strong>），被单独加在最后。</li>
+</ul>
+<p><strong>这个公式在做什么？</strong></p>
+<p>它在计算 $\hat{\gamma}(h)$ 序列与 $\cos(\frac{j\pi}{n}h)$ 序列的<strong>内积</strong>。这是一种“投影”操作。它将函数 $\hat{\gamma}(h)$ 投影到由<strong>余弦基函数</strong> $\{\cos(\frac{j\pi}{n}h)\}_{j=1}^n$ 张成的<strong>正交</strong>空间上，从而得到在每个基向量上的分量大小，这个大小就是 $\hat{\bar{a}}_j^2$。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p>假设 $n=2$。我们想估计 $\hat{\bar{a}}_1^2$ 和 $\hat{\bar{a}}_2^2$。</p>
+<p>我们在步骤2中已经计算出了<strong>自协方差</strong>: $\{\hat{\gamma}(0), \hat{\gamma}(1), \hat{\gamma}(2)\}$。</p>
+<ol>
+  <li><strong>计算 $\hat{\bar{a}}_1^2$ (对应频率 $\lambda_1=\pi/2$)</strong>:</li>
+</ol>
+<p>$\hat{\bar{a}}_1^2 = \frac{2}{2} [ 2(\hat{\gamma}(1)\cos(\frac{1\pi}{2}\cdot 1) + \hat{\gamma}(2)\cos(\frac{1\pi}{2}\cdot 2)) + \hat{\gamma}(0) ]$</p>
+<p>$= [ 2(\hat{\gamma}(1)\cos(\pi/2) + \hat{\gamma}(2)\cos(\pi)) + \hat{\gamma}(0) ]$</p>
+<p>$= [ 2(\hat{\gamma}(1) \cdot 0 + \hat{\gamma}(2) \cdot (-1)) + \hat{\gamma}(0) ]$</p>
+<p>$= \hat{\gamma}(0) - 2\hat{\gamma}(2)$</p>
+<ol>
+  <li><strong>计算 $\hat{\bar{a}}_2^2$ (对应频率 $\lambda_2=\pi$)</strong>:</li>
+</ol>
+<p>$\hat{\bar{a}}_2^2 = \frac{2}{2} [ 2(\hat{\gamma}(1)\cos(\frac{2\pi}{2}\cdot 1) + \hat{\gamma}(2)\cos(\frac{2\pi}{2}\cdot 2)) + \hat{\gamma}(0) ]$</p>
+<p>$= [ 2(\hat{\gamma}(1)\cos(\pi) + \hat{\gamma}(2)\cos(2\pi)) + \hat{\gamma}(0) ]$</p>
+<p>$= [ 2(\hat{\gamma}(1) \cdot (-1) + \hat{\gamma}(2) \cdot 1) + \hat{\gamma}(0) ]$</p>
+<p>$= \hat{\gamma}(0) - 2\hat{\gamma}(1) + 2\hat{\gamma}(2)$</p>
+<p><strong>数值代入</strong>: 假设我们从数据中算得 $\hat{\gamma}(0)=54, \hat{\gamma}(1)=0, \hat{\gamma}(2)=-50$。（近似定理1例子中的无噪声情况）</p>
+<ul>
+  <li>$\hat{\bar{a}}_1^2 = 54 - 2(-50) = 154$</li>
+  <li>$\hat{\bar{a}}_2^2 = 54 - 2(0) + 2(-50) = -46$</li>
+</ul>
+<p><strong>结果分析</strong>:</p>
+<ul>
+  <li>我们估计出 $\hat{\bar{a}}_1^2$ 是一个很大的正数，说明<strong>频率</strong>为 $\pi/2$ 的<strong>周期</strong>非常显著。</li>
+  <li>我们估计出 $\hat{\bar{a}}_2^2$ 是一个负数。理论上<strong>强度平方</strong>不应为负。这通常是由于<strong>样本噪声</strong>、模型设定误差或<strong>频谱泄露</strong>造成的。在实践中，负的估计值通常被当作0来处理，表示在该<strong>频率</strong>上没有检测到显著的<strong>周期</strong>能量。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>负估计值</strong>: 如上例所示，由于估计误差，$\hat{\bar{a}}_j^2$ 算出来可能是负数。这是一个常见的现象，特别是在信号很弱的<strong>频率</strong>上。通常的处理方式是 $max(0, \hat{\bar{a}}_j^2)$，即把负值强行置为0。</li>
+  <li><strong>算法实现</strong>: 没人会手写这个求和公式。在实际编程中，我们会使用高效的<strong>快速傅里叶变换</strong> (FFT) 库（例如 Python中的 <strong>numpy.fft</strong> 或 <strong>scipy.fft</strong>）来完成这个计算。这些库的算法复杂度是 $O(n \log n)$，远快于直接求和的 $O(n^2)$。</li>
+  <li><strong>与功率谱的关系</strong>: $\hat{\bar{a}}_j^2$ 的集合 $\{ \hat{\bar{a}}_1^2, \hat{\bar{a}}_2^2, \ldots, \hat{\bar{a}}_n^2 \}$ 本质上就是这个<strong>时间序列</strong>的“<strong>功率谱密度函数</strong>”（Periodogram）的估计。它展示了序列的<strong>方差</strong>是如何分布在不同<strong>频率</strong>上的。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>步骤3是整个估计过程的终点。它利用<strong>傅里叶分析</strong>的强大威力，通过对步骤2得到的<strong>自协方差</strong>序列进行<strong>离散傅里叶反变换</strong>（具体来说是<strong>余弦变换</strong>），成功地反解出了每个预设<strong>频率</strong> $\lambda_j$ 上对应的<strong>周期强度</strong>的平方 $\bar{a}_j^2$。至此，我们便完成了从原始的、复杂的<strong>成交量</strong>数据中量化其内部<strong>周期</strong>结构的核心任务。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本步骤的目的是给出从<strong>自协方差函数</strong>求解<strong>强度系数</strong>的具体数学公式和操作方法。它将前面所有的理论铺垫（定理1）和数据处理（步骤1和2）汇集在一起，得出了最终的量化结果。它是整个方法的“临门一脚”。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>你是一位密码破译专家。</p>
+<ol>
+  <li><strong>自协方差序列 $\hat{\gamma}(h)$</strong>: 这是你截获到的一段加密信息。它看起来是杂乱无章的数字。</li>
+  <li><strong>傅里叶变换 (步骤3)</strong>: 这是你的“解码器”。你把加密信息输入解码器。</li>
+  <li><strong>强度系数 $\hat{\bar{a}}_j^2$</strong>: 解码器输出的结果。你发现，在第5、10、30个频道上，解码器输出了非常强的信号，而其他频道都是<strong>噪声</strong>。</li>
+  <li><strong>结论</strong>: 你破译了！原始信息是用5分钟、10分钟和30分钟的<strong>周期</strong>加密的。$\hat{\bar{a}}_j^2$ 就是告诉你每个<strong>周期</strong>的“信息量”有多大。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>你面前有一个毛玻璃屏风，屏风后面有几个不同颜色的灯泡在闪烁。你看不清灯泡，只能看到屏风上混合在一起的、模糊的光斑（$\bar{X}_t$）。</p>
+<ol>
+  <li><strong>步骤2</strong>: 你不去分析光斑本身，而是分析光斑的“<strong>自相关性</strong>” $\hat{\gamma}(h)$。你发现屏风上相距10厘米的两点，其亮度变化高度同步，而相距5厘米的两点则倾向于反向变化。你把这些测量结果记录下来。</li>
+  <li><strong>步骤3</strong>: 你把这些记录（$\hat{\gamma}(h)$序列）输入一台“<strong>光谱分析仪</strong>”（<strong>傅里叶变换</strong>）。</li>
+  <li><strong>结果</strong>: 分析仪的屏幕上显示出几条谱线：在红色区域有一条很高的谱线，蓝色区域有一条中等高度的谱线，而绿色区域几乎没有信号。</li>
+  <li><strong>结论</strong>: 你推断出，屏风后面有一个很亮的红色灯泡和一个中等亮度的蓝色灯泡在闪烁，而没有绿色灯泡。$\hat{\bar{a}}_{\text{red}}^2$ 和 $\hat{\bar{a}}_{\text{blue}}^2$ 就是这些谱线的高度，代表了每种颜色灯泡的<strong>强度</strong>。</li>
+</ol>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-4">
+    <h2><span class="section-number">4</span>行间公式索引</h2>
+    <p>1. <strong>公式 (1)</strong>:</p><p><div class="math-block">$$
+   V_{t}:=m_{t}+X_{t}=m_{t}+\sum_{j=1}^{n} a_{j} \cos \left(\lambda_{j} t\right)+\varepsilon_{t}, \quad 0&lt;\lambda_{1}&lt;\cdots&lt;\lambda_{j}&lt;\cdots&lt;\lambda_{n}&lt;\pi
+$$</div></p><p><strong>解释</strong>: 这是核心的<strong>谱表示模型</strong>，将<strong>成交量</strong> ($V_t$) 分解为<strong>趋势</strong> ($m_t$)、<strong>周期和</strong> ($\sum a_j \cos(\lambda_j t)$) 和<strong>噪声</strong> ($\varepsilon_t$) 三个部分。</p><p>2. <strong>公式 (2)</strong>:</p><p><div class="math-block">$$
+   \gamma_{T}^{p}(h):=\frac{1}{T-h} \sum_{t=1}^{T-h}\left(p_{t}-\bar{p} .\right)\left(p_{t+h}-\bar{p} .\right)
+$$</div></p><p><strong>解释</strong>: 这是<strong>样本自协方差函数</strong>的定义，用于测量一个<strong>时间序列</strong>在<strong>滞后</strong> $h$ 时的自我相关性。</p><p>3. <strong>公式 (3)</strong>:</p><p><div class="math-block">$$
+   \gamma_{T}^{X}(h) \xrightarrow{\text { a.s. }} \frac{1}{2} \sum_{j=1}^{n} a_{j}^{2} \cos \left(\lambda_{j} h\right)+\mathbf{1}_{h=0} \sigma^{2}
+$$</div></p><p><strong>解释</strong>: <strong>定理1</strong>的核心结论，建立了<strong>去趋势</strong>序列的<strong>自协方差函数</strong>与其<strong>周期强度</strong>平方 ($a_j^2$) 之间的<strong>傅里叶余弦变换</strong>关系。</p><p>4. <strong>公式 (4)</strong>:</p><p><div class="math-block">$$
+   \gamma_{T}^{V}(0)-\gamma_{T}^{m}(0) \xrightarrow{\text { a.s. }} \sigma^{2}+\frac{1}{2} \sum_{j=1}^{n} a_{j}^{2} .
+$$</div></p><p><strong>解释</strong>: <strong>推论1</strong>的核心结论，将<strong>去趋势</strong>后的<strong>成交量方差</strong>分解为<strong>噪声方差</strong> ($\sigma^2$) 和所有<strong>周期项</strong>贡献的<strong>方差</strong>之和。</p><p>5. <strong>公式 (5)</strong>:</p><p><div class="math-block">$$
+   V_{t, s, d}:=m_{t, s, d}+X_{t, s, d}=m_{t, s, d}+\sum_{j=1}^{n} a_{j, s, d} \cos \left(\lambda_{j} t\right)+\varepsilon_{t, s, d}
+$$</div></p><p><strong>解释</strong>: 将基础模型(1)扩展到面板数据场景，允许每个股票($s$)、每个交易日($d$)都有其独特的参数。</p><p>6. <strong>平均成交量模型</strong>:</p><p><div class="math-block">$$
+   \bar{V}_{t, s, \cdot}=\bar{m}_{t, s, \cdot}+\bar{X}_{t, s, \cdot}=\bar{m}_{t, s, \cdot}+\sum_{j=1}^{n} \bar{a}_{j, s, \cdot} \cos \left(\lambda_{j} t\right)+\bar{\varepsilon}_{t, s, \cdot}
+$$</div></p><p><strong>解释</strong>: 对多日数据进行平均后得到的“典型日”模型，所有参数都变为平均值。</p><p>7. <strong>平均模型各分量定义</strong>:</p><p><div class="math-block">$$
+   \bar{m}_{t, s, \cdot}=\frac{1}{D} \sum_{d=1}^{D} m_{t, s, d}, \quad \bar{X}_{t, s \cdot}=\frac{1}{D} \sum_{d=1}^{D} X_{t, s, d}, \quad \bar{a}_{j, s \cdot \cdot}=\frac{1}{D} \sum_{d=1}^{D} a_{j, s, d}, \quad \bar{\varepsilon}_{t, s \cdot \cdot}=\frac{1}{D} \sum_{d=1}^{D} \varepsilon_{t, s, d}
+$$</div></p><p><strong>解释</strong>: 定义了平均模型中各个分量是如何通过对每日分量求平均得到的。</p><p>8. <strong>趋势估计公式</strong>:</p><p><div class="math-block">$$
+   \hat{\bar{m}}_{t, s, \cdot}=\frac{1}{2 q+1} \sum_{j=-q}^{q} \bar{V}_{t+j, s, \cdot}, \quad q+1 \leq t \leq T-q
+$$</div></p><p><strong>解释</strong>: 使用<strong>滚动窗口移动平均</strong>法来估计<strong>趋势项</strong>的具体计算公式。</p><p>9. <strong>趋势方差估计公式</strong>:</p><p><div class="math-block">$$
+   \hat{\gamma}_{T}^{\bar{m}_{s, \cdot}}(0)=\frac{1}{T-2 q} \sum_{t=q+1}^{T-q}\left(\hat{\bar{m}}_{t, s, \cdot}-\frac{1}{T-2 q} \sum_{t=q+1}^{T-q} \hat{\bar{m}}_{t, s, \cdot}\right)^{2}
+$$</div></p><p><strong>解释</strong>: 估计出的<strong>趋势项</strong>的<strong>样本方差</strong>计算公式。</p><p>10. <strong>去趋势序列自协方差估计公式</strong>:</p><p><div class="math-block">$$
+    \hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(h)=\frac{1}{T-2 q-h} \sum_{t=q+1}^{T-q-h}\left(\bar{X}_{t, s, \cdot}-\frac{1}{T-2 q} \sum_{t=q+1}^{T-q} \bar{X}_{t, s, \cdot}\right)\left(\bar{X}_{t+h, s, \cdot}-\frac{1}{T-2 q} \sum_{t=q+1}^{T-q} \bar{X}_{t, s, \cdot}\right) .
+$$</div></p><p><strong>解释</strong>: 对<strong>去趋势</strong>后的序列计算其<strong>样本自协方差</strong>的具体公式。</p><p>11. <strong>自协方差的傅里叶形式</strong>:</p><p><div class="math-block">$$
+    \begin{aligned}
+    \gamma_{T}^{\bar{X}_{s, \cdot}}(-h)=\gamma_{T}^{\bar{X}_{s, \cdot}}(h) &amp; \xrightarrow{\text { a.s. }} \frac{1}{2} \sum_{j=1}^{n} \bar{a}_{j, s, \cdot}^{2} \cos \left(\lambda_{j} h\right)+\frac{\mathbf{1}_{h=0}}{D} \sigma_{s}^{2} \\
+    &amp; =\frac{1}{4} \sum_{j=1}^{n} \bar{a}_{j, s, \cdot}^{2}\left(e^{i \lambda_{j} h}+e^{-i \lambda_{j} h}\right)+\frac{\mathbf{1}_{h=0}}{D} \sigma_{s}^{2} \\
+    &amp; =\sum_{j=-n}^{-1} \frac{1}{4} \bar{a}_{-j, s, \cdot}^{2} e^{i \frac{\pi}{n} j h}+\frac{\mathbf{1}_{h=0}}{D} \sigma_{s}^{2}+\sum_{j=1}^{n} \frac{1}{4} \bar{a}_{j, s, \cdot}^{2} e^{i \frac{\pi}{n} j h}
+    \end{aligned}
+$$</div></p><p><strong>解释</strong>: 将定理1的结论通过欧拉公式和扩展求和范围，变形为标准的<strong>离散傅里叶变换</strong>形式。</p><p>12. <strong>强度系数估计公式</strong>:</p><p><div class="math-block">$$
+    \hat{\bar{a}}_{j, s, \cdot}^{2}=\frac{2}{n}\left(\sum_{h=1}^{n} \hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(h)\left(e^{-i \frac{\pi}{n} h j}+e^{i \frac{\pi}{n} h j}\right)+\hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(0)\right)=\frac{2}{n}\left(2 \sum_{h=1}^{n} \hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(h) \cos \left(\frac{j \pi}{n} h\right)+\hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(0)\right) .
+$$</div></p><p><strong>解释</strong>: 这是通过对<strong>样本自协方差</strong>序列进行<strong>离散傅里叶反变换</strong>（<strong>余弦变换</strong>）来估计<strong>强度系数</strong>平方的最终计算公式。</p><p>13. <strong>强度系数估计公式</strong>:</p><p><div class="math-block">$$
+    \hat{\bar{a}}_{j, s, \cdot}^{2}=\frac{2}{n}\left(\sum_{h=1}^{n} \hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(h)\left(e^{-i \frac{\pi}{n} h j}+e^{i \frac{\pi}{n} h j}\right)+\hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(0)\right)=\frac{2}{n}\left(2 \sum_{h=1}^{n} \hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(h) \cos \left(\frac{j \pi}{n} h\right)+\hat{\gamma}_{T}^{\bar{X}_{s, \cdot}}(0)\right) .
+$$</div></p><p><strong>解释</strong>: 这是通过对<strong>样本自协方差</strong>序列进行<strong>离散傅里叶反变换</strong>（<strong>余弦变换</strong>）来估计<strong>强度系数</strong>平方的最终计算公式。</p><p>[[END_OF_RESPONSE]]所有解释内容已全部输出完毕。</p>
+</section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>1 成交量谱模型详解</p>
+    </footer>
+
+
+    <!-- 手机端点击翻页功能 -->
+    <script>
+        (function() {
+            // 点击翻页功能（在所有设备上启用）
+            
+            document.addEventListener('click', function(e) {
+                // 如果 TOC 目录面板处于打开状态，不触发翻页
+                var tocPanel = document.getElementById('tocPanel');
+                if (tocPanel && tocPanel.classList.contains('active')) {
+                    return;
+                }
+                
+                // 排除对链接、按钮、输入框等交互元素的点击
+                var target = e.target;
+                var tagName = target.tagName.toLowerCase();
+                if (tagName === 'a' || tagName === 'button' || tagName === 'input' || 
+                    tagName === 'textarea' || tagName === 'select' || 
+                    target.closest('a') || target.closest('button') ||
+                    target.closest('.toc-panel') || target.closest('.toc-toggle') ||
+                    target.closest('.toc-overlay')) {
+                    return;
+                }
+                
+                var clickY = e.clientY;
+                var windowHeight = window.innerHeight;
+                var scrollAmount = windowHeight * 0.85; // 滚动85%的屏幕高度
+                
+                if (clickY > windowHeight / 2) {
+                    // 点击下半部分：向下翻页
+                    window.scrollBy({
+                        top: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 点击上半部分：向上翻页
+                    window.scrollBy({
+                        top: -scrollAmount,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        })();
+    </script>
+
+    <!-- TOC 目录控制脚本 -->
+    <script>
+        (function() {
+            var tocToggle = document.getElementById('tocToggle');
+            var tocPanel = document.getElementById('tocPanel');
+            var tocOverlay = document.getElementById('tocOverlay');
+            
+            // 切换目录显示/隐藏
+            function toggleTOC() {
+                var isOpen = tocPanel.classList.contains('active');
+                if (isOpen) {
+                    closeTOC();
+                } else {
+                    openTOC();
+                }
+            }
+            
+            // 打开目录
+            function openTOC() {
+                tocPanel.classList.add('active');
+                tocOverlay.classList.add('active');
+                tocToggle.setAttribute('aria-label', '关闭目录');
+            }
+            
+            // 关闭目录
+            function closeTOC() {
+                tocPanel.classList.remove('active');
+                tocOverlay.classList.remove('active');
+                tocToggle.setAttribute('aria-label', '打开目录');
+            }
+            
+            // 点击按钮切换目录
+            tocToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTOC();
+            });
+            
+            // 点击遮罩层关闭目录
+            tocOverlay.addEventListener('click', function() {
+                closeTOC();
+            });
+            
+            // 点击目录项后关闭目录
+            var tocLinks = tocPanel.querySelectorAll('a');
+            tocLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    closeTOC();
+                });
+            });
+            
+            // ESC 键关闭目录
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && tocPanel.classList.contains('active')) {
+                    closeTOC();
+                }
+            });
+            
+            // 高亮当前可见的目录条目
+            function updateActiveItem() {
+                var scrollPos = window.scrollY + 150;  // 偏移量
+                var activeSection = null;
+                var activeOriginal = null;
+                
+                // 查找当前可见的 section
+                var sections = document.querySelectorAll('section[id^="section-"]');
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    if (section.offsetTop <= scrollPos) {
+                        activeSection = section.id;
+                    }
+                }
+                
+                // 查找当前可见的原文区块
+                var originals = document.querySelectorAll('[id^="original-"]');
+                for (var j = 0; j < originals.length; j++) {
+                    var original = originals[j];
+                    if (original.offsetTop <= scrollPos) {
+                        activeOriginal = original.id;
+                    }
+                }
+                
+                // 先移除所有 active 类
+                var allHeadings = tocPanel.querySelectorAll('.toc-heading');
+                for (var h = 0; h < allHeadings.length; h++) {
+                    allHeadings[h].classList.remove('active');
+                }
+                
+                var allOriginals = tocPanel.querySelectorAll('.toc-original');
+                for (var o = 0; o < allOriginals.length; o++) {
+                    allOriginals[o].classList.remove('active');
+                }
+                
+                // 只给当前活动的条目添加 active 类
+                if (activeSection) {
+                    var activeHeadingLink = tocPanel.querySelector('.toc-heading a[href="#' + activeSection + '"]');
+                    if (activeHeadingLink) {
+                        activeHeadingLink.parentElement.classList.add('active');
+                    }
+                }
+                
+                if (activeOriginal) {
+                    var activeOriginalLink = tocPanel.querySelector('.toc-original a[href="#' + activeOriginal + '"]');
+                    if (activeOriginalLink) {
+                        activeOriginalLink.parentElement.classList.add('active');
+                    }
+                }
+            }
+            
+            // 节流函数
+            var scrollTimeout;
+            function throttledUpdate() {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(function() {
+                    updateActiveItem();
+                    scrollTimeout = null;
+                }, 100);
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', throttledUpdate);
+            
+            // 打开目录时立即更新高亮
+            var originalOpenTOC = openTOC;
+            openTOC = function() {
+                originalOpenTOC();
+                updateActiveItem();
+            };
+            
+            // 初始化
+            updateActiveItem();
+        })();
+    </script>
+</body>
+</html>

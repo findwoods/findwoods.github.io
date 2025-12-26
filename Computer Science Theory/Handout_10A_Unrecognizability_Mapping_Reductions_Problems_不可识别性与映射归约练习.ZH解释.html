@@ -1,0 +1,2651 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1. 讲义 10a：不可识别性与映射归约</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- MathJax v4 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            output: {
+                displayOverflow: 'linebreak',
+                linebreaks: {
+                    inline: true,
+                    width: '100%',
+                    lineleading: 0.2
+                }
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            /* 五大区块主题色 */
+            --original-color: #8b5cf6;
+            --explain-color: #0ea5e9;
+            --formula-color: #6366f1;
+            --example-color: #10b981;
+            --warning-color: #f59e0b;
+            /* Q1修复：总结、存在目的、直觉心智模型、直观想象 统一使用 #36828C 青色主题 */
+            --summary-color: #36828C;     /* 青色主题 */
+            --purpose-color: #36828C;     /* 青色主题 */
+            --intuition-color: #36828C;   /* 青色主题 */
+            --imagination-color: #36828C; /* 青色主题 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .authors {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
+        .content-section h4 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h5 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 18px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h6 {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            margin: 15px 0 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        /* ===============================
+           五大内容区块 - 统一风格不同主题色
+           =============================== */
+
+        /* 原文区 - 紫色 */
+        .original-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid var(--original-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .original-box .box-label {
+            color: var(--original-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-box .box-content {
+            font-style: italic;
+            color: #6b21a8;
+        }
+
+        /* 📜 [原文]区块内容 - 使用统一的黑色 */
+        .original-content {
+            color: #2d3748; /* 统一的深灰黑色 */
+        }
+
+        .original-content * {
+            color: #2d3748; /* 所有子元素 */
+        }
+
+        .original-content .MathJax, .original-content .MathJax * {
+            color: #2d3748 !important; /* 行内公式 */
+        }
+
+        /* 通用 .box-content 换行规则 - 确保长文本（如代码调用）能自动换行 */
+        .box-content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .box-content strong, .box-content code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            display: inline;
+        }
+
+        /* 逐步解释区 - 蓝色 */
+        .explain-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--explain-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .explain-box .box-label {
+            color: var(--explain-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explain-box .box-content {
+            color: #1a365d; /* Dark Blue */
+        }
+
+        .explain-box .box-content * {
+            color: #1a365d; /* Dark Blue - 所有子元素 */
+        }
+
+        .explain-box .box-content .MathJax, .explain-box .box-content .MathJax * {
+            color: #1a365d !important; /* Dark Blue - 行内公式 */
+        }
+
+        .explain-box ul, .explain-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .explain-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 公式拆解区 - 靛蓝色 */
+        .formula-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--formula-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .formula-box .box-label {
+            color: var(--formula-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .formula-box .box-content {
+            color: var(--text-color); /* 统一使用默认黑色，与原文区块一致 */
+            overflow-x: auto;
+        }
+
+        .formula-box .box-content * {
+            color: var(--text-color); /* 所有子元素 */
+        }
+
+        .formula-box .box-content .MathJax, .formula-box .box-content .MathJax * {
+            color: var(--text-color) !important; /* 行内公式 */
+        }
+
+        /* 数值示例区 - 绿色 */
+        .example-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--example-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .example-box .box-label {
+            color: var(--example-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-box .box-content {
+            color: #166534; /* Dark Green from edstem5 .answer-en */
+        }
+
+        .example-box .box-content * {
+            color: #166534; /* Dark Green - 所有子元素 */
+        }
+
+        .example-box .box-content .MathJax, .example-box .box-content .MathJax * {
+            color: #166534 !important; /* Dark Green - 行内公式 */
+        }
+
+        .example-box ul, .example-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .example-box li {
+            margin-bottom: 6px;
+        }
+
+        .example-box code {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* 易错点区 - 橙色 */
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .warning-box .box-label {
+            color: var(--warning-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warning-box .box-content {
+            color: #92400e;
+        }
+
+        .warning-box .box-content * {
+            color: #92400e; /* 所有子元素 */
+        }
+
+        .warning-box .box-content .MathJax, .warning-box .box-content .MathJax * {
+            color: #92400e !important; /* 行内公式 */
+        }
+
+        .warning-box ul, .warning-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .warning-box li {
+            margin-bottom: 6px;
+        }
+
+        /* 总结区 - Q1修复：使用#36828C青色主题 */
+        .summary-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--summary-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .summary-box .box-label {
+            color: var(--summary-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .summary-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .summary-box .box-content .MathJax, .summary-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 存在目的区 - Q1修复：使用#36828C青色主题 */
+        .purpose-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--purpose-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .purpose-box .box-label {
+            color: var(--purpose-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .purpose-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .purpose-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .purpose-box .box-content .MathJax, .purpose-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直觉心智模型区 - Q1修复：使用#36828C青色主题 */
+        .intuition-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--intuition-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .intuition-box .box-label {
+            color: var(--intuition-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .intuition-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .intuition-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .intuition-box .box-content .MathJax, .intuition-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直观想象区 - Q1修复：使用#36828C青色主题 */
+        .imagination-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--imagination-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .imagination-box .box-label {
+            color: var(--imagination-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .imagination-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .imagination-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .imagination-box .box-content .MathJax, .imagination-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 高亮术语 */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* 代码块 */
+        code {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            margin: 15px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 表格样式 - 紧凑型，行高列宽适应文字最小值 */
+        table {
+            border-collapse: collapse;
+            width: auto;  /* 列宽适应内容 */
+            margin: 15px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;  /* 减小padding使行高更紧凑 */
+            text-align: left;
+            white-space: nowrap;  /* 防止不必要的换行，列宽适应文字 */
+            line-height: 1.4;  /* 紧凑的行高 */
+        }
+
+        th {
+            background: #e0f7fa;
+            color: #006064;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #e2e8f0;
+        }
+
+        /* 表格对齐 */
+        .align-left {
+            text-align: left;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        /* 图例区域 */
+        .legend-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .legend-bar {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .legend-bar.original { background: #8b5cf6; }
+        .legend-bar.explain { background: #0ea5e9; }
+        .legend-bar.formula { background: #6366f1; }
+        .legend-bar.example { background: #10b981; }
+        .legend-bar.warning { background: #f59e0b; }
+        .legend-bar.summary { background: #36828C; }
+        .legend-bar.purpose { background: #36828C; }
+        .legend-bar.intuition { background: #36828C; }
+        .legend-bar.imagination { background: #36828C; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive - 移动端适配 */
+        @media (max-width: 768px) {
+            /* 容器宽度适配 */
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 20px 12px;
+                box-sizing: border-box;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+                padding: 0 15px;
+            }
+            
+            .hero {
+                padding: 50px 15px;
+            }
+            
+            .hero h1 {
+                font-size: 1.6rem;
+                word-break: break-word;
+            }
+            
+            .authors {
+                font-size: 1rem;
+            }
+            
+            /* 内容区块适配 */
+            .content-section {
+                padding: 20px 15px;
+                margin-left: 5px;
+                margin-right: 5px;
+                border-radius: 12px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.4rem;
+                flex-wrap: wrap;
+            }
+            
+            .content-section h3 {
+                font-size: 1.2rem;
+            }
+            
+            .content-section h4 {
+                font-size: 1.1rem;
+            }
+            
+            .section-number {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            /* 各区块box适配 */
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 15px 12px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .original-box .box-label,
+            .explain-box .box-label,
+            .formula-box .box-label,
+            .example-box .box-label,
+            .warning-box .box-label,
+            .summary-box .box-label,
+            .purpose-box .box-label,
+            .intuition-box .box-label,
+            .imagination-box .box-label {
+                font-size: 1.1rem;
+            }
+            
+            /* 图例区域移动端适配 */
+            .legend-section {
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
+            
+            .legend-row {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            
+            .legend-item {
+                font-size: 0.8rem;
+                gap: 5px;
+            }
+            
+            .legend-bar {
+                width: 3px;
+                height: 16px;
+            }
+            
+            /* 列表适配 */
+            ul, ol {
+                margin-left: 15px;
+                padding-left: 5px;
+            }
+            
+            /* 表格移动端适配 */
+            table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.9rem;
+                min-width: 80px;
+            }
+            
+            /* 代码块适配 */
+            pre {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            
+            /* 数学公式适配 */
+            .math-block {
+                padding: 10px 8px;
+                margin: 15px 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* MathJax公式溢出处理 - 只处理块级公式，保持行内公式inline */
+            mjx-container[jax="CHTML"][display="true"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                display: block !important;
+            }
+            
+            /* 行内公式 - 超宽时自动换行 */
+            mjx-container:not([display="true"]) {
+                display: inline-block !important;
+                max-width: 100% !important;
+                overflow-wrap: break-word !important;
+                word-wrap: break-word !important;
+            }
+            
+            /* MathJax内部元素换行支持 */
+            mjx-math {
+                white-space: normal !important;
+            }
+            
+            mjx-mrow {
+                flex-wrap: wrap !important;
+            }
+            
+            /* Footer适配 */
+            .footer {
+                padding: 25px 15px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* 超小屏幕适配 (手机竖屏) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 8px;
+            }
+            
+            .hero {
+                padding: 40px 10px;
+            }
+            
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+            
+            .content-section {
+                padding: 15px 10px;
+                margin-left: 3px;
+                margin-right: 3px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 12px 10px;
+            }
+            
+            .legend-section {
+                padding: 12px 8px;
+            }
+            
+            .legend-row {
+                gap: 8px;
+            }
+            
+            .legend-item {
+                font-size: 0.75rem;
+            }
+            
+            ul, ol {
+                margin-left: 12px;
+            }
+        }
+        
+        /* 确保所有内容不溢出 */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* ========================================
+           TOC 目录样式
+           ======================================== */
+        
+        /* TOC 触发按钮 - 左上角小方块 */
+        .toc-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(54, 130, 140, 0.5);  /* 青色 50% 透明度 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .toc-toggle:hover {
+            background: rgba(54, 130, 140, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .toc-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* TOC 目录面板 */
+        .toc-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 95vw;  /* 手机浏览器宽度的 95% */
+            height: 80vh; /* 手机浏览器高度的 80% */
+            max-width: 450px;  /* 桌面端最大宽度 */
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0 0 16px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .toc-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* TOC 头部 - 标题在图标右侧 */
+        .toc-header {
+            padding: 15px 20px 15px 80px;  /* 左侧留出按钮空间 */
+            background: linear-gradient(135deg, #36828C 0%, #2a6a72 100%);
+            color: white;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .toc-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* TOC 内容区 */
+        .toc-content {
+            flex: 1;
+            overflow-y: auto;   /* 允许垂直滚动 */
+            overflow-x: hidden; /* 禁止水平滚动 */
+            padding: 15px 0;
+        }
+        
+        /* TOC 列表 */
+        .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc-item {
+            margin: 0;
+        }
+        
+        .toc-item a {
+            display: block;
+            padding: 4px 20px;  /* 更紧凑的行间距 */
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #2d3748;
+            text-decoration: none;
+            word-wrap: break-word;   /* 自动换行 */
+            overflow-wrap: break-word;
+            white-space: normal;     /* 允许换行 */
+            line-height: 1.3;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .toc-item a:hover {
+            background: #e8f4f5;
+            color: #36828C;
+            border-left-color: #36828C;
+        }
+        
+        /* 标题项样式 */
+        .toc-heading a {
+            font-weight: 600;
+            color: #1a365d;
+            background: #f7fafc;
+        }
+        
+        .toc-heading a:hover {
+            background: #e8f4f5;
+        }
+        
+        /* 当前活动的标题项样式 */
+        .toc-heading.active a {
+            background: #d0e8ea;
+            color: #36828C;
+            border-left-color: #36828C;
+            font-weight: 700;
+        }
+        
+        /* 当前活动的原文项样式 */
+        .toc-original.active a {
+            background: #36828C;
+            color: white;
+            box-shadow: 0 3px 8px rgba(54, 130, 140, 0.35);
+        }
+        
+        /* 原文项容器 - 横向排列自动换行 */
+        .toc-originals-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 8px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* 原文项样式 - 浅青色带阴影 */
+        .toc-original {
+            margin: 0;
+        }
+        
+        .toc-original a {
+            display: inline-block;
+            width: 64px;  /* 固定宽度确保每行显示数量一致 */
+            padding: 6px 4px;
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #36828C;  /* 青色主题色 */
+            text-decoration: none;
+            text-align: center;
+            background: #e8f4f5;
+            border-radius: 6px;
+            border-left: none;
+            box-shadow: 0 2px 4px rgba(54, 130, 140, 0.2);  /* 青色阴影 */
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .toc-original a:hover {
+            background: #e0f2f4;
+            color: #36828C;
+            box-shadow: 0 3px 6px rgba(54, 130, 140, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        /* TOC 遮罩层 */
+        .toc-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .toc-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 移动端 TOC 适配 */
+        @media (max-width: 768px) {
+            .toc-toggle {
+                top: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .toc-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .toc-panel {
+                width: 90vw;
+                height: 80vh;
+                max-width: none;
+            }
+            
+            .toc-header {
+                padding: 12px 15px 12px 65px;
+            }
+            
+            .toc-header h3 {
+                font-size: 16px;
+            }
+            
+            .toc-item a {
+                padding: 4px 15px;
+                font-size: 15.5px;
+            }
+            
+            .toc-originals-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            .toc-original a {
+                padding: 5px 10px;
+                font-size: 15.5px;
+            }
+        }
+
+        /* 特殊术语着色 */
+        .spectral {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .periodicity {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .fourier {
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        /* 列表样式增强 */
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 - 已移除重复定义，使用上方第602-633行的紧凑型样式 */
+
+        /* 分隔线 */
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 30px 0;
+        }
+
+        /* 数学公式样式 - Q7: 行间公式颜色用黑色 */
+        .math-block {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            color: #000000; /* Q7: 黑色文字 */
+        }
+
+        /* Q7: 确保MathJax渲染的公式为黑色 */
+        .math-block .MathJax {
+            color: #000000 !important;
+        }
+
+        mjx-container {
+            color: #000000 !important;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- TOC 目录按钮 -->
+    <button class="toc-toggle" id="tocToggle" aria-label="打开目录">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+        </svg>
+    </button>
+    
+    <!-- TOC 遮罩层 -->
+    <div class="toc-overlay" id="tocOverlay"></div>
+    
+    <!-- TOC 目录面板 -->
+    <nav class="toc-panel" id="tocPanel">
+        <div class="toc-header">
+            <h3>📑 目录</h3>
+        </div>
+        <div class="toc-content">
+            <ul class="toc-list">
+                <li class="toc-item toc-heading"><a href="#section-1">1. 1. 讲义 10a：不可识别性与映射归约</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-1">原文1</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-2">2. 2. 不可识别性</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-2">原文2</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-3">3. 3. 证明 L 不可识别的方法</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-3">原文3</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-4">4. 4. 映射归约</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-4">原文4</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-5">5. 5. 证明 L 通过映射归约不可识别的步骤</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-5">原文5</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-6">6. 6. 精炼的赖斯定理（额外材料，非必修）</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-6">原文6</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-7">7. 7. 通过精炼的赖斯定理证明 L 不可识别的步骤</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-7">原文7</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-8">8. 8. 不可识别语言示例</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-8">原文8</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-9">9. 9. 练习题</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-9">原文9</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-10">10. 行间公式索引</a></li>
+                <li class="toc-item toc-heading"><a href="#section-11">11. 10. 全文总结与展望</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>1. 讲义 10a：不可识别性与映射归约</h1>
+            <p class="authors"></p>
+            <p class="date"></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 图例区域 -->
+        <div class="legend-section">
+            <!-- 第一行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar original"></div>
+                    <span>📜 原文</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar explain"></div>
+                    <span>📖 逐步解释</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar formula"></div>
+                    <span>∑ 公式拆解</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar example"></div>
+                    <span>💡 数值示例</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar warning"></div>
+                    <span>⚠️ 易错点</span>
+                </div>
+            </div>
+            <!-- 第二行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar summary"></div>
+                    <span>📝 总结</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar purpose"></div>
+                    <span>🎯 存在目的</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar intuition"></div>
+                    <span>🧠 直觉心智模型</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar imagination"></div>
+                    <span>💭 直观想象</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="content-section" id="section-1">
+    <h2><span class="section-number">1</span>1. 讲义 10a：不可识别性与映射归约</h2>
+    <p id="original-1"><strong style="font-size: 1.3rem;">📜 [原文1]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>讲义 10a：不可识别性与映射归约</h3><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个标题明确了本讲义的核心主题。“不可识别性”（Unrecognizability）和“映射归约”（Mapping Reductions）是<strong>计算理论</strong>中两个紧密相关且至关重要的概念，它们都属于<strong>可计算性理论</strong>（Computability Theory）的范畴。</p>
+<ul>
+  <li><strong>不可识别性</strong>：这个概念用来描述一类比“不可判定”问题更“难”的问题。一个语言是<strong>可识别的</strong>（Recognizable），意味着存在一个<strong>图灵机</strong>，当输入属于该语言的字符串时，它会停机并接受；而当输入不属于该语言时，它要么停机并拒绝，要么永不停机（循环）。而一个“不可识别”的语言，则连这样的<strong>图灵机</strong>都不存在。这通常意味着我们无法系统性地验证一个字符串是否属于该语言。</li>
+</ul>
+<ul>
+  <li><strong>映射归约</strong>：这是一种形式化的工具，用来比较两个问题的相对难度。如果问题A可以<strong>映射归约</strong>到问题B（记作 $A \leq_{m} B$），直观上意味着问题A“不比”问题B更难。我们可以通过一个可计算的函数，将问题A的任何实例转化为问题B的一个实例，并且转化后的实例的答案与原实例的答案完全相同。这个工具非常强大，因为一旦我们知道问题A是“难”的（比如不可识别的），并且我们证明了 $A \leq_{m} B$，那么我们就可以断定问题B也一定是“难”的（至少和A一样难）。</li>
+</ul>
+<p>本讲义的目标就是介绍如何使用<strong>映射归约</strong>作为一种核心技术，来证明某些语言是<strong>不可识别的</strong>。</p>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>标题设定了本讲义的讨论范围：深入探讨<strong>不可识别性</strong>这一概念，并介绍<strong>映射归约</strong>作为证明语言<strong>不可识别性</strong>的主要方法。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本讲义的目的是从“什么是不可识别的”出发，过渡到“如何证明一个问题是不可识别的”。它将为学生提供一套强大的理论工具（<strong>映射归-约</strong>），用于分析和分类计算问题的难度等级，特别是那些超越了“不可判定”范畴的问题。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一个巨大的图书馆，里面有无数本书（代表所有可能的字符串）。</p>
+<ol>
+  <li><strong>可判定的语言</strong>：就像有一个全知全能的图书管理员，你问他任何一本书（字符串）是否属于某个特定的收藏系列（语言），他总能在有限时间内给你一个明确的“是”或“否”的回答。</li>
+  <li><strong>可识别的语言</strong>：想象图书管理员换成了一个勤奋但可能有点固执的助手。如果你问的书确实属于某个系列，他最终会找到并告诉你“是”。但如果这本书不属于那个系列，他可能会一直找下去，永远不给你答复（也可能最终告诉你“否”）。你只能确定“是”的情况。</li>
+  <li><strong>不可识别的语言</strong>：现在这个图书馆里连那个勤奋的助手都没有了。对于某个特定的收藏系列，你没有任何系统性的方法来确认一本书是否属于它。即使你找了很久，也无法确定是书不属于这个系列，还是你只是还没找到。</li>
+</ol>
+<p><strong>映射归约</strong>就像一本“翻译词典”。如果你有一个你已经知道答案的“难问题A”（比如一个你确定找不到的书），这本词典可以帮你把它“翻译”成另一个“问题B”。如果翻译后的问题能在B中找到答案，那么原问题A也应该能找到。因此，如果A是“难”的，那么B也一定是“难”的。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一下，证明一个问题“不可识别”就像证明“在宇宙中找到一个特定外星生物是不可能的”。</p>
+<ol>
+  <li>方法一（补集法）：你可能无法直接证明找不到，但你可以证明它的“反面”是容易的。比如，你可以证明“列出所有非该外星生物的物种”这个任务是<strong>可识别的</strong>。如果“找到外星生物”和“找到非外星生物”这两个任务中，只有一个是系统可行的，而我们又知道“找到外星生物”这个任务本身非常复杂（<strong>不可判定</strong>），那么我们就可以断定，“找到外星生物”这个任务本身是不可系统执行的（<strong>不可识别</strong>）。</li>
+  <li>方法二（<strong>映射归约</strong>）：你已经知道另一个任务是绝对不可能完成的，比如“造出永动机”（这是一个已知的<strong>不可识别</strong>问题）。如果你能设计一个机器，说：“只要你能找到那个外-星生物，我就能用它给你造出永动机”，那么你就成功地把“造永动机”的难度<strong>归约</strong>到了“找外星生物”上。既然永动机不可能，那么找到那个外星生物也一定是不可能的。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-2">
+    <h2><span class="section-number">2</span>2. 不可识别性</h2>
+    <p id="original-2"><strong style="font-size: 1.3rem;">📜 [原文2]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>1 不可识别性</h3><p><strong>定义</strong> 1.1. 语言 $L$ 是可识别的，当且仅当存在一台图灵机接受 $L$ 中的每个字符串，并且不接受（拒绝或循环）任何不在 $L$ 中的字符串。</p><p><strong>定义</strong> 1.2. 语言 $L$ 是协同可识别的，当且仅仅当其补集 $\bar{L}$ 是可识别的。</p><p><strong>定理</strong> 1.3. $L$ 是可判定的 $\Longleftrightarrow L$ 是可识别的且协同可识别的</p><p>我们已经看到了几种不同的方法来证明语言 $L$ 是不可识别的：</p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分首先回顾了<strong>可识别性</strong> (Recognizability) 和<strong>协同可识别性</strong> (Co-recognizability) 的基本定义，并重申了它们与<strong>可判定性</strong> (Decidability) 之间的关键关系。</p>
+<p><strong>关于定义1.1 (可识别的)</strong>:</p>
+<p>一个语言 $L$ 被称为<strong>图灵可识别的</strong>（Turing-recognizable）或<strong>递归可枚举的</strong>（Recursively Enumerable）。这意味着我们可以构造一台<strong>图灵机</strong> $M$，它扮演着一个“验证者”或“接收器”的角色。</p>
+<ul>
+  <li><strong>对于属于 $L$ 的字符串 $w$ ($w \in L$)</strong>：当我们将 $w$ 作为输入给<strong>图灵机</strong> $M$ 时，$M$ 会在有限的步骤后停机，并进入<strong>接受状态</strong>。这就像一个俱乐部会员，保安（<strong>图灵机</strong>）检查了你的会员卡（字符串 $w$），确认无误后让你进入（接受）。</li>
+  <li><strong>对于不属于 $L$ 的字符串 $w'$ ($w' \notin L$)</strong>：当我们将 $w'$ 作为输入给<strong>图灵机</strong> $M$ 时，$M$ <strong>永远不会</strong>进入<strong>接受状态</strong>。这里有两种可能性：</li>
+</ul>
+<ol>
+  <li>$M$ 在有限步骤后停机，并进入<strong>拒绝状态</strong>。</li>
+  <li>$M$ 永不停机，即陷入一个无限循环。</li>
+</ol>
+<p>这就像一个非会员，保安要么直接告诉你“你不能进”（拒绝），要么把你晾在一边，一直核对他的名单，永远不给你答复（循环）。重要的是，你绝对不会被允许进入。</p>
+<p><strong>关于定义1.2 (协同可识别的)</strong>:</p>
+<p>一个语言 $L$ 是<strong>协同可识别的</strong>（co-recognizable），这个概念是建立在“补集”和“可识别性”之上的。</p>
+<ul>
+  <li>首先，我们需要理解什么是补集 $\bar{L}$。补集指的是所有<strong>不在</strong> $L$ 中的字符串的集合。如果我们把所有可能的字符串看作一个全集 $\Sigma^*$，那么 $\bar{L} = \Sigma^* - L$。</li>
+  <li>如果这个补集 $\bar{L}$ 本身是<strong>可识别的</strong>，那么我们就称原始语言 $L$ 是<strong>协同可识别的</strong>。</li>
+  <li>这意味着，存在一台<strong>图灵机</strong> $M'$，它能识别 $\bar{L}$。也就是说：</li>
+  <li>如果一个字符串 $w$ <strong>不属于</strong> $L$ (即 $w \in \bar{L}$)，那么 $M'$ 会在 $w$ 上停机并<strong>接受</strong>。</li>
+  <li>如果一个字符串 $w$ <strong>属于</strong> $L$ (即 $w \notin \bar{L}$)，那么 $M'$ 在 $w$ 上要么<strong>拒绝</strong>，要么<strong>循环</strong>。</li>
+</ul>
+<p><strong>关于定理1.3 (可判定性与可识别性的关系)</strong>:</p>
+<p>这个定理是<strong>计算理论</strong>的基石之一，它精确地描述了<strong>可判定</strong>、<strong>可识别</strong>和<strong>协同可识别</strong>三者之间的关系。</p>
+<ul>
+  <li><strong>$L$ 是可判定的</strong>：意味着存在一台<strong>图灵机</strong> $M_{decider}$，它对于<strong>任何</strong>输入字符串 $w$，总能在有限时间内停机，并明确地回答“是”（接受）或“否”（拒绝）。它从不循环。</li>
+  <li><strong>定理内容</strong>：一个语言 $L$ 是<strong>可判定的</strong>，当且仅当它既是<strong>可识别的</strong>又是<strong>协同可识别的</strong>。</li>
+  <li><strong>$\Longrightarrow$ (如果 $L$ 可判定，则它既可识别又协同可识别)</strong>:</li>
+  <li>如果 $L$ 可判定，那么存在一个总停机的<strong>图灵机</strong> $M_{decider}$。这个 $M_{decider}$ 本身就可以作为 $L$ 的识别器，所以 $L$ 是<strong>可识别的</strong>。</li>
+  <li>因为 $L$ 是可判定的，它的补集 $\bar{L}$ 也是可判定的（我们可以构造一个<strong>图灵机</strong>，它模拟 $M_{decider}$，然后在接受时拒绝，在拒绝时接受）。既然 $\bar{L}$ 是可判定的，那么它也一定是<strong>可识别的</strong>。根据定义，如果 $\bar{L}$ 可识别，那么 $L$ 就是<strong>协同可识别的</strong>。</li>
+  <li><strong>$\Longleftarrow$ (如果 $L$ 可识别且协同可识别，则它可判定)</strong>:</li>
+  <li>假设 $L$ 是<strong>可识别的</strong>，存在<strong>图灵机</strong> $M_{rec}$ 识别它。</li>
+  <li>假设 $L$ 是<strong>协同可识别的</strong>，存在<strong>图灵机</strong> $M_{co-rec}$ 识别它的补集 $\bar{L}$。</li>
+  <li>我们可以构造一个新的<strong>图灵机</strong> $M_{decider}$，它在输入 $w$ 时，<strong>同时</strong>（例如，通过在纸带上交替模拟）运行 $M_{rec}$ 和 $M_{co-rec}$。</li>
+  <li>对于任何字符串 $w$，它要么属于 $L$，要么属于 $\bar{L}$。</li>
+  <li>如果 $w \in L$，$M_{rec}$ 必定会在有限步后停机并接受。此时，$M_{decider}$ 就停机并接受 $w$。</li>
+  <li>如果 $w \notin L$ (即 $w \in \bar{L}$)，$M_{co-rec}$ 必定会在有限步后停机并接受。此时，$M_{decider}$ 就停机并拒绝 $w$。</li>
+  <li>由于对于任何输入 $w$，$M_{rec}$ 和 $M_{co-rec}$ 中必有一个会停机，所以我们新构造的 $M_{decider}$ 总是会停机。因此，$L$ 是<strong>可判定的</strong>。</li>
+</ul>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li>$L$: 表示一个<strong>语言</strong>（Language），即一个由字符串组成的集合。</li>
+  <li>$\bar{L}$: 表示 $L$ 的<strong>补集</strong>（Complement），即在全集 $\Sigma^*$ (所有可能字符串的集合) 中，所有不属于 $L$ 的字符串的集合。</li>
+  <li>$\Longleftrightarrow$: 表示“当且仅当”（if and only if），是逻辑等价的符号。它意味着左右两边的陈述是完全等价的，一个成立必然导致另一个成立，反之亦然。</li>
+</ul>
+<p><strong>定理1.3的推导逻辑</strong>:</p>
+<p>该定理的核心在于，我们可以通过并行运行两个“半个”决策者（一个只对“是”的情况给出肯定答复，另一个只对“否”的情况给出肯定答复）来构建一个完整的决策者（对任何情况都给出明确答复）。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>示例1：可识别的语言</strong></p>
+<ul>
+  <li>语言 $L_{even} = \{ \text{所有偶数的二进制表示} \}$。</li>
+  <li>我们可以构造一个<strong>图灵机</strong> $M$ 来识别它：对于输入字符串 $w$，检查它是否是合法的二进制表示，然后检查其最低位是否为 '0'。如果是，则<strong>接受</strong>；否则，<strong>拒绝</strong>。这台<strong>图灵机</strong>总会停机，所以 $L_{even}$ 不仅是<strong>可识别的</strong>，还是<strong>可判定的</strong>。</li>
+</ul>
+<p><strong>示例2：一个经典的、可识别但不可判定的语言</strong></p>
+<ul>
+  <li>语言 $A_{TM} = \{ \langle M, w \rangle \mid M \text{ 是一台图灵机且 } M \text{ 接受 } w \}$。</li>
+  <li><strong>可识别性</strong>：我们可以构造一个通用<strong>图灵机</strong> $U$，它在输入 $\langle M, w \rangle$ 上模拟 $M$ 对 $w$ 的计算。</li>
+  <li>如果 $M$ 接受 $w$，那么模拟会在有限步后结束，$U$ 就停机并<strong>接受</strong>。</li>
+  <li>如果 $M$ 拒绝 $w$，模拟会在有限步后结束，$U$ 就停机并<strong>拒绝</strong>。</li>
+  <li>如果 $M$ 在 $w$ 上循环，那么 $U$ 的模拟也会<strong>循环</strong>。</li>
+  <li>根据定义1.1，这台通用<strong>图灵机</strong> $U$ 成功地识别了 $A_{TM}$。</li>
+  <li><strong>协同可识别性</strong>：$A_{TM}$ 的补集 $\overline{A_{TM}}$ 是<strong>不可识别的</strong>（后面会讲到）。因此，$A_{TM}$ 不是<strong>协同可识别的</strong>。根据定理1.3，因为它不是<strong>协同可识别的</strong>，所以它<strong>不可判定</strong>。</li>
+</ul>
+<p><strong>示例3：协同可识别的语言</strong></p>
+<ul>
+  <li>语言 $\overline{A_{TM}}$ 是 $A_{TM}$ 的补集。它包含所有格式不正确的编码，以及所有使得 $M$ 不接受 $w$（即拒绝或循环）的 $\langle M, w \rangle$ 对。</li>
+  <li>$\overline{A_{TM}}$ 本身是<strong>不可识别的</strong>。</li>
+  <li>但是它的补集，即 $(\overline{\overline{A_{TM}}}) = A_{TM}$ 是<strong>可识别的</strong>。</li>
+  <li>所以，根据定义1.2，$\overline{A_{TM}}$ 是<strong>协同可识别的</strong>。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>混淆“拒绝”与“循环”</strong>：在<strong>可识别性</strong>的定义中，对于不属于语言的字符串，<strong>图灵机</strong>既可以停机拒绝，也可以无限循环。这两者都被视为“不接受”。但在<strong>可判定性</strong>中，<strong>图灵机</strong>必须总是停机，不允许循环。</li>
+  <li><strong>认为“不可判定”就等于“不可识别”</strong>：这是一个常见的误解。$A_{TM}$ 就是一个典型的反例，它是<strong>不可判定的</strong>，但却是<strong>可识别的</strong>。不可判定仅仅意味着问题没有一个总能停机给出答案的算法。</li>
+  <li><strong>对“协同可识别”的理解</strong>：不要直观地认为协同可识别的语言“很容易”。它只是意味着它的“反面”问题是<strong>可识别的</strong>。例如，$\overline{A_{TM}}$ 是<strong>协同可识别的</strong>，但它同样是<strong>不可判定的</strong>。</li>
+  <li><strong>定理1.3的应用前提</strong>：这个定理是关于语言本身的性质，而不是关于某个特定的<strong>图灵机</strong>。一个语言可能是<strong>可判定的</strong>，但你可能构造了一个识别它但偶尔会循环的<strong>图灵机</strong>。这并不影响语言本身的<strong>可判定性</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本节复习了<strong>计算理论</strong>中的三个核心概念层次：</p>
+<ol>
+  <li> <strong>可判定</strong> (Decidable): 最“简单”的一类。存在算法，总能停机并给出明确的“是/否”答案。</li>
+  <li> <strong>可识别</strong> (Recognizable): 中间层次。存在算法，对“是”的实例能停机确认，但对“否”的实例可能永远无法给出结论。</li>
+  <li> <strong>协同可识别</strong> (Co-recognizable): 中间层次。存在算法，对“否”的实例能停机确认，但对“是”的实例可能永远无法给出结论。</li>
+</ol>
+<p>定理1.3建立了它们之间的桥梁：一个问题当且仅当同时拥有“是-验证器”和“否-验证器”时，它才拥有一个完美的“决策者”。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这部分内容的存在是为了构建后续讨论的基础。要理解什么是“不可识别”，首先必须精确地掌握“可识别”的定义以及它与“可判定”的关系。定理1.3不仅是一个理论结论，它还直接启发了证明一个语言<strong>不可识别</strong>的策略。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>可判定</strong> = 一个完美无缺的法官，对任何案子都能在有限时间内给出“有罪”或“无罪”的判决。</li>
+  <li><strong>可识别</strong> = 一个只找“有罪”证据的侦探。如果嫌疑人真的有罪，他最终能找到证据并提交报告。如果嫌疑人无罪，他可能永远在调查的路上，不结案。</li>
+  <li><strong>协同可识别</strong> = 一个只找“无罪”证据的辩护律师。如果嫌疑人真的无罪，他最终能找到证据并让法官采纳。如果嫌疑人有罪，他可能永远在寻找证据的路上，不放弃。</li>
+  <li><strong>定理1.3</strong> = 如果一个案子，既有一个只找有罪证据的侦探，又有一个只找无罪证据的律师，那么把他们俩放在一个房间里同时工作，这个案子最终必然会水落石出。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-3">
+    <h2><span class="section-number">3</span>3. 证明 L 不可识别的方法</h2>
+    <p id="original-3"><strong style="font-size: 1.3rem;">📜 [原文3]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>证明 $L$ 不可识别的方法：</h3><p>1. 证明 $L$ 是不可判定的且 $\bar{L}$ 是可识别的。</p><p>2. 证明 $\bar{L}$ 是可识别的但不可判定的。</p><p>3. 使用从另一个不可识别语言到 $L$ 的映射归约。</p><p>4. （非必修材料）使用精炼的赖斯定理</p><p>前两种方法源于<strong>定理</strong> 1.3（在第 14 讲中证明）。如果 $L$ 是不可判定的，那么 $L$ 是不可识别的或 $\bar{L}$ 是不可识别的。如果 $\bar{L}$ 是可识别的，那么 $L$ 必然是不可识别的。回想一下， $L$ 是可判定的当且仅当 $\bar{L}$ 是可判定的（第 13 讲），所以证明 $L$ 是不可判定的等同于证明 $\bar{L}$ 是不可判定的。方法 1 和 2 本质上是相同的。</p><p><strong>示例</strong> 1. $\overline{A_{T M}}$ 是不可识别的，因为其补集 $A_{T M}$ 是可识别的（识别器在第 15 讲中给出）但不可判定的（在第 16 讲中通过对角线法证明）。</p><p>然而，使用补集和不可判定性并不总是最简单的方法，它也不适用于 $L$ 和 $\bar{L}$ 都不可识别的情况。证明 $L$ 不可识别的另一种方法是通过映射归约。我们将在下面简要概述关键思想，但您可以在第 19 讲和第 20 讲中找到更多详细信息。我们还简要介绍了精炼的赖斯定理，这是证明不可识别性的另一种方法（类似于我们使用赖斯定理证明不可判定性的方式）。精炼的赖斯定理不是课堂上的必修材料，但如果您愿意，可以使用它——您可以在第 18 讲讲义中找到更多详细信息。</p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分列出了四种证明一个语言 $L$ 是<strong>不可识别的</strong>的策略，并解释了前两种策略的理论依据。</p>
+<p><strong>方法 1 和 2 的逻辑</strong>:</p>
+<p>这两种方法的核心都依赖于<strong>定理1.3</strong> ($L$ 是可判定的 $\Longleftrightarrow L$ 是可识别的且协同可识别的)。我们可以从这个定理的逆否命题来思考：</p>
+<p>如果 $L$ 不是($L$ 可识别的 且 $L$ 协同可识别的)，那么 $L$ 是不可判定的。</p>
+<p>这意味着，如果一个语言 $L$ 是<strong>不可判定的</strong>，那么它必然不满足“既可识别又协同可识别”这个条件。所以，至少下面一项成立：</p>
+<ul>
+  <li>$L$ 是<strong>不可识别的</strong>。</li>
+  <li>$L$ 不是<strong>协同可识别的</strong>（即 $\bar{L}$ 是<strong>不可识别的</strong>）。</li>
+</ul>
+<p><strong>方法1：证明 $L$ 是不可判定的且 $\bar{L}$ 是可识别的</strong></p>
+<ul>
+  <li>我们已经知道 $L$ 是<strong>不可判定的</strong>。</li>
+  <li>我们又证明了 $\bar{L}$ 是<strong>可识别的</strong>。</li>
+  <li>假设 $L$ 是<strong>可识别的</strong>（为了引出矛盾）。</li>
+  <li>那么，我们现在有了：</li>
+</ul>
+<ol>
+  <li>$L$ 是可识别的（假设）。</li>
+  <li>$\bar{L}$ 是可识别的，即 $L$ 是协同可识别的（已知）。
+<ul>
+  <li>根据<strong>定理1.3</strong>，如果一个语言既可识别又协同可识别，那么它一定是<strong>可判定的</strong>。</li>
+  <li>这与我们已知的“$L$ 是不可判定的”相矛盾。</li>
+  <li>因此，最初的假设“$L$ 是可识别的”是错误的。</li>
+  <li>结论：$L$ 必须是<strong>不可识别的</strong>。</li>
+</ul></li>
+</ol>
+<p><strong>方法2：证明 $\bar{L}$ 是可识别的但不可判定的</strong></p>
+<ul>
+  <li>这与方法1本质上是同一个论证，只是观察角度不同。</li>
+  <li>我们已知 $\bar{L}$ 是<strong>可识别的</strong>。</li>
+  <li>我们已知 $\bar{L}$ 是<strong>不可判定的</strong> (因为 $L$ 的可判定性等价于 $\bar{L}$ 的可判定性，所以证明 $\bar{L}$ 不可判定等同于证明 $L$ 不可判定)。</li>
+  <li>假设 $L$ 是<strong>可识别的</strong>（为了引出矛盾）。</li>
+  <li>这意味着 $\bar{L}$ 是<strong>协同可识别的</strong> (因为 $L$ 可识别)。</li>
+  <li>那么，我们现在有了：</li>
+</ul>
+<ol>
+  <li>$\bar{L}$ 是可识别的（已知）。</li>
+  <li>$\bar{L}$ 是协同可识别的（由假设推出）。
+<ul>
+  <li>根据<strong>定理1.3</strong>，$\bar{L}$ 应该是<strong>可判定的</strong>。</li>
+  <li>这与我们已知的“$\bar{L}$ 是不可判定的”相矛盾。</li>
+  <li>结论：$L$ 必须是<strong>不可识别的</strong>。</li>
+</ul></li>
+</ol>
+<p><strong>示例分析：证明 $\overline{A_{T M}}$ 是不可识别的</strong></p>
+<p>这里，我们要证明的语言 $L$ 是 $\overline{A_{T M}}$。</p>
+<ol>
+  <li> <strong>证明 $\overline{A_{T M}}$ 是不可判定的</strong>：我们已经知道 $A_{TM}$ 是不可判定的。由于一个语言是可判定的当且仅当其补集是可判定的，所以 $\overline{A_{T M}}$ 也一定是不可判定的。</li>
+  <li> <strong>证明 $\overline{A_{T M}}$ 的补集是可识别的</strong>：$\overline{A_{T M}}$ 的补集是 $(\overline{\overline{A_{TM}}}) = A_{TM}$。我们已经知道 $A_{TM}$ 是<strong>可识别的</strong>（通用图灵机可以识别它）。</li>
+  <li> <strong>应用方法1</strong>：令 $L = \overline{A_{TM}}$。我们有：
+<ul>
+  <li>$L$ 是不可判定的。</li>
+  <li>$\bar{L} = A_{TM}$ 是可识别的。</li>
+  <li>根据方法1的逻辑，我们可以得出结论：$L = \overline{A_{T M}}$ 是<strong>不可识别的</strong>。</li>
+</ul></li>
+</ol>
+<p><strong>方法3 和 4 的引入</strong>：</p>
+<ul>
+  <li><strong>映射归约</strong>：这是本讲义的重点。它是一种更通用的证明技巧，特别是当一个语言和它的补集都不可识别时，前两种方法就失效了。例如，语言 $EQ_{TM}$（判断两个图灵机语言是否相等）和它的补集都是不可识别的。要证明这类问题，必须使用归约。</li>
+  <li><strong>精炼的赖斯定理</strong>：这是<strong>赖斯定理</strong>的一个加强版，可以直接告诉我们一个关于<strong>图灵机</strong>语言的非平凡性质是<strong>不可识别的</strong>还是<strong>不可协同识别的</strong>，提供了另一条捷径。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p>让我们用一个虚构的例子来理解方法1的逻辑。</p>
+<ul>
+  <li>假设有一个语言 $L_{mystery}$。</li>
+  <li><strong>步骤1：证明 $L_{mystery}$ 不可判定</strong>。我们通过一个复杂的对角线论证，成功证明了不存在任何总能停机并判断一个字符串是否在 $L_{mystery}$ 中的<strong>图灵机</strong>。</li>
+  <li><strong>步骤2：证明 $\overline{L_{mystery}}$ 可识别</strong>。我们构造了一台<strong>图灵机</strong> $M_{recognizer}$，它对于任何输入 $w \in \overline{L_{mystery}}$ 都能停机并接受。但对于 $w \in L_{mystery}$，它可能会循环。</li>
+  <li><strong>步骤3：得出结论</strong>。现在我们来推理：如果 $L_{mystery}$ 是<strong>可识别的</strong>，那么就存在一台识别它的<strong>图灵机</strong> $M'_{recognizer}$。这样，我们既有 $L_{mystery}$ 的识别器，又有 $\overline{L_{mystery}}$ 的识别器。根据定理1.3，这意味着 $L_{mystery}$ 应该是<strong>可判定的</strong>。但这与我们在步骤1中证明的结果相矛盾！因此，我们最初的假设（$L_{mystery}$ 是可识别的）是错的。所以，$L_{mystery}$ 必须是<strong>不可识别的</strong>。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>方法1和2的前提</strong>：使用这两种方法，必须首先证明目标语言（或其补集）是<strong>不可判定的</strong>。这通常是证明中最难的部分。</li>
+  <li><strong>何时失效</strong>：当一个语言 $L$ 和它的补集 $\bar{L}$ <strong>都</strong>是不可识别的时候，方法1和2就无法使用。因为这时 $\bar{L}$ 不是可识别的，不满足方法1的前提。例如，后面会遇到的 $EQ_{TM}$。</li>
+  <li><strong>选择正确的工具</strong>：对于一个新问题，需要判断哪种方法最适用。如果问题看起来像是关于<strong>图灵机</strong>所识别语言的性质，可以考虑（精炼的）赖斯定理。如果补集看起来比原语言更简单、更容易识别，可以考虑方法1/2。如果问题看起来和某个已知的<strong>不可识别</strong>问题（如 $\overline{A_{TM}}$）相似，那么<strong>映射归约</strong>可能是最好的选择。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本节介绍了证明语言<strong>不可识别性</strong>的四种主要武器：</p>
+<ol>
+  <li> <strong>补集法 (正向)</strong>：证明 $L$ 不可判定 & $\bar{L}$ 可识别 $\implies L$ 不可识别。</li>
+  <li> <strong>补集法 (逆向)</strong>：证明 $\bar{L}$ 可识别 & $\bar{L}$ 不可判定 $\implies L$ 不可识别 (与1等价)。</li>
+  <li> <strong>映射归约法</strong>：找到一个已知的不可识别语言 $U$，证明 $U \leq_m L \implies L$ 不可识别。这是最有力的工具之一。</li>
+  <li> <strong>精炼的赖斯定理</strong>：一个用于特定类型问题（语言性质）的快捷定理。</li>
+</ol>
+<p>这些方法为我们提供了一个分析计算问题难度的“工具箱”。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这部分内容起到了承上启下的作用。它基于前一节的定理，提炼出具体的、可操作的证明策略，并为接下来要详细介绍的<strong>映射归约</strong>法（方法3）和精炼的赖斯定理（方法4）铺平了道路，说明了为什么需要这些更高级的工具。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一下证明一个人是“不可捉摸的”（<strong>不可识别</strong>）。</p>
+<ol>
+  <li><strong>方法1/2</strong>：你证明了两件事：1）“预测这个人的所有行为”是不可能的（<strong>不可判定</strong>）。2）但是，“确认他<strong>不在</strong>某个地方”是很容易做到的（补集<strong>可识别</strong>）。那么结论就是，要正面地、系统地“捕捉”他的行踪是做不到的。</li>
+  <li><strong>方法3（映射归约）</strong>：你已经知道另一个人（比如一个幽灵）是“绝对不可捉摸的”（已知的<strong>不可识别</strong>问题）。你展示了一个方法，说：“只要你能捉摸到这个人，我就能用同样的方法捉摸到那个幽灵。” 既然捉摸幽灵是不可能的，那么捉摸这个人也一定是不可能的。</li>
+  <li><strong>方法4（精炼的赖斯定理）</strong>：你发现这个人的行为属于一类非常普遍的、非黑即白的“性格特质”（语言性质），而且你知道一个完全没有性格的人（空语言<strong>图灵机</strong>）也具备这种特质。那么根据一个心理学“定理”，你可以直接断定这种性格的人是“不可捉摸的”。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-4">
+    <h2><span class="section-number">4</span>4. 映射归约</h2>
+    <p id="original-4"><strong style="font-size: 1.3rem;">📜 [原文4]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>2 映射归约</h3><p><strong>定义</strong> 2.1. <strong>可计算函数</strong>是可由图灵机计算的函数 $f: \Sigma^{*} \rightarrow \Sigma^{*}$。也就是说，存在一台图灵机，对于每个输入 $w$，它都会在纸带上只留下 $f(w)$ 而停机。</p><p><strong>定义</strong> 2.2. 语言 $A$ 可映射归约到语言 $B$，记作 $A \leq_{m} B$，如果存在一个<strong>可计算函数</strong> $f: \Sigma^{*} \rightarrow \Sigma^{*}$，使得对于每个 $w \in \Sigma^{*}$，</p><p><div class="math-block">$$
+w \in A \Longleftrightarrow f(w) \in B .
+$$</div></p><p><strong>定理</strong> 2.3. 如果 $A \leq_{m} B$，那么 $A \leq_{T} B$。（证明在第 19 讲）</p><p><strong>定理</strong> 2.4. 假设对于两个语言 $A, B$，有 $A \leq_{m} B$。</p><p>1. 如果 $B$ 是可识别的，那么 $A$ 是可识别的。</p><p>2. 如果 $A$ 是不可识别的，那么 $B$ 是不可识别的。</p><p>这两个陈述实际上说的是同一件事（第二个是第一个的逆否命题）。第二个陈述为我们提供了一种证明 $L$ 是不可识别的策略。如果我们能找到一个不可识别的语言 $A$ 可映射归约到 $L$（即 $A \leq_{m} L$），那么 $L$ 是不可识别的。</p><p><strong>定理</strong> 2.5. $A \leq_{m} B \Longleftrightarrow \bar{A} \leq_{m} \bar{B}$。</p><p>因此，给定一个我们已知是不可识别的语言 $A$，我们可以通过证明 $A \leq_{m} L$ 或证明 $\bar{A} \leq_{m} \bar{L}$ 来证明 $L$ 的不可识别性。这会很有帮助，因为有时处理语言的补集比处理语言本身更容易。例如，处理 $A_{T M}=\{\langle M, w\rangle \mid \mathrm{M}$ 是一台接受字符串 w 的图灵机$\}$ 可能比处理 $\overline{A_{T M}}$ 更容易，后者既包括编码为 $\langle M, w\rangle$ 的字符串也包括无效编码。</p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分正式引入了<strong>映射归约</strong> (Mapping Reduction)，也称为<strong>多一归约</strong> (Many-one Reduction)。</p>
+<p><strong>定义2.1 (可计算函数)</strong>:</p>
+<ul>
+  <li><strong>可计算函数</strong> $f$ 是一个可以被算法实现的函数。在<strong>计算理论</strong>中，最强大的计算模型是<strong>图灵机</strong>，所以“可计算”被精确地定义为“可由一台<strong>图灵机</strong>计算”。</li>
+  <li>这台<strong>图灵机</strong>（我们称之为 $T_f$）必须满足一个关键条件：对于任何输入字符串 $w$， $T_f$ 必须<strong>总是在有限时间内停机</strong>，并且当它停机时，其纸带上留下的内容恰好是 $f(w)$。</li>
+  <li>“总停机”这个要求至关重要。这意味着函数 $f$ 的计算过程本身必须是一个<strong>可判定的</strong>过程。我们不能定义一个依赖于解决停机问题或其他不可判定问题的函数 $f$。</li>
+</ul>
+<p><strong>定义2.2 (映射归约)</strong>:</p>
+<ul>
+  <li><strong>映射归约</strong>是建立在<strong>可计算函数</strong>之上的一种关系，用来比较两个语言（问题）$A$ 和 $B$ 的难度。</li>
+  <li>我们说 $A$ <strong>可映射归约到</strong> $B$，记为 $A \leq_m B$，如果存在一个<strong>可计算函数</strong> $f$，这个函数 $f$ 就像一个“翻译器”，它能把任何关于语言 $A$ 的问题实例 $w$ 转换成一个关于语言 $B$ 的问题实例 $f(w)$。</li>
+  <li>这个“翻译”必须是忠实的，即保持答案不变：</li>
+  <li>如果原始问题答案为“是”（$w \in A$），那么翻译后的问题答案也必须为“是”（$f(w) \in B$）。</li>
+  <li>如果原始问题答案为“否”（$w \notin A$），那么翻译后的问题答案也必须为“否”（$f(w) \notin B$）。</li>
+  <li>这个双向箭头 $\Longleftrightarrow$ 保证了这种忠实性。</li>
+</ul>
+<p><strong>定理2.3 (与图灵归约的关系)</strong>:</p>
+<ul>
+  <li>$A \leq_T B$ (<strong>图灵归约</strong>) 意味着我们可以用一个能解决 $B$ 的“黑箱”（神谕）来构造一个解决 $A$ 的算法。</li>
+  <li><strong>映射归约</strong>是<strong>图灵归约</strong>的一种更强、更受限的形式。在<strong>映射归约</strong>中，我们只允许调用一次“神谕”$B$，并且是在计算出 $f(w)$ 之后，直接询问 $f(w)$ 是否在 $B$ 中，然后原封不动地返回答案。</li>
+  <li>所以，如果 $A \leq_m B$，那么显然 $A \leq_T B$。</li>
+</ul>
+<p><strong>定理2.4 (映射归约与可识别性)</strong>:</p>
+<p>这是利用<strong>映射归约</strong>证明<strong>不可识别性</strong>的理论基础。</p>
+<ol>
+  <li> <strong>如果 $B$ 是可识别的，那么 $A$ 是可识别的</strong>。
+<ul>
+  <li><strong>证明思路</strong>：假设 $B$ 是可识别的，存在识别器 $M_B$。我们要为 $A$ 构造一个识别器 $M_A$。</li>
+  <li>$M_A$ 在输入 $w$ 上工作如下：</li>
+  <li><strong>正确性</strong>：</li>
+  <li>若 $w \in A$，则 $f(w) \in B$。$M_B$ 会接受 $f(w)$，因此 $M_A$ 会接受 $w$。</li>
+  <li>若 $w \notin A$，则 $f(w) \notin B$。$M_B$ 不会接受 $f(w)$，因此 $M_A$ 也不会接受 $w$。</li>
+  <li>这表明 $M_A$ 是 $A$ 的一个有效识别器，故 $A$ 是<strong>可识别的</strong>。</li>
+</ul></li>
+  <li> <strong>如果 $A$ 是不可识别的，那么 $B$ 是不可识别的</strong>。
+<ul>
+  <li>这就是第1点的<strong>逆否命题</strong>。逻辑上是完全等价的。</li>
+  <li>这个形式是我们实际应用中最常用的：为了证明 $B$ 是<strong>不可识别的</strong>，我们从一个已知的<strong>不可识别</strong>语言 $A$ 出发，然后构造一个从 $A$到 $B$ 的<strong>映射归约</strong>。</li>
+</ul></li>
+</ol>
+<p><strong>定理2.5 (与补集的关系)</strong>:</p>
+<ul>
+  <li>$A \leq_{m} B \Longleftrightarrow \bar{A} \leq_{m} \bar{B}$。</li>
+  <li>这个定理的证明非常直接。如果 $f$ 是 $A \leq_m B$ 的归约函数，那么对于任何 $w$：</li>
+</ul>
+<p>$w \in A \Longleftrightarrow f(w) \in B$</p>
+<ul>
+  <li>两边同时取非，就得到：</li>
+</ul>
+<p>$w \notin A \Longleftrightarrow f(w) \notin B$</p>
+<ul>
+  <li>这正好是：</li>
+</ul>
+<p>$w \in \bar{A} \Longleftrightarrow f(w) \in \bar{B}$</p>
+<ul>
+  <li>这意味着同一个<strong>可计算函数</strong> $f$ 也可以作为 $\bar{A} \leq_m \bar{B}$ 的归约函数。</li>
+  <li><strong>应用</strong>：在证明 $L$ 的<strong>不可识别性</strong>时，我们想证明 $U \leq_m L$ (其中 $U$ 是已知的不可识别语言)。根据这个定理，我们也可以选择证明 $\bar{U} \leq_m \bar{L}$。有时，处理补集（例如 $A_{TM}$）比处理原语言（例如 $\overline{A_{TM}}$）要方便得多，因为 $A_{TM}$ 的定义更直接（“接受”），而 $\overline{A_{TM}}$ 的定义包含“拒绝或循环”以及格式错误的情况，比较复杂。</li>
+</ul>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li>$f: \Sigma^{*} \rightarrow \Sigma^{*}$: 表示一个函数 $f$，其定义域（输入）和值域（输出）都是所有可能字符串的集合 $\Sigma^*$。</li>
+  <li>$A \leq_{m} B$: <strong>映射归约</strong>的记号。下标 'm' 代表 'mapping' 或 'many-one'。它意味着 $A$ 的难度不高于 $B$。</li>
+  <li>$w \in A \Longleftrightarrow f(w) \in B$: 这是<strong>映射归约</strong>的核心条件。</li>
+  <li><strong>$\Longrightarrow$ (前向)</strong>: 如果 $w$ 是 $A$ 的成员，那么 $f(w)$ 必须是 $B$ 的成员。</li>
+  <li><strong>$\Longleftarrow$ (后向)</strong>: 如果 $f(w)$ 是 $B$ 的成员，那么 $w$ 必须是 $A$ 的成员。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>示例1：一个简单的映射归约</strong></p>
+<ul>
+  <li>令 $A$ 为所有以 '0' 结尾的二进制串的集合。</li>
+  <li>令 $B$ 为所有以 '1' 结尾的二进制串的集合。</li>
+  <li>我们想证明 $A \leq_m \bar{B}$。</li>
+  <li><strong>可计算函数 $f$</strong>: 定义 $f(w) = w$。这是一个非常简单的可计算函数（图灵机只需复制输入到输出即可）。</li>
+  <li><strong>验证归约</strong>:</li>
+  <li>$w \in A \Longleftrightarrow w$ 以 '0' 结尾。</li>
+  <li>$f(w) \in \bar{B} \Longleftrightarrow f(w) = w$ 不以 '1' 结尾。</li>
+  <li>对于二进制串，不以 '1' 结尾就意味着以 '0' 结尾（假设非空）。</li>
+  <li>所以，$w \in A \Longleftrightarrow f(w) \in \bar{B}$ 成立。</li>
+  <li>注意：这个例子太简单，A和B都是可判定的。它只是为了说明归约函数 $f$ 的构造。</li>
+</ul>
+<p><strong>示例2：应用定理2.4</strong></p>
+<ul>
+  <li>我们已知 $A_{TM}$ 是<strong>不可判定的</strong>。我们还知道 $HALT_{TM} = \{ \langle M, w \rangle \mid M \text{ 在 } w \text{ 上停机} \}$。</li>
+  <li>我们想通过归约证明 $HALT_{TM}$ 也是不可判定的。我们证明 $A_{TM} \leq_m HALT_{TM}$。</li>
+  <li><strong>可计算函数 $f(\langle M, w \rangle)$</strong>:</li>
+  <li>输入是一个图灵机 $M$ 和一个字符串 $w$ 的编码。</li>
+  <li>构造一个新的图灵机 $M'$ 的描述。$M'$ 的工作方式如下：</li>
+</ul>
+<ol>
+  <li>在其输入 $x$ 上（$M'$ 的输入我们不关心），首先模拟 $M$ 在 $w$ 上的运行。</li>
+  <li>如果 $M$ 接受 $w$，那么 $M'$ 进入接受状态并停机。</li>
+  <li>如果 $M$ 拒绝 $w$，那么 $M'$ 进入一个无限循环。</li>
+  <li>如果 $M$ 在 $w$ 上循环，那么 $M'$ 的模拟也会无限循环。
+<ul>
+  <li>函数 $f$ 的输出就是 $\langle M', w \rangle$ (这里的 $w$ 可以是任意固定字符串，比如空串 $\epsilon$，因为 $M'$ 的行为不依赖于其自身输入)。我们让输出为 $\langle M', \epsilon \rangle$。</li>
+  <li><strong>验证归约</strong>:</li>
+  <li>$\langle M, w \rangle \in A_{TM} \implies M$ 接受 $w \implies M'$ 会接受并停机 $\implies \langle M', \epsilon \rangle \in HALT_{TM}$。</li>
+  <li>$\langle M, w \rangle \notin A_{TM} \implies M$ 不接受 $w$ (拒绝或循环) $\implies M'$ 会无限循环 $\implies \langle M', \epsilon \rangle \notin HALT_{TM}$。</li>
+  <li><strong>结论</strong>：我们成功证明了 $A_{TM} \leq_m HALT_{TM}$。因为 $A_{TM}$ 是不可判定的，根据定理2.4的变体（用于不可判定性），$HALT_{TM}$ 也必须是不可判定的。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>归约方向</strong>：最常见的错误是搞反归约方向。如果要证明 $B$ 是难的，必须从一个已知的难问题 $A$ 归约到 $B$ (即 $A \leq_m B$)，而不是反过来。$A \leq_m B$ 的直觉是 "$A$ is no harder than $B$".</li>
+  <li><strong>$f$ 的可计算性</strong>：构造函数 $f$ 时，必须确保它的计算过程是总停机的。不能在 $f$ 的定义中说“如果 $M$ 在 $w$ 上停机，则...；如果 $M$ 在 $w$ 上循环，则...”。因为我们无法判定 $M$ 是否会循环。正确的做法是，函数 $f$ 本身只进行“代码转换”或“语法操作”，它生成一个新的图灵机描述，而把困难的计算（可能循环的部分）留给被构造出的机器去执行。</li>
+  <li><strong>$w \in A \iff f(w) \in B$ 的双向证明</strong>：必须证明两个方向。只证明一个方向是不够的。</li>
+  <li><strong>定理2.5的应用</strong>：当你想证明 $L$ 不可识别时，有时发现从已知的不可识别语言 $U$ 归约到 $L$ ($U \leq_m L$) 很困难。这时可以试试从 $\bar{U}$ 归约到 $\bar{L}$ ($\bar{U} \leq_m \bar{L}$)。如果 $\bar{U}$ 的定义比 $U$ 更清晰（如 $A_{TM}$ vs $\overline{A_{TM}}$），这通常会使证明更简单。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>映射归约</strong>是证明问题难度下界的核心工具。它通过一个可计算的“翻译函数” $f$，将一个已知困难的问题 $A$ 转化为目标问题 $B$ 的一个实例。如果这个翻译是忠实的，那么 $B$ 的难度至少和 $A$ 一样。定理2.4和2.5为我们利用<strong>映射归约</strong>来证明语言的<strong>不可识别性</strong>提供了坚实的理论基础和灵活的策略。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这部分是整个讲义的核心。它提供了证明<strong>不可识别性</strong>最强大的方法。与补集法不同，<strong>映射归约</strong>不仅能证明那些补集是可识别的语言是不可识别的，还能处理那些自身和补集都不可识别的、更复杂的问题。掌握<strong>映射归约</strong>的构造方法是<strong>可计算性理论</strong>学习中的一个关键里程碑。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>可计算函数 $f$</strong>：一个完美的、从不卡壳的自动翻译机。你给它一句中文（问题A的实例），它总能给你一句对应的英文（问题B的实例）。</li>
+  <li><strong>映射归约 $A \leq_m B$</strong>：这个翻译机非常棒，它能保证：当且仅当你给它的中文句子是“对的”（属于语言A），它翻译出的英文句子才是“对的”（属于语言B）。</li>
+  <li><strong>定理2.4.2</strong>：假设你知道中文里有一类问题是“绝对无解的”（不可识别的语言A）。如果你用这个翻译机把这类无解的中文问题都翻译成了英文，那么得到的这些英文问题也必然是“无解的”（不可识别的语言B）。因为如果这些英文问题有解，你就可以通过先翻译再求解英文的方式，回头来解决本应无解的中文问题，这就产生了矛盾。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-5">
+    <h2><span class="section-number">5</span>5. 证明 L 通过映射归约不可识别的步骤</h2>
+    <p id="original-5"><strong style="font-size: 1.3rem;">📜 [原文5]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>证明 $L$ 通过映射归约不可识别的步骤</h3><p>1. 选择一个不可识别的语言 $U$，它可映射归约到 $L$。您要么想证明 $U \leq_{m} L$，要么想证明 $\bar{U} \leq_{m} \bar{L}$。</p><p>2. 确定要证明的映射归约 $A \leq_{m} B$ 和<strong>可计算函数</strong> $f$。</p><p>3. 证明 $A \leq_{m} B$。</p><p>2a. 构建一个计算 $f$ 的图灵机。</p><p>2b. 确保您的函数 $f$ 确实是<strong>可计算的</strong>。</p><p>2b. 证明函数 $f$ 是正确的，这意味着 $w \in A \Longleftrightarrow f(w) \in B$。这包括证明两个方向：</p><p>(i) $w \in A \Longrightarrow f(w) \in B$</p><p>(ii) $w \notin A \Longrightarrow f(w) \notin B \quad$ [等价于 $f(w) \in B \Longrightarrow w \in A$]</p><p>3. 得出您的映射归约意味着 $L$ 是不可识别的结论（思考它如何通过课堂上学到的<strong>定理</strong>来证明）。</p><p>关于上述步骤的一些说明：</p><p>- 确保您的函数 $f$ 确实是<strong>可计算的</strong>！虽然您只需要给出 $f$ 的图灵机的高级描述，但您应该确信您可以在需要时提供更详细的实现。说“如果 M 永远不会在 w 上停机，则 $f(w)$ 为...”是图灵机无法实现的！</p><p>- 请注意，有多种方法可以证明 $w \in A \Longleftrightarrow f(w) \in B$。如果一个陈述是正确的，那么它的逆否命题也是正确的，所以</p><p>(i) 证明 $w \in A \Longrightarrow f(w) \in B$ 等价于证明 $f(w) \notin B \Longrightarrow w \notin A$。</p><p>(ii) 证明 $f(w) \in B \Longrightarrow w \in A$ 等价于证明 $w \notin A \Longrightarrow f(w) \notin B$。</p><p>通常直接证明 (i) 和通过逆否命题证明 (ii) 更容易。</p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分提供了一个清晰、结构化的“食谱”，指导如何完成一个使用<strong>映射归约</strong>证明<strong>不可识别性</strong>的完整证明。</p>
+<p><strong>步骤 1：选择归约的起点</strong></p>
+<ul>
+  <li><strong>目标</strong>：证明语言 $L$ 是<strong>不可识别的</strong>。</li>
+  <li><strong>策略</strong>：我们需要找到一个“垫脚石”，即一个我们<strong>已经知道</strong>是<strong>不可识别的</strong>语言 $U$。</li>
+  <li><strong>最常用的已知不可识别语言</strong>：$\overline{A_{TM}}$ 是最经典的选择。它的定义是 $\{ \langle M, w \rangle \mid M \text{ 是一台图灵机且 } M \text{ 不接受 } w \}$。</li>
+  <li><strong>选择归约形式</strong>：根据定理2.5，我们有两个选择：</li>
+</ul>
+<ol>
+  <li>证明 $U \leq_m L$。</li>
+  <li>证明 $\bar{U} \leq_m \bar{L}$。
+<ul>
+  <li><strong>决策依据</strong>：比较 $U$ 和 $\bar{U}$，以及 $L$ 和 $\bar{L}$ 的定义。选择定义更清晰、逻辑更直接的一对进行归约。通常，包含“接受”或“停机”这种肯定性条件的语言（如 $A_{TM}$）比包含“不接受”、“循环”等否定性或复杂条件的语言（如 $\overline{A_{TM}}$）更容易处理。因此，如果我们的 $U$ 是 $\overline{A_{TM}}$，我们常常会选择证明 $\bar{U} (=A_{TM}) \leq_m \bar{L}$。</li>
+</ul></li>
+</ol>
+<p><strong>步骤 2：定义归约函数 $f$</strong></p>
+<ul>
+  <li>这一步是整个证明的核心和最具创造性的部分。</li>
+  <li><strong>任务</strong>：明确你选择的源语言 $A$ (例如 $A_{TM}$) 和目标语言 $B$ (例如 $\bar{L}$)，然后设计一个<strong>可计算函数</strong> $f$。</li>
+  <li><strong>函数 $f$ 的功能</strong>：$f$ 接受一个 $A$ 的实例 $w_A$ 作为输入，然后输出一个 $B$ 的实例 $w_B = f(w_A)$。这个 $f$ 通常是一个转换器，它读取输入的图灵机描述，并根据其逻辑构造一个新的图灵机描述。</li>
+  <li><strong>关键要求 (可计算性)</strong>：$f$ 的计算过程必须总能停机。这意味着 $f$ 不能去尝试解决 $w_A$ 是否在 $A$ 中这个问题。它只能对 $w_A$ 的“语法结构”进行操作，生成一个新的字符串 $w_B$。</li>
+</ul>
+<p><strong>步骤 3：证明归约的正确性</strong></p>
+<p>这是对步骤 2 中设计的函数 $f$ 的严格验证。</p>
+<ul>
+  <li><strong>子步骤 3a (构造 $f$ 的图灵机)</strong>：用高级语言描述一台计算 $f$ 的图灵机。例如：“在输入 $\langle M, w \rangle$ 上，构造一台新的图灵机 $M'$ 的描述，其中 $M'$ 的代码包含 $M$ 和 $w$。$M'$ 的行为是......最后，输出 $\langle M' \rangle$。”</li>
+  <li><strong>子步骤 3b (确保可计算性)</strong>：再次检查你的描述，确保其中没有任何需要解决不可判定问题的隐藏步骤。</li>
+  <li><strong>子步骤 3c (证明等价性)</strong>：这是逻辑证明部分，必须证明 $w \in A \Longleftrightarrow f(w) \in B$。这需要分两个方向进行：</li>
+  <li><strong>(i) 前向证明 ($w \in A \Longrightarrow f(w) \in B$)</strong>：假设 $w$ 在 $A$ 中，然后根据 $f$ 的构造逻辑，推导出 $f(w)$ 必然在 $B$ 中。</li>
+  <li><strong>(ii) 后向证明 ($w \notin A \Longrightarrow f(w) \notin B$)</strong>：假设 $w$ 不在 $A$ 中，然后根据 $f$ 的构造逻辑，推导出 $f(w)$ 必然不在 $B$ 中。</li>
+  <li><strong>关于证明技巧的说明</strong>：有时，证明一个方向的逆否命题会更简单。</li>
+  <li>证明 "$w \in A \Longrightarrow f(w) \in B$" 等价于证明 "$f(w) \notin B \Longrightarrow w \notin A$"。</li>
+  <li>证明 "$w \notin A \Longrightarrow f(w) \notin B$" 等价于证明 "$f(w) \in B \Longrightarrow w \in A$"。</li>
+  <li>实践中，通常“假设 $w \in A$”和“假设 $w \notin A$”这两种直接的出发点更容易思考。</li>
+</ul>
+<p><strong>步骤 4：得出结论</strong></p>
+<ul>
+  <li><strong>连接逻辑链</strong>：在完成了 $A \leq_m B$ 的证明后，需要明确地写出最后的结论。</li>
+  <li><strong>标准结论模板</strong>：</li>
+</ul>
+<ol>
+  <li>我们已经证明了 $A \leq_m B$。</li>
+  <li>我们知道源语言 $A$ 是<strong>不可识别的</strong>。</li>
+  <li>根据<strong>定理2.4</strong>，如果一个不可识别的语言可以映射归约到另一个语言，那么后者也必须是<strong>不可识别的</strong>。</li>
+  <li>因此，目标语言 $B$ 是<strong>不可识别的</strong>。</li>
+  <li>如果你证明的是 $\bar{U} \leq_m \bar{L}$，那么你得出的结论是 $\bar{L}$ 是不可识别的。如果一个语言的补集不可识别，我们称这个语言是<strong>不可协同识别的</strong>。</li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>目标</strong>：证明 $L = \{ \langle M \rangle \mid M \text{ 接受字符串 'aba' } \}$ 是不可判定的（这里用不可判定性为例，步骤类似）。</p>
+<p><strong>1. 选择语言</strong>：</p>
+<ul>
+  <li>选择已知的不可判定语言 $A = A_{TM} = \{ \langle M, w \rangle \mid M \text{ 接受 } w \}$。</li>
+  <li>目标语言是 $B = L$。</li>
+  <li>我们来证明 $A_{TM} \leq_m L$。</li>
+</ul>
+<p><strong>2. 定义函数 $f$</strong>：</p>
+<ul>
+  <li>函数 $f$ 的输入是 $\langle M, w \rangle$。</li>
+  <li>$f$ 需要输出一个图灵机的描述 $\langle M' \rangle$。</li>
+  <li>我们这样构造 $M'$：</li>
+  <li><strong>$M'$ on input $x$</strong>:</li>
+</ul>
+<ol>
+  <li>忽略输入 $x$。</li>
+  <li>在内部，模拟 $M$ 在 $w$ 上的运行。</li>
+  <li>如果 $M$ 接受 $w$，那么 $M'$ 就接受它自己的输入 $x$（但我们让它只对 'aba' 有反应）。为此，我们修改一下：如果 $M$ 接受 $w$，那么 $M'$ 就检查自己的输入 $x$ 是否为 'aba'。如果是，则接受；否则拒绝。</li>
+  <li>如果 $M$ 不接受 $w$（拒绝或循环），那么 $M'$ 就直接拒绝它自己的输入 $x$（或者进入循环）。
+<ul>
+  <li>为了简化，我们可以让 $M'$ 的行为更直接：</li>
+  <li><strong>$M'$ on input $x$</strong>:</li>
+</ul></li>
+  <li>如果 $x \neq \text{'aba'}$，立刻<strong>拒绝</strong>。</li>
+  <li>如果 $x = \text{'aba'}$，则模拟 $M$ 在 $w$ 上的运行。如果 $M$ 接受 $w$，则<strong>接受</strong>；如果 $M$ 拒绝或循环，则也<strong>拒绝或循环</strong>。
+<ul>
+  <li>函数 $f$ 的定义：$f(\langle M, w \rangle) = \langle M' \rangle$。</li>
+</ul></li>
+</ol>
+<p><strong>3. 证明正确性</strong>：</p>
+<ul>
+  <li><strong>可计算性</strong>：函数 $f$ 只是一个代码转换器。它读取 $\langle M, w \rangle$，然后根据上述规则生成 $M'$ 的代码。这个过程总会停机。所以 $f$ 是可计算的。</li>
+  <li><strong>等价性证明</strong>：</li>
+  <li><strong>(i) $\langle M, w \rangle \in A_{TM} \Longrightarrow \langle M' \rangle \in L$</strong>：</li>
+  <li>假设 $\langle M, w \rangle \in A_{TM}$，即 $M$ 接受 $w$。</li>
+  <li>那么 $M'$ 的行为是：当输入是 'aba' 时，它模拟 $M$ on $w$，因为 $M$ 接受 $w$，所以 $M'$ 会接受。对于所有其他输入，$M'$ 会拒绝。</li>
+  <li>所以，$L(M') = \{ \text{'aba'} \}$。哦，我们发现构造的 $M'$ 的语言不完全是 L。我们需要修改L的定义。让我们回到原问题，假设 $L = \{ \langle M \rangle \mid L(M) \neq \emptyset \}$</li>
+</ul>
+<p><strong>让我们用一个更标准的例子重来一次</strong></p>
+<p><strong>目标</strong>：证明 $E_{TM} = \{ \langle M \rangle \mid L(M) = \emptyset \}$ 是不可判定的。</p>
+<p><strong>1. 选择语言</strong>：</p>
+<ul>
+  <li>选择 $A_{TM}$ 的补集 $\overline{A_{TM}}$ 是不可判定的。</li>
+  <li>我们的目标语言是 $E_{TM}$。</li>
+  <li>我们证明 $\overline{A_{TM}} \leq_m E_{TM}$。这看起来很复杂。</li>
+  <li>让我们试试另一个方向：证明 $A_{TM} \leq_m \overline{E_{TM}}$。这里 $\overline{E_{TM}} = \{ \langle M \rangle \mid L(M) \neq \emptyset \}$。这个看起来更顺。</li>
+</ul>
+<p><strong>2. 定义函数 $f$</strong> (for $A_{TM} \leq_m \overline{E_{TM}}$):</p>
+<ul>
+  <li>输入: $\langle M, w \rangle$</li>
+  <li>输出: $\langle M' \rangle$</li>
+  <li><strong>$M'$ 的构造</strong>:</li>
+  <li><strong>$M'$ on input $x$</strong> (any input):</li>
+</ul>
+<ol>
+  <li>忽略 $x$。</li>
+  <li>模拟 $M$ on $w$。</li>
+  <li>如果 $M$ 接受 $w$，则 $M'$ <strong>接受</strong> $x$。</li>
+  <li>如果 $M$ 拒绝或循环 $w$，则 $M'$ <strong>拒绝或循环</strong> $x$。
+<ul>
+  <li>$f(\langle M, w \rangle) = \langle M' \rangle$</li>
+</ul></li>
+</ol>
+<p><strong>3. 证明正确性</strong>:</p>
+<ul>
+  <li><strong>可计算性</strong>: $f$ 只是将 $M$ 和 $w$ 的代码包装进一个新的图灵机模板中，显然是可计算的。</li>
+  <li><strong>等价性</strong>:</li>
+  <li><strong>(i) $\langle M, w \rangle \in A_{TM} \Longrightarrow \langle M' \rangle \in \overline{E_{TM}}$</strong>：</li>
+  <li>假设 $M$ 接受 $w$。</li>
+  <li>根据 $M'$ 的构造，它会在任何输入 $x$ 上模拟 $M$ on $w$，并最终接受。</li>
+  <li>因此，$L(M') = \Sigma^*$ (所有字符串的集合)。</li>
+  <li>因为 $L(M') \neq \emptyset$，所以 $\langle M' \rangle \in \overline{E_{TM}}$。</li>
+  <li><strong>(ii) $\langle M, w \rangle \notin A_{TM} \Longrightarrow \langle M' \rangle \notin \overline{E_{TM}}$</strong>：</li>
+  <li>假设 $M$ 不接受 $w$ (拒绝或循环)。</li>
+  <li>根据 $M'$ 的构造，它在任何输入 $x$ 上模拟 $M$ on $w$，并且永远不会进入接受状态。</li>
+  <li>因此，$L(M') = \emptyset$。</li>
+  <li>那么 $\langle M' \rangle \in E_{TM}$，这意味着 $\langle M' \rangle \notin \overline{E_{TM}}$。</li>
+</ul>
+<p><strong>4. 结论</strong>:</p>
+<ul>
+  <li>我们证明了 $A_{TM} \leq_m \overline{E_{TM}}$。</li>
+  <li>因为 $A_{TM}$ 是不可判定的，所以 $\overline{E_{TM}}$ 也一定是不可判定的。</li>
+  <li>因为一个语言是不可判定的当且仅当其补集是不可判定的，所以 $E_{TM}$ 也是不可判定的。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>归约逻辑的对称性</strong>：构造 $M'$ 时，要确保其行为在 $w \in A$ 和 $w \notin A$ 两种情况下有本质的区别，并且这个区别正好对应于 $f(w)$ 是否属于 $B$。</li>
+  <li><strong>高级描述的陷阱</strong>：虽然推荐使用高级描述，但要时刻警惕描述中是否隐藏了不可计算的步骤。例如，“检查 $M$ 是否在 $w$ 上停机”就是一个典型的错误。</li>
+  <li><strong>最终结论的清晰性</strong>：证明了 $A \leq_m B$ 后，一定要明确指出是根据哪个定理、基于哪个已知困难语言，得出最终结论的。不要让证明过程在构造完 $f$ 后戛然而止。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这部分将<strong>映射归约</strong>的证明过程范式化，给出了一个按部就班的操作指南。核心在于：选择合适的已知难题，巧妙地构造一个只做代码转换的<strong>可计算函数</strong> $f$，然后严格证明这个函数确实建立了两个问题之间的难度联系，最后根据相关定理得出结论。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>为了让学生能够将抽象的<strong>映射归约</strong>理论应用到具体的题目中，本节提供了一个清晰、可靠的框架。它强调了证明中每一个环节的要点和常见错误，旨在培养学生进行严谨、规范的<strong>可计算性</strong>证明的能力。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像一个写科学论文的指南：</p>
+<ol>
+  <li> <strong>选择研究问题</strong>: 确定你要挑战的难题 $L$，并找到一个已经被证明很难的经典问题 $U$ 作为你的理论基础。</li>
+  <li> <strong>设计实验 ($f$)</strong>: 设计一个实验装置（函数 $f$），这个装置能把经典难题 $U$ 的任何一个版本，转化成你的新难题 $L$ 的一个版本。</li>
+  <li> <strong>验证实验设计 (证明)</strong>:
+<ul>
+  <li>3a. 描述你的装置是如何搭建的。</li>
+  <li>3b. 确保搭建过程是可行的（可计算的）。</li>
+  <li>3c. 证明你的装置确实有效：当且仅当输入的经典难题有“是”的答案时，输出的新难题才有“是”的答案。</li>
+</ul></li>
+  <li> <strong>得出结论</strong>: 在论文的最后写道：“本研究设计了一个实验，成功地将已知的NP-Hard问题A规约为我们的新问题B。因此，我们的问题B至少也是NP-Hard的。”（这里是类比，我们讨论的是<strong>不可识别性</strong>）。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-6">
+    <h2><span class="section-number">6</span>6. 精炼的赖斯定理（额外材料，非必修）</h2>
+    <p id="original-6"><strong style="font-size: 1.3rem;">📜 [原文6]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>3 精炼的赖斯定理（额外材料，非必修）</h3><p>回想一下，我们证明不可判定性的一种方法是使用赖斯定理，当语言是可识别语言的非<strong>平凡性质</strong>时（基本上，任何形如 $\{\langle M\rangle \mid M$ 是图灵机且 $L(M)$ 满足...$\}$ 的语言）都可以应用。请参阅讲义和讲义 9 以获取回顾和示例。</p><p>我们知道，如果一个语言 $L$ 是不可判定的，那么它要么不可识别，要么不可协同识别（或两者兼而有之）——这源于上面讨论的<strong>定理</strong> 1.3。精炼的赖斯定理适用于与赖斯定理完全相同的语言集，但进一步让我们得出 $L$ 是不可识别的或不可协同识别的结论，这取决于识别空语言的图灵机是在 $L$ 中还是在 $\bar{L}$ 中。</p><p><strong>定理</strong> 3.1. 精炼的赖斯定理：设 $P$ 是可识别语言的非<strong>平凡性质</strong>。设 $M_{\emptyset}$ 是一台图灵机，使得 $L\left(M_{\emptyset}\right)=\emptyset$。那么：</p><p>- 如果 $\left\langle M_{\emptyset}\right\rangle \in P$，那么 $P$ 是不可识别的</p><p>- 如果 $\left\langle M_{\emptyset}\right\rangle \notin P$，那么 $P$ 是不可协同识别的（即，$\bar{P}$ 是不可判定的）。</p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分介绍了<strong>赖斯定理</strong>的加强版——<strong>精炼的赖斯定理</strong>（Refined Rice's Theorem），它不仅能判断一个语言是否<strong>不可判定</strong>，还能进一步指明它是<strong>不可识别</strong>还是<strong>不可协同识别</strong>。</p>
+<p><strong>回顾赖斯定理</strong>:</p>
+<ul>
+  <li><strong>赖斯定理</strong>说：任何关于<strong>图灵机</strong>所识别的语言的<strong>非平凡性质</strong>都是<strong>不可判定的</strong>。</li>
+  <li><strong>语言的性质</strong>：一个语言 $P$ 是“语言的性质”，意味着它只关心<strong>图灵机</strong>的语言 $L(M)$，而不关心<strong>图灵机</strong> $M$ 的具体实现（状态数、纸带字母等）。如果两台<strong>图灵机</strong> $M_1$ 和 $M_2$ 识别相同的语言 ($L(M_1)=L(M_2)$)，那么它们要么都属于 $P$，要么都不属于 $P$。</li>
+  <li><strong>非平凡</strong>：$P$ 是非平凡的，意味着至少存在一台<strong>图灵机</strong>的编码在 $P$ 中，也至少存在一台<strong>图灵机</strong>的编码不在 $P$ 中。它不是空集也不是全集。</li>
+</ul>
+<p><strong>精炼的赖斯定理的动机</strong>:</p>
+<ul>
+  <li>赖斯定理告诉我们很多问题是<strong>不可判定的</strong>，比如 $E_{TM}$ (语言为空), $REG_{TM}$ (语言是正则的)。</li>
+  <li>根据定理1.3，一个<strong>不可判定</strong>的语言，要么是<strong>不可识别</strong>，要么是<strong>不可协同识别</strong>（或者两者都是）。</li>
+  <li>赖斯定理本身没有告诉我们是哪种情况。<strong>精炼的赖斯定理</strong>填补了这个空白。</li>
+</ul>
+<p><strong>定理3.1 (精炼的赖斯定理)</strong>:</p>
+<p>这个定理的适用条件和赖斯定理完全一样：语言 $P$ 必须是一个关于<strong>可识别语言</strong>的<strong>非平凡性质</strong>。</p>
+<p>它增加了一个简单的判断标准，这个标准基于<strong>空语言</strong>。</p>
+<ul>
+  <li>令 $M_{\emptyset}$ 为一台识别空语言的<strong>图灵机</strong>，即 $L(M_{\emptyset}) = \emptyset$。例如，一个一启动就进入拒绝状态的<strong>图灵机</strong>。</li>
+  <li>定理的两个分支：</li>
+</ul>
+<ol>
+  <li><strong>如果 $\langle M_{\emptyset} \rangle \in P$ (空语言的性质为真)</strong>：
+<ul>
+  <li>这意味着性质 $P$ 包含空语言。</li>
+  <li>结论：语言 $P$ 是<strong>不可识别的</strong>。</li>
+</ul></li>
+  <li><strong>如果 $\langle M_{\emptyset} \rangle \notin P$ (空语言的性质为假)</strong>：
+<ul>
+  <li>这意味着性质 $P$ 不包含空语言。</li>
+  <li>结论：语言 $P$ 是<strong>不可协同识别的</strong>。</li>
+  <li><strong>不可协同识别</strong>意味着它的补集 $\bar{P}$ 是<strong>不可识别的</strong>。</li>
+</ul></li>
+</ol>
+<p><strong>理解其内在逻辑 (非严格)</strong>:</p>
+<p>这个定理的证明通常是通过从 $A_{TM}$ 或 $\overline{A_{TM}}$ 进行归约。</p>
+<ul>
+  <li>当 $\langle M_{\emptyset} \rangle \in P$ 时，证明 $\overline{A_{TM}} \leq_m P$ 是可行的。由于 $\overline{A_{TM}}$ 是不可识别的，所以 $P$ 也是不可识别的。</li>
+  <li>当 $\langle M_{\emptyset} \rangle \notin P$ 时，证明 $A_{TM} \leq_m P$ 是可行的。因为 $A_{TM}$ 是可识别的，这只能说明 $P$ 也是可识别的（这似乎与结论不符）。更准确地说，是证明 $A_{TM} \leq_m P$，因为 $A_{TM}$ 不可判定，所以 $P$ 不可判定。进一步的分析（这里省略）会发现，这种情况下 $P$ 是可识别的，因此它的补集 $\bar{P}$ 是不可识别的，即 $P$ 是不可协同识别的。</li>
+</ul>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li>$P$: 一个语言，它代表一个<strong>性质</strong>（Property）。$P$ 的成员是<strong>图灵机</strong>的编码 $\langle M \rangle$。</li>
+  <li>$L(M)$: <strong>图灵机</strong> $M$ 所识别的语言。</li>
+  <li>$M_{\emptyset}$: 一台特殊的<strong>图灵机</strong>，它不接受任何字符串，所以它的语言是空集 $\emptyset$。</li>
+  <li>$\langle M_{\emptyset} \rangle \in P$: 这句话的意思是，“识别空语言”这个行为满足性质 $P$。</li>
+  <li>$\langle M_{\emptyset} \rangle \notin P$: 这句话的意思是，“识别空语言”这个行为不满足性质 $P$。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>示例1：$E_{TM} = \{\langle M\rangle \mid L(M)=\emptyset\}$</strong></p>
+<ol>
+  <li> <strong>是语言性质吗？</strong> 是。判断一个 $\langle M \rangle$ 是否在 $E_{TM}$ 中，只取决于 $L(M)$ 是否为空，与 $M$ 的具体实现无关。</li>
+  <li> <strong>非平凡吗？</strong> 是。存在 $M$ 使得 $L(M)=\emptyset$（例如立即拒绝的<strong>图灵机</strong>），也存在 $M'$ 使得 $L(M') \neq \emptyset$（例如接受所有字符串的<strong>图灵机</strong>）。</li>
+  <li> <strong>应用精炼的赖斯定理</strong>：
+<ul>
+  <li>我们需要检查 $\langle M_{\emptyset} \rangle$ 是否在 $E_{TM}$ 中。</li>
+  <li>$M_{\emptyset}$ 的定义就是 $L(M_{\emptyset}) = \emptyset$。</li>
+  <li>这完全符合 $E_{TM}$ 的定义。所以，$\langle M_{\emptyset} \rangle \in E_{TM}$。</li>
+  <li><strong>结论</strong>：根据定理的第一条， $E_{TM}$ 是<strong>不可识别的</strong>。</li>
+</ul></li>
+</ol>
+<p><strong>示例2：$ALL_{TM} = \{\langle M\rangle \mid L(M)=\Sigma^*\}$</strong></p>
+<ol>
+  <li> <strong>是语言性质吗？</strong> 是。只取决于 $L(M)$ 是否是全集。</li>
+  <li> <strong>非平凡吗？</strong> 是。存在 $M$ 使得 $L(M)=\Sigma^*$，也存在 $M'$ 使得 $L(M') \neq \Sigma^*$。</li>
+  <li> <strong>应用精炼的赖斯定理</strong>：
+<ul>
+  <li>我们需要检查 $\langle M_{\emptyset} \rangle$ 是否在 $ALL_{TM}$ 中。</li>
+  <li>$L(M_{\emptyset}) = \emptyset$。而 $ALL_{TM}$ 要求语言是 $\Sigma^*$。</li>
+  <li>显然 $\emptyset \neq \Sigma^*$。所以，$\langle M_{\emptyset} \rangle \notin ALL_{TM}$。</li>
+  <li><strong>结论</strong>：根据定理的第二条， $ALL_{TM}$ 是<strong>不可协同识别的</strong>。这意味着 $\overline{ALL_{TM}}$ 是<strong>不可识别的</strong>。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>定理适用范围</strong>：精炼的赖斯定理和赖斯定理一样，只能用于判断关于<strong>图灵机</strong>所识别的<strong>语言</strong>的性质。它不能用于判断关于<strong>图灵机</strong>本身行为的性质，例如“<strong>图灵机</strong> $M$ 有少于100个状态”或“<strong>图灵机</strong> $M$ 在输入 $w$ 上会向左移动磁头”。</li>
+  <li><strong>非平凡性的检查</strong>：在使用定理之前，必须先验证该性质是<strong>非平凡的</strong>。如果一个性质是平凡的（要么所有<strong>图灵机</strong>都满足，要么都不满足），那么对应的语言是 $\Sigma^*$ 或 $\emptyset$，这两个都是<strong>可判定的</strong>。</li>
+  <li><strong>结论的区分</strong>：要仔细看清定理的两个分支。是“不可识别”还是“不可协同识别”，完全取决于空语言是否满足该性质。不要记混。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>精炼的赖斯定理</strong>是一个强大的“快捷方式”。对于满足其前提条件（关于可识别语言的非平凡性质）的语言 $P$，我们无需进行复杂的归约构造，只需简单地检查一个识别空集的<strong>图灵机</strong>是否属于 $P$，就可以立即判断出 $P$ 的不可识别性或不可协同识别性。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本节内容的存在是为了提供一个比<strong>映射归约</strong>更专门化、但在特定场景下更高效的证明工具。它展示了理论深刻性带来的简洁性，让学生在面对某些特定类型的问题时，能够快速得出结论，而不必每次都从头开始构造归约。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一个“性格分类器”，它可以根据人们的行为（$L(M)$）给他们贴上各种标签（性质 $P$）。</p>
+<ol>
+  <li><strong>赖斯定理</strong>说：任何一个不是“所有人都有”也不是“所有人都沒有”的性格标签，都是“无法通过简单问卷测出的”（<strong>不可判定</strong>）。</li>
+  <li><strong>精炼的赖斯定理</strong>更进一步：</li>
+  <li>如果一个“完全自闭、不与任何人交流的人”（$M_{\emptyset}$）<strong>符合</strong>这个性格标签（例如，标签是“内向”），那么这个标签本身就是“神秘的、无法被外界系统性观察到的”（<strong>不可识别</strong>）。</li>
+  <li>如果一个“完全自闭的人”<strong>不符合</strong>这个性格标签（例如，标签是“外向”），那么这个标签就是“无法系统性地排除的”（<strong>不可协同识别</strong>）。你可能能确认某人是外向的，但你永远无法对所有人完成排查，从而确认谁不是外向的。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-7">
+    <h2><span class="section-number">7</span>7. 通过精炼的赖斯定理证明 L 不可识别的步骤</h2>
+    <p id="original-7"><strong style="font-size: 1.3rem;">📜 [原文7]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>通过精炼的赖斯定理证明 $L$ 不可识别的步骤</h3><p>1. 证明 $L$ 是语言<strong>性质</strong>：</p><p>1a. 检查 $L$ 是否由形如 $\langle M\rangle$ 的字符串组成，其中 $M$ 是一台图灵机。</p><p>1b. 检查对于任意两台图灵机 $M_{1}, M_{2}$，如果 $L\left(M_{1}\right)=L\left(M_{2}\right)$，则 $M_{1} \in L \Longleftrightarrow M_{2} \in L$。</p><p>2. 证明 $L$ 是非<strong>平凡的</strong>：</p><p>2a. 证明存在一台图灵机 $M$ 使得 $\langle M\rangle \in L$。</p><p>2b. 证明存在一台图灵机 $M^{\prime}$ 使得 $\left\langle M^{\prime}\right\rangle \notin L$。</p><p>3. 证明 $\left\langle M_{\emptyset}\right\rangle \in L$。</p><p>4. 得出 $L$ 是不可识别的结论。</p><p>注意：如果在步骤 3 中您改为证明 $\left\langle M_{\emptyset}\right\rangle \notin L$，则可以得出 $L$ 是不可协同识别的结论。</p><p>例如，精炼的赖斯定理可用于证明 $E_{T M}, R E G_{T M}$ 和 $\overline{A L L_{T M}}$ 都是不可识别的（因为它们都可以被证明是可识别语言的非<strong>平凡性质</strong>，并且 $M_{\emptyset}$ 满足这些性质）。</p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分将上一节介绍的<strong>精炼的赖斯定理</strong>具体化为一个四步操作流程，用于证明一个语言 $L$ 是<strong>不可识别的</strong>。</p>
+<p><strong>步骤 1：证明 $L$ 是一个语言性质</strong></p>
+<p>这是应用定理的第一个前提。</p>
+<ul>
+  <li><strong>1a. 检查输入格式</strong>：首先要确认 $L$ 的成员都是<strong>图灵机</strong>的编码，即形如 $\langle M \rangle$ 的字符串。如果 $L$ 包含其他类型的字符串（比如 $\langle M, w \rangle$），那么赖斯定理不适用。</li>
+  <li><strong>1b. 检查语义等价性</strong>：这是核心。必须证明，决定一个<strong>图灵机</strong> $M$ 是否在 $L$ 中的唯一标准是它所识别的语言 $L(M)$。证明方法是：任取两个<strong>图灵机</strong> $M_1$ 和 $M_2$，假设它们识别同一个语言 ($L(M_1) = L(M_2)$)。在此假设下，你需要证明 $\langle M_1 \rangle \in L$ 和 $\langle M_2 \rangle \in L$ 是等价的。</li>
+</ul>
+<p><strong>步骤 2：证明 $L$ 是非平凡的</strong></p>
+<p>这是应用定理的第二个前提。</p>
+<ul>
+  <li><strong>2a. 证明性质存在</strong>：你需要构造或指出一台<strong>图灵机</strong> $M_{yes}$，它的编码 $\langle M_{yes} \rangle$ 属于 $L$。这证明了 $L$ 不是空集。</li>
+  <li><strong>2b. 证明性质并非普遍</strong>：你需要构造或指出另一台<strong>图灵机</strong> $M_{no}$，它的编码 $\langle M_{no} \rangle$ 不属于 $L$。这证明了 $L$ 不是所有<strong>图灵机</strong>编码的集合。</li>
+</ul>
+<p><strong>步骤 3：检查空语言的归属</strong></p>
+<p>这是<strong>精炼的赖斯定理</strong>区别于普通赖斯定理的关键步骤。</p>
+<ul>
+  <li>定义一台<strong>图灵机</strong> $M_{\emptyset}$，它不接受任何输入，因此 $L(M_{\emptyset}) = \emptyset$。</li>
+  <li>判断 $\langle M_{\emptyset} \rangle$ 是否属于 $L$。</li>
+  <li>如果你的目标是证明 $L$ <strong>不可识别</strong>，你必须证明 $\langle M_{\emptyset} \rangle \in L$。</li>
+</ul>
+<p><strong>步骤 4：得出结论</strong></p>
+<ul>
+  <li>如果步骤1、2、3全部满足，你就可以直接引用<strong>精炼的赖斯定理</strong>得出结论。</li>
+  <li><strong>标准结论模板</strong>：</li>
+</ul>
+<ol>
+  <li>根据步骤1，我们证明了 $L$ 是一个关于<strong>图灵机</strong>所识别语言的性质。</li>
+  <li>根据步骤2，我们证明了该性质是<strong>非平凡的</strong>。</li>
+  <li>根据步骤3，我们证明了识别空语言的<strong>图灵机</strong>满足此性质。</li>
+  <li>因此，根据<strong>精炼的赖斯定理</strong>，$L$ 是<strong>不可识别的</strong>。</li>
+</ol>
+<p><strong>关于“不可协同识别”的说明</strong>:</p>
+<ul>
+  <li>如果在步骤3中，你发现 $\langle M_{\emptyset} \rangle \notin L$，那么你无法证明 $L$ 是<strong>不可识别的</strong>。</li>
+  <li>此时，你的结论应该改为：根据<strong>精炼的赖斯定理</strong>，$L$ 是<strong>不可协同识别的</strong>。</li>
+  <li>这意味着 $\bar{L}$ 是<strong>不可识别的</strong>。如果题目要求证明 $\bar{L}$ 不可识别，这也是一个有效的证明路径。</li>
+</ul>
+<p><strong>示例分析</strong>:</p>
+<ul>
+  <li><strong>$E_{TM} = \{\langle M \rangle \mid L(M)=\emptyset\}$</strong></li>
+</ul>
+<ol>
+  <li> <strong>性质</strong>：是。</li>
+  <li> <strong>非平凡</strong>：是。</li>
+  <li> <strong>空语言</strong>：$L(M_{\emptyset})=\emptyset$，满足 $E_{TM}$ 的条件，所以 $\langle M_{\emptyset} \rangle \in E_{TM}$。</li>
+  <li> <strong>结论</strong>：$E_{TM}$ 是<strong>不可识别的</strong>。
+<ul>
+  <li><strong>$REG_{TM} = \{\langle M \rangle \mid L(M) \text{ 是正则的}\}$</strong></li>
+</ul></li>
+  <li> <strong>性质</strong>：是。</li>
+  <li> <strong>非平凡</strong>：是。正则语言存在（如 $\emptyset$），非正则语言也存在（如 $\{0^n1^n\}$）。</li>
+  <li> <strong>空语言</strong>：$L(M_{\emptyset})=\emptyset$。空语言是一个<strong>正则语言</strong>（它可以被一个没有接受状态的DFA识别）。所以 $\langle M_{\emptyset} \rangle \in REG_{TM}$。</li>
+  <li> <strong>结论</strong>：$REG_{TM}$ 是<strong>不可识别的</strong>。
+<ul>
+  <li><strong>$\overline{ALL_{TM}} = \{\langle M \rangle \mid L(M) \neq \Sigma^*\}$</strong></li>
+</ul></li>
+  <li> <strong>性质</strong>：是。</li>
+  <li> <strong>非平凡</strong>：是。</li>
+  <li> <strong>空语言</strong>：$L(M_{\emptyset})=\emptyset$。显然 $\emptyset \neq \Sigma^*$。所以 $L(M_{\emptyset})$ 满足性质 “不等于 $\Sigma^*$”。因此 $\langle M_{\emptyset} \rangle \in \overline{ALL_{TM}}$。</li>
+  <li> <strong>结论</strong>：$\overline{ALL_{TM}}$ 是<strong>不可识别的</strong>。</li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p><strong>目标</strong>：证明 $L_{contains\_101} = \{ \langle M \rangle \mid \text{字符串 '101' } \in L(M) \}$ 是<strong>不可协同识别的</strong>。</p>
+<p><strong>步骤 1：证明 $L_{contains\_101}$ 是语言性质</strong></p>
+<ul>
+  <li>1a. 它的成员是 $\langle M \rangle$ 形式。</li>
+  <li>1b. 如果 $L(M_1) = L(M_2)$，那么 '101' 要么同时在两个语言里，要么同时不在。所以 $\langle M_1 \rangle \in L_{contains\_101} \Longleftrightarrow \langle M_2 \rangle \in L_{contains\_101}$。得证。</li>
+</ul>
+<p><strong>步骤 2：证明 $L_{contains\_101}$ 是非平凡的</strong></p>
+<ul>
+  <li>2a. 构造一台只接受 '101' 的<strong>图灵机</strong> $M_{yes}$。则 $\langle M_{yes} \rangle \in L_{contains\_101}$。</li>
+  <li>2b. 构造一台拒绝所有输入的<strong>图灵机</strong> $M_{no}$。则 $L(M_{no})=\emptyset$，不包含 '101'。所以 $\langle M_{no} \rangle \notin L_{contains\_101}$。得证。</li>
+</ul>
+<p><strong>步骤 3：检查空语言的归属</strong></p>
+<ul>
+  <li>令 $M_{\emptyset}$ 是一台 $L(M_{\emptyset})=\emptyset$ 的<strong>图灵机</strong>。</li>
+  <li>字符串 '101' 显然不在空语言 $\emptyset$ 中。</li>
+  <li>因此，$\langle M_{\emptyset} \rangle \notin L_{contains\_101}$。</li>
+</ul>
+<p><strong>步骤 4：得出结论</strong></p>
+<ul>
+  <li>根据<strong>精炼的赖斯定理</strong>的第二条，由于该非平凡性质不包含空语言，所以 $L_{contains\_101}$ 是<strong>不可协同识别的</strong>。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>忘记前提检查</strong>：最容易犯的错误是直接跳到步骤3，而没有先严格地验证步骤1和步骤2。一个完整的证明必须包含对“语言性质”和“非平凡性”的论证。</li>
+  <li><strong>对“性质”的误判</strong>：再次强调，形如 $L=\{\langle M \rangle \mid M \text{ 在空串上运行不超过10步}\}$ 的语言，不是语言性质，因为它依赖于 $M$ 的运行效率，而不是它最终接受的语言集合。</li>
+  <li><strong>结论与目标不符</strong>：如果题目要求证明 $L$ 是<strong>不可识别的</strong>，但在步骤3中你却发现 $\langle M_{\emptyset} \rangle \notin L$，这意味着你选错了工具或策略。此时你应该考虑证明 $\bar{L}$ 是不可识别的（如果 $\langle M_{\emptyset} \rangle \in \bar{L}$），或者改用<strong>映射归约</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本节将<strong>精炼的赖斯定理</strong>转化为一个可以直接套用的证明模板。通过系统地检查语言的格式、语义无关性、非平凡性以及与空语言的关系，我们可以快速、严谨地判断一个语言的<strong>不可识别性</strong>或<strong>不可协同识别性</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本节旨在进一步降低使用<strong>赖斯定理</strong>系列工具的门槛，将其从一个抽象的定理变成一个具体的、分步的、可执行的算法。这有助于学生在考试或研究中，面对符合条件的特定问题时，能够高效、准确地完成证明。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像一个“快速诊断手册”，用来判断某种“人群标签”（语言 $L$）是否“神秘莫测”（不可识别）。</p>
+<ol>
+  <li> <strong>问诊第一步（定性）</strong>：这个标签是只看行为结果（语言），还是看长相身高（实现细节）？必须是前者。</li>
+  <li> <strong>问诊第二步（普遍性）</strong>：这个标签是人人都有，还是人人都没？必须都不是。</li>
+  <li> <strong>问诊第三步（关键指标）</strong>：一个完全自闭不说话的人（$M_{\emptyset}$），算不算有这个标签？
+<ul>
+  <li>如果<strong>算</strong>，那么手册告诉你：这个标签“<strong>不可识别</strong>”。</li>
+  <li>如果<strong>不算</strong>，那么手册告诉你：这个标签“<strong>不可协同识别</strong>”。</li>
+</ul></li>
+  <li> <strong>开具诊断证明（结论）</strong>：根据手册第X条规定，诊断结果为……</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-8">
+    <h2><span class="section-number">8</span>8. 不可识别语言示例</h2>
+    <p id="original-8"><strong style="font-size: 1.3rem;">📜 [原文8]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>4 不可识别语言示例</h3><p>课堂上已证明</p><p>- $\overline{A_{T M}}=$ $\{\langle M, w\rangle \mid M$ 是一台图灵机且 $M$ 接受 $w\}$ 的补集（第 19 讲）</p><p>- $E_{T M}=\{\langle M\rangle \mid M$ 是一台图灵机且 $L(M)=\emptyset\}$（第 19 讲）</p><p>- $A L L_{T M}=\left\{\langle M\rangle \mid M\right.$ 是一台图灵机且 $\left.L(M)=\Sigma^{*}\right\}$（第 20 讲）</p><p>- $\overline{A L L_{T M}}$（第 19 讲）</p><p>未证明</p><p>- $\overline{H A L T_{T M}}=$ $\{\langle M, w\rangle \mid M$ 是一台图灵机且 $M$ 在 $w$ 上停机$\}$ 的补集</p><p>- $E Q_{T M}=\left\{\left\langle M_{1}, M_{2}\right\rangle \mid M_{1}\right.$ 和 $M_{2}$ 是图灵机且 $\left.L\left(M_{1}\right)=L\left(M_{2}\right)\right\}$</p><p>- $R E G_{T M}=\{\langle M\rangle \mid M$ 是一台图灵机且 $L(M)$ 是正则的$\}$</p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分列出了一些在<strong>可计算性理论</strong>中非常重要的、作为基准的<strong>不可识别</strong>语言。这些语言经常被用作“已知困难问题”的起点，通过<strong>映射归约</strong>来证明其他新问题的难度。</p>
+<p><strong>已证明的不可识别语言</strong>：</p>
+<ul>
+  <li><strong>$\overline{A_{TM}}$ (非接受性问题)</strong>:</li>
+  <li>定义: $\{\langle M, w\rangle \mid M \text{ 不接受 } w\}$。</li>
+  <li><strong>不可识别性原因</strong>: 它的补集 $A_{TM}$ 是<strong>可识别的</strong>（通过通用<strong>图灵机</strong>模拟），但 $A_{TM}$ 本身是<strong>不可判定的</strong>。根据方法1，$\overline{A_{TM}}$ 是<strong>不可识别的</strong>。这是所有<strong>不可识别</strong>问题的“鼻祖”，许多归约都从它开始。</li>
+</ul>
+<ul>
+  <li><strong>$E_{TM}$ (空语言问题)</strong>:</li>
+  <li>定义: $\{\langle M\rangle \mid L(M)=\emptyset\}$。</li>
+  <li><strong>不可识别性原因</strong>: 可以通过从 $\overline{A_{TM}}$ 进行<strong>映射归约</strong>来证明。也可以使用<strong>精炼的赖斯定理</strong>：这是一个关于语言的非平凡性质，且识别空语言的<strong>图灵机</strong> $M_{\emptyset}$ 满足此性质，因此 $E_{TM}$ 是<strong>不可识别的</strong>。</li>
+</ul>
+<ul>
+  <li><strong>$ALL_{TM}$ (全语言问题)</strong>:</li>
+  <li>定义: $\{\langle M\rangle \mid L(M)=\Sigma^*\}$。</li>
+  <li>这个语言本身是<strong>不可协同识别的</strong>，而不是<strong>不可识别的</strong>。这意味着它本身是<strong>可识别的</strong>（这个结论不正确，原文可能存在笔误或者语境省略。实际上 $ALL_{TM}$ 和它的补集都是不可识别的。更准确地说，根据精炼的赖斯定理，因为它不包含空语言，所以它是不可协同识别的）。</li>
+  <li>证明通常通过从 $A_{TM}$ 映射归约到 $ALL_{TM}$。</li>
+  <li><strong>讲义原文此处可能有误或不精确</strong>。标准的结论是 $ALL_{TM}$ 是<strong>不可协同识别的</strong>。</li>
+</ul>
+<ul>
+  <li><strong>$\overline{ALL_{TM}}$ (非全语言问题)</strong>:</li>
+  <li>定义: $\{\langle M\rangle \mid L(M) \neq \Sigma^*\}$。</li>
+  <li><strong>不可识别性原因</strong>: 这是 $ALL_{TM}$ 的补集。由于 $ALL_{TM}$ 是<strong>不可协同识别的</strong>，根据定义，它的补集 $\overline{ALL_{TM}}$ 就是<strong>不可识别的</strong>。也可以用<strong>精炼的赖斯定理</strong>证明：这是一个非平凡的语言性质，且 $M_{\emptyset}$ 满足此性质 ($L(M_{\emptyset})=\emptyset \neq \Sigma^*$)，因此 $\overline{ALL_{TM}}$ 是<strong>不可识别的</strong>。</li>
+</ul>
+<p><strong>未证明但重要的不可识别/不可协同识别语言</strong>：</p>
+<ul>
+  <li><strong>$\overline{HALT_{TM}}$ (不停机问题)</strong>:</li>
+  <li>定义: $\{\langle M, w\rangle \mid M \text{ 在 } w \text{ 上无限循环}\}$。</li>
+  <li><strong>不可识别性</strong>: 类似于 $\overline{A_{TM}}$ 的情况。它的补集 $HALT_{TM}$ (停机问题) 是<strong>可识别的</strong>（模拟即可）但<strong>不可判定的</strong>。因此，$\overline{HALT_{TM}}$ 是<strong>不可识别的</strong>。</li>
+</ul>
+<ul>
+  <li><strong>$EQ_{TM}$ (等价性问题)</strong>:</li>
+  <li>定义: $\{\langle M_1, M_2\rangle \mid L(M_1) = L(M_2)\}$。</li>
+  <li><strong>复杂性</strong>: 这个问题“非常难”。它不仅<strong>不可判定</strong>，而且它和它的补集 $\overline{EQ_{TM}}$ <strong>都</strong>是<strong>不可识别的</strong>。</li>
+  <li><strong>证明思路</strong>: 通常通过从 $E_{TM}$ 映射归约到 $EQ_{TM}$ 来证明其<strong>不可协同识别性</strong> ($E_{TM} \leq_m EQ_{TM}$)。然后通过从 $\overline{E_{TM}}$ 映射归约到 $EQ_{TM}$ 来证明其<strong>不可识别性</strong>（这里需要更复杂的归约）。</li>
+</ul>
+<ul>
+  <li><strong>$REG_{TM}$ (正则性问题)</strong>:</li>
+  <li>定义: $\{\langle M\rangle \mid L(M) \text{ 是一个正则语言}\}$。</li>
+  <li><strong>不可识别性</strong>: 可以使用<strong>精炼的赖斯定理</strong>。这是一个非平凡的语言性质，并且 $M_{\emptyset}$ (其语言为空集 $\emptyset$) 的语言是<strong>正则的</strong>，所以 $\langle M_{\emptyset} \rangle \in REG_{TM}$。因此，$REG_{TM}$ 是<strong>不可识别的</strong>。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>$\overline{A_{TM}}$</strong>: 比如有一个<strong>图灵机</strong> $M_{loop}$，它在任何输入上都进入一个向右移动的无限循环。那么 $\langle M_{loop}, \text{'abc'} \rangle$ 这个实例就属于 $\overline{A_{TM}}$。但我们没有一个通用的程序，能检查所有这类“不接受”的实例。</li>
+</ul>
+<ul>
+  <li><strong>$E_{TM}$</strong>: 如果一个<strong>图灵机</strong> $M_{reject}$ 的规则是：无论读到什么，都立即进入拒绝状态。那么 $L(M_{reject})=\emptyset$，所以 $\langle M_{reject} \rangle \in E_{TM}$。</li>
+</ul>
+<ul>
+  <li><strong>$EQ_{TM}$</strong>: 假设 $M_1$ 是一个接受所有偶数长度字符串的<strong>图灵机</strong>，$M_2$ 是另一个用完全不同的状态和逻辑实现的、但也接受所有偶数长度字符串的<strong>图灵机</strong>。那么 $\langle M_1, M_2 \rangle \in EQ_{TM}$。但如果 $M_3$ 接受所有奇数长度的字符串，那么 $\langle M_1, M_3 \rangle \notin EQ_{TM}$。判断这个问题在一般情况下是无法做到的。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>区分不可识别和不可协同识别</strong>：这是最关键的。$E_{TM}$ 是<strong>不可识别的</strong>，但 $A_{TM}$ 是<strong>可识别的</strong>。$ALL_{TM}$ 是<strong>不可协同识别的</strong>，但它的补集 $\overline{ALL_{TM}}$ 是<strong>不可识别的</strong>。需要牢记这些经典问题的分类。</li>
+  <li><strong>$EQ_{TM}$ 的特殊性</strong>：$EQ_{TM}$ 是一个重要例子，说明一个语言可以既不是<strong>可识别的</strong>，也不是<strong>协同可识别的</strong>。这意味着验证两个<strong>图灵机</strong>的等价性 和 验证它们的不等价性，都没有通用的算法能给出肯定的答复。</li>
+  <li><strong>讲义中的潜在不精确之处</strong>：如前述，关于 $ALL_{TM}$ 的分类，标准的结论是它是<strong>不可协同识别的</strong>。如果讲义中直接说它是“不可识别的”，需要根据上下文判断是否为笔误或简化说法。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本节提供了一个“困难问题”的清单。这些语言是<strong>可计算性理论</strong>中的“路标”，它们的确切分类（可识别、不可识别、不可协同识别）是后续进行归约证明的基础。在证明一个新问题 $L$ 的难度时，通常会从这个清单中挑选一个最相似的问题作为归约的起点。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本节的目的是为了武装学生，让他们在进行归约证明时“弹药库”里有充足的“弹药”。通过熟悉这些经典<strong>不可识别</strong>语言及其证明思路，学生可以培养对问题难度的直觉，并能快速选择合适的归约策略。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这个列表就像是数学中的“基本无理数”列表（如 $\sqrt{2}, \pi, e$）。</p>
+<ol>
+  <li>$\overline{A_{TM}}$ 就像是 $\sqrt{2}$，它是第一个被证明的“無理”，基础且重要。</li>
+  <li>$E_{TM}, REG_{TM}, \overline{ALL_{TM}}$ 等就像是其他通过 $\sqrt{2}$ 或类似方法证明出来的无理数，它们各有特点。</li>
+  <li>$EQ_{TM}$ 就像是一个更复杂的超越数，它的性质（既不可识别也不可协同识别）揭示了更深层次的“无理性”。</li>
+</ol>
+<p>当你要证明一个新数是无理数时，你常常会尝试证明它能表示成某个已知无理数和有理数的组合。这正是在<strong>可计算性</strong>中通过归约所做的事情。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-9">
+    <h2><span class="section-number">9</span>9. 练习题</h2>
+    <p id="original-9"><strong style="font-size: 1.3rem;">📜 [原文9]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>5 练习题</h3><p>1. 证明 $L=\{\langle M, D\rangle \mid M$ 是一台图灵机，$D$ 是一台 DFA，且 $L(M)=L(D)\}$ 是不可协同识别的。也就是说，证明 $\bar{L}$ 是不可识别的。</p><p>2. 证明 $L=\{\langle M\rangle \mid M$ 是一台不接受长度 $\geq 50$ 的字符串的图灵机$\}$ 是不可识别的。</p><p>3. 证明如果 $L_{1}$ 和 $L_{2}$ 是可识别的，那么 $L_{3}=L_{1} \cdot L_{2}$ 也是可识别的。也就是说，证明可识别语言在<strong>连接</strong>运算下是封闭的。</p><p>4. 设 $A$ 是一种语言。证明 $A \leq_{m} A$。</p><p>5. 必然有 $A \leq_{m} \bar{A}$ 吗？</p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分提供了一系列练习题，旨在巩固本讲义介绍的概念和证明技巧。</p>
+<p><strong>练习题 1: 证明 $L=\{\langle M, D\rangle \mid L(M)=L(D)\}$ 是不可协同识别的</strong></p>
+<ul>
+  <li><strong>目标</strong>: 证明 $\bar{L}$ 是<strong>不可识别的</strong>。</li>
+  <li><strong>分析</strong>: $\bar{L} = \{\langle M, D\rangle \mid L(M) \neq L(D)\}$。这个问题看起来和 $EQ_{TM}$（等价性问题）的补集 $\overline{EQ_{TM}}$ 有关。一个更简单的方法可能是从一个已知的<strong>不可识别</strong>语言归约到 $\bar{L}$。</li>
+  <li><strong>思路</strong>: 我们尝试从 $E_{TM}$ 的补集 $\overline{E_{TM}} = \{ \langle M \rangle \mid L(M) \neq \emptyset \}$ 进行归约。我们知道 $\overline{E_{TM}}$ 是<strong>不可识别的</strong>（这是错误的，$\overline{E_{TM}}$ 是可识别的但不可判定的；$E_{TM}$ 才是不可识别的）。</li>
+  <li><strong>修正思路</strong>: 让我们从一个已知的<strong>不可识别</strong>语言归约到 $\bar{L}$。一个好的选择是 $E_{TM} = \{ \langle M \rangle \mid L(M) = \emptyset \}$。我们来证明 $E_{TM} \leq_m \bar{L}$。</li>
+  <li><strong>函数 $f$ 的构造</strong>:</li>
+  <li>输入: $\langle M \rangle$ (一个<strong>图灵机</strong>的编码)</li>
+  <li>输出: $\langle M', D \rangle$ (一个<strong>图灵机</strong>和一个<strong>DFA</strong>的编码)</li>
+  <li>我们需要巧妙地选择 $M'$ 和 $D$。让 $D$ 固定为一个识别空语言的<strong>DFA</strong>，例如 $D_{empty}$，它没有任何接受状态。</li>
+  <li>令 $M' = M$。</li>
+  <li>所以 $f(\langle M \rangle) = \langle M, D_{empty} \rangle$。</li>
+  <li><strong>证明归约正确性</strong>:</li>
+  <li>$\langle M \rangle \in E_{TM} \implies L(M) = \emptyset$。因为 $L(D_{empty}) = \emptyset$，所以 $L(M) = L(D_{empty})$。这意味着 $\langle M, D_{empty} \rangle \notin \bar{L}$。</li>
+  <li><strong>这个方向反了！</strong> 我们需要 $w \in A \implies f(w) \in B$。</li>
+  <li><strong>再次修正思路</strong>: 证明 $E_{TM} \leq_m \bar{L}$ 失败了。让我们尝试证明 $A_{TM} \leq_m \bar{L}$ 怎么样？这个看起来也不直接。</li>
+  <li><strong>最终正确思路 (从 $\overline{E_{TM}}$ 归约)</strong>: 我们知道 $\overline{E_{TM}}$ 是<strong>不可协同识别的</strong>。让我们证明 $\overline{E_{TM}} \le_m L$。</li>
+  <li><strong>再次审题</strong>: 题目是证明 $L$ 是<strong>不可协同识别的</strong>，即证明 $\bar{L}$ 是<strong>不可识别的</strong>。让我们从 $ALL_{TM}$ 归约，我们知道 $ALL_{TM}$ 是<strong>不可协同识别的</strong>，但它的补集 $\overline{ALL_{TM}}$ 是<strong>不可识别的</strong>。我们证明 $\overline{ALL_{TM}} \leq_m \bar{L}$。</li>
+  <li><strong>函数 $f$ 的构造</strong>:</li>
+  <li>输入: $\langle M \rangle$</li>
+  <li>输出: $\langle M', D \rangle$</li>
+  <li>选择一个固定的 $D$。让 $D_{all}$ 是一个识别所有字符串 $\Sigma^*$ 的<strong>DFA</strong> (例如，一个单状态的、既是起始态又是接受态的<strong>DFA</strong>)。</li>
+  <li>令 $M' = M$。</li>
+  <li>所以 $f(\langle M \rangle) = \langle M, D_{all} \rangle$。</li>
+  <li><strong>证明归约正确性</strong>:</li>
+  <li>$\langle M \rangle \in \overline{ALL_{TM}} \implies L(M) \neq \Sigma^*$。因为 $L(D_{all}) = \Sigma^*$，所以 $L(M) \neq L(D_{all})$。这意味着 $f(\langle M \rangle) = \langle M, D_{all} \rangle \in \bar{L}$。</li>
+  <li>$\langle M \rangle \notin \overline{ALL_{TM}} \implies L(M) = \Sigma^*$。因为 $L(D_{all}) = \Sigma^*$，所以 $L(M) = L(D_{all})$。这意味着 $f(\langle M \rangle) = \langle M, D_{all} \rangle \notin \bar{L}$。</li>
+  <li><strong>结论</strong>: 我们证明了 $\overline{ALL_{TM}} \leq_m \bar{L}$。因为 $\overline{ALL_{TM}}$ 是<strong>不可识别的</strong>，所以 $\bar{L}$ 也是<strong>不可识别的</strong>。因此，$L$ 是<strong>不可协同识别的</strong>。</li>
+</ul>
+<p><strong>练习题 2: 证明 $L=\{\langle M\rangle \mid M \text{ 不接受长度 } \geq 50 \text{ 的字符串}\}$ 是不可识别的</strong></p>
+<ul>
+  <li><strong>思路</strong>: 使用<strong>精炼的赖斯定理</strong>。</li>
+  <li><strong>步骤 1 (性质)</strong>: $L$ 是一个语言性质，因为它只取决于 $L(M)$ 是否包含长度 $\geq 50$ 的字符串。</li>
+  <li><strong>步骤 2 (非平凡)</strong>:</li>
+  <li>存在<strong>图灵机</strong>在 $L$ 中：例如 $M_{empty}$，其语言为空，不含任何长度 $\geq 50$ 的串。$\langle M_{empty} \rangle \in L$。</li>
+  <li>存在<strong>图灵机</strong>不在 $L$ 中：例如 $M_{all}$，其语言为 $\Sigma^*$，包含所有长度 $\geq 50$ 的串。$\langle M_{all} \rangle \notin L$。</li>
+  <li><strong>步骤 3 (空语言)</strong>:</li>
+  <li>$L(M_{\emptyset}) = \emptyset$。空语言中没有任何字符串，自然也就不包含长度 $\geq 50$ 的字符串。</li>
+  <li>因此，$\langle M_{\emptyset} \rangle \in L$。</li>
+  <li><strong>步骤 4 (结论)</strong>: 根据<strong>精炼的赖斯定理</strong>，因为这是一个包含空语言的非平凡性质，所以 $L$ 是<strong>不可识别的</strong>。</li>
+</ul>
+<p><strong>练习题 3: 证明可识别语言在连接运算下是封闭的</strong></p>
+<ul>
+  <li><strong>目标</strong>: 证明若 $L_1, L_2$ 可识别，则 $L_3 = L_1 \cdot L_2$ 也可识别。</li>
+  <li><strong>分析</strong>: $L_3 = \{ w \mid w = xy, \text{ 其中 } x \in L_1, y \in L_2 \}$。我们需要构造一个识别 $L_3$ 的<strong>图灵机</strong> $M_3$。</li>
+  <li><strong>思路 (非确定性)</strong>: 使用非确定性<strong>图灵机</strong> (NTM) 会让证明非常简单。</li>
+  <li>设 $M_1$ 和 $M_2$ 分别是 $L_1$ 和 $L_2$ 的识别器。</li>
+  <li>构造 NTM $M_3$ on input $w$:</li>
+</ul>
+<ol>
+  <li> 非确定性地将 $w$ 分割成两部分 $x$ 和 $y$ ($w=xy$)。</li>
+  <li> 将 $x$ 作为输入，模拟 $M_1$。</li>
+  <li> 如果 $M_1$ 接受 $x$，则继续将 $y$ 作为输入，模拟 $M_2$。</li>
+  <li> 如果 $M_2$ 也接受 $y$，则 $M_3$ <strong>接受</strong> $w$。</li>
+  <li> 在任何其他情况（分割不成功，或 $M_1$ 不接受，或 $M_2$ 不接受），该计算分支死亡或拒绝。
+<ul>
+  <li><strong>正确性</strong>: 如果 $w \in L_3$，那么必然存在一种分割方式 $w=xy$ 使得 $x \in L_1$ 且 $y \in L_2$。$M_3$ 会有一条计算路径对应这个分割，并且在这条路径上 $M_1$ 和 $M_2$ 都会接受，最终 $M_3$ 接受。如果 $w \notin L_3$，那么对于所有可能的分割，$M_1$ 或 $M_2$ 至少有一个不接受，所以 $M_3$ 没有任何一条计算路径会接受。</li>
+  <li>因为 NTM 识别的语言等价于 DTM（确定性图灵机）识别的语言，所以 $L_3$ 是<strong>可识别的</strong>。</li>
+</ul></li>
+</ol>
+<p><strong>练习题 4: 证明 $A \leq_m A$</strong></p>
+<ul>
+  <li><strong>思路</strong>: 我们需要找到一个可计算函数 $f$，使得 $w \in A \Longleftrightarrow f(w) \in A$。</li>
+  <li><strong>构造</strong>: 选择最简单的<strong>可计算函数</strong>——恒等函数 $f(w) = w$。</li>
+  <li><strong>证明</strong>: $w \in A \Longleftrightarrow w \in A$。这显然成立。</li>
+  <li><strong>结论</strong>: 任何语言都可以映射归约到其自身。这体现了 $\leq_m$ 的<strong>自反性</strong>。</li>
+</ul>
+<p><strong>练习题 5: 必然有 $A \leq_m \bar{A}$ 吗？</strong></p>
+<ul>
+  <li><strong>回答</strong>: 否。</li>
+  <li><strong>反例</strong>:</li>
+  <li>设 $A = A_{TM}$。我们知道 $A_{TM}$ 是<strong>可识别的</strong>，但不是<strong>协同可识别的</strong>（即 $\overline{A_{TM}}$ 是<strong>不可识别的</strong>）。</li>
+  <li>假设 $A_{TM} \leq_m \overline{A_{TM}}$。</li>
+  <li>根据定理2.4的第一条，“如果 $B$ 是可识别的，那么 $A$ 是可识别的”。</li>
+  <li>它的逆否命题是“如果 $A$ 是不可识别的，那么 $B$ 是不可识别的”。</li>
+  <li>我们在这里有 $A=A_{TM}$ (可识别), $B=\overline{A_{TM}}$ (不可识别)。</li>
+  <li>如果 $A_{TM} \leq_m \overline{A_{TM}}$ 成立，那么根据定理2.4，如果 $\overline{A_{TM}}$ 是可识别的，则 $A_{TM}$ 也是可识别的。这没有矛盾。</li>
+  <li>但是，让我们考虑其补集。如果 $A \leq_m \bar{A}$，那么 $\bar{A} \leq_m \overline{\bar{A}} = A$。</li>
+  <li>所以我们有 $\overline{A_{TM}} \leq_m A_{TM}$。</li>
+  <li>再次应用定理2.4：我们知道源语言 $\overline{A_{TM}}$ 是<strong>不可识别的</strong>。目标语言 $A_{TM}$ 是<strong>可识别的</strong>。</li>
+  <li>定理告诉我们，如果源语言不可识别，则目标语言也必须不可识别。</li>
+  <li>这里，源 ($\overline{A_{TM}}$) 是不可识别的，但目标 ($A_{TM}$) 是可识别的。这就产生了矛盾。</li>
+  <li>因此，假设 “$\overline{A_{TM}} \leq_m A_{TM}$” 必须是错误的。</li>
+  <li>既然 $\overline{A_{TM}} \leq_m A_{TM}$ 不成立，那么 $A_{TM} \leq_m \overline{A_{TM}}$ 也不成立。</li>
+  <li>所以，不是必然有 $A \leq_m \bar{A}$。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这些练习题覆盖了本讲义的全部核心概念：使用<strong>映射归约</strong>和<strong>精炼的赖斯定理</strong>证明<strong>不可识别性</strong>与<strong>不可协同识别性</strong>，以及对<strong>可识别</strong>语言闭包性质的理解，还有对归约定义本身的深刻思考。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>通过解决这些问题，学生可以将理论知识转化为实践技能。这些问题不仅测试对定义的记忆，更考验对定理的灵活运用、证明策略的选择以及逻辑构造的严谨性。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>题1</strong>: 证明把“判断<strong>图灵机</strong>语言和<strong>DFA</strong>语言是否相等”归类为难题。</li>
+  <li><strong>题2</strong>: 证明“检查<strong>图灵机</strong>是否只接受短字符串”是难题。</li>
+  <li><strong>题3</strong>: 证明两个“半自动可验证”的任务（识别 $L_1, L_2$）组合起来（连接），结果仍然是“半自动可验证”的。</li>
+  <li><strong>题4</strong>: 证明任何问题的难度都等于其自身的难度（逻辑自洽性）。</li>
+  <li><strong>题5</strong>: 提出一个深刻的问题：一个问题的难度是否能等同于其“反问题”的难度？答案是否定的，这揭示了<strong>可识别性</strong>世界中的不对称性（例如，$A_{TM}$ 和 $\overline{A_{TM}}$ 的难度就不同）。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-10">
+    <h2><span class="section-number">10</span>行间公式索引</h2>
+    <p>1.  <div class="math-block">$$
+ w \in A \Longleftrightarrow f(w) \in B . 
+$$</div></p><p><strong>解释</strong>: 这是<strong>映射归约</strong>的核心定义，表示一个实例 $w$ 属于语言 $A$ 当且仅当经过可计算函数 $f$ 转换后的实例 $f(w)$ 属于语言 $B$。</p>
+</section>
+
+<section class="content-section" id="section-11">
+    <h2><span class="section-number">11</span>10. 全文总结与展望</h2>
+    <div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>本讲义（Handout 10a）系统性地引导我们从<strong>可判定性</strong>的边界之外，进入一个更深、更复杂的计算理论领域：<strong>不可识别性</strong>。它不仅定义了什么是<strong>不可识别的</strong>语言，更重要的是，提供了三大武器来证明一个语言属于这个“最难”的计算问题类别。</p>
+<p>首先，讲义通过回顾<strong>可识别</strong>（Recognizable）和<strong>协同可识别</strong>（Co-recognizable）的定义，并重申关键的<strong>定理1.3</strong>（$L$ 可判定 $\iff L$ 可识别且协同可识别），为“不可识别性”的出现铺平了道路。这个定理揭示了，一个不可判定的问题，其“病因”必然是“不可识别”或“不可协同可识别”（或两者都是）。这直接引出了第一个证明策略：补集法。如果我们能证明一个语言 $L$ 是不可判定的，同时其补集 $\bar{L}$ 是可识别的，那么 $L$ 必定是不可识别的。经典的 $\overline{A_{TM}}$ 就是通过这种方法被证明为不可识别的。</p>
+<p>然而，补集法有其局限性。当一个语言和它的补集都不可识别时，此法便无能为力。为了应对更广泛的场景，讲义引入了第二个，也是最核心的武器：<strong>映射归约</strong> ($A \leq_m B$)。<strong>映射归约</strong>是一种形式化的方法，用以证明“问题A不比问题B难”。它的强大之处在于其逆否命题的应用：如果我们从一个已知的<strong>不可识别</strong>语言 $A$ 出发，成功地构造了一个到目标语言 $B$ 的映射归约，那么我们就能断定 $B$ 也一定是<strong>不可识别的</strong>。讲义详细地拆解了构造一个有效归约的步骤：选择源语言、定义可计算的转换函数 $f$、并严谨地证明转换的逻辑等价性。这个工具的灵活性通过<strong>定理2.5</strong> ($A \leq_m B \iff \bar{A} \leq_m \bar{B}$) 得到进一步增强，允许我们在原语言和其补集之间选择更容易处理的一对来进行归约。</p>
+<p>最后，讲义介绍了第三个武器，一个优雅的“快捷方式”——<strong>精炼的赖斯定理</strong>。作为<strong>赖斯定理</strong>的加强版，它适用于所有关于<strong>图灵机</strong>语言的非平凡性质。它提供了一个极其简单的判据：只需检查识别空语言的<strong>图灵机</strong> $M_{\emptyset}$ 是否满足该性质，就能直接判断该性质对应的语言是<strong>不可识别的</strong>（若满足）还是<strong>不可协同识别的</strong>（若不满足）。这为我们快速判断如 $E_{TM}$, $REG_{TM}$, $\overline{ALL_{TM}}$ 等一大类问题的不可识别性提供了极大的便利。</p>
+<p>讲义通过列举一系列经典的<strong>不可识别</strong>语言（如 $\overline{A_{TM}}$, $E_{TM}$, $EQ_{TM}$ 等），为我们建立了一个“困难问题”的坐标系。这些问题不仅是理论上的重要里程碑，也成为我们进行新的归约证明时的“弹药库”。最后的练习题则旨在通过实践，让我们熟练掌握这三大武器，并深刻理解<strong>可计算性</strong>的层次结构和其内在的不对称性。</p>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本讲义的核心是“证明<strong>不可识别性</strong>的方法学”。它从基本定义出发，层层递进，最终为我们提供了三个强大且互补的工具：</p>
+<ol>
+  <li> <strong>补集法</strong>：基于<strong>可判定性</strong>与<strong>可识别性</strong>的关系，适用于补集相对简单的问题。</li>
+  <li> <strong>映射归约</strong>：最通用和强大的方法，通过比较问题难度来传递“不可识别”这一性质。</li>
+  <li> <strong>精炼的赖斯定理</strong>：针对特定类型问题（语言性质）的、高效的快捷定理。</li>
+</ol>
+<p>掌握这些方法，意味着我们获得了深入探索算法极限的能力，能够科学地论证哪些计算任务在根本上是无法被任何计算机系统性地解决的。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本讲义的存在，是为了将学习者从对“不可判定”的初步认识，提升到对<strong>可计算性</strong>谱系更精细的理解。它不仅仅是知识的传授，更是思维方式的训练，培养学习者进行抽象问题建模、构造严谨逻辑归约、以及应用深刻理论定理解决实际问题的能力。这在理论计算机科学乃至整个计算机科学领域都至关重要。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>如果说<strong>可计算性理论</strong>是在绘制一张“计算宇宙”的地图，那么本讲义则是在地图上标记出了最遥远、最难以企及的“黑暗区域”——<strong>不可识别</strong>地带。</p>
+<ol>
+  <li><strong>补集法</strong>就像是通过观察“光明区域”（可识别的补集）的边界来推断黑暗区域的存在。</li>
+  <li><strong>映射归约</strong>则像是建立了一系列“虫洞”，证明如果你能到达某个看似普通的星球（目标语言 $L$），那么你也能通过这个虫洞到达一个已知的“黑洞”（不可识别语言 $U$）。既然黑洞无法到达，那么那个普通星球也必定无法到达。</li>
+  <li><strong>精炼的赖斯定理</strong>则是一条宇宙法则，它直接宣告了：凡是满足“非普遍存在”且“包含虚空（空语言）”特性的星系（语言性质），其本身就是一片无法探索的黑暗区域（不可识别）。</li>
+</ol>
+<p>通过学习本讲义，我们成为了更成熟的宇宙探险家，不仅知道哪些地方可以去，更知道了哪些地方去不了，并且能够清晰地向他人解释为什么。</p>
+<p>[[END_OF_RESPONSE]]所有解释内容已全部输出完毕。</p>
+    </div>
+</div>
+</section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>1. 讲义 10a：不可识别性与映射归约</p>
+    </footer>
+
+
+    <!-- 手机端点击翻页功能 -->
+    <script>
+        (function() {
+            // 点击翻页功能（在所有设备上启用）
+            
+            document.addEventListener('click', function(e) {
+                // 如果 TOC 目录面板处于打开状态，不触发翻页
+                var tocPanel = document.getElementById('tocPanel');
+                if (tocPanel && tocPanel.classList.contains('active')) {
+                    return;
+                }
+                
+                // 排除对链接、按钮、输入框等交互元素的点击
+                var target = e.target;
+                var tagName = target.tagName.toLowerCase();
+                if (tagName === 'a' || tagName === 'button' || tagName === 'input' || 
+                    tagName === 'textarea' || tagName === 'select' || 
+                    target.closest('a') || target.closest('button') ||
+                    target.closest('.toc-panel') || target.closest('.toc-toggle') ||
+                    target.closest('.toc-overlay')) {
+                    return;
+                }
+                
+                var clickY = e.clientY;
+                var windowHeight = window.innerHeight;
+                var scrollAmount = windowHeight * 0.85; // 滚动85%的屏幕高度
+                
+                if (clickY > windowHeight / 2) {
+                    // 点击下半部分：向下翻页
+                    window.scrollBy({
+                        top: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 点击上半部分：向上翻页
+                    window.scrollBy({
+                        top: -scrollAmount,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        })();
+    </script>
+
+    <!-- TOC 目录控制脚本 -->
+    <script>
+        (function() {
+            var tocToggle = document.getElementById('tocToggle');
+            var tocPanel = document.getElementById('tocPanel');
+            var tocOverlay = document.getElementById('tocOverlay');
+            
+            // 切换目录显示/隐藏
+            function toggleTOC() {
+                var isOpen = tocPanel.classList.contains('active');
+                if (isOpen) {
+                    closeTOC();
+                } else {
+                    openTOC();
+                }
+            }
+            
+            // 打开目录
+            function openTOC() {
+                tocPanel.classList.add('active');
+                tocOverlay.classList.add('active');
+                tocToggle.setAttribute('aria-label', '关闭目录');
+            }
+            
+            // 关闭目录
+            function closeTOC() {
+                tocPanel.classList.remove('active');
+                tocOverlay.classList.remove('active');
+                tocToggle.setAttribute('aria-label', '打开目录');
+            }
+            
+            // 点击按钮切换目录
+            tocToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTOC();
+            });
+            
+            // 点击遮罩层关闭目录
+            tocOverlay.addEventListener('click', function() {
+                closeTOC();
+            });
+            
+            // 点击目录项后关闭目录
+            var tocLinks = tocPanel.querySelectorAll('a');
+            tocLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    closeTOC();
+                });
+            });
+            
+            // ESC 键关闭目录
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && tocPanel.classList.contains('active')) {
+                    closeTOC();
+                }
+            });
+            
+            // 高亮当前可见的目录条目
+            function updateActiveItem() {
+                var scrollPos = window.scrollY + 150;  // 偏移量
+                var activeSection = null;
+                var activeOriginal = null;
+                
+                // 查找当前可见的 section
+                var sections = document.querySelectorAll('section[id^="section-"]');
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    if (section.offsetTop <= scrollPos) {
+                        activeSection = section.id;
+                    }
+                }
+                
+                // 查找当前可见的原文区块
+                var originals = document.querySelectorAll('[id^="original-"]');
+                for (var j = 0; j < originals.length; j++) {
+                    var original = originals[j];
+                    if (original.offsetTop <= scrollPos) {
+                        activeOriginal = original.id;
+                    }
+                }
+                
+                // 先移除所有 active 类
+                var allHeadings = tocPanel.querySelectorAll('.toc-heading');
+                for (var h = 0; h < allHeadings.length; h++) {
+                    allHeadings[h].classList.remove('active');
+                }
+                
+                var allOriginals = tocPanel.querySelectorAll('.toc-original');
+                for (var o = 0; o < allOriginals.length; o++) {
+                    allOriginals[o].classList.remove('active');
+                }
+                
+                // 只给当前活动的条目添加 active 类
+                if (activeSection) {
+                    var activeHeadingLink = tocPanel.querySelector('.toc-heading a[href="#' + activeSection + '"]');
+                    if (activeHeadingLink) {
+                        activeHeadingLink.parentElement.classList.add('active');
+                    }
+                }
+                
+                if (activeOriginal) {
+                    var activeOriginalLink = tocPanel.querySelector('.toc-original a[href="#' + activeOriginal + '"]');
+                    if (activeOriginalLink) {
+                        activeOriginalLink.parentElement.classList.add('active');
+                    }
+                }
+            }
+            
+            // 节流函数
+            var scrollTimeout;
+            function throttledUpdate() {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(function() {
+                    updateActiveItem();
+                    scrollTimeout = null;
+                }, 100);
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', throttledUpdate);
+            
+            // 打开目录时立即更新高亮
+            var originalOpenTOC = openTOC;
+            openTOC = function() {
+                originalOpenTOC();
+                updateActiveItem();
+            };
+            
+            // 初始化
+            updateActiveItem();
+        })();
+    </script>
+</body>
+</html>

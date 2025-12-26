@@ -1,0 +1,2878 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1 讲义 9b - 可数性、图灵归约、证明不可判定性</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- MathJax v4 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            output: {
+                displayOverflow: 'linebreak',
+                linebreaks: {
+                    inline: true,
+                    width: '100%',
+                    lineleading: 0.2
+                }
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            /* 五大区块主题色 */
+            --original-color: #8b5cf6;
+            --explain-color: #0ea5e9;
+            --formula-color: #6366f1;
+            --example-color: #10b981;
+            --warning-color: #f59e0b;
+            /* Q1修复：总结、存在目的、直觉心智模型、直观想象 统一使用 #36828C 青色主题 */
+            --summary-color: #36828C;     /* 青色主题 */
+            --purpose-color: #36828C;     /* 青色主题 */
+            --intuition-color: #36828C;   /* 青色主题 */
+            --imagination-color: #36828C; /* 青色主题 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .authors {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
+        .content-section h4 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h5 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 18px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h6 {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            margin: 15px 0 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        /* ===============================
+           五大内容区块 - 统一风格不同主题色
+           =============================== */
+
+        /* 原文区 - 紫色 */
+        .original-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid var(--original-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .original-box .box-label {
+            color: var(--original-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-box .box-content {
+            font-style: italic;
+            color: #6b21a8;
+        }
+
+        /* 📜 [原文]区块内容 - 使用统一的黑色 */
+        .original-content {
+            color: #2d3748; /* 统一的深灰黑色 */
+        }
+
+        .original-content * {
+            color: #2d3748; /* 所有子元素 */
+        }
+
+        .original-content .MathJax, .original-content .MathJax * {
+            color: #2d3748 !important; /* 行内公式 */
+        }
+
+        /* 通用 .box-content 换行规则 - 确保长文本（如代码调用）能自动换行 */
+        .box-content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .box-content strong, .box-content code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            display: inline;
+        }
+
+        /* 逐步解释区 - 蓝色 */
+        .explain-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--explain-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .explain-box .box-label {
+            color: var(--explain-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explain-box .box-content {
+            color: #1a365d; /* Dark Blue */
+        }
+
+        .explain-box .box-content * {
+            color: #1a365d; /* Dark Blue - 所有子元素 */
+        }
+
+        .explain-box .box-content .MathJax, .explain-box .box-content .MathJax * {
+            color: #1a365d !important; /* Dark Blue - 行内公式 */
+        }
+
+        .explain-box ul, .explain-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .explain-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 公式拆解区 - 靛蓝色 */
+        .formula-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--formula-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .formula-box .box-label {
+            color: var(--formula-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .formula-box .box-content {
+            color: var(--text-color); /* 统一使用默认黑色，与原文区块一致 */
+            overflow-x: auto;
+        }
+
+        .formula-box .box-content * {
+            color: var(--text-color); /* 所有子元素 */
+        }
+
+        .formula-box .box-content .MathJax, .formula-box .box-content .MathJax * {
+            color: var(--text-color) !important; /* 行内公式 */
+        }
+
+        /* 数值示例区 - 绿色 */
+        .example-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--example-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .example-box .box-label {
+            color: var(--example-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-box .box-content {
+            color: #166534; /* Dark Green from edstem5 .answer-en */
+        }
+
+        .example-box .box-content * {
+            color: #166534; /* Dark Green - 所有子元素 */
+        }
+
+        .example-box .box-content .MathJax, .example-box .box-content .MathJax * {
+            color: #166534 !important; /* Dark Green - 行内公式 */
+        }
+
+        .example-box ul, .example-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .example-box li {
+            margin-bottom: 6px;
+        }
+
+        .example-box code {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* 易错点区 - 橙色 */
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .warning-box .box-label {
+            color: var(--warning-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warning-box .box-content {
+            color: #92400e;
+        }
+
+        .warning-box .box-content * {
+            color: #92400e; /* 所有子元素 */
+        }
+
+        .warning-box .box-content .MathJax, .warning-box .box-content .MathJax * {
+            color: #92400e !important; /* 行内公式 */
+        }
+
+        .warning-box ul, .warning-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .warning-box li {
+            margin-bottom: 6px;
+        }
+
+        /* 总结区 - Q1修复：使用#36828C青色主题 */
+        .summary-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--summary-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .summary-box .box-label {
+            color: var(--summary-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .summary-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .summary-box .box-content .MathJax, .summary-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 存在目的区 - Q1修复：使用#36828C青色主题 */
+        .purpose-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--purpose-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .purpose-box .box-label {
+            color: var(--purpose-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .purpose-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .purpose-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .purpose-box .box-content .MathJax, .purpose-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直觉心智模型区 - Q1修复：使用#36828C青色主题 */
+        .intuition-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--intuition-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .intuition-box .box-label {
+            color: var(--intuition-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .intuition-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .intuition-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .intuition-box .box-content .MathJax, .intuition-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直观想象区 - Q1修复：使用#36828C青色主题 */
+        .imagination-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--imagination-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .imagination-box .box-label {
+            color: var(--imagination-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .imagination-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .imagination-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .imagination-box .box-content .MathJax, .imagination-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 高亮术语 */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* 代码块 */
+        code {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            margin: 15px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 表格样式 - 紧凑型，行高列宽适应文字最小值 */
+        table {
+            border-collapse: collapse;
+            width: auto;  /* 列宽适应内容 */
+            margin: 15px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;  /* 减小padding使行高更紧凑 */
+            text-align: left;
+            white-space: nowrap;  /* 防止不必要的换行，列宽适应文字 */
+            line-height: 1.4;  /* 紧凑的行高 */
+        }
+
+        th {
+            background: #e0f7fa;
+            color: #006064;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #e2e8f0;
+        }
+
+        /* 表格对齐 */
+        .align-left {
+            text-align: left;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        /* 图例区域 */
+        .legend-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .legend-bar {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .legend-bar.original { background: #8b5cf6; }
+        .legend-bar.explain { background: #0ea5e9; }
+        .legend-bar.formula { background: #6366f1; }
+        .legend-bar.example { background: #10b981; }
+        .legend-bar.warning { background: #f59e0b; }
+        .legend-bar.summary { background: #36828C; }
+        .legend-bar.purpose { background: #36828C; }
+        .legend-bar.intuition { background: #36828C; }
+        .legend-bar.imagination { background: #36828C; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive - 移动端适配 */
+        @media (max-width: 768px) {
+            /* 容器宽度适配 */
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 20px 12px;
+                box-sizing: border-box;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+                padding: 0 15px;
+            }
+            
+            .hero {
+                padding: 50px 15px;
+            }
+            
+            .hero h1 {
+                font-size: 1.6rem;
+                word-break: break-word;
+            }
+            
+            .authors {
+                font-size: 1rem;
+            }
+            
+            /* 内容区块适配 */
+            .content-section {
+                padding: 20px 15px;
+                margin-left: 5px;
+                margin-right: 5px;
+                border-radius: 12px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.4rem;
+                flex-wrap: wrap;
+            }
+            
+            .content-section h3 {
+                font-size: 1.2rem;
+            }
+            
+            .content-section h4 {
+                font-size: 1.1rem;
+            }
+            
+            .section-number {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            /* 各区块box适配 */
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 15px 12px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .original-box .box-label,
+            .explain-box .box-label,
+            .formula-box .box-label,
+            .example-box .box-label,
+            .warning-box .box-label,
+            .summary-box .box-label,
+            .purpose-box .box-label,
+            .intuition-box .box-label,
+            .imagination-box .box-label {
+                font-size: 1.1rem;
+            }
+            
+            /* 图例区域移动端适配 */
+            .legend-section {
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
+            
+            .legend-row {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            
+            .legend-item {
+                font-size: 0.8rem;
+                gap: 5px;
+            }
+            
+            .legend-bar {
+                width: 3px;
+                height: 16px;
+            }
+            
+            /* 列表适配 */
+            ul, ol {
+                margin-left: 15px;
+                padding-left: 5px;
+            }
+            
+            /* 表格移动端适配 */
+            table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.9rem;
+                min-width: 80px;
+            }
+            
+            /* 代码块适配 */
+            pre {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            
+            /* 数学公式适配 */
+            .math-block {
+                padding: 10px 8px;
+                margin: 15px 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* MathJax公式溢出处理 - 只处理块级公式，保持行内公式inline */
+            mjx-container[jax="CHTML"][display="true"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                display: block !important;
+            }
+            
+            /* 行内公式 - 超宽时自动换行 */
+            mjx-container:not([display="true"]) {
+                display: inline-block !important;
+                max-width: 100% !important;
+                overflow-wrap: break-word !important;
+                word-wrap: break-word !important;
+            }
+            
+            /* MathJax内部元素换行支持 */
+            mjx-math {
+                white-space: normal !important;
+            }
+            
+            mjx-mrow {
+                flex-wrap: wrap !important;
+            }
+            
+            /* Footer适配 */
+            .footer {
+                padding: 25px 15px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* 超小屏幕适配 (手机竖屏) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 8px;
+            }
+            
+            .hero {
+                padding: 40px 10px;
+            }
+            
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+            
+            .content-section {
+                padding: 15px 10px;
+                margin-left: 3px;
+                margin-right: 3px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 12px 10px;
+            }
+            
+            .legend-section {
+                padding: 12px 8px;
+            }
+            
+            .legend-row {
+                gap: 8px;
+            }
+            
+            .legend-item {
+                font-size: 0.75rem;
+            }
+            
+            ul, ol {
+                margin-left: 12px;
+            }
+        }
+        
+        /* 确保所有内容不溢出 */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* ========================================
+           TOC 目录样式
+           ======================================== */
+        
+        /* TOC 触发按钮 - 左上角小方块 */
+        .toc-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(54, 130, 140, 0.5);  /* 青色 50% 透明度 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .toc-toggle:hover {
+            background: rgba(54, 130, 140, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .toc-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* TOC 目录面板 */
+        .toc-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 95vw;  /* 手机浏览器宽度的 95% */
+            height: 80vh; /* 手机浏览器高度的 80% */
+            max-width: 450px;  /* 桌面端最大宽度 */
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0 0 16px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .toc-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* TOC 头部 - 标题在图标右侧 */
+        .toc-header {
+            padding: 15px 20px 15px 80px;  /* 左侧留出按钮空间 */
+            background: linear-gradient(135deg, #36828C 0%, #2a6a72 100%);
+            color: white;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .toc-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* TOC 内容区 */
+        .toc-content {
+            flex: 1;
+            overflow-y: auto;   /* 允许垂直滚动 */
+            overflow-x: hidden; /* 禁止水平滚动 */
+            padding: 15px 0;
+        }
+        
+        /* TOC 列表 */
+        .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc-item {
+            margin: 0;
+        }
+        
+        .toc-item a {
+            display: block;
+            padding: 4px 20px;  /* 更紧凑的行间距 */
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #2d3748;
+            text-decoration: none;
+            word-wrap: break-word;   /* 自动换行 */
+            overflow-wrap: break-word;
+            white-space: normal;     /* 允许换行 */
+            line-height: 1.3;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .toc-item a:hover {
+            background: #e8f4f5;
+            color: #36828C;
+            border-left-color: #36828C;
+        }
+        
+        /* 标题项样式 */
+        .toc-heading a {
+            font-weight: 600;
+            color: #1a365d;
+            background: #f7fafc;
+        }
+        
+        .toc-heading a:hover {
+            background: #e8f4f5;
+        }
+        
+        /* 当前活动的标题项样式 */
+        .toc-heading.active a {
+            background: #d0e8ea;
+            color: #36828C;
+            border-left-color: #36828C;
+            font-weight: 700;
+        }
+        
+        /* 当前活动的原文项样式 */
+        .toc-original.active a {
+            background: #36828C;
+            color: white;
+            box-shadow: 0 3px 8px rgba(54, 130, 140, 0.35);
+        }
+        
+        /* 原文项容器 - 横向排列自动换行 */
+        .toc-originals-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 8px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* 原文项样式 - 浅青色带阴影 */
+        .toc-original {
+            margin: 0;
+        }
+        
+        .toc-original a {
+            display: inline-block;
+            width: 64px;  /* 固定宽度确保每行显示数量一致 */
+            padding: 6px 4px;
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #36828C;  /* 青色主题色 */
+            text-decoration: none;
+            text-align: center;
+            background: #e8f4f5;
+            border-radius: 6px;
+            border-left: none;
+            box-shadow: 0 2px 4px rgba(54, 130, 140, 0.2);  /* 青色阴影 */
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .toc-original a:hover {
+            background: #e0f2f4;
+            color: #36828C;
+            box-shadow: 0 3px 6px rgba(54, 130, 140, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        /* TOC 遮罩层 */
+        .toc-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .toc-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 移动端 TOC 适配 */
+        @media (max-width: 768px) {
+            .toc-toggle {
+                top: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .toc-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .toc-panel {
+                width: 90vw;
+                height: 80vh;
+                max-width: none;
+            }
+            
+            .toc-header {
+                padding: 12px 15px 12px 65px;
+            }
+            
+            .toc-header h3 {
+                font-size: 16px;
+            }
+            
+            .toc-item a {
+                padding: 4px 15px;
+                font-size: 15.5px;
+            }
+            
+            .toc-originals-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            .toc-original a {
+                padding: 5px 10px;
+                font-size: 15.5px;
+            }
+        }
+
+        /* 特殊术语着色 */
+        .spectral {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .periodicity {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .fourier {
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        /* 列表样式增强 */
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 - 已移除重复定义，使用上方第602-633行的紧凑型样式 */
+
+        /* 分隔线 */
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 30px 0;
+        }
+
+        /* 数学公式样式 - Q7: 行间公式颜色用黑色 */
+        .math-block {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            color: #000000; /* Q7: 黑色文字 */
+        }
+
+        /* Q7: 确保MathJax渲染的公式为黑色 */
+        .math-block .MathJax {
+            color: #000000 !important;
+        }
+
+        mjx-container {
+            color: #000000 !important;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- TOC 目录按钮 -->
+    <button class="toc-toggle" id="tocToggle" aria-label="打开目录">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+        </svg>
+    </button>
+    
+    <!-- TOC 遮罩层 -->
+    <div class="toc-overlay" id="tocOverlay"></div>
+    
+    <!-- TOC 目录面板 -->
+    <nav class="toc-panel" id="tocPanel">
+        <div class="toc-header">
+            <h3>📑 目录</h3>
+        </div>
+        <div class="toc-content">
+            <ul class="toc-list">
+                <li class="toc-item toc-heading"><a href="#section-1">1. 1 讲义 9b - 可数性、图灵归约、证明不可判定性</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-1">原文1</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-2">2. 1 可数性练习说明</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-2">原文2</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-3">3. 1 练习 1：证明 $H A L T_{T M} \leq_{T} A_{T M}$</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-3">原文3</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-4">3. 2 练习 2：证明 $L=\{\langle M, D\rangle \mid M$ 是一个图灵机，$D$ 是一个DFA，并且 $L(M)=L(D)\}$ 是不可判定的。</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-4">原文4</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-5">3. 3 练习 3：证明等价性</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-5">原文5</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-6">4. 1 莱斯定理的适用条件</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-6">原文6</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-7">4. 2 练习 4.1：$L=\{\langle M\rangle \mid M$ 是一个图灵机且 $M$ 接受 0$\}$</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-7">原文7</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-8">4. 3 练习 4.2：$L=\{\langle M\rangle \mid M$ 是一个图灵机且 $M$ 恰好有两个状态 $\}$</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-8">原文8</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-9">4. 4 练习 4.3：$L=\{\langle M\rangle \mid M$ 是一个图灵机且 $M$ 拒绝 0$\}$</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-9">原文9</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-10">4. 5 练习 4.4：$E_{T M}=\{\langle M\rangle \mid M$ 是一个图灵机且 $L(M)=\emptyset\}$</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-10">原文10</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-11">4. 6 练习 4.5：$L=\left\{\langle M\rangle \mid M\right.$ 是一个图灵机且 $L(M)=\overline{A_{T M}}\}$</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-11">原文11</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-12">4. 7 练习 4.6：$L=\{\langle M\rangle \mid M$ 是一个图灵机且 $L(M)$ 是可识别的 $\}$</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-12">原文12</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-13">4. 8 练习 4.7：$L=\{\langle M\rangle \mid M$ 是一个图灵机且 $L(M)$ 是可判定的 $\}$</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-13">原文13</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-14">5. 5 行间公式索引</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>1 讲义 9b - 可数性、图灵归约、证明不可判定性</h1>
+            <p class="authors"></p>
+            <p class="date"></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 图例区域 -->
+        <div class="legend-section">
+            <!-- 第一行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar original"></div>
+                    <span>📜 原文</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar explain"></div>
+                    <span>📖 逐步解释</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar formula"></div>
+                    <span>∑ 公式拆解</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar example"></div>
+                    <span>💡 数值示例</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar warning"></div>
+                    <span>⚠️ 易错点</span>
+                </div>
+            </div>
+            <!-- 第二行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar summary"></div>
+                    <span>📝 总结</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar purpose"></div>
+                    <span>🎯 存在目的</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar intuition"></div>
+                    <span>🧠 直觉心智模型</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar imagination"></div>
+                    <span>💭 直观想象</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="content-section" id="section-1">
+    <h2><span class="section-number">1</span>1 讲义 9b - 可数性、图灵归约、证明不可判定性</h2>
+    <h3>1.1 作者与课程信息</h3><p id="original-1"><strong style="font-size: 1.3rem;">📜 [原文1]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>Owen Keith 和 Owen Terry&lt;br&gt;COMS 3261 2024 年秋季</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分内容指明了该讲义的作者是 Owen Keith 和 Owen Terry，并且这份材料是为哥伦比亚大学的课程 COMS 3261（计算机科学理论）在 2024 年秋季学期所准备的。这为讲义提供了出处和背景信息，帮助学生和读者了解其来源和适用范围。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>：如果现在是 2024 年 9 月，一名正在上 COMS 3261 课程的学生看到这份讲义，他会知道这是当前学期的学习资料。</li>
+  <li><strong>示例2</strong>：如果一名 2025 年的学生找到了这份资料，他会知道这是前一年的课程材料，内容可能与他当前学期的教学大纲有细微差别，但仍然具有很高的参考价值。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点</strong>: 学生可能会忽略讲义的年份，使用过时的资料来复习，而忽略了课程内容可能已经更新。</li>
+  <li><strong>边界情况</strong>: 这份讲义是针对特定学校的特定课程的，其他学校或课程的学生在使用时，需要注意术语、符号或课程重点可能存在的差异。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本节清晰地标明了讲义的作者、所属课程和学期。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这部分的存在是为了确保学术诚信，明确知识产权归属，并为学习者提供课程背景信息，方便他们将资料与具体的教学活动联系起来。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像一本书的封面，上面写着书名、作者和出版社。它告诉你这本书是谁写的，属于哪个系列，让你对它的内容有一个初步的定位。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你拿到一本武功秘籍，第一页写着“华山派，剑宗，风清扬著，甲子年秋”。你立刻就知道了这本秘籍的门派、分支、作者和年代，对接下来的内容有了基本的预期。</p>
+    </div>
+</div><h3>2 可数性</h3>
+</section>
+
+<section class="content-section" id="section-2">
+    <h2><span class="section-number">2</span>1 可数性练习说明</h2>
+    <p id="original-2"><strong style="font-size: 1.3rem;">📜 [原文2]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>无练习。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分说明在“<strong>可数性</strong>”（Countability）这个主题下，本讲义没有提供相关的练习题。<strong>可数性</strong>是计算理论中的一个基础数学概念，用于区分集合的大小，特别是区分有限集、可数无穷集（如自然数集）和不可数无穷集（如实数集）。虽然这里没有练习，但这个概念是理解为什么有些问题（如所有可能的<strong>图灵机</strong>的集合是可数的）而有些不是（如所有可能的<strong>语言</strong>的集合是不可数的）的基础。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1（可数集）</strong>: 所有偶数的集合 $\{0, 2, 4, 6, \dots\}$ 是可数无穷的，因为你可以将它与自然数集 $\{0, 1, 2, 3, \dots\}$ 建立一一对应关系 (例如，通过函数 $f(n) = 2n$）。</li>
+  <li><strong>示例2（不可数集）</strong>: 在区间 $[0, 1]$ 内的所有实数的集合是不可数的。康托尔的对角线论证法证明了这一点，即你无法将它们与自然数一一对应。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点</strong>: 容易混淆“无穷”和“不可数”。一个集合可以是无穷的，但仍然是可数的，比如整数集或有理数集。不可数是更高阶的无穷。</li>
+  <li><strong>边界情况</strong>: 空集是可数的（有限可数）。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本节表明关于<strong>可数性</strong>理论部分没有附加练习题。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这部分的存在是为了告知读者，本讲义的重点在于后续的<strong>图灵归约</strong>和<strong>不可判定性</strong>，而<strong>可数性</strong>只是作为一个背景知识前提，在此不作深入练习。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像课程表上的一节课被标记为“复习，无作业”。老师会带你回顾一下之前的知识点，但不会布置新的练习，目的是让你把精力集中在接下来的新内容上。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你在一个博物馆参观，走到一个展厅门口，牌子上写着“史前文明展厅（背景介绍，无互动展品）”。你知道这里是为了让你了解一些基础背景，为参观后面的主展厅做铺垫，所以你快速浏览一下，然后走向重点区域。</p>
+    </div>
+</div><h3>3 图灵归约与不可判定性</h3>
+</section>
+
+<section class="content-section" id="section-3">
+    <h2><span class="section-number">3</span>1 练习 1：证明 $H A L T_{T M} \leq_{T} A_{T M}$</h2>
+    <p id="original-3"><strong style="font-size: 1.3rem;">📜 [原文3]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>证明 $H A L T_{T M} \leq_{T} A_{T M}$。</p>
+<p>证明. 注意，在此处以及所有后续的<strong>图灵机</strong>描述中，都隐含着输入应对应一个有效的编码，否则<strong>图灵机</strong>将拒绝。对于此问题，这意味着我们省略了隐含的第一步：“如果 $\langle M, w\rangle$ 是一个无效编码，则拒绝。”</p>
+<p>假设存在一个 $A_{T M}$ 的<strong>判定器</strong> $\mathcal{O}$。我们将使用 $\mathcal{O}$ 构造一个 $H A L T_{T M}$ 的<strong>判定器</strong> R，如下所示：</p>
+<p>R，在输入 $\langle M, w\rangle$ 上：</p>
+<p>在 $\langle M, w\rangle$ 上运行 $\mathcal{O}$。如果 $\mathcal{O}$ 接受，则接受。</p>
+<p>准备 $\left\langle M^{\prime}\right\rangle$，其中</p>
+<p>$M^{\prime}=$ “在输入 $x$ 上，运行 $M$ 在 $x$ 上。</p>
+<p>如果 $M$ 接受，则拒绝。</p>
+<p>如果 $M$ 拒绝，则接受。”</p>
+<p>在 $\left\langle M^{\prime}, w\right\rangle$ 上运行 $\mathcal{O}$。如果 $\mathcal{O}$ 接受，则接受。</p>
+<p>拒绝。</p>
+<p>如果 $\langle M, w\rangle \in H A L T_{T M}$，那么 $M$ 要么接受 $w$，要么拒绝 $w$。在前一种情况下，$\mathcal{O}$ 接受 $\langle M, w\rangle$。在后一种情况下，$M^{\prime}$ 接受 $w$，因此 $\mathcal{O}$ 接受 $\left\langle M^{\prime}, w\right\rangle$。无论哪种情况，R 都接受 $\langle M, w\rangle$。</p>
+<p>如果 $\langle M, w\rangle \notin H A L T_{T M}$，那么 $M$ 在 $w$ 上无限运行。因此，$M^{\prime}$ 也在 $w$ 上无限运行。因此，$\langle M, w\rangle \notin A_{T M}$ 且 $\left\langle M^{\prime}, w\right\rangle \notin A_{T M}$，所以 $\mathcal{O}$ 拒绝这两种情况。因此，R 拒绝 $\langle M, w\rangle$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个证明的目标是展示停机问题（$H A L T_{T M}$）可以<strong>图灵归约</strong>到接受问题（$A_{T M}$）。这意味着，如果我们有一个能解决接受问题的“神谕”（oracle），我们就能利用它来解决停机问题。</p>
+<ol>
+  <li> <strong>理解问题</strong>:
+<ul>
+  <li>$A_{T M} = \{ \langle M, w \rangle \mid M \text{ 是一个图灵机且 } M \text{ 接受 } w \}$。这是一个关于<strong>图灵机</strong> $M$ 是否接受输入串 $w$ 的问题。</li>
+  <li>$H A L T_{T M} = \{ \langle M, w \rangle \mid M \text{ 是一个图灵机且 } M \text{ 在输入 } w \text{ 上停机} \}$。这是一个关于<strong>图灵机</strong> $M$ 在输入 $w$ 上是否会停止（无论是接受还是拒绝）的问题。</li>
+  <li>$A \leq_T B$ (A <strong>图灵归约</strong>到 B) 意味着：如果有一个能够判定<strong>语言</strong> B 的<strong>图灵机</strong>（神谕），那么我们就可以构造一个能够判定<strong>语言</strong> A 的<strong>图灵机</strong>。通俗地说，问题 A 不比问题 B “更难”。</li>
+</ul></li>
+  <li> <strong>证明策略</strong>: 归约的核心是“假装我们有，然后用它造”。我们假设已经有了一个可以判定 $A_{T M}$ 的<strong>图灵机</strong>，我们叫它 $\mathcal{O}$ (Oracle)。然后，我们必须设计一个新的<strong>图灵机</strong> R，这个 R 能够判定 $H A L T_{T M}$，并且在它的内部可以调用 $\mathcal{O}$。</li>
+  <li> <strong>构造判定器 R</strong>:
+<ul>
+  <li>R 的输入是 $\langle M, w \rangle$，它需要判断 $M$ 是否在 $w$ 上停机。</li>
+  <li><strong>图灵机</strong>停机有两种情况：接受或拒绝。</li>
+  <li><strong>情况1：M 接受 w</strong>。这个问题可以直接问我们的神谕 $\mathcal{O}$。我们把 $\langle M, w \rangle$ 作为输入传给 $\mathcal{O}$。如果 $\mathcal{O}$ 回答“是”（接受），那就说明 $M$ 接受 $w$。既然 $M$ 接受 $w$，它必然停机了。所以，R 此时应该接受。这是 R 的第一步：“在 $\langle M, w\rangle$ 上运行 $\mathcal{O}$。如果 $\mathcal{O}$ 接受，则接受。”</li>
+  <li><strong>情况2：M 拒绝 w</strong>。这个问题 $\mathcal{O}$ 无法直接回答，因为 $\mathcal{O}$ 只懂“接受”。它不懂“拒绝”或“无限循环”。如果 $\mathcal{O}$ 对 $\langle M, w \rangle$ 回答“否”（拒绝），我们只知道 $M$ 不接受 $w$，但我们不知道 $M$ 是拒绝了 $w$ 还是在 $w$ 上无限循环了。</li>
+  <li>为了处理“拒绝”这种情况，证明中构造了一个巧妙的“反向”<strong>图灵机</strong> $M'$。</li>
+  <li>$M'$ 的作用是：当 $M$ 接受时，它拒绝；当 $M$ 拒绝时，它接受。</li>
+  <li>如果 $M$ 在输入 $w$ 上停机并且拒绝了 $w$，那么我们把 $w$ 输入到 $M'$ 中时，$M'$ 就会接受 $w$。</li>
+  <li>现在，我们可以问神谕 $\mathcal{O}$：“$M'$ 是否接受 $w$？” 即，把 $\langle M', w \rangle$ 输入给 $\mathcal{O}$。如果 $\mathcal{O}$ 回答“是”，那就意味着 $M'$ 接受了 $w$，根据 $M'$ 的定义，这说明 $M$ 拒绝了 $w$。既然 $M$ 拒绝了 $w$，它也必然停机了。所以，R 此时也应该接受。这是 R 的第二和第三步。</li>
+  <li><strong>情况3：M 在 w 上无限循环</strong>。如果 $M$ 在 $w$ 上无限循环，那么：</li>
+  <li>问 $\mathcal{O}$ 关于 $\langle M, w \rangle$：$\mathcal{O}$ 会回答“否”，因为 $M$ 没有接受 $w$。</li>
+  <li>问 $\mathcal{O}$ 关于 $\langle M', w \rangle$：由于 $M$ 在 $w$ 上无限循环，$M'$ 在模拟 $M$ 时也会无限循环，所以 $M'$ 也不接受 $w$。因此 $\mathcal{O}$ 也会回答“否”。</li>
+  <li>在这种情况下，R 的前两步都不会导致接受。因此，R 最终会执行到最后一步：“拒绝”。</li>
+</ul></li>
+  <li> <strong>总结 R 的逻辑</strong>:
+<ul>
+  <li>如果 $M$ 在 $w$ 上停机，它要么接受，要么拒绝。</li>
+  <li>如果 $M$ 接受 $w$，R 的第一步就会通过 $\mathcal{O}$ 发现并接受。</li>
+  <li>如果 $M$ 拒绝 $w$，R 的第二步会通过 $\mathcal{O}$ 和 $M'$ 发现并接受。</li>
+  <li>如果 $M$ 在 $w$ 上不停机（无限循环），R 的两个“接受”条件都不会满足，最终 R 会拒绝。</li>
+  <li>因此，R 完美地判定了 $H A L T_{T M}$。既然我们可以用 $A_{T M}$ 的判定器造出 $H A L T_{T M}$ 的判定器，这就证明了 $H A L T_{T M} \leq_T A_{T M}$。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li>$H A L T_{T M} \leq_{T} A_{T M}$:</li>
+  <li>$H A L T_{T M}$: 停机问题的<strong>语言</strong>形式。</li>
+  <li>$A_{T M}$: 接受问题的<strong>语言</strong>形式。</li>
+  <li>$\leq_T$: <strong>图灵归约</strong>符号。读作“is Turing reducible to”。它表示左边的问题可以利用解决右边问题的神谕来解决。这是一个非对称关系，暗示右边的问题“至少和左边的问题一样难”。</li>
+  <li>$\langle M, w \rangle$: <strong>图灵机</strong> M 和输入串 w 的一个编码。我们通常将<strong>图灵机</strong>和它的输入表示成一个单一的字符串，以便作为另一台<strong>图灵机</strong>的输入。</li>
+  <li>$\mathcal{O}$: Oracle（神谕）的符号，这里特指一个假设存在的 $A_{T M}$ 的<strong>判定器</strong>。</li>
+  <li>R: 我们构造的<strong>图灵机</strong>，用于判定 $H A L T_{T M}$。</li>
+  <li>$M'$: 在证明中构造的辅助<strong>图灵机</strong>，它的行为与 M 相反。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>: 假设 $M$ 是一个简单的<strong>图灵机</strong>，它的功能是“如果输入是'01'，则接受；否则拒绝”。我们想用 R 判定 $\langle M, \text{'01'} \rangle$ 是否在 $H A L T_{T M}$ 中。</li>
+</ul>
+<ol>
+  <li> R 运行 $\mathcal{O}$ 在 $\langle M, \text{'01'} \rangle$ 上。</li>
+  <li> 因为 $M$ 接受 '01'，所以 $\langle M, \text{'01'} \rangle \in A_{T M}$。</li>
+  <li> 神谕 $\mathcal{O}$ 会接受。</li>
+  <li> R 的第一步指示，如果 $\mathcal{O}$ 接受，R 就接受。</li>
+  <li> 因此，R 接受 $\langle M, \text{'01'} \rangle$，正确地判定出 $M$ 在 '01' 上会停机。</li>
+</ol>
+<ul>
+  <li><strong>示例2</strong>: 假设 $M$ 还是上面的<strong>图灵机</strong>。我们想用 R 判定 $\langle M, \text{'11'} \rangle$ 是否在 $H A L T_{T M}$ 中。</li>
+</ul>
+<ol>
+  <li> R 运行 $\mathcal{O}$ 在 $\langle M, \text{'11'} \rangle$ 上。</li>
+  <li> 因为 $M$ 不接受 '11'（它会拒绝），所以 $\langle M, \text{'11'} \rangle \notin A_{T M}$。</li>
+  <li> 神谕 $\mathcal{O}$ 会拒绝。</li>
+  <li> R 继续执行，构造 $M'$。$M'$ 的行为是：“在输入 $x$ 上，运行 $M$ 在 $x$ 上。如果 $M$ 接受，则拒绝。如果 $M$ 拒绝，则接受。”</li>
+  <li> R 接着运行 $\mathcal{O}$ 在 $\langle M', \text{'11'} \rangle$ 上。</li>
+  <li> 当 $M'$ 接收到输入 '11' 时，它会模拟 $M$ 运行 '11'。$M$ 拒绝 '11'。根据 $M'$ 的定义，当 $M$ 拒绝时，$M'$ 接受。所以 $M'$ 接受 '11'。</li>
+  <li> 因此，$\langle M', \text{'11'} \rangle \in A_{T M}$。</li>
+  <li> 神谕 $\mathcal{O}$ 会接受。</li>
+  <li> R 的第二条指令说，如果 $\mathcal{O}$ 在这一步接受，R 就接受。</li>
+  <li>因此，R 接受 $\langle M, \text{'11'} \rangle$，正确地判定出 $M$ 在 '11' 上会停机（通过拒绝）。</li>
+</ol>
+<ul>
+  <li><strong>示例3</strong>: 假设 $M_{loop}$ 是一个在任何输入上都会进入无限循环的<strong>图灵机</strong>。我们想用 R 判定 $\langle M_{loop}, w \rangle$ 是否在 $H A L T_{T M}$ 中。</li>
+</ul>
+<ol>
+  <li> R 运行 $\mathcal{O}$ 在 $\langle M_{loop}, w \rangle$ 上。因为 $M_{loop}$ 无限循环，它不接受 $w$，所以 $\mathcal{O}$ 拒绝。</li>
+  <li> R 继续，构造 $M'_{loop}$。$M'_{loop}$ 的行为是模拟 $M_{loop}$。因为 $M_{loop}$ 在 $w$ 上无限循环，$M'_{loop}$ 在 $w$ 上也会无限循环。</li>
+  <li> R 运行 $\mathcal{O}$ 在 $\langle M'_{loop}, w \rangle$ 上。因为 $M'_{loop}$ 无限循环，它不接受 $w$，所以 $\mathcal{O}$ 拒绝。</li>
+  <li> R 的两个接受条件都没有满足。</li>
+  <li> R 执行到最后，拒绝 $\langle M_{loop}, w \rangle$，正确地判定出 $M_{loop}$ 在 $w$ 上不会停机。</li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点1</strong>: 误以为 $\mathcal{O}$ 拒绝 $\langle M, w \rangle$ 就意味着 $M$ 拒绝 $w$。这是最核心的易错点。$\mathcal{O}$ 拒绝只说明 $M$ 不接受 $w$，这包含了两种可能：$M$ 拒绝 $w$ 或者 $M$ 在 $w$ 上永不停机。证明的关键就是用 $M'$ 来区分这两种情况。</li>
+  <li><strong>易错点2</strong>: 混淆 $M'$ 的构造和 R 的构造。R 是我们最终要的<strong>判定器</strong>，而 $M'$ 只是 R 在其内部逻辑中构造出来的一个“思想实验”或中间步骤，用来询问神谕 $\mathcal{O}$。R 本身并不会去实际运行 $M'$，它只是把 $M'$ 的 <em>描述</em> $\langle M' \rangle$ 传给 $\mathcal{O}$。</li>
+  <li><strong>边界情况</strong>: 如果输入 $\langle M, w \rangle$ 本身是一个无效的编码（比如不符合<strong>图灵机</strong>编码的语法），R 会直接拒绝。这是讲义开头提到的被省略的隐含步骤。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>该证明通过构造一个<strong>判定器</strong> R，利用一个假设存在的 $A_{T M}$ <strong>判定器</strong>（神谕）$\mathcal{O}$，成功地解决了 $H A L T_{T M}$ 问题。R 通过两次询问 $\mathcal{O}$，一次直接问 $M$ 是否接受 $w$，一次问“反向的”$M'$ 是否接受 $w$，覆盖了 $M$ 停机的两种情况（接受或拒绝）。如果两次询问都得不到“是”的答复，则说明 $M$ 一定是无限循环。这表明任何能解决 $A_{T M}$ 的方法都能被用来解决 $H A L T_{T M}$，从而确立了 $H A L T_{T M} \leq_T A_{T M}$ 的归约关系。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个证明的目的是建立计算理论中两个核心<strong>不可判定</strong>问题（$A_{T M}$ 和 $H A L T_{T M}$）之间的难度关系。我们已经知道 $A_{T M}$ 是<strong>不可判定</strong>的，通过证明 $H A L T_{T M} \leq_T A_{T M}$，我们可以理解这两个问题的难度是“同级别的”。更重要的是，<strong>图灵归约</strong>是证明其他新问题<strong>不可判定</strong>性的强大工具。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一下，你有一个神奇的朋友 $\mathcal{O}$，他只能回答“是”或“不是”关于“某个文件A是否包含关键词'success'”的问题 ($A_{T M}$)。现在你想解决一个不同的问题：判断“某个程序M在处理文件w时会不会死机” ($H A L T_{T M}$)。</p>
+<p>你怎么利用你的朋友 $\mathcal{O}$ 呢？</p>
+<p>一个程序不死机，意味着它最终会结束，要么报告 'success' (接受)，要么报告 'failure' (拒绝)。</p>
+<ol>
+  <li> 你直接问朋友 $\mathcal{O}$：“程序 M 处理文件 w 的日志里，有'success'吗？” 如果朋友回答“是”，太好了，程序成功结束了，肯定没死机。你得到了答案。</li>
+  <li> 但如果朋友回答“不是”，你就陷入了困境。你不知道程序是报告了 'failure' 还是死机了。</li>
+  <li> 于是你耍了个小聪明。你创建了一个“反向程序” M'。这个 M' 的逻辑是：运行 M 处理 w，如果 M 报告 'success'，那么 M' 就报告 'failure'；如果 M 报告 'failure'，M' 就报告 'success'。如果 M 死机了，M' 也会跟着死机。</li>
+  <li> 现在你拿着这个反向程序 M' 去问朋友 $\mathcal{O}$：“程序 M' 处理文件 w 的日志里，有 'success' 吗？”</li>
+  <li> 如果朋友回答“是”，你就知道 M' 报告了 'success'。根据 M' 的定义，这意味着原始程序 M 报告了 'failure'。既然报告了 'failure'，那它肯定也结束了，没有死机。你也得到了答案。</li>
+  <li> 如果第1步和第4步你的朋友都回答了“不是”，那意味着 M 没有报告 'success'，并且 M' 也没有报告 'success'。唯一能导致这种情况的就是：原始程序 M 死机了。所以你也得到了答案。</li>
+</ol>
+<p>通过这两次询问，你完美地解决了“会不会死机”的问题。你把 $H A L T_{T M}$ <strong>归约</strong>到了 $A_{T M}$。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你是一个医生 R，想要判断一个病人 M 吃下某种食物 w 后是否会“停止消化”（停机）。你有一个神奇的检测仪 $\mathcal{O}$，但它只能检测“病人是否吸收了营养”（接受）。</p>
+<ol>
+  <li><strong>步骤1</strong>: 你让病人 M 吃下食物 w，然后用检测仪 $\mathcal{O}$ 去测。如果检测仪亮绿灯（接受），说明病人吸收了营养，消化过程肯定结束了。你得出结论：消化已停止。</li>
+  <li><strong>步骤2</strong>: 如果检测仪不亮灯，你不知道是消化完了但没吸收到营养（拒绝），还是消化过程卡住了（无限循环）。</li>
+  <li><strong>步骤3</strong>: 你拿出一瓶“反转药水”，制造出一个“虚拟病人” M'。这个虚拟病人的规则是：如果 M 消化完且没吸收到营养，M' 就会显示“吸收了营养”；如果 M 消化完且吸收了营养，M' 就显示“没吸收营养”。如果 M 的消化过程卡住了，M' 的显示也会卡住。</li>
+  <li><strong>步骤4</strong>: 你用检测仪 $\mathcal{O}$ 去测这个虚拟病人 M'（在吃了 w 的情况下）。如果检测仪亮绿灯，说明 M' “吸收了营养”。根据药水规则，这意味着 M “消化完且没吸收到营养”。那么消化过程也结束了。你得出结论：消化已停止。</li>
+  <li><strong>步骤5</strong>: 如果两次检测（对 M 和对 M'）检测仪都不亮灯，那唯一的解释就是病人的消化过程卡住了，永远不会结束。你得出结论：消化未停止。</li>
+</ol>
+<p>通过这个过程，你使用一个只能检测“吸收”的仪器，成功地判断了更复杂的“是否停止消化”的问题。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-4">
+    <h2><span class="section-number">3</span>2 练习 2：证明 $L=\{\langle M, D\rangle \mid M$ 是一个图灵机，$D$ 是一个DFA，并且 $L(M)=L(D)\}$ 是不可判定的。</h2>
+    <p id="original-4"><strong style="font-size: 1.3rem;">📜 [原文4]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>证明 $L=\{\langle M, D\rangle \mid M$ 是一个<strong>图灵机</strong>，$D$ 是一个<strong>DFA</strong>，并且 $L(M)=L(D)\}$ 是<strong>不可判定</strong>的。</p>
+<p>证明. 我们将通过证明 $A_{T M} \leq_{T} L$ 来证明这一点。假设存在一个 $L$ 的<strong>判定器</strong> $\mathcal{O}$。我们将使用 $\mathcal{O}$ 构造一个 $A_{T M}$ 的<strong>判定器</strong> R，如下所示：</p>
+<p>R，在输入 $\langle M, w\rangle$ 上：</p>
+<p>创建新<strong>图灵机</strong> $\left\langle M^{\prime}\right\rangle$ 的编码，如下所示：$M^{\prime}$，在输入 $x$ 上：</p>
+<p>如果 $x \neq w$，则拒绝。</p>
+<p>如果 $x=w$，则在 $w$ 上运行 $M$。如果 $M$ 接受，则接受。否则，拒绝。</p>
+<p>创建新 <strong>DFA</strong> $\left\langle D^{\prime}\right\rangle$ 的编码，使得 $L\left(D^{\prime}\right)=L(w)=\{w\}$。这是可行的，因为我们知道从<strong>正则表达式</strong>构造 <strong>DFA</strong> 的算法。</p>
+<p>在 $\left\langle M^{\prime}, D^{\prime}\right\rangle$ 上运行 $\mathcal{O}$ 并输出相同结果。</p>
+<p>如果 $\langle M, w\rangle \in A_{T M}$，那么 $M$ 接受 $w$。因此，$M^{\prime}$ 接受 $w$ 并拒绝其他所有输入，所以 $L\left(M^{\prime}\right)=w$。因此，$L\left(M^{\prime}\right)=L\left(D^{\prime}\right)$，所以 $\mathcal{O}$ 接受 $\left\langle M^{\prime}, D^{\prime}\right\rangle$。因此，R 接受 $\langle M, w\rangle$。</p>
+<p>如果 $\langle M, w\rangle \notin A_{T M}$，那么 $M$ 不接受 $w$。因此，$L\left(M^{\prime}\right)=\emptyset$。因此，$L\left(M^{\prime}\right) \neq L\left(D^{\prime}\right)$ 因为 $L\left(D^{\prime}\right)=\{w\}$。因此，$\mathcal{O}$ 拒绝 $\left\langle M^{\prime}, D^{\prime}\right\rangle$，因此 R 拒绝 $x$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个证明的目标是展示一个新问题 L 是<strong>不可判定</strong>的。所使用的策略是<strong>归约</strong>：从一个已知的<strong>不可判定</strong>问题（这里是 $A_{T M}$）归约到 L。这就像说：“如果我能解决 L，我就能解决 $A_{T M}$。但我们已经知道 $A_{T M}$ 是解决不了的，所以 L 也肯定解决不了。”</p>
+<ol>
+  <li> <strong>理解问题</strong>:
+<ul>
+  <li>$L = \{ \langle M, D \rangle \mid L(M) = L(D) \}$。这个问题是问：一个<strong>图灵机</strong> M 所接受的<strong>语言</strong>，是否与一个<strong>确定有限状态自动机</strong>（DFA）D 所接受的<strong>语言</strong>完全相同。</li>
+  <li>$A_{T M}$ 是已知的<strong>不可判定</strong>问题。</li>
+  <li>我们的目标是证明 $A_{T M} \leq_T L$。</li>
+</ul></li>
+  <li> <strong>证明策略</strong>: 同样，我们假设有一个可以判定 L 的神谕 $\mathcal{O}$。然后我们构造一个<strong>判定器</strong> R，这个 R 可以用 $\mathcal{O}$ 来判定 $A_{T M}$。</li>
+  <li> <strong>构造判定器 R</strong>:
+<ul>
+  <li>R 的输入是 $\langle M, w \rangle$，它需要判断 $M$ 是否接受 $w$。</li>
+  <li>R 的核心思想是，把关于 <strong>M 是否接受 w</strong> 这个单一事件的信息，巧妙地编码（转换）成一个关于<strong>语言</strong>是否相等的问题，然后把这个问题扔给神谕 $\mathcal{O}$ 去解决。</li>
+  <li><strong>构造 $M'$</strong>: R 首先在内部构造一个新的<strong>图灵机</strong> $M'$。这个 $M'$ 的行为被设计得非常特殊：</li>
+  <li>$M'$ 只关心一个特定的输入，那就是 $w$。对于任何不等于 $w$ 的输入 $x$，它都直接拒绝。</li>
+  <li>当输入恰好是 $w$ 时，$M'$ 就开始模拟原始<strong>图灵机</strong> $M$ 在 $w$ 上的行为。如果 $M$ 接受 $w$，$M'$ 也接受 $w$。如果 $M$ 拒绝或无限循环，$M'$ 也跟着拒绝或无限循环。</li>
+  <li>分析 $M'$ 的<strong>语言</strong> $L(M')$:</li>
+  <li>如果 $M$ 接受 $w$，那么 $M'$ 的<strong>语言</strong>就是 $\{w\}$。因为它只接受 $w$，拒绝所有其他串。</li>
+  <li>如果 $M$ 不接受 $w$（拒绝或循环），那么 $M'$ 的<strong>语言</strong>就是 $\emptyset$（空集），因为它不接受任何东西。</li>
+  <li><strong>构造 $D'$</strong>: R 接着构造一个非常简单的 <strong>DFA</strong> $D'$。这个 $D'$ 的任务就是只接受 $w$ 这一个字符串。所以 $L(D') = \{w\}$。构造这样的 <strong>DFA</strong> 是完全可行的，比如从<strong>正则表达式</strong> $w$ 出发，用标准算法就能生成对应的 <strong>DFA</strong>。</li>
+  <li><strong>询问神谕 $\mathcal{O}$</strong>: 现在，R 已经把关于 <strong>M 是否接受 w</strong> 的问题转化为了 <strong>L(M') 是否等于 L(D')</strong> 的问题。R 把 $\langle M', D' \rangle$ 扔给神谕 $\mathcal{O}$。</li>
+  <li><strong>分析 $\mathcal{O}$ 的回答</strong>:</li>
+  <li>如果 $\mathcal{O}$ 接受 $\langle M', D' \rangle$，这意味着 $L(M') = L(D')$。因为我们知道 $L(D') = \{w\}$，所以 $L(M') = \{w\}$。再根据 $M'$ 的构造，这只有在 $M$ 接受 $w$ 时才会发生。太棒了！R 可以得出结论：$M$ 接受 $w$。所以 R 接受 $\langle M, w \rangle$。</li>
+  <li>如果 $\mathcal{O}$ 拒绝 $\langle M', D' \rangle$，这意味着 $L(M') \neq L(D')$。因为 $L(D') = \{w\}$，所以 $L(M') \neq \{w\}$。根据 $M'$ 的构造，这意味着 $L(M') = \emptyset$。这只有在 $M$ 不接受 $w$ 时才会发生。R 可以得出结论：$M$ 不接受 $w$。所以 R 拒绝 $\langle M, w \rangle$。</li>
+</ul></li>
+  <li> <strong>总结 R 的逻辑</strong>: R 将 $\mathcal{O}$ 的回答原封不动地作为自己的回答。$\mathcal{O}$ 接受当且仅当 $M$ 接受 $w$。因此，R 成功地判定了 $A_{T M}$。</li>
+  <li> <strong>结论</strong>: 既然 $A_{T M}$ 是<strong>不可判定</strong>的，而我们又能用一个假设的 L 的<strong>判定器</strong>来判定 $A_{T M}$，那么这个假设一定是错误的。因此，L 是<strong>不可判定</strong>的。</li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li>$L=\{\langle M, D\rangle \mid L(M)=L(D)\}$: 定义待证明的<strong>语言</strong> L。</li>
+  <li>$L(M)$: <strong>图灵机</strong> M 接受的<strong>语言</strong>（字符串集合）。</li>
+  <li>$L(D)$: <strong>DFA</strong> D 接受的<strong>语言</strong>（字符串集合）。</li>
+  <li>$A_{T M} \leq_{T} L$: 表示我们要证明 $A_{T M}$ <strong>图灵归约</strong>到 L。</li>
+  <li>$L(M') = \{w\}$: <strong>图灵机</strong> $M'$ 的<strong>语言</strong>是只包含字符串 $w$ 的集合。</li>
+  <li>$L(M') = \emptyset$: <strong>图灵机</strong> $M'$ 的<strong>语言</strong>是空集。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p>假设我们要用 R 判定 $\langle M, \text{"abc"} \rangle$ 是否属于 $A_{T M}$。</p>
+<ul>
+  <li><strong>情况1: 假设 $M$ 接受 "abc"</strong></li>
+</ul>
+<ol>
+  <li> R 构造 $M'$。$M'$ 的逻辑是：输入 $x$ 时，如果 $x \neq \text{"abc"}$，拒绝；如果 $x = \text{"abc"}$，则模拟 $M$ 在 "abc" 上的行为。</li>
+  <li> 由于 $M$ 接受 "abc"，所以 $M'$ 会接受 "abc"。因此 $L(M') = \{\text{"abc"}\}$。</li>
+  <li> R 构造 $D'$，使得 $L(D') = \{\text{"abc"}\}$。</li>
+  <li> R 询问神谕 $\mathcal{O}$，输入为 $\langle M', D' \rangle$。</li>
+  <li> 因为 $L(M') = \{\text{"abc"}\}$ 且 $L(D') = \{\text{"abc"}\}$，所以 $L(M') = L(D')$。</li>
+  <li> 神谕 $\mathcal{O}$ 会接受 $\langle M', D' \rangle$。</li>
+  <li> R 看到 $\mathcal{O}$ 接受了，于是 R 也接受 $\langle M, \text{"abc"} \rangle$。结果正确。</li>
+</ol>
+<ul>
+  <li><strong>情况2: 假设 $M$ 在 "abc" 上拒绝</strong></li>
+</ul>
+<ol>
+  <li> R 构造 $M'$，逻辑同上。</li>
+  <li> 由于 $M$ 拒绝 "abc"，所以 $M'$ 在模拟时也会拒绝 "abc"。因此 $L(M') = \emptyset$。</li>
+  <li> R 构造 $D'$，使得 $L(D') = \{\text{"abc"}\}$。</li>
+  <li> R 询问神谕 $\mathcal{O}$，输入为 $\langle M', D' \rangle$。</li>
+  <li> 因为 $L(M') = \emptyset$ 且 $L(D') = \{\text{"abc"}\}$，所以 $L(M') \neq L(D')$。</li>
+  <li> 神谕 $\mathcal{O}$ 会拒绝 $\langle M', D' \rangle$。</li>
+  <li> R 看到 $\mathcal{O}$ 拒绝了，于是 R 也拒绝 $\langle M, \text{"abc"} \rangle$。结果正确。</li>
+</ol>
+<ul>
+  <li><strong>情况3: 假设 $M$ 在 "abc" 上无限循环</strong></li>
+</ul>
+<ol>
+  <li> R 构造 $M'$，逻辑同上。</li>
+  <li> 由于 $M$ 在 "abc" 上无限循环，所以 $M'$ 在模拟时也会无限循环。因此 $L(M') = \emptyset$。</li>
+  <li> 后续步骤与情况2完全相同，最终 R 拒绝 $\langle M, \text{"abc"} \rangle$。结果正确。</li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点1</strong>: 忘记 R 的工作是构造 $M'$ 和 $D'$ 的 <em>描述</em>，而不是实际运行它们。R 只是一个“建筑师”，它画出 $M'$ 和 $D'$ 的蓝图，然后把蓝图交给神谕 $\mathcal{O}$ 去“评估”。</li>
+  <li><strong>易错点2</strong>: $M'$ 的设计不够精确。必须保证 $M'$ 的<strong>语言</strong>只有两种可能性（$\{w\}$ 或 $\emptyset$），并且这两种可能性正好对应 $M$ 是否接受 $w$。如果 $M'$ 的行为设计有漏洞（例如，在 $x \neq w$ 时接受了某些串），整个归约就失败了。</li>
+  <li><strong>易错点3</strong>: 最后的结论写反。证明了 $A_{T M} \leq_T L$ 之后，是因为 $A_{T M}$ <strong>不可判定</strong>，才得出 L <strong>不可判定</strong>。如果误记为 L <strong>可判定</strong>，那就荒谬了。</li>
+  <li><strong>边界情况</strong>: DFA $D'$ 总是能被构造出来。任何只包含一个字符串的<strong>语言</strong>都是<strong>正则语言</strong>，因此一定存在一个 <strong>DFA</strong> 与之对应。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这个证明通过一个巧妙的归约，展示了如何证明一个关于“<strong>语言</strong>相等”的问题是<strong>不可判定</strong>的。它将一个已知的<strong>不可判定</strong>问题 $A_{T M}$ 的实例 $\langle M, w \rangle$ 转化为一个 L 问题的新实例 $\langle M', D' \rangle$。这个转化的关键在于构造的 $M'$，它的<strong>语言</strong>要么是 $\{w\}$ 要么是 $\emptyset$，这完全取决于 $M$ 是否接受 $w$。通过向判定 L 的神谕询问 $L(M')$ 是否等于 $L(D') = \{w\}$，我们就能反推出 $M$ 是否接受 $w$，从而解决了 $A_{T M}$。由于 $A_{T M}$ 是<strong>不可判定</strong>的，因此 L 也必须是<strong>不可判定</strong>的。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个练习的目的是训练学生使用<strong>图灵归约</strong>来证明新的问题是<strong>不可判定</strong>的。它展示了一种非常常见的归约模式：将一个关于<strong>图灵机</strong>在<em>单一输入</em>上行为的问题 ($A_{T M}$)，转化为一个关于<strong>图灵机</strong>的<em>整个<strong>语言</strong></em>性质的问题 (L)。这是计算理论中一个核心的证明技巧。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>假设你是一个星际法官 R，需要判断一个外星人 M 是否会说“你好”这个词 ($A_{T M}$)。但你手下只有一个机器人助手 $\mathcal{O}$，他非常死板，只会比较两本书的内容是否完全一样 (L)。</p>
+<p>你怎么利用这个助手？</p>
+<ol>
+  <li> 你当场炮制了一本新书，叫《M'语录》。这本书的编写规则是：
+<ul>
+  <li>如果有人问起“你好”这个词，你就去听 M 怎么说。如果 M 说了“你好”，你就把“你好”写进书里。</li>
+  <li>如果问任何别的词，你都直接在书里写上“拒绝访问”。</li>
+</ul></li>
+  <li> 然后你又拿出了一本标准字典《D'》，这本字典里只有一个词：“你好”。</li>
+  <li> 现在你把《M'语录》和《D'》这两本书交给机器人助手 $\mathcal{O}$，命令他：“比较这两本书的内容是否完全一样。”</li>
+  <li> 分析助手的结果：
+<ul>
+  <li>如果 $\mathcal{O}$ 回答“是，完全一样”，这意味着《M'语录》里也只有一个词“你好”。根据编写规则，这只有在 M 确实会说“你好”的情况下才可能发生。你得到了答案。</li>
+  <li>如果 $\mathcal{O}$ 回答“否，不一样”，这意味着《M'语录》的内容不是只有一个词“你好”。根据编写规则，这意味着 M 没有说“你好”（可能说了别的，也可能啥也没说就走了）。你也得到了答案。</li>
+</ul></li>
+</ol>
+<p>你通过一个只会“比较书籍”的傻瓜机器人，成功判断了一个外星人“会不会说某个词”的复杂问题。你把 $A_{T M}$ <strong>归约</strong>到了 L。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你是一个化学家 R，想知道一种神秘物质 M 与试剂 w 混合后是否会产生金色沉淀（接受）。你只有一个非常特殊的分析仪 $\mathcal{O}$，它不能直接测沉淀颜色，但能精确判断“两种溶液的化学成分是否完全相同”。</p>
+<ol>
+  <li> 你构造了第一种溶液 $M'$。制备方法是：在一个巨大的容器里，模拟 M 和 w 的反应。如果产生了金色沉淀，你就在这个容器里只留下“金元素”。如果没产生金色沉淀（或者反应根本停不下来），你什么也不留下，让容器保持真空（空集）。</li>
+  <li> 你构造了第二种溶液 $D'$。制备方法很简单：直接在容器里放入纯净的“金元素”。</li>
+  <li> 你把这两种溶液 $M'$ 和 $D'$ 送进分析仪 $\mathcal{O}$。</li>
+  <li> 如果分析仪报告“成分相同”，这意味着溶液 $M'$ 里也只有“金元素”，这说明 M 和 w 的反应确实产生了金色沉淀。</li>
+  <li> 如果分析仪报告“成分不同”，这意味着溶液 $M'$ 里是真空，说明 M 和 w 的反应没有产生金色沉淀。</li>
+</ol>
+<p>通过这种方式，你用一个“成分比较仪”解决了“是否产生金色沉淀”的问题。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-5">
+    <h2><span class="section-number">3</span>3 练习 3：证明等价性</h2>
+    <p id="original-5"><strong style="font-size: 1.3rem;">📜 [原文5]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>证明以下是等价的：$A \leq_{T} B, \bar{A} \leq_{T} B, A \leq_{T} \bar{B}, \bar{A} \leq_{T} \bar{B}$。</p>
+<p>证明. $1 \Longrightarrow$ 2: 设 $A \leq_{T} B$。因此，如果存在 $B$ 的<strong>判定器</strong> $\mathcal{O}$，我们可以为 $A$ 创建一个<strong>判定器</strong> $R$。在输入 $x$ 上，令 $R^{\prime}$ 在 $x$ 上运行 $R$ 并返回相反的结果。$R^{\prime}$ 是使用 $\mathcal{O}$ 的 $\bar{A}$ 的<strong>判定器</strong>，因为 $x \in \bar{A} \Longleftrightarrow R$ 拒绝 $\Longleftrightarrow R^{\prime}$ 接受，并且 $x \notin \bar{A} \Longleftrightarrow R$ 接受 $\Longleftrightarrow R^{\prime}$ 拒绝。因此，$\bar{A} \leq_{T} B$。</p>
+<p>$2 \Longrightarrow$ 3: 设 $\bar{A} \leq_{T} B$。因此，如果存在 $B$ 的<strong>判定器</strong>，那么存在 $\bar{A}$ 的<strong>判定器</strong>。假设我们有一个 $\bar{B}$ 的<strong>判定器</strong> $\mathcal{O}^{\prime}$，那么我们必须有一个 $B$ 的<strong>判定器</strong> $\mathcal{O}$，即在输入 $x$ 上，$\mathcal{O}$ 在 $x$ 上运行 $\mathcal{O}^{\prime}$ 并返回相反的结果。现在，由于我们有一个 $B$ 的<strong>判定器</strong>，并且由于我们假设 $\bar{A} \leq_{T} B$，我们必须有一个 $\bar{A}$ 的<strong>判定器</strong> $R^{\prime}$。所以，我们必须有一个 $A$ 的<strong>判定器</strong> $R$，即在输入 $x$ 上，$R$ 在 $x$ 上运行 $R^{\prime}$ 并返回相反的值。</p>
+<p>$3 \Longrightarrow$ 4: 设 $\bar{A} \leq_{T} \bar{B}$。因此，如果存在 $\bar{B}$ 的<strong>判定器</strong> $\mathcal{O}$，我们可以为 $\bar{A}$ 创建一个<strong>判定器</strong> R。令 $\mathrm{R}^{\prime}$ 运行 R 并返回相反的结果。$\mathrm{R}^{\prime}$ 是使用 $\mathcal{O}$ 的 A 的<strong>判定器</strong>。因此，$A \leq_{T} \bar{B}$。$4 \Longrightarrow$ 1: 设 $A \leq_{T} \bar{B}$。如果存在 $B$ 的<strong>判定器</strong> $\mathcal{O}$，那么我们可以通过运行 $\mathcal{O}$ 并返回相反结果来为 $\bar{B}$ 创建一个<strong>判定器</strong> $\mathcal{O}^{\prime}$。但由于 $A \leq_{T} \bar{B}$，我们可以使用 $\mathcal{O}^{\prime}$ 来为 A 创建一个<strong>判定器</strong>。因此，$A \leq_{T} B$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个练习要求证明四个关于<strong>图灵归约</strong>的命题是等价的。这意味着只要其中一个成立，其他三个也必然成立。证明策略是展示一个蕴含关系的循环：$1 \Rightarrow 2 \Rightarrow 3 \Rightarrow 4 \Rightarrow 1$。</p>
+<p><strong>核心概念</strong>:</p>
+<ul>
+  <li><strong>语言的补集</strong>: 如果<strong>语言</strong> A 是某个字母表 $\Sigma^*$ 上的字符串集合，那么它的补集 $\bar{A}$ 就是 $\Sigma^* - A$，即所有不在 A 中的字符串的集合。</li>
+  <li><strong>判定器</strong>: 一个<strong>图灵机</strong>，对于任何输入，它总能停机并回答“接受”或“拒绝”。</li>
+  <li><strong>判定器和补集的关系</strong>: 如果一个<strong>语言</strong> A 是<strong>可判定</strong>的，那么它的补集 $\bar{A}$ 也一定是<strong>可判定</strong>的。因为你只需要拿 A 的<strong>判定器</strong>，然后把它的“接受”和“拒绝”结果反转，就得到了 $\bar{A}$ 的<strong>判定器</strong>。</li>
+</ul>
+<p><strong>分步证明解析</strong>:</p>
+<ol>
+  <li> <strong>$A \leq_{T} B \Longrightarrow \bar{A} \leq_{T} B$ (1 $\Rightarrow$ 2)</strong>
+<ul>
+  <li><strong>假设</strong>: $A \leq_T B$。这意味着：“如果我有一个 B 的<strong>判定器</strong> $\mathcal{O}$，我就能造出 A 的<strong>判定器</strong> R。”</li>
+  <li><strong>目标</strong>: 证明 $\bar{A} \leq_T B$。这意味着：“如果我有一个 B 的<strong>判定器</strong> $\mathcal{O}$，我就能造出 $\bar{A}$ 的<strong>判定器</strong> $R'$。”</li>
+  <li><strong>证明</strong>:</li>
+  <li>我们从假设开始：我们有一个 B 的<strong>判定器</strong> $\mathcal{O}$。</li>
+  <li>根据 $A \leq_T B$，我们可以用 $\mathcal{O}$ 造出 A 的<strong>判定器</strong> R。</li>
+  <li>现在我们有了 A 的<strong>判定器</strong> R。如何得到 $\bar{A}$ 的<strong>判定器</strong> $R'$ 呢？非常简单，只需要把 R 的结果反转即可。</li>
+  <li>$R'$ 的逻辑：输入 $x$，运行 R 在 $x$ 上。如果 R 接受，则 $R'$ 拒绝；如果 R 拒绝，则 $R'$ 接受。</li>
+  <li>这个 $R'$ 就是 $\bar{A}$ 的<strong>判定器</strong>。并且，$R'$ 的构造依赖于 R，而 R 的构造依赖于 $\mathcal{O}$。所以，我们成功地用 $\mathcal{O}$（B 的<strong>判定器</strong>）造出了 $R'$（$\bar{A}$ 的<strong>判定器</strong>）。</li>
+  <li>这就证明了 $\bar{A} \leq_T B$。</li>
+</ul></li>
+  <li> <strong>$\bar{A} \leq_{T} B \Longrightarrow A \leq_{T} \bar{B}$ (2 $\Rightarrow$ 3)</strong>
+<ul>
+  <li><strong>假设</strong>: $\bar{A} \leq_T B$。这意味着：“如果我有一个 B 的<strong>判定器</strong>，我就能造出 $\bar{A}$ 的<strong>判定器</strong>。”</li>
+  <li><strong>目标</strong>: 证明 $A \leq_T \bar{B}$。这意味着：“如果我有一个 $\bar{B}$ 的<strong>判定器</strong> $\mathcal{O}'$，我就能造出 A 的<strong>判定器</strong> R。”</li>
+  <li><strong>证明</strong>:</li>
+  <li>我们从目标出发：假设我们有一个 $\bar{B}$ 的<strong>判定器</strong> $\mathcal{O}'$。</li>
+  <li>有了 $\bar{B}$ 的<strong>判定器</strong>，我们立刻就能造出 B 的<strong>判定器</strong> $\mathcal{O}$，只需将 $\mathcal{O}'$ 的结果反转。</li>
+  <li>现在我们有了 B 的<strong>判定器</strong> $\mathcal{O}$。根据我们的初始假设 $\bar{A} \leq_T B$，我们可以用这个 $\mathcal{O}$ 造出 $\bar{A}$ 的<strong>判定器</strong> $R'$。</li>
+  <li>现在我们有了 $\bar{A}$ 的<strong>判定器</strong> $R'$。如何得到 A 的<strong>判定器</strong> R？同样，只需将 $R'$ 的结果反转。</li>
+  <li>整个链条是：$\mathcal{O}' \Rightarrow \mathcal{O} \Rightarrow R' \Rightarrow R$。我们成功地用 $\mathcal{O}'$（$\bar{B}$ 的<strong>判定器</strong>）造出了 R（A 的<strong>判定器</strong>）。</li>
+  <li>这就证明了 $A \leq_T \bar{B}$。</li>
+</ul></li>
+  <li> <strong>$A \leq_{T} \bar{B} \Longrightarrow \bar{A} \leq_{T} \bar{B}$ (3 $\Rightarrow$ 4)</strong>
+<ul>
+  <li>这一步的逻辑和 $1 \Rightarrow 2$ 完全对称。只是把 B 换成了 $\bar{B}$。</li>
+  <li><strong>假设</strong>: $A \leq_T \bar{B}$。</li>
+  <li><strong>目标</strong>: 证明 $\bar{A} \leq_T \bar{B}$。</li>
+  <li><strong>证明</strong>:</li>
+  <li>假设我们有一个 $\bar{B}$ 的<strong>判定器</strong> $\mathcal{O}$。</li>
+  <li>根据 $A \leq_T \bar{B}$，我们可以用 $\mathcal{O}$ 造出 A 的<strong>判定器</strong> R。</li>
+  <li>将 R 的结果反转，就得到了 $\bar{A}$ 的<strong>判定器</strong> $R'$。</li>
+  <li>我们用 $\mathcal{O}$（$\bar{B}$ 的<strong>判定器</strong>）造出了 $R'$（$\bar{A}$ 的<strong>判定器</strong>）。</li>
+  <li>这就证明了 $\bar{A} \leq_T \bar{B}$。</li>
+  <li><em>原文的证明顺序是 $3 \Rightarrow 4$ 为 $\bar{A} \leq_T \bar{B} \Rightarrow A \leq_T \bar{B}$，然后 $4 \Rightarrow 1$。这里的逻辑是一样的，只是编号不同。我们按照原文的逻辑来。</em></li>
+  <li><strong>原文的 $3 \Longrightarrow 4$</strong>: 设 $A \leq_T \bar{B}$ (原文为 $\bar{A} \leq_{T} \bar{B}$，此处有误，应为 $A \leq_T \bar{B}$)。因此，如果存在 $\bar{B}$ 的<strong>判定器</strong> $\mathcal{O}'$ (原文为 $\mathcal{O}$)，我们可以为 A 创建一个<strong>判定器</strong> R。令 R' 运行 R 并返回相反结果。R' 是使用 $\mathcal{O}'$ 的 $\bar{A}$ 的<strong>判定器</strong>。因此，$\bar{A} \leq_T \bar{B}$。这个逻辑是正确的，只是原文的表述和假设似乎有些混乱。正确的逻辑是从 $A \leq_T \bar{B}$ 推出 $\bar{A} \leq_T \bar{B}$。</li>
+</ul></li>
+  <li> <strong>$\bar{A} \leq_{T} \bar{B} \Longrightarrow A \leq_{T} B$ (4 $\Rightarrow$ 1)</strong>
+<ul>
+  <li>这一步的逻辑和 $2 \Rightarrow 3$ 完全对称。</li>
+  <li><strong>假设</strong>: $\bar{A} \leq_T \bar{B}$。</li>
+  <li><strong>目标</strong>: 证明 $A \leq_T B$。</li>
+  <li><strong>证明</strong>:</li>
+  <li>假设我们有一个 B 的<strong>判定器</strong> $\mathcal{O}$。</li>
+  <li>将 $\mathcal{O}$ 的结果反转，我们得到 $\bar{B}$ 的<strong>判定器</strong> $\mathcal{O}'$。</li>
+  <li>根据 $\bar{A} \leq_T \bar{B}$，我们可以用 $\mathcal{O}'$ 造出 $\bar{A}$ 的<strong>判定器</strong> $R'$。</li>
+  <li>将 $R'$ 的结果反转，我们得到 A 的<strong>判定器</strong> R。</li>
+  <li>我们用 $\mathcal{O}$（B 的<strong>判定器</strong>）造出了 R（A 的<strong>判定器</strong>）。</li>
+  <li>这就证明了 $A \leq_T B$。</li>
+</ul></li>
+</ol>
+<p><strong>结论</strong>: 我们已经证明了 $1 \Rightarrow 2 \Rightarrow 3 \Rightarrow 4 \Rightarrow 1$ 的循环，因此这四个命题是等价的。</p>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li>$A \leq_{T} B$: A <strong>图灵归约</strong>到 B。</li>
+  <li>$\bar{A}$: <strong>语言</strong> A 的补集。</li>
+  <li>$\bar{B}$: <strong>语言</strong> B 的补集。</li>
+  <li>$\Longleftrightarrow$: 逻辑等价符号，“当且仅当”。</li>
+  <li>$\Longrightarrow$: 逻辑蕴含符号，“如果...那么...”。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p>让我们用具体的<strong>语言</strong>来感受一下。令 $A = A_{T M}$，这是一个<strong>不可判定</strong>但<strong>可识别</strong>的<strong>语言</strong>。令 $B = H A L T_{T M}$，这也是一个<strong>不可判定</strong>但<strong>可识别</strong>的<strong>语言</strong>。（注意：$A_{TM}$ 和 $HALT_{TM}$ 都不是<strong>可判定</strong>的，所以这里不能真的构建判定器，只是一个思想实验）。</p>
+<ul>
+  <li><strong>$A_{T M} \leq_T H A L T_{T M}$</strong> 是成立的（这比练习1反过来要简单：要判定 M 是否接受 w，先用 $H A L T_{T M}$ 的神谕判断 M 在 w 上是否停机。如果不停机，则 M 不接受 w。如果停机，就实际运行 M 在 w 上，看它接受还是拒绝）。</li>
+  <li>根据等价性，<strong>$\overline{A_{T M}} \leq_T H A L T_{T M}$</strong> 也必须成立。$\overline{A_{T M}}$ 是一个连<strong>可识别</strong>都不是的<strong>语言</strong>。这个归约意味着，即使是这样一个“更复杂”的<strong>语言</strong>，其难度也“不超过” $H A L T_{T M}$。</li>
+  <li>根据等价性，<strong>$A_{T M} \leq_T \overline{H A L T_{T M}}$</strong> 也必须成立。$\overline{H A L T_{T M}}$ 也是一个非<strong>可识别</strong>的<strong>语言</strong>。</li>
+  <li>根据等价性，<strong>$\overline{A_{T M}} \leq_T \overline{H A L T_{T M}}$</strong> 也必须成立。</li>
+</ul>
+<p>这个例子展示了，<strong>图灵归约</strong>衡量的“难度”与<strong>语言</strong>是否<strong>可识别</strong>（图灵机层级结构）不完全一样。它只关心在有神谕帮助的情况下是否<strong>可判定</strong>。</p>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点</strong>: 将<strong>图灵归约</strong>（$\leq_T$）与<strong>映射归约</strong>（$\leq_m$）混淆。<strong>映射归约</strong>要求更严格，它需要一个可计算函数将一个问题的实例直接转换成另一个问题的实例。对于<strong>映射归约</strong>，$A \leq_m B$ 等价于 $\bar{A} \leq_m \bar{B}$，但<em>不</em>等价于 $A \leq_m \bar{B}$。这个练习的结论是<strong>图灵归约</strong>所特有的。</li>
+  <li><strong>边界情况</strong>: 这个定理只适用于<strong>可判定语言</strong>之间的归约关系吗？不是的。<strong>图灵归约</strong>的定义本身不要求 A 或 B 是<strong>可判定</strong>的。它是一个关于相对难度的抽象陈述。证明过程的核心是“反转接受/拒绝的能力”，这个能力对于任何<strong>判定器</strong>都存在。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>该证明通过一个逻辑链（$1 \Rightarrow 2 \Rightarrow 3 \Rightarrow 4 \Rightarrow 1$）展示了四个关于<strong>图灵归约</strong>的命题是相互等价的。核心思想是，<strong>图灵归约</strong>下的“神谕”是一个完整的<strong>判定器</strong>，它能明确回答“是”或“否”。因此，如果一个<strong>语言</strong> B 可被神谕判定，那么它的补集 $\bar{B}$ 也等效地可被判定（只需将神谕的答案反转）。同理，如果我们利用神谕构造了一个<strong>判定器</strong> R 来判定 A，我们也能立刻得到 $\bar{A}$ 的<strong>判定器</strong>。这种对称性导致了这四个命题的等价。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个练习的目的是揭示<strong>图灵归约</strong>的一个重要性质：它对<strong>语言</strong>的补集运算是对称和封闭的。这意味着在讨论<strong>图灵等价类</strong>（所有与某个问题相互图灵归约的问题的集合）时，一个<strong>语言</strong>和它的补集总是在同一个等价类里。这简化了问题的分类，因为我们不需要区分一个问题和它的补问题哪个“更难”。</p>
+<p><strong style="font-size: 1.2rem;">[直觉心-智模型]</strong></p>
+<p>想象<strong>图灵归约</strong> $A \leq_T B$ 就像说：“如果我有一本能解答所有关于B的是非题的答案书，我就能通过查阅这本书和做一些简单的逻辑推理，来解答所有关于A的是非题。”</p>
+<ol>
+  <li><strong>$A \leq_T B \Rightarrow \bar{A} \leq_T B$</strong>: 如果我能用B的答案书解决A的是非题，那么要解决关于“非A”的是非题，我只需要用同样的方法先得到A的答案，然后把它反过来说就行了。</li>
+  <li><strong>$\bar{A} \leq_T B \Rightarrow A \leq_T \bar{B}$</strong>: 假设我能用B的答案书解决“非A”的是非题。现在给我一本“非B”的答案书。我可以通过把“非B”答案书里的所有答案反过来，得到一本B的答案书。然后用这本新的B的答案书，我又能解决“非A”的问题。最后，把“非A”问题的答案再反过来，我就解决了A的问题。</li>
+  <li>这个过程就像在说，无论问题是被“否定”（补集）了，还是答案书被“否定”了，对于一个聪明的解题者（<strong>图灵机</strong>）来说，难度都是一样的，因为他随时可以进行“取反”这个简单的逻辑操作。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象A和B是两个神秘的房间，进入房间需要回答一个密码问题。$A \leq_T B$ 意味着“如果你知道B房间的密码生成规则，你就能推算出A房间的密码”。</p>
+<ol>
+  <li>现在，我们定义 $\bar{A}$ 是一个“反向房间”，它的密码规则是“所有不是A房间密码的字符串都是它的密码”。$\bar{B}$ 同理。</li>
+  <li><strong>$A \leq_T B \Rightarrow \bar{A} \leq_T B$</strong>: 如果知道B的规则就能推算出A的密码，那么要推算 $\bar{A}$ 的密码，你只需要先算出A的密码，然后说“除了这个都是”就行了。所以你还是只需要知道B的规则。</li>
+  <li><strong>$A \leq_T B \Rightarrow A \leq_T \bar{B}$</strong>: 如果知道B的规则就能推算出A的密码，现在只告诉你 $\bar{B}$ 的规则。没关系，$\bar{B}$ 的规则就是“所有不是B密码的字符串都是”，这反过来也等于告诉了你B的密码规则。所以你还是能推算出A的密码。</li>
+</ol>
+<p>这个比喻说明，在拥有一个完整的“规则手册”（<strong>判定器</strong>）的前提下，知道一个东西“是”什么，和知道它“不是”什么，是等价的信息。因此，在<strong>图灵归约</strong>的框架下，对问题或神谕进行取反操作不会改变问题的相对难度。</p>
+    </div>
+</div><h3>4 使用莱斯定理证明不可判定性</h3>
+</section>
+
+<section class="content-section" id="section-6">
+    <h2><span class="section-number">4</span>1 莱斯定理的适用条件</h2>
+    <p id="original-6"><strong style="font-size: 1.3rem;">📜 [原文6]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p><strong>莱斯定理</strong>是否适用于以下<strong>语言</strong>？如果不适用，请证明该<strong>语言</strong>是否<strong>可判定</strong>。要应用<strong>莱斯定理</strong>来证明<strong>语言</strong> $P$ 是<strong>不可判定</strong>的，$P$ 必须满足以下条件：</p>
+<ol>
+  <li>$P \subset\{\langle M\rangle \mid M$ 是一个<strong>图灵机</strong> $\}$ (真子集)</li>
+  <li>$P$ 是非平凡的，即 $P \neq \emptyset$ 且 $P \neq\{\langle M\rangle \mid M$ 是一个<strong>图灵机</strong> $\}$</li>
+  <li>$P$ 是<strong>图灵机</strong>的<strong>语言</strong>的一个性质，即每当 $L\left(M_{1}\right)=L\left(M_{2}\right)$ 时，当且仅当 $\left\langle M_{1}\right\rangle \in P$ 时，我们有 $\left\langle M_{2}\right\rangle \in P$。</li>
+</ol>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分首先阐述了应用<strong>莱斯定理</strong>（Rice's Theorem）的前提条件。<strong>莱斯定理</strong>是一个非常强大的工具，可以用来快速证明许多关于<strong>图灵机</strong>行为的问题是<strong>不可判定</strong>的。</p>
+<ol>
+  <li> <strong>条件1: $P$ 是一个关于图灵机的语言</strong>。
+<ul>
+  <li>这意味着 P 是一个集合，它的成员都是<strong>图灵机</strong>的编码 $\langle M \rangle$。它讨论的是<strong>图灵机</strong>本身。</li>
+</ul></li>
+  <li> <strong>条件2: P 是非平凡的 (Non-trivial)</strong>。
+<ul>
+  <li>“非平凡”意味着这个性质不是所有<strong>图灵机</strong>都拥有，也不是所有<strong>图灵机</strong>都没有。</li>
+  <li>$P \neq \emptyset$：至少存在一个<strong>图灵机</strong>拥有该性质。</li>
+  <li>$P \neq \{\langle M \rangle \mid M \text{ 是一个图灵机}\}$：至少存在一个<strong>图灵机</strong>不拥有该性质。</li>
+  <li>如果一个性质是平凡的（要么所有<strong>图灵机</strong>都有，要么都没有），那么判断它就变得很简单。例如，判断“一个<strong>图灵机</strong>的编码是否是<strong>图灵机</strong>的编码”，答案永远是“是”，这是<strong>可判定</strong>的。</li>
+</ul></li>
+  <li> <strong>条件3: P 是图灵机语言的一个性质 (Property of the language)</strong>。
+<ul>
+  <li>这是<strong>莱斯定理</strong>最核心、也最容易出错的条件。</li>
+  <li>它意味着，一个<strong>图灵机</strong>是否属于 P，<em>仅仅</em>取决于它所接受的<strong>语言</strong> $L(M)$，而与<strong>图灵机</strong>的内部实现细节（如<strong>状态</strong>数、磁带数、运行时间等）无关。</li>
+  <li>形式化地讲：如果两个<strong>图灵机</strong> $M_1$ 和 $M_2$ 接受完全相同的<strong>语言</strong>（即 $L(M_1) = L(M_2)$），那么它们必须“同进同出”P。要么 $\langle M_1 \rangle$ 和 $\langle M_2 \rangle$ 都在 P 中，要么就都不在 P 中。</li>
+</ul></li>
+</ol>
+<p><strong>莱斯定理的内容</strong>: 如果一个<strong>语言</strong> P 满足以上所有三个条件，那么 P 是<strong>不可判定</strong>的。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>满足条件的性质</strong>: "该<strong>图灵机</strong>接受的<strong>语言</strong>是空集"。</li>
+</ul>
+<ol>
+  <li> 这是一个关于<strong>图灵机</strong>的集合。</li>
+  <li> 非平凡：存在<strong>语言</strong>为空的<strong>图灵机</strong>（如立即拒绝的<strong>图灵机</strong>），也存在<strong>语言</strong>非空的<strong>图灵机</strong>（如立即接受的<strong>图灵机</strong>）。</li>
+  <li> 语言性质：如果 $L(M_1) = L(M_2)$，那么 $L(M_1)$ 是空集当且仅当 $L(M_2)$ 是空集。这个性质只跟<strong>语言</strong>是否为空有关。
+<ul>
+  <li>结论：根据莱斯定理，这个问题是<strong>不可判定</strong>的。</li>
+</ul></li>
+</ol>
+<ul>
+  <li><strong>不满足条件的性质</strong>: "该<strong>图灵机</strong>有 10 个<strong>状态</strong>"。</li>
+</ul>
+<ol>
+  <li> 这是一个关于<strong>图灵机</strong>的集合。</li>
+  <li> 非平凡：显然存在 10 个<strong>状态</strong>和非 10 个<strong>状态</strong>的<strong>图灵机</strong>。</li>
+  <li> <strong>不是</strong>语言性质：我们可以构造两个<strong>图灵机</strong> $M_1$ 和 $M_2$。$M_1$ 有 10 个<strong>状态</strong>并接受<strong>语言</strong> L。我们可以给 $M_1$ 增加一个永远不会被访问到的“垃圾”<strong>状态</strong>，得到一个有 11 个<strong>状态</strong>的<strong>图灵机</strong> $M_2$。显然 $L(M_1) = L(M_2) = L$，但是 $\langle M_1 \rangle$ 在这个集合里，$\langle M_2 \rangle$ 却不在。这违反了条件3。
+<ul>
+  <li>结论：莱斯定理不适用。 (实际上这个问题是<strong>可判定</strong>的，只需检查编码中的<strong>状态</strong>数量即可)。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点</strong>: 对“<strong>语言</strong>的性质”理解不清，把任何关于<strong>图灵机</strong>行为的描述都当作<strong>语言</strong>的性质。必须严格检查是否只与最终的 $L(M)$ 有关。例如，“<strong>图灵机</strong>在输入 $\epsilon$（空串）上是否停机”就不是一个<strong>语言</strong>的性质，因为一个<strong>图灵机</strong>可能在 $\epsilon$ 上停机并接受它 ($L(M)$ 包含 $\epsilon$)，而另一个<strong>图灵机</strong>可能在 $\epsilon$ 上停机并拒绝它 ($L(M)$ 不包含 $\epsilon$)，但这两个<strong>图灵机</strong>可能接受完全不同的其他字符串，从而有不同的<strong>语言</strong>。但更微妙的是，考虑两个<strong>图灵机</strong> $M_1$ 和 $M_2$，$L(M_1) = L(M_2) = \emptyset$。$M_1$ 可能通过在所有输入上拒绝来实现空<strong>语言</strong>，而 $M_2$ 通过在所有输入上无限循环来实现。那么“在输入 0 上停机”这个性质，$M_1$ 满足而 $M_2$ 不满足，尽管它们的<strong>语言</strong>相同。所以这不是<strong>语言</strong>的性质。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>莱斯定理</strong>提供了一个模板，用于快速识别一大类关于<strong>图灵机</strong>的<strong>不可判定</strong>问题。要使用此定理，必须验证三个条件：问题是关于<strong>图灵机</strong>的，问题是非平凡的，且问题只依赖于<strong>图灵机</strong>所接受的<strong>语言</strong>，而与机器的内部构造无关。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这部分的存在是为了引出并清晰地定义<strong>莱斯定理</strong>及其适用范围。它使得后续的许多证明过程可以被大大简化，避免了为每一个类似的问题都从头开始进行复杂的<strong>归约</strong>证明。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p><strong>莱斯定理</strong>就像一个“AI鉴别器”的法则。假设你想判断一个AI程序（<strong>图灵机</strong>）是否具有某种“内在特性”P。</p>
+<ol>
+  <li><strong>法则</strong>: “任何只根据AI的‘最终输出能力’（它能生成的答案集合 $L(M)$）来定义的、并且不是所有AI都有或都没有的‘内在特性’P，都是无法通过分析AI的源代码（$\langle M \rangle$）来可靠判断的。”</li>
+  <li><strong>例子</strong>:</li>
+  <li>“这个AI能否回答‘1+1=2’” (语言性质)。这是一个关于它最终输出能力的问题。根据莱斯定理，<strong>不可判定</strong>。</li>
+  <li>“这个AI的源代码是否超过1000行” (非语言性质)。这和AI的最终能力无关，只和它的实现有关。莱斯定理不适用，这个问题是<strong>可判定</strong>的（数代码行数即可）。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个美食评论家大赛。评委们需要给厨师们（<strong>图灵机</strong>）打分。</p>
+<ol>
+  <li><strong>莱斯定理</strong>的规则：任何“只根据厨师做出的菜肴的味道（$L(M)$）”来评判的奖项，只要这个奖项不是“所有厨师都能得”或“所有厨师都得不到”（非平凡），那么这个奖项就是“无法客观评判的”（<strong>不可判定</strong>）。</li>
+  <li><strong>可以评判的</strong>: “厨师是否使用了超过10种香料”（<strong>可判定</strong>，非语言性质）。评委可以直接检查厨房的配料表（$\langle M \rangle$ 的实现细节）。</li>
+  <li><strong>无法评判的</strong>: “厨师的菜是否‘具有灵魂’” ( <strong>不可判定</strong>，语言性质)。</li>
+  <li>这个奖项是关于菜的味道的（语言性质）。</li>
+  <li>有的厨师有，有的没有（非平凡）。</li>
+  <li>为什么无法评判？因为两个厨师 $M_1, M_2$ 可能做出了味道完全一样的菜肴 ($L(M_1)=L(M_2)$)，但 $M_1$ 是个充满激情的艺术家，而 $M_2$ 只是个精确复制菜谱的机器人。如果你把奖项颁给 $M_1$ 而不给 $M_2$，你就违反了“只根据味道评判”的原则。如果你都给或都不给，你怎么知道下一个做出同样味道的厨师是否有“灵魂”呢？这个问题陷入了逻辑困境，因此<strong>不可判定</strong>。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-7">
+    <h2><span class="section-number">4</span>2 练习 4.1：$L=\{\langle M\rangle \mid M$ 是一个图灵机且 $M$ 接受 0$\}$</h2>
+    <p id="original-7"><strong style="font-size: 1.3rem;">📜 [原文7]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>$L=\{\langle M\rangle \mid M$ 是一个<strong>图灵机</strong>且 $M$ 接受 0$\}$</p>
+<p>是。</p>
+<p>显然 $L \subset\left\{\langle M\rangle \mid M\right.$ 是<strong>图灵机</strong> T 。如果 $M_{1}, M_{2}$ 是<strong>图灵机</strong>且 $L\left(M_{1}\right)=L\left(M_{2}\right)$，那么 $M_{1}$ 接受 $0 \Longleftrightarrow M_{2}$ 接受 $0$。因此，$\left\langle M_{1}\right\rangle \in L \Longleftrightarrow\left\langle M_{2}\right\rangle \in L$。</p>
+<p>现在，取接受所有字符串的 $\langle M\rangle$，拒绝所有字符串的 $\left\langle M^{\prime}\right\rangle$。$\langle M\rangle \in L, \left\langle M^{\prime}\right\rangle \notin L$。因此，$L \neq \emptyset$ 且 $L \neq\{\langle M\rangle \mid M$ 是一个<strong>图灵机</strong> $\}$。因此，L 是<strong>不可判定</strong>的。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这里我们将判断<strong>莱斯定理</strong>是否适用于<strong>语言</strong> $L = \{\langle M \rangle \mid 0 \in L(M)\}$。</p>
+<ol>
+  <li> <strong>检查条件1 (关于图灵机)</strong>:
+<ul>
+  <li>L 的定义是 $\{\langle M \rangle \mid \dots\}$，它是一个<strong>图灵机</strong>编码的集合。</li>
+  <li><strong>条件1满足</strong>。</li>
+</ul></li>
+  <li> <strong>检查条件3 (语言性质)</strong>:
+<ul>
+  <li>我们需要判断“接受字符串'0'”这个性质是否只取决于<strong>图灵机</strong>的<strong>语言</strong> $L(M)$。</li>
+  <li>假设有两个<strong>图灵机</strong> $M_1$ 和 $M_2$，它们的<strong>语言</strong>相同，即 $L(M_1) = L(M_2)$。</li>
+  <li>如果 $\langle M_1 \rangle \in L$，这意味着 $M_1$ 接受 '0'，所以 '0' 属于 $L(M_1)$。</li>
+  <li>因为 $L(M_1) = L(M_2)$，所以 '0' 也一定属于 $L(M_2)$。</li>
+  <li>这意味着 $M_2$ 也接受 '0'，所以 $\langle M_2 \rangle \in L$。</li>
+  <li>反之亦然。因此，只要 $L(M_1) = L(M_2)$，就有 $\langle M_1 \rangle \in L \Longleftrightarrow \langle M_2 \rangle \in L$。</li>
+  <li>这个性质只取决于<strong>语言</strong>中是否包含'0'这个成员，与<strong>图灵机</strong>如何实现无关。</li>
+  <li><strong>条件3满足</strong>。</li>
+</ul></li>
+  <li> <strong>检查条件2 (非平凡)</strong>:
+<ul>
+  <li>我们需要找到一个<strong>图灵机</strong> $\langle M_{yes} \rangle \in L$ 和一个<strong>图灵机</strong> $\langle M_{no} \rangle \notin L$。</li>
+  <li><strong>存在性证明 ($P \neq \emptyset$)</strong>: 构造一个<strong>图灵机</strong> $M_{yes}$，它接受所有输入字符串。那么 $L(M_{yes}) = \Sigma^*$。因为 '0' 属于 $\Sigma^*$，所以 $M_{yes}$ 接受 '0'。因此 $\langle M_{yes} \rangle \in L$。</li>
+  <li><strong>非全体性证明 ($P \neq \{\dots\}$)</strong>: 构造一个<strong>图灵机</strong> $M_{no}$，它拒绝所有输入字符串。那么 $L(M_{no}) = \emptyset$。因为 '0' 不属于 $\emptyset$，所以 $M_{no}$ 不接受 '0'。因此 $\langle M_{no} \rangle \notin L$。</li>
+  <li>既然我们找到了一个在 L 中的<strong>图灵机</strong>和一个不在 L 中的<strong>图灵机</strong>，证明 L 是非平凡的。</li>
+  <li><strong>条件2满足</strong>。</li>
+</ul></li>
+  <li> <strong>结论</strong>:
+<ul>
+  <li>所有三个条件都满足。</li>
+  <li>因此，根据<strong>莱斯定理</strong>，$L$ 是<strong>不可判定</strong>的。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1 ($M_1$)</strong>: 一个<strong>图灵机</strong> $M_1$，它检查输入是否为'0'。如果是，则接受；如果不是，则拒绝。$L(M_1) = \{'0'\}$。因为 '0' $\in L(M_1)$，所以 $\langle M_1 \rangle \in L$。</li>
+  <li><strong>示例2 ($M_2$)</strong>: 一个<strong>图灵机</strong> $M_2$，它检查输入是否为'1'。如果是，则接受；如果不是，则拒绝。$L(M_2) = \{'1'\}$。因为 '0' $\notin L(M_2)$，所以 $\langle M_2 \rangle \notin L$。</li>
+  <li>这两个例子共同说明了 L 是非平凡的。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点</strong>: 将“接受0”和“在输入0上停机”混淆。“接受0”是一个关于<strong>语言</strong>成员身份的纯粹问题，而“在输入0上停机”还涉及到“拒绝”和“循环”的行为，这与<strong>语言</strong>的定义（只包含被接受的串）有区别，因此后者不是一个<strong>语言</strong>的性质。如前所述，两个<strong>语言</strong>相同的<strong>图灵机</strong>，一个可能拒绝0，一个可能在0上循环。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>语言</strong> L，即所有接受字符串'0'的<strong>图灵机</strong>的集合，满足<strong>莱斯定理</strong>的所有三个条件：它是关于<strong>图灵机</strong>的非平凡性质，并且该性质仅取决于<strong>图灵机</strong>的<strong>语言</strong>。因此，<strong>莱斯定理</strong>适用，并且 L 是<strong>不可判定</strong>的。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这是一个应用<strong>莱斯定理</strong>的经典、基础的例子。它展示了如何按部就班地验证定理的条件，并得出一个强有力的结论。这个问题实际上就是 $A_{TM}$ 的一个变种（固定了输入 w 为 '0'），所以我们本来就知道它是<strong>不可判定</strong>的，这里用<strong>莱斯定理</strong>提供了一个更快捷的证明路径。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>你想判断一个AI程序是否能回答“地球是圆的吗？”这个问题。</p>
+<ol>
+  <li>这是关于AI的（条件1）。</li>
+  <li>有的AI能回答（比如GPT），有的不能（比如一个只会下棋的AI）。所以是非平凡的（条件2）。</li>
+  <li>一个AI“能回答”这个问题，只和它的知识库与能力（$L(M)$）有关，和它是用Python写的还是C++写的无关（条件3）。</li>
+  <li>结论：根据<strong>莱斯定理</strong>（AI鉴别法则），无法编写一个通用程序来分析任何AI的源代码，并判断它是否能回答“地球是圆的吗？”。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>你想给所有书籍进行一个分类：这本书是否提到了“龙”这个字。</p>
+<ol>
+  <li>这是一个关于书的分类。</li>
+  <li>《霍比特人》提到了龙，《傲慢与偏见》没有。所以这个分类是非平凡的。</li>
+  <li>一本书是否提到“龙”，只取决于书的内容本身（$L(M)$），和它的封面设计、字体大小、是精装还是平装（实现细节）无关。</li>
+  <li>结论：这是一个关于书籍内容的纯粹属性。根据（类比的）<strong>莱斯定理</strong>，我们无法通过某种“元分析”来判断一本书的内容，必须得“阅读”它。在计算理论中，“阅读”一个<strong>图灵机</strong>的<strong>语言</strong>是不可判定的。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-8">
+    <h2><span class="section-number">4</span>3 练习 4.2：$L=\{\langle M\rangle \mid M$ 是一个图灵机且 $M$ 恰好有两个状态 $\}$</h2>
+    <p id="original-8"><strong style="font-size: 1.3rem;">📜 [原文8]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>$L=\{\langle M\rangle \mid M$ 是一个<strong>图灵机</strong>且 $M$ 恰好有两个<strong>状态</strong> $\}$</p>
+<p>否。</p>
+<p>L 不是<strong>可识别语言</strong>的一个性质。考虑任何具有两个<strong>状态</strong>的<strong>图灵机</strong> M。我们总是可以添加无法到达的无用<strong>状态</strong>来创建具有相同<strong>语言</strong>的 $M^{\prime}$。因此，$L(M)=L\left(M^{\prime}\right)$ 并且 $\langle M\rangle \in L$ 而 $\left\langle M^{\prime}\right\rangle \notin L$。</p>
+<p>实际上，L 是<strong>可判定</strong>的。我们可以创建一个<strong>图灵机</strong>，它简单地计算<strong>状态</strong>的数量，如果有两个则接受，否则拒绝。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这里我们判断<strong>莱斯定理</strong>是否适用于<strong>语言</strong> L，即所有恰好有两个<strong>状态</strong>的<strong>图灵机</strong>的集合。</p>
+<ol>
+  <li> <strong>检查条件1 (关于图灵机)</strong>:
+<ul>
+  <li>L 的定义是<strong>图灵机</strong>编码的集合。</li>
+  <li><strong>条件1满足</strong>。</li>
+</ul></li>
+  <li> <strong>检查条件2 (非平凡)</strong>:
+<ul>
+  <li>存在有两个<strong>状态</strong>的<strong>图灵机</strong>，也存在有三个或更多<strong>状态</strong>的<strong>图灵机</strong>。</li>
+  <li><strong>条件2满足</strong>。</li>
+</ul></li>
+  <li> <strong>检查条件3 (语言性质)</strong>:
+<ul>
+  <li>我们需要判断“恰好有两个<strong>状态</strong>”这个性质是否只取决于 $L(M)$。</li>
+  <li>证明中给出了一个反例：</li>
+  <li>令 M 是一个恰好有 2 个<strong>状态</strong>的<strong>图灵机</strong>。比如，一个开始<strong>状态</strong>和一个接受<strong>状态</strong>。所以 $\langle M \rangle \in L$。</li>
+  <li>现在我们构造一个新的<strong>图灵机</strong> $M'$。我们在 M 的基础上，增加一个或多个新的<strong>状态</strong>，但确保这些新<strong>状态</strong>从开始<strong>状态</strong>开始无论如何也无法到达。它们是“孤岛<strong>状态</strong>”。</li>
+  <li>由于这些新<strong>状态</strong>无法到达，它们完全不影响 $M'$ 的计算过程。因此，$M'$ 接受的<strong>语言</strong>和 M 完全相同，即 $L(M) = L(M')$。</li>
+  <li>但是，$M'$ 的<strong>状态</strong>数大于 2（比如是3个）。所以 $\langle M' \rangle \notin L$。</li>
+  <li>我们找到了两个<strong>图灵机</strong> M 和 $M'$，它们有相同的<strong>语言</strong> ($L(M) = L(M')$)，但一个在 L 中，一个不在 L 中 ($\langle M \rangle \in L, \langle M' \rangle \notin L$)。</li>
+  <li>这直接违反了条件3。</li>
+  <li><strong>条件3不满足</strong>。</li>
+</ul></li>
+  <li> <strong>结论</strong>:
+<ul>
+  <li>因为条件3不满足，<strong>莱斯定理</strong>不适用。我们不能用它来断定 L 是<strong>不可判定</strong>的。</li>
+</ul></li>
+  <li> <strong>判断 L 的可判定性</strong>:
+<ul>
+  <li>既然<strong>莱斯定理</strong>不适用，我们需要自己分析 L 是否<strong>可判定</strong>。</li>
+  <li>问题是：“给定一个<strong>图灵机</strong>的编码 $\langle M \rangle$，判断 M 是否恰好有两个<strong>状态</strong>。”</li>
+  <li><strong>图灵机</strong>的编码是一个良定义的字符串，其中包含了<strong>状态</strong>集合、字母表、转移函数等所有信息。</li>
+  <li>我们可以设计一个简单的算法（也就是一个<strong>判定器</strong>）：</li>
+</ul></li>
+  <li> 解析输入字符串 $\langle M \rangle$。</li>
+  <li> 找到描述<strong>状态</strong>集合 Q 的部分。</li>
+  <li> 计算集合 Q 中的元素数量。</li>
+  <li> 如果数量等于 2，则接受。</li>
+  <li> 否则，拒绝。
+<ul>
+  <li>这个算法对于任何合法的 $\langle M \rangle$ 编码都会停机并给出正确答案。</li>
+  <li>因此，L 是<strong>可判定</strong>的。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例 ($M_1$)</strong>: 编码 $\langle M_1 \rangle$ 描述了一个<strong>图灵机</strong>，其<strong>状态</strong>集 $Q_1 = \{q_{start}, q_{accept}\}$。我们的<strong>判定器</strong>解析后发现 $|Q_1| = 2$，于是接受 $\langle M_1 \rangle$。</li>
+  <li><strong>示例 ($M_2$)</strong>: 编码 $\langle M_2 \rangle$ 描述了一个<strong>图灵机</strong>，其<strong>状态</strong>集 $Q_2 = \{q_{start}, q_{move\_right}, q_{accept}\}$。我们的<strong>判定器</strong>解析后发现 $|Q_2| = 3$，于是拒绝 $\langle M_2 \rangle$。</li>
+  <li><strong>反例 (用于莱斯定理)</strong>: 假设 $M_1$ (2个<strong>状态</strong>) 接受<strong>语言</strong> $L_A$。我们构造 $M_1'$，其<strong>状态</strong>集为 $\{q_{start}, q_{accept}, q_{useless}\}$，其中 $q_{useless}$ 不在任何转移函数的目标中。$L(M_1') = L_A = L(M_1)$。但 $\langle M_1 \rangle \in L$ 而 $\langle M_1' \rangle \notin L$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点</strong>: 看到一个关于<strong>图灵机</strong>的问题就想当然地套用<strong>莱斯定理</strong>。必须逐一严格检查所有前提条件，尤其是最关键的“<strong>语言</strong>性质”这一条。</li>
+  <li><strong>边界情况</strong>: 如果输入不是一个合法的<strong>图灵机</strong>编码，我们的<strong>判定器</strong>应该直接拒绝。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>语言</strong> L（恰好有两个<strong>状态</strong>的<strong>图灵机</strong>集合）是<strong>不可判定</strong>的吗？答案是否定的。<strong>莱斯定理</strong>不适用，因为“<strong>状态</strong>数量”是<strong>图灵机</strong>的实现细节，而不是其<strong>语言</strong>的性质。我们可以轻易构造出<strong>语言</strong>相同但<strong>状态</strong>数不同的<strong>图灵机</strong>。进一步分析发现，L 本身是<strong>可判定</strong>的，因为我们可以通过简单地解析<strong>图灵机</strong>编码并计算其<strong>状态</strong>数量来判定它。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个练习是一个“反例”，旨在强调<strong>莱斯定理</strong>的适用边界。它告诉我们，并非所有关于<strong>图灵机</strong>的问题都是<strong>不可判定</strong>的。那些只涉及<strong>图灵机</strong>的“语法层面”或“静态结构”（如<strong>状态</strong>数、磁带符号数）而与其实际运行行为（它接受的<strong>语言</strong>）无关的问题，通常是<strong>可判定</strong>的。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>你想判断一个AI程序的源代码是否恰好有两百行。</p>
+<ol>
+  <li>莱斯定理（AI鉴别法则）不适用，因为这只跟代码的写法有关，跟AI最终能回答什么问题无关。一个200行的AI和一个1000行的AI可能能力完全一样。</li>
+  <li>这个问题是<strong>可判定</strong>的。你只需要写个脚本去数一下代码行数就行了。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>你想给所有书籍进行一个分类：这本书是否恰好有100页。</p>
+<ol>
+  <li>莱斯定理（菜肴评判法则）不适用，因为页数是书的物理属性，和书的内容（味道）无关。一本100页的短篇小说和一本100页的诗集，内容天差地别，但都在这个分类里。反之，同一本小说的两个版本，一个100页，一个120页（因为字体或排版不同），内容却完全相同，但一个在分类里，一个不在。</li>
+  <li>这个问题是<strong>可判定</strong>的。你只需要翻到书的最后一页看看页码就行了。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-9">
+    <h2><span class="section-number">4</span>4 练习 4.3：$L=\{\langle M\rangle \mid M$ 是一个图灵机且 $M$ 拒绝 0$\}$</h2>
+    <p id="original-9"><strong style="font-size: 1.3rem;">📜 [原文9]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>$L=\{\langle M\rangle \mid M$ 是一个<strong>图灵机</strong>且 $M$ 拒绝 0$\}$</p>
+<p>否。</p>
+<p>L 不是<strong>可识别语言</strong>的一个性质。考虑 $M_{1}$ 是一个拒绝所有字符串的<strong>图灵机</strong>，$M_{2}$ 是一个在所有字符串上无限运行的<strong>图灵机</strong>。$L\left(M_{1}\right)=L\left(M_{2}\right)=\emptyset$。$M_{1}$ 拒绝 0，所以 $\left\langle M_{1}\right\rangle \in L$。然而，$M_{2}$ 在 0 上无限运行，并且特别不拒绝 0。因此，$\left\langle M_{2}\right\rangle \in L$。</p>
+<p>尽管<strong>莱斯定理</strong>不适用，L 仍然是<strong>不可判定</strong>的。我们可以通过从 3.1 中的<strong>语言</strong>进行<strong>归约</strong>来证明这一点（证明省略）。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这里我们判断<strong>莱斯定理</strong>是否适用于<strong>语言</strong> L，即所有拒绝字符串'0'的<strong>图灵机</strong>的集合。</p>
+<ol>
+  <li> <strong>检查条件1和2 (关于图灵机，非平凡)</strong>:
+<ul>
+  <li>L 是<strong>图灵机</strong>编码的集合（满足条件1）。</li>
+  <li>存在拒绝'0'的<strong>图灵机</strong>（如拒绝一切的<strong>图灵机</strong>），也存在不拒绝'0'的<strong>图灵机</strong>（如接受'0'的<strong>图灵机</strong>）。所以 L 是非平凡的（满足条件2）。</li>
+</ul></li>
+  <li> <strong>检查条件3 (语言性质)</strong>:
+<ul>
+  <li>我们需要判断“拒绝字符串'0'”这个性质是否只取决于 $L(M)$。</li>
+  <li>证明中给出了一个关键反例：</li>
+  <li>令 $M_1$ 是一个立即拒绝任何输入的<strong>图灵机</strong>。它的<strong>语言</strong>是 $L(M_1) = \emptyset$。因为它拒绝所有输入，所以它也拒绝'0'。因此 $\langle M_1 \rangle \in L$。</li>
+  <li>令 $M_2$ 是一个在任何输入上都进入无限循环的<strong>图灵机</strong>。它的<strong>语言</strong>也是 $L(M_2) = \emptyset$，因为它不接受任何字符串。</li>
+  <li>现在我们有了 $L(M_1) = L(M_2) = \emptyset$。</li>
+  <li>但是，$M_2$ 在输入'0'上是无限循环，它<em>没有</em>进入拒绝<strong>状态</strong>。所以 $M_2$ <em>不拒绝</em>'0'。因此 $\langle M_2 \rangle \notin L$。</li>
+  <li>我们找到了两个<strong>图灵机</strong> $M_1$ 和 $M_2$，它们有相同的<strong>语言</strong>，但一个在 L 中，一个不在 L 中。</li>
+  <li>这违反了条件3。</li>
+  <li><strong>条件3不满足</strong>。</li>
+  <li><em>注意：原文的最后一句“因此，$\left\langle M_{2}\right\rangle \in L$”是一个笔误，根据上下文应该是“因此，$\left\langle M_{2}\right\rangle \notin L$”。</em></li>
+</ul></li>
+  <li> <strong>结论</strong>:
+<ul>
+  <li><strong>莱斯定理</strong>不适用。</li>
+</ul></li>
+  <li> <strong>判断 L 的可判定性</strong>:
+<ul>
+  <li><strong>莱斯定理</strong>不适用不等于问题是<strong>可判定</strong>的。我们需要进一步分析。</li>
+  <li>这个问题 L，即 $R_{TM,0} = \{\langle M \rangle \mid M \text{ 拒绝 } 0\}$，实际上是<strong>不可判定</strong>的。</li>
+  <li>证明（原文省略，这里补充一个思路）：可以通过将 $A_{TM}$ 归约到它来证明。给定 $\langle M, w \rangle$，构造一个新<strong>图灵机</strong> $M'$：</li>
+  <li>$M'$ 在输入 $x$ 上：</li>
+</ul></li>
+  <li>如果 $x \neq 0$，接受。</li>
+  <li>如果 $x = 0$，则模拟 $M$ 在 $w$ 上的运行。</li>
+  <li>如果 $M$ 接受 $w$，那么 $M'$ 在输入 0 上进入无限循环。</li>
+  <li>如果 $M$ 拒绝 $w$，那么 $M'$ 在输入 0 上拒绝。</li>
+  <li>如果 $M$ 在 $w$ 上无限循环，那么 $M'$ 在输入 0 上也无限循环。
+<ul>
+  <li>现在分析：$M'$ 拒绝 0 吗？这只在步骤4发生，即当 $M$ 拒绝 $w$ 时。</li>
+  <li>如果我们有一个 L 的<strong>判定器</strong>，我们就能判断 $M'$ 是否拒绝 0，从而判断 $M$ 是否拒绝 $w$。但这似乎归约到了“拒绝问题”，而不是 $A_{TM}$。</li>
+  <li>让我们换一种归约方式，从 $A_{TM}$ 归约到 $\bar{L}$ (不拒绝0的<strong>语言</strong>)。</li>
+  <li>构造 $M''$：输入 $x$ 时，如果 $x=0$，模拟 $M$ 在 $w$ 上。如果 $M$ 接受 $w$，$M''$ 也接受 0。否则 $M''$ 循环。</li>
+  <li>如果 $M$ 接受 $w$，$M''$ 接受 0，因此 $M''$ 不拒绝 0，$\langle M'' \rangle \in \bar{L}$。</li>
+  <li>如果 $M$ 不接受 $w$，$M''$ 在 0 上循环，因此 $M''$ 也不拒绝 0，$\langle M'' \rangle \in \bar{L}$。这个归约失败了。</li>
+  <li>正确的归约应该更直接。考虑停机问题 $Halt_{TM}$。$Halt_{TM}$ 是<strong>不可判定</strong>的。我们证明 $Halt_{TM} \le_T L$。</li>
+  <li>给定 $\langle M, w \rangle$，构造 $M'''$：在任何输入上，模拟 $M$ 在 $w$ 上。如果 $M$ 停机，则 $M'''$ 拒绝。如果 $M$ 不停机，$M'''$ 也不停机。</li>
+  <li>如果 $\langle M, w \rangle \in Halt_{TM}$，$M'''$ 会拒绝所有输入。所以 $M'''$ 拒绝 0。$\langle M''' \rangle \in L$。</li>
+  <li>如果 $\langle M, w \rangle \notin Halt_{TM}$，$M'''$ 在所有输入上都无限循环。所以 $M'''$ 不拒绝 0。$\langle M''' \rangle \notin L$。</li>
+  <li>因此，一个 L 的<strong>判定器</strong>可以用来判定 $Halt_{TM}$。由于 $Halt_{TM}$ <strong>不可判定</strong>，L 也<strong>不可判定</strong>。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>$M_1$</strong>: <strong>状态</strong>为 $\{q_0, q_{rej}\}$，任何输入都直接转换到 $q_{rej}$。$L(M_1) = \emptyset$。$M_1$ 拒绝 '0'，所以 $\langle M_1 \rangle \in L$。</li>
+  <li><strong>$M_2$</strong>: <strong>状态</strong>为 $\{q_0\}$，转移函数为 $\delta(q_0, a) = (q_0, a, R)$，即无限向右移动。$L(M_2) = \emptyset$。$M_2$ 在 '0' 上无限循环，不拒绝 '0'，所以 $\langle M_2 \rangle \notin L$。</li>
+  <li>$L(M_1) = L(M_2)$ 但它们在 L 中的成员资格不同，破坏了<strong>莱斯定理</strong>的条件3。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>核心易错点</strong>: 将“不接受”等同于“拒绝”。“不接受”包含了两种情况：“拒绝”和“无限循环”。这是一个非常关键的区别，也是这个问题不满足<strong>莱斯定理</strong>条件3的根源。<strong>语言</strong> $L(M)$ 只关心“接受”的字符串，它对“不接受”的字符串是如何被处理的（拒绝还是循环）毫不知情。</li>
+  <li><strong>易错点2</strong>: 在发现<strong>莱斯定理</strong>不适用后，草率地得出结论说问题是<strong>可判定</strong>的（就像练习4.2那样）。必须进行第二次独立的判断。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>语言</strong> L（拒绝'0'的<strong>图灵机</strong>集合）是<strong>不可判定</strong>的，但其<strong>不可判定</strong>性<em>不能</em>通过<strong>莱斯定理</strong>来证明。这是因为“拒绝”是一个具体的停机行为，而不仅仅是关于<strong>语言</strong>成员的属性。两个可以产生相同<strong>语言</strong>（例如空<strong>语言</strong>）的<strong>图灵机</strong>，一个可能通过全部拒绝，另一个则通过全部无限循环来实现。这破坏了<strong>莱斯定理</strong>的“<strong>语言</strong>性质”前提。尽管如此，通过从其他已知的<strong>不可判定</strong>问题（如 $Halt_{TM}$）进行归约，可以证明 L 本身仍然是<strong>不可判定</strong>的。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个练习是一个非常重要的例子，它深刻地揭示了<strong>莱斯定理</strong>中“<strong>语言</strong>性质”的精确含义。它强迫我们区分<strong>图灵机</strong>的不同行为（接受、拒绝、循环），并理解<strong>语言</strong> $L(M)$ 只捕捉了“接受”这一种行为。它也提醒我们，<strong>莱斯定理</strong>只是证明<strong>不可判定</strong>性的充分条件，而非必要条件；一个不满足其前提的问题，仍然可能是<strong>不可判定</strong>的。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>你想判断一个AI程序在被问到“1+1=3吗？”时，是否会明确回答“错误”。</p>
+<ol>
+  <li>莱斯定理不适用。为什么？</li>
+  <li>考虑两个AI，$AI_1$ 和 $AI_2$，它们都绝不会回答“正确”。所以它们的“正确答案集”$L(AI_1)$ 和 $L(AI_2)$ 可能是相同的（比如都是空集）。</li>
+  <li>但是，$AI_1$ 在被问到“1+1=3吗？”时，可能会直接回答“错误”。</li>
+  <li>而 $AI_2$ 可能设计得不好，它会陷入无限的思考循环中，永远给不出答案。</li>
+  <li>所以，$AI_1$ 满足“明确回答错误”的性质，而 $AI_2$ 不满足。尽管它们的能力（正确答案集）可能一样。</li>
+  <li>这说明“明确回答错误”是和AI的内部行为有关，而不仅是和它的能力有关。所以AI鉴别法则（莱斯定理）不适用。</li>
+  <li>然而，这个问题本身依然是<strong>不可判定</strong>的，因为判断一个程序会不会“死机”（无限循环）是<strong>不可判定</strong>的。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>你想给所有书籍分类：这本书是否明确地以“故事讲完了，全剧终”作为结尾。</p>
+<ol>
+  <li>莱斯定理（菜肴评判法则）不适用。</li>
+  <li>考虑两本书，《书A》和《书B》。这两本书讲述的都是完全相同的故事（$L(M_1)=L(M_2)$）。</li>
+  <li>《书A》在结尾清晰地写着“全剧终”。它属于这个分类。</li>
+  <li>《书B》在讲完同样的故事后，后面是几百页的空白页，或者是一些乱码，它没有明确的结尾。它不属于这个分类。</li>
+  <li>因此，“有明确结尾”是书的结构问题，而不仅仅是内容问题。莱斯定理不适用。</li>
+  <li>但是，判断一本书是否“永远没有结尾”（比如是一本自动生成、永不重复的诗集），是<strong>不可判定</strong>的。因此，判断它是否有明确结尾也是<strong>不可判定</strong>的。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-10">
+    <h2><span class="section-number">4</span>5 练习 4.4：$E_{T M}=\{\langle M\rangle \mid M$ 是一个图灵机且 $L(M)=\emptyset\}$</h2>
+    <p id="original-10"><strong style="font-size: 1.3rem;">📜 [原文10]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>$E_{T M}=\{\langle M\rangle \mid M$ 是一个<strong>图灵机</strong>且 $L(M)=\emptyset\}$</p>
+<p>是。</p>
+<p>显然 $E_{T M} \subset\{\langle M\rangle \mid M$ 是一个<strong>图灵机</strong> $\}$。如果 $M_{1}, M_{2}$ 是<strong>图灵机</strong>且 $L(M 1)=L(M 2)$，那么 $L\left(M_{1}\right)=\emptyset \Longleftrightarrow L\left(M_{2}\right)=\emptyset$。因此，$\left\langle M_{1}\right\rangle \in E_{T M} \Longleftrightarrow\left\langle M_{2}\right\rangle \in E_{T M}$。</p>
+<p>现在，取接受所有字符串的 M，拒绝所有字符串的 $M^{\prime}$。我们有 $L(M)=\emptyset, L\left(M^{\prime}\right)= \Sigma^{*}$。$M \in E_{T M}, M^{\prime} \notin E_{T M}$。因此，$E_{T M} \neq \emptyset$ 且 $E_{T M} \neq\{\langle M\rangle \mid M$ 是一个<strong>图灵机</strong> $\}$。因此，$E_{T M}$ 是<strong>不可判定</strong>的。</p>
+<p><em>笔误修正：原文中 “取接受所有字符串的 M，拒绝所有字符串的 $M^{\prime}$。我们有 $L(M)=\emptyset, L\left(M^{\prime}\right)= \Sigma^{*}$。” 应为 “取拒绝所有字符串的 M，接受所有字符串的 $M^{\prime}$。我们有 $L(M)=\emptyset, L\left(M^{\prime}\right)= \Sigma^{*}$。” 且 “$M \in E_{T M}, M^{\prime} \notin E_{T M}$” 也应相应调整。</em></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这里我们判断<strong>莱斯定理</strong>是否适用于<strong>语言</strong> $E_{T M}$（Emptiness problem for TMs），即所有<strong>语言</strong>为空集的<strong>图灵机</strong>的集合。</p>
+<ol>
+  <li> <strong>检查条件1 (关于图灵机)</strong>:
+<ul>
+  <li>$E_{T M}$ 是<strong>图灵机</strong>编码的集合。</li>
+  <li><strong>条件1满足</strong>。</li>
+</ul></li>
+  <li> <strong>检查条件3 (语言性质)</strong>:
+<ul>
+  <li>性质是 "$L(M) = \emptyset$"。</li>
+  <li>这完全是关于<strong>图灵机</strong>的<strong>语言</strong>的陈述。</li>
+  <li>如果 $L(M_1) = L(M_2)$，那么 $L(M_1)$ 是空集当且仅当 $L(M_2)$ 是空集。这是同义反复。</li>
+  <li><strong>条件3满足</strong>。</li>
+</ul></li>
+  <li> <strong>检查条件2 (非平凡)</strong>:
+<ul>
+  <li><strong>存在性 ($E_{T M} \neq \emptyset$)</strong>: 构造一个<strong>图灵机</strong> $M_1$，它在开始<strong>状态</strong>就直接进入拒绝<strong>状态</strong>。$M_1$ 不接受任何字符串，所以 $L(M_1) = \emptyset$。因此 $\langle M_1 \rangle \in E_{T M}$。</li>
+  <li><strong>非全体性 ($E_{T M} \neq \{\dots\}$)</strong>: 构造一个<strong>图灵机</strong> $M_2$，它在开始<strong>状态</strong>就直接进入接受<strong>状态</strong>。$M_2$ 接受所有字符串（或者至少接受空串），所以 $L(M_2) \neq \emptyset$。因此 $\langle M_2 \rangle \notin E_{T M}$。</li>
+  <li>L 是非平凡的。</li>
+  <li><strong>条件2满足</strong>。</li>
+</ul></li>
+  <li> <strong>结论</strong>:
+<ul>
+  <li>所有三个条件都满足。</li>
+  <li>因此，根据<strong>莱斯定理</strong>，$E_{T M}$ 是<strong>不可判定</strong>的。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1 ($M_1 \in E_{T M}$)</strong>: 一个<strong>图灵机</strong>，其唯一的转移规则是在任何情况下都移动到 $q_{reject}$。$L(M_1) = \emptyset$。</li>
+  <li><strong>示例2 ($M_2 \notin E_{T M}$)</strong>: 一个<strong>图灵机</strong>，其唯一的转移规则是在任何情况下都移动到 $q_{accept}$。$L(M_2) = \Sigma^*$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点</strong>: 与练习4.3对比，可能会感到困惑。为什么“拒绝0”不是<strong>语言</strong>性质，而“<strong>语言</strong>为空”却是？因为“<strong>语言</strong>为空”意味着对于<em>所有</em>字符串 $w$，$w \notin L(M)$。它是一个关于整个<strong>语言</strong>集合的全局描述。而“拒绝0”是关于在单一输入'0'上的<em>特定行为</em>。如4.3所述，两个<strong>图灵机</strong>可以有相同的空<strong>语言</strong>，但一个通过拒绝所有输入，另一个通过在所有输入上循环。但无论它们内部行为如何，它们的<strong>语言</strong>都是空集，因此它们在 $E_{TM}$ 中的成员资格是相同的。这恰好说明了 $E_{TM}$ 是一个纯粹的<strong>语言</strong>性质。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>语言</strong> $E_{T M}$（<strong>图灵机</strong>的空<strong>语言</strong>问题）满足<strong>莱斯定理</strong>的所有条件：它是关于<strong>图灵机</strong>的、非平凡的、且纯粹的<strong>语言</strong>性质。因此，<strong>莱斯定理</strong>适用，$E_{T M}$ 是<strong>不可判定</strong>的。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这是应用<strong>莱斯定理</strong>的另一个核心例子。$E_{T M}$ 在计算理论中是一个非常基本的问题。这个练习展示了如何用<strong>莱斯定理</strong>快速地证明它的<strong>不可判定</strong>性，并帮助学生巩固对“<strong>语言</strong>性质”这一关键概念的理解。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>你想判断一个AI程序是否“什么有意义的话都说不出来”（即它的“正确答案集”为空）。</p>
+<ol>
+  <li>这是关于AI的（条件1）。</li>
+  <li>有的AI啥也说不出（一个坏掉的程序），有的能（GPT）。所以是非平凡的（条件2）。</li>
+  <li>一个AI“啥也说不出”，这只和它的最终输出能力集合（$L(M)$）有关，和它内部是因为代码bug还是逻辑死循环导致的无关（条件3）。</li>
+  <li>结论：根据<strong>莱斯定理</strong>，这个问题是<strong>不可判定</strong>的。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>你想给所有食谱分类：这份食谱是否“做不出任何能吃的菜”（<strong>语言</strong>为空）。</p>
+<ol>
+  <li>这是一个关于食谱的分类。</li>
+  <li>有些食谱是胡说八道，做出来都是黑暗料理（属于该分类）。有些是米其林大厨的方子（不属于该分类）。所以是非平凡的。</li>
+  <li>一份食谱“做不出能吃的菜”，这只和它最终能产出的所有菜品集合有关，和它是因为步骤写错、材料用错、还是火候不对导致的无关。只要最终结果是“没有一道能吃的菜”，那它就属于这个分类。这是纯粹的结果导向（<strong>语言</strong>性质）。</li>
+  <li>结论：根据（类比的）<strong>莱斯定理</strong>，无法编写一个通用程序来分析任何食谱，并判断它是否能做出至少一道能吃的菜。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-11">
+    <h2><span class="section-number">4</span>6 练习 4.5：$L=\left\{\langle M\rangle \mid M\right.$ 是一个图灵机且 $L(M)=\overline{A_{T M}}\}$</h2>
+    <p id="original-11"><strong style="font-size: 1.3rem;">📜 [原文11]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>$L=\left\{\langle M\rangle \mid M\right.$ 是一个<strong>图灵机</strong>且 $L(M)=\overline{A_{T M}}\}$</p>
+<p>否。</p>
+<p>此处，L 确实是<strong>可识别语言</strong>的一个性质。然而，L 是平凡的。我们知道 $\overline{A_{T M}}$ 是<strong>不可识别</strong>的，因此不存在<strong>图灵机</strong> M 使得 $L(M)=\overline{A_{T M}}$。因此，$L=\emptyset$。请注意，由于 $\emptyset$ 是一个<strong>可判定语言</strong>，L 也是<strong>可判定</strong>的。（对于<strong>判定器</strong>，考虑<strong>图灵机</strong>：“在输入 $x$ 上，拒绝。”）</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这里我们判断<strong>莱斯定理</strong>是否适用于<strong>语言</strong> L，即所有其<strong>语言</strong>恰好是 $\overline{A_{T M}}$ 的<strong>图灵机</strong>的集合。</p>
+<ol>
+  <li> <strong>检查条件1 (关于图灵机)</strong>:
+<ul>
+  <li>L 是<strong>图灵机</strong>编码的集合。</li>
+  <li><strong>条件1满足</strong>。</li>
+</ul></li>
+  <li> <strong>检查条件3 (语言性质)</strong>:
+<ul>
+  <li>性质是 "$L(M) = \overline{A_{T M}}$"。</li>
+  <li>这完全是关于<strong>图灵机</strong>的<strong>语言</strong>的陈述。</li>
+  <li>如果 $L(M_1) = L(M_2)$，那么 $L(M_1) = \overline{A_{T M}}$ 当且仅当 $L(M_2) = \overline{A_{T M}}$。</li>
+  <li><strong>条件3满足</strong>。</li>
+</ul></li>
+  <li> <strong>检查条件2 (非平凡)</strong>:
+<ul>
+  <li>我们需要判断 L 是否非空，以及 L 是否包含所有<strong>图灵机</strong>。</li>
+  <li><strong>关键知识点</strong>: 我们在理论课上已经学到，一个<strong>语言</strong>是<strong>图灵可识别</strong>的，当且仅当存在一个<strong>图灵机</strong>接受它。</li>
+  <li>我们还学到，$A_{T M}$ 是<strong>图灵可识别</strong>的，但它的补集 $\overline{A_{T M}}$ 不是<strong>图灵可识别</strong>的（co-Turing-unrecognizable）。</li>
+  <li>既然 $\overline{A_{T M}}$ 不是<strong>图灵可识别</strong>的<strong>语言</strong>，根据定义，就<em>不存在</em>任何<strong>图灵机</strong> M，使得 $L(M) = \overline{A_{T M}}$。</li>
+  <li>这意味着，没有任何一个<strong>图灵机</strong>的编码 $\langle M \rangle$ 能够满足 L 的条件。</li>
+  <li>因此，$L = \emptyset$ (空集)。</li>
+  <li>一个空集是“平凡的”，因为它不满足 $L \neq \emptyset$。</li>
+  <li><strong>条件2不满足</strong>。</li>
+</ul></li>
+  <li> <strong>结论</strong>:
+<ul>
+  <li>因为 L 是平凡的，<strong>莱斯定理</strong>不适用。</li>
+</ul></li>
+  <li> <strong>判断 L 的可判定性</strong>:
+<ul>
+  <li>问题是判断给定的 $\langle M \rangle$ 是否属于 L。</li>
+  <li>因为我们已经知道 L 是空集，所以对于任何输入 $\langle M \rangle$，答案永远是“否”。</li>
+  <li>我们可以构造一个极简的<strong>判定器</strong>：</li>
+  <li>“在任何输入 $x$ 上，直接拒绝。”</li>
+  <li>这个<strong>判定器</strong>总能停机并给出正确答案（永远是拒绝）。</li>
+  <li>因此，L 是<strong>可判定</strong>的。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>: 输入 $\langle M_{accept\_all} \rangle$，一个接受所有字符串的<strong>图灵机</strong>。$L(M_{accept\_all}) = \Sigma^*$。因为 $\Sigma^* \neq \overline{A_{T M}}$，所以我们的<strong>判定器</strong>应该拒绝。它确实拒绝了。</li>
+  <li><strong>示例2</strong>: 输入任何一个<strong>图灵机</strong>的编码 $\langle M \rangle$。我们的<strong>判定器</strong>看都不看，直接拒绝。这也是正确的，因为根本不存在任何 M 的<strong>语言</strong>会是 $\overline{A_{T M}}$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点</strong>: 忘记 $\overline{A_{T M}}$ 是不可识别的这个前提知识。如果不知道这个，可能会错误地认为存在这样的 M，从而认为 L 是非平凡的，然后错误地应用<strong>莱斯定理</strong>得出 L <strong>不可判定</strong>的结论。</li>
+  <li><strong>易错点2</strong>: 混淆了 L 本身和 L 所描述的<strong>语言</strong>属性。L 是一个<strong>可判定</strong>的<strong>语言</strong>（因为它是空集），但它描述的性质（其<strong>语言</strong>是 $\overline{A_{T M}}$）是不可能实现的。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>语言</strong> L（所有<strong>语言</strong>为 $\overline{A_{T M}}$ 的<strong>图灵机</strong>集合）是<strong>可判定</strong>的。<strong>莱斯定理</strong>不适用，因为 L 是一个平凡的<strong>语言</strong>（它是空集），这违反了定理的“非平凡性”前提。L 之所以是空集，是因为一个基本事实：$\overline{A_{T M}}$ 本身不是一个<strong>图灵可识别</strong>的<strong>语言</strong>，因此没有任何<strong>图灵机</strong>能接受它。一个总是拒绝的<strong>图灵机</strong>就能完美地判定 L。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个练习考察了对<strong>莱斯定理</strong>前提条件，特别是“非平凡性”的理解。它还把定理的应用与计算理论层级（<strong>可识别</strong>、非<strong>可识别</strong>）中的其他重要结论联系起来，展示了这些知识点是如何相互关联的。它是一个很好的例子，说明了为什么在应用一个定理之前，检查所有前提是至关重要的。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>你想判断一个AI程序的能力是否是“全知全能的”（即能回答宇宙中所有可能的是非题）。</p>
+<ol>
+  <li>我们从逻辑上知道，“全知全能”是不可能的（比如它无法回答“我下一个回答不出来的问题是什么”）。这意味着不存在“全知全能”的AI。</li>
+  <li>所以，你要判断的这个性质，没有任何AI具备。你要找的这个AI集合是空的。</li>
+  <li>莱斯定理不适用，因为这个性质是平凡的（空集）。</li>
+  <li>这个问题是<strong>可判定</strong>的。你的判断程序只需要对任何输入的AI代码，都直接回答“否，它不是全知全能的”。这个程序永远是正确的。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>你想给所有食谱分类：这份食谱是否能做出“一块比它自身更重的石头”。</p>
+<ol>
+  <li>这是一个关于食谱的分类。</li>
+  <li>根据物理定律，这是不可能的。所以不存在任何食谱能做到这一点。</li>
+  <li>你要找的这个食谱集合是空的。</li>
+  <li>莱斯定理（菜肴评判法则）不适用，因为这是一个平凡的（空的）分类。</li>
+  <li>这个问题是<strong>可判定</strong>的。你可以做一个“食谱分析仪”，对于任何输入的食谱，它都直接亮红灯（“无法做出”）。这个分析仪永远正确。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-12">
+    <h2><span class="section-number">4</span>7 练习 4.6：$L=\{\langle M\rangle \mid M$ 是一个图灵机且 $L(M)$ 是可识别的 $\}$</h2>
+    <p id="original-12"><strong style="font-size: 1.3rem;">📜 [原文12]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>$L=\{\langle M\rangle \mid M$ 是一个<strong>图灵机</strong>且 $L(M)$ 是<strong>可识别</strong>的 $\}$</p>
+<p>否。</p>
+<p>对于每个<strong>图灵机</strong> M，根据定义 $L(M)$ 是<strong>可识别</strong>的。因此，$L=\{\langle M\rangle \mid M$ 是一个<strong>图灵机</strong> $\}$，所以 L 是平凡的。</p>
+<p>请注意，$\{\langle M\rangle \mid M$ 是一个<strong>图灵机</strong> $\}$ 是一个<strong>可判定语言</strong>，因此 L 也是<strong>可判定</strong>的。（对于<strong>判定器</strong>，考虑<strong>图灵机</strong>：“在输入 $\langle M\rangle$ 上，其中 M 是一个<strong>图灵机</strong>，接受。”）</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这里我们判断<strong>莱斯定理</strong>是否适用于<strong>语言</strong> L，即所有其<strong>语言</strong>是<strong>图灵可识别</strong>的<strong>图灵机</strong>的集合。</p>
+<ol>
+  <li> <strong>检查所有条件</strong>:
+<ul>
+  <li><strong>关键定义</strong>: 什么是<strong>图灵可识别</strong>的<strong>语言</strong> (Turing-recognizable language)？一个<strong>语言</strong> A 是<strong>图灵可识别</strong>的，当且仅当存在一个<strong>图灵机</strong> M 使得 $L(M)=A$。</li>
+  <li>现在来看 L 的定义: $L = \{\langle M \rangle \mid L(M) \text{ 是可识别的}\}$。</li>
+  <li>对于<em>任何</em>一个<strong>图リング机</strong> M，它所接受的<strong>语言</strong> $L(M)$，根据定义，就是一个<strong>图灵可识别</strong>的<strong>语言</strong>（因为 M 本身就是识别它的那个<strong>图灵机</strong>）。</li>
+  <li>这意味着，<em>所有</em>的<strong>图リング机</strong> M 都满足 “$L(M)$ 是<strong>可识别</strong>的” 这个属性。</li>
+  <li>因此，<strong>语言</strong> L 实际上就是所有<strong>图リング机</strong>编码的集合。</li>
+  <li>$L = \{\langle M \rangle \mid M \text{ 是一个图灵机}\}$。</li>
+</ul></li>
+  <li> <strong>检查莱斯定理的条件</strong>:
+<ul>
+  <li><strong>条件2 (非平凡)</strong>: L 是平凡的吗？是的。它等于所有<strong>图リング机</strong>编码的全集。它不满足 $L \neq \{\langle M \rangle \mid \dots\}$ 这一部分。</li>
+  <li><strong>条件2不满足</strong>。</li>
+</ul></li>
+  <li> <strong>结论</strong>:
+<ul>
+  <li>因为 L 是平凡的，<strong>莱斯定理</strong>不适用。</li>
+</ul></li>
+  <li> <strong>判断 L 的可判定性</strong>:
+<ul>
+  <li>L 是所有合法<strong>图リング机</strong>编码的集合。</li>
+  <li>问题是：“给定一个字符串 $x$，判断 $x$ 是否是一个合法的<strong>图リング机</strong>编码 $\langle M \rangle$。”</li>
+  <li>这是一个纯粹的语法检查问题。我们可以设计一个算法（<strong>判定器</strong>）：</li>
+</ul></li>
+  <li> 检查输入 $x$ 是否符合<strong>图リング机</strong>编码的格式（例如，是否有<strong>状态</strong>集、字母表、转移函数等，并且格式都正确）。</li>
+  <li> 如果符合，则接受。</li>
+  <li> 如果不符合，则拒绝。
+<ul>
+  <li>这个算法总能停机并给出正确答案。</li>
+  <li>因此，L 是<strong>可判定</strong>的。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>: 输入一个完全合法的<strong>图灵机</strong>编码 $\langle M_1 \rangle$。我们的<strong>判定器</strong>会检查其语法，发现无误，于是接受。这是正确的，因为 $L(M_1)$ 根据定义是<strong>可识别</strong>的。</li>
+  <li><strong>示例2</strong>: 输入一个乱码字符串 "hello world"。我们的<strong>判定器</strong>检查语法，发现它根本不是一个<strong>图灵机</strong>编码，于是拒绝。这也是正确的。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点</strong>: 没有真正理解“<strong>图灵可识别</strong>”的定义，可能会去思考如何判断一个<strong>语言</strong>是否<strong>可识别</strong>，从而陷入困境。这里的关键是意识到，$L(M)$ <em>根据定义</em>就是<strong>可识别</strong>的，这个问题本身是一个同义反复。</li>
+  <li><strong>边界情况</strong>: 问题 L 实际上等价于“判断一个给定的字符串是否是合法的<strong>图灵机</strong>编码”。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>语言</strong> L（所有其<strong>语言</strong>为<strong>可识别</strong>的<strong>图灵机</strong>集合）是<strong>可判定</strong>的。<strong>莱斯定理</strong>不适用，因为它是一个平凡的性质——所有<strong>图灵机</strong>都拥有这个性质。L 实际上就是所有<strong>图灵机</strong>编码的全集，判断一个字符串是否属于这个集合是一个简单的语法检查问题，因此是<strong>可判定</strong>的。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个练习是另一个关于“平凡性”的例子，与练习4.5（空集）相对应。4.5 是平凡的因为它不包含任何<strong>图灵机</strong>，而这个练习是平凡的因为它包含了所有<strong>图灵机</strong>。这再次强调了在应用<strong>莱斯定理</strong>前检查所有前提的重要性。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>你想判断一个AI程序的能力是否是“可被AI实现的”。</p>
+<ol>
+  <li>根据定义，任何一个AI程序，它的能力自然就是“可被AI实现的”。</li>
+  <li>所以，所有AI程序都具有这个性质。这是一个平凡的性质。</li>
+  <li>莱斯定理不适用。</li>
+  <li>这个问题本身是<strong>可判定</strong>的。它等价于“给定的代码是不是一个合法的AI程序代码？” 这是一个语法检查问题。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>你想给所有食谱分类：这份食谱是否是“一份食谱”。</p>
+<ol>
+  <li>这是一个同义反复。所有食谱都是食谱。</li>
+  <li>这是一个平凡的分类，因为它包含了所有的食谱。</li>
+  <li>莱斯定理不适用。</li>
+  <li>这个问题是<strong>可判定</strong>的。你只需要检查一份文档的格式是否符合“食谱”的规范（比如有材料列表、步骤说明等）。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-13">
+    <h2><span class="section-number">4</span>8 练习 4.7：$L=\{\langle M\rangle \mid M$ 是一个图灵机且 $L(M)$ 是可判定的 $\}$</h2>
+    <p id="original-13"><strong style="font-size: 1.3rem;">📜 [原文13]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>$L=\{\langle M\rangle \mid M$ 是一个<strong>图灵机</strong>且 $L(M)$ 是<strong>可判定</strong>的 $\}$</p>
+<p>是。</p>
+<p>显然 $L \subset\{\langle M\rangle \mid M$ 是一个<strong>图灵机</strong> $\}$。如果 $M_{1}, M_{2}$ 是<strong>图灵机</strong>且 $L\left(M_{1}\right)=L\left(M_{2}\right)$，那么 $L\left(M_{1}\right)$ 是<strong>可判定</strong>的 $\Longleftrightarrow L\left(M_{2}\right)$ 是<strong>可判定</strong>的。因此，$\left\langle M_{1}\right\rangle \in L \Longleftrightarrow\left\langle M_{2}\right\rangle \in L$。</p>
+<p>让 M 拒绝所有字符串，并让 U 成为 $A_{T M}$ 的<strong>识别器</strong>。我们知道 M 是一个<strong>判定器</strong>（并且 $L(\langle M\rangle)=\emptyset$ 是一个<strong>可判定语言</strong>），因此 $\langle M\rangle \in L$。然而，$L(U)=A_{T M}$ 是<strong>不可判定</strong>的，因此 $\langle U\rangle \notin L$。因此，L 是非平凡的。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这里我们判断<strong>莱斯定理</strong>是否适用于<strong>语言</strong> L，即所有其<strong>语言</strong>是<strong>可判定</strong>的<strong>图灵机</strong>的集合。</p>
+<ol>
+  <li> <strong>检查条件1 (关于图灵机)</strong>:
+<ul>
+  <li>L 是<strong>图灵机</strong>编码的集合。</li>
+  <li><strong>条件1满足</strong>。</li>
+</ul></li>
+  <li> <strong>检查条件3 (语言性质)</strong>:
+<ul>
+  <li>性质是“$L(M)$ 是一个<strong>可判定语言</strong>”。</li>
+  <li><strong>可判定语言</strong> (Decidable language) 的定义是：一个<strong>语言</strong> A 是<strong>可判定</strong>的，如果存在一个<strong>判定器</strong>（即一个在所有输入上都停机的<strong>图灵机</strong>）来接受它。</li>
+  <li>这个性质完全取决于<strong>语言</strong>本身，而与识别它的具体<strong>图灵机</strong> M 的实现无关。如果一个<strong>语言</strong> A 是<strong>可判定</strong>的，那么任何接受 A 的<strong>图灵机</strong> $M_i$（无论 $M_i$ 本身是不是<strong>判定器</strong>），其<strong>语言</strong> $L(M_i) = A$ 都是<strong>可判定</strong>的。</li>
+  <li>形式化地：如果 $L(M_1) = L(M_2)$，那么“$L(M_1)$ 是<strong>可判定</strong>的”这个判断，和“$L(M_2)$ 是<strong>可判定</strong>的”这个判断，必然同真同假。</li>
+  <li><strong>条件3满足</strong>。</li>
+</ul></li>
+  <li> <strong>检查条件2 (非平凡)</strong>:
+<ul>
+  <li><strong>存在性 ($L \neq \emptyset$)</strong>: 我们需要找到一个<strong>图灵机</strong> M，其<strong>语言</strong>是<strong>可判定</strong>的。</li>
+  <li>构造一个<strong>图灵机</strong> M，它拒绝所有输入。$L(M) = \emptyset$。空<strong>语言</strong>是<strong>可判定</strong>的（一个总是拒绝的<strong>判定器</strong>就可以判定它）。</li>
+  <li>M 本身也是一个<strong>判定器</strong>，所以 $L(M)$ 是<strong>可判定</strong>的。因此 $\langle M \rangle \in L$。</li>
+  <li><strong>非全体性 ($L \neq \{\dots\}$)</strong>: 我们需要找到一个<strong>图灵机</strong> U，其<strong>语言</strong>是<strong>不可判定</strong>的。</li>
+  <li>我们知道 $A_{T M}$ 是一个<strong>不可判定</strong>的<strong>语言</strong>。</li>
+  <li>但是 $A_{T M}$ 是<strong>图灵可识别</strong>的，所以存在一个<strong>图灵机</strong> U (通用<strong>图灵机</strong>) 使得 $L(U) = A_{T M}$。</li>
+  <li>因为 $L(U)$ 是<strong>不可判定</strong>的，所以 $\langle U \rangle \notin L$。</li>
+  <li>我们找到了一个在 L 中的<strong>图灵机</strong>和一个不在 L 中的<strong>图灵机</strong>，证明 L 是非平凡的。</li>
+  <li><strong>条件2满足</strong>。</li>
+</ul></li>
+  <li> <strong>结论</strong>:
+<ul>
+  <li>所有三个条件都满足。</li>
+  <li>因此，根据<strong>莱斯定理</strong>，L 是<strong>不可判定</strong>的。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1 ($\langle M \rangle \in L$)</strong>: 设 M 是一个判断输入字符串长度是否为偶数的<strong>图灵机</strong>。它在所有输入上都会停机。$L(M)$ 是所有偶数长度字符串的集合，这是一个<strong>正则语言</strong>，因此也是一个<strong>可判定语言</strong>。所以 $\langle M \rangle \in L$。</li>
+  <li><strong>示例2 ($\langle U \rangle \notin L$)</strong>: 设 U 是 $A_{TM}$ 的标准<strong>识别器</strong>（通用<strong>图灵机</strong>）。当输入 $\langle M, w \rangle$ 导致 M 在 w 上无限循环时，U 也会无限循环。U 不是一个<strong>判定器</strong>。它所接受的<strong>语言</strong> $L(U) = A_{TM}$ 是<strong>不可判定</strong>的。所以 $\langle U \rangle \notin L$。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>易错点</strong>: 混淆 $M$ 本身是不是<strong>判定器</strong>和 $L(M)$ 是不是<strong>可判定语言</strong>。</li>
+  <li>$L(M)$ 是<strong>可判定</strong>的，意味着<em>存在</em>一个<strong>判定器</strong> $M_{decider}$ 来判定这个<strong>语言</strong>。但这并不要求 M 本身就是那个 $M_{decider}$。</li>
+  <li>例如，我可以构造一个<strong>图灵机</strong> $M_{stupid}$，它在接受偶数长度字符串时，有50%的几率会陷入无限循环。$M_{stupid}$ 不是<strong>判定器</strong>。但它碰巧能接受的<strong>语言</strong>（所有偶数长度字符串）本身是<strong>可判定</strong>的。所以 $\langle M_{stupid} \rangle$ 仍然属于 L。</li>
+  <li>幸运的是，对于<strong>莱斯定理</strong>的应用来说，这个区别不重要，因为性质是关于 $L(M)$ 的，所以我们只需要关心 $L(M)$ 的属性。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>语言</strong> L（所有其<strong>语言</strong>为<strong>可判定</strong>的<strong>图灵机</strong>集合）是<strong>不可判定</strong>的。它满足<strong>莱斯定理</strong>的所有条件：它是关于<strong>图灵机</strong>的，它是非平凡的（因为存在<strong>可判定</strong>和<strong>不可判定</strong>的<strong>图灵可识别语言</strong>），并且它是一个纯粹的<strong>语言</strong>性质（一个<strong>语言</strong>是否<strong>可判定</strong>是其内在属性）。因此，<strong>莱斯定理</strong>适用。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个练习是<strong>莱斯定理</strong>应用的一个更深层次的例子。它涉及到了计算理论中不同的<strong>语言</strong>类别（<strong>可判定</strong>的 vs <strong>不可判定</strong>的<strong>可识别语言</strong>），要求学生对<strong>图灵机</strong>的能力和局限性有更清晰的认识。它也再次强化了“<strong>语言</strong>性质”这个概念，说明即使是像“<strong>可判定</strong>性”这样高阶的属性，也仍然是一种<strong>语言</strong>性质。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>你想判断一个AI程序的能力是否是“有限且可被完全理解的”（<strong>可判定</strong>的）。</p>
+<ol>
+  <li>这是关于AI的（条件1）。</li>
+  <li>有的AI能力是有限的（如一个只做算术的计算器程序），有的是无限复杂的（如一个试图解决停机问题的程序，它的“正确答案集”$A_{TM}$ 是<strong>不可判定</strong>的）。所以是非平凡的（条件2）。</li>
+  <li>一个AI的能力是否“有限可理解”，是其能力集合本身的属性，和实现它的代码无关（条件3）。</li>
+  <li>结论：根据<strong>莱斯定理</strong>，无法编写一个通用程序来分析任何AI的源代码，并判断它的能力是否是“有限且可被完全理解的”。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>你想给所有游戏规则手册分类：这份规则书描述的游戏是否“必有输赢”（即游戏过程总会结束，<strong>可判定</strong>）。</p>
+<ol>
+  <li>这是一个关于规则手册的分类。</li>
+  <li>有些游戏，如井字棋，规则简单，总会结束（属于该分类）。有些游戏，规则可能导致无限循环或无法判定胜负的局面（如某些复杂的卡牌游戏组合，其<strong>语言</strong>是<strong>不可判定</strong>的），不属于该分类。所以是非平凡的。</li>
+  <li>一个游戏是否“必有输赢”，是游戏规则本身内在的逻辑属性（$L(M)$ 的性质），和规则书是用中文写的还是英文写的、字号多大无关。</li>
+  <li>结论：根据（类比的）<strong>莱斯定理</strong>，无法编写一个通用程序来分析任何游戏规则手册，并判断这个游戏是否“必有输-赢”。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-14">
+    <h2><span class="section-number">5</span>5 行间公式索引</h2>
+    <p>本文件中所有出现的行间公式 <strong><div class="math-block">$$
+...
+$$</div></strong> 罗列如下：</p><p>无行间公式。</p><p>[[END_OF_RESPONSE]]所有解释内容已全部输出完毕。</p>
+</section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>1 讲义 9b - 可数性、图灵归约、证明不可判定性</p>
+    </footer>
+
+
+    <!-- 手机端点击翻页功能 -->
+    <script>
+        (function() {
+            // 点击翻页功能（在所有设备上启用）
+            
+            document.addEventListener('click', function(e) {
+                // 如果 TOC 目录面板处于打开状态，不触发翻页
+                var tocPanel = document.getElementById('tocPanel');
+                if (tocPanel && tocPanel.classList.contains('active')) {
+                    return;
+                }
+                
+                // 排除对链接、按钮、输入框等交互元素的点击
+                var target = e.target;
+                var tagName = target.tagName.toLowerCase();
+                if (tagName === 'a' || tagName === 'button' || tagName === 'input' || 
+                    tagName === 'textarea' || tagName === 'select' || 
+                    target.closest('a') || target.closest('button') ||
+                    target.closest('.toc-panel') || target.closest('.toc-toggle') ||
+                    target.closest('.toc-overlay')) {
+                    return;
+                }
+                
+                var clickY = e.clientY;
+                var windowHeight = window.innerHeight;
+                var scrollAmount = windowHeight * 0.85; // 滚动85%的屏幕高度
+                
+                if (clickY > windowHeight / 2) {
+                    // 点击下半部分：向下翻页
+                    window.scrollBy({
+                        top: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 点击上半部分：向上翻页
+                    window.scrollBy({
+                        top: -scrollAmount,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        })();
+    </script>
+
+    <!-- TOC 目录控制脚本 -->
+    <script>
+        (function() {
+            var tocToggle = document.getElementById('tocToggle');
+            var tocPanel = document.getElementById('tocPanel');
+            var tocOverlay = document.getElementById('tocOverlay');
+            
+            // 切换目录显示/隐藏
+            function toggleTOC() {
+                var isOpen = tocPanel.classList.contains('active');
+                if (isOpen) {
+                    closeTOC();
+                } else {
+                    openTOC();
+                }
+            }
+            
+            // 打开目录
+            function openTOC() {
+                tocPanel.classList.add('active');
+                tocOverlay.classList.add('active');
+                tocToggle.setAttribute('aria-label', '关闭目录');
+            }
+            
+            // 关闭目录
+            function closeTOC() {
+                tocPanel.classList.remove('active');
+                tocOverlay.classList.remove('active');
+                tocToggle.setAttribute('aria-label', '打开目录');
+            }
+            
+            // 点击按钮切换目录
+            tocToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTOC();
+            });
+            
+            // 点击遮罩层关闭目录
+            tocOverlay.addEventListener('click', function() {
+                closeTOC();
+            });
+            
+            // 点击目录项后关闭目录
+            var tocLinks = tocPanel.querySelectorAll('a');
+            tocLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    closeTOC();
+                });
+            });
+            
+            // ESC 键关闭目录
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && tocPanel.classList.contains('active')) {
+                    closeTOC();
+                }
+            });
+            
+            // 高亮当前可见的目录条目
+            function updateActiveItem() {
+                var scrollPos = window.scrollY + 150;  // 偏移量
+                var activeSection = null;
+                var activeOriginal = null;
+                
+                // 查找当前可见的 section
+                var sections = document.querySelectorAll('section[id^="section-"]');
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    if (section.offsetTop <= scrollPos) {
+                        activeSection = section.id;
+                    }
+                }
+                
+                // 查找当前可见的原文区块
+                var originals = document.querySelectorAll('[id^="original-"]');
+                for (var j = 0; j < originals.length; j++) {
+                    var original = originals[j];
+                    if (original.offsetTop <= scrollPos) {
+                        activeOriginal = original.id;
+                    }
+                }
+                
+                // 先移除所有 active 类
+                var allHeadings = tocPanel.querySelectorAll('.toc-heading');
+                for (var h = 0; h < allHeadings.length; h++) {
+                    allHeadings[h].classList.remove('active');
+                }
+                
+                var allOriginals = tocPanel.querySelectorAll('.toc-original');
+                for (var o = 0; o < allOriginals.length; o++) {
+                    allOriginals[o].classList.remove('active');
+                }
+                
+                // 只给当前活动的条目添加 active 类
+                if (activeSection) {
+                    var activeHeadingLink = tocPanel.querySelector('.toc-heading a[href="#' + activeSection + '"]');
+                    if (activeHeadingLink) {
+                        activeHeadingLink.parentElement.classList.add('active');
+                    }
+                }
+                
+                if (activeOriginal) {
+                    var activeOriginalLink = tocPanel.querySelector('.toc-original a[href="#' + activeOriginal + '"]');
+                    if (activeOriginalLink) {
+                        activeOriginalLink.parentElement.classList.add('active');
+                    }
+                }
+            }
+            
+            // 节流函数
+            var scrollTimeout;
+            function throttledUpdate() {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(function() {
+                    updateActiveItem();
+                    scrollTimeout = null;
+                }, 100);
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', throttledUpdate);
+            
+            // 打开目录时立即更新高亮
+            var originalOpenTOC = openTOC;
+            openTOC = function() {
+                originalOpenTOC();
+                updateActiveItem();
+            };
+            
+            // 初始化
+            updateActiveItem();
+        })();
+    </script>
+</body>
+</html>

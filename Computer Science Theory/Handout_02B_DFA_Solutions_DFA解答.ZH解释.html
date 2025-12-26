@@ -1,0 +1,2654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1. COMS 3261 讲义 2B：确定性有限自动机练习解答</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- MathJax v4 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            output: {
+                displayOverflow: 'linebreak',
+                linebreaks: {
+                    inline: true,
+                    width: '100%',
+                    lineleading: 0.2
+                }
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            /* 五大区块主题色 */
+            --original-color: #8b5cf6;
+            --explain-color: #0ea5e9;
+            --formula-color: #6366f1;
+            --example-color: #10b981;
+            --warning-color: #f59e0b;
+            /* Q1修复：总结、存在目的、直觉心智模型、直观想象 统一使用 #36828C 青色主题 */
+            --summary-color: #36828C;     /* 青色主题 */
+            --purpose-color: #36828C;     /* 青色主题 */
+            --intuition-color: #36828C;   /* 青色主题 */
+            --imagination-color: #36828C; /* 青色主题 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .authors {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
+        .content-section h4 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h5 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 18px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h6 {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            margin: 15px 0 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        /* ===============================
+           五大内容区块 - 统一风格不同主题色
+           =============================== */
+
+        /* 原文区 - 紫色 */
+        .original-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid var(--original-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .original-box .box-label {
+            color: var(--original-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-box .box-content {
+            font-style: italic;
+            color: #6b21a8;
+        }
+
+        /* 📜 [原文]区块内容 - 使用统一的黑色 */
+        .original-content {
+            color: #2d3748; /* 统一的深灰黑色 */
+        }
+
+        .original-content * {
+            color: #2d3748; /* 所有子元素 */
+        }
+
+        .original-content .MathJax, .original-content .MathJax * {
+            color: #2d3748 !important; /* 行内公式 */
+        }
+
+        /* 通用 .box-content 换行规则 - 确保长文本（如代码调用）能自动换行 */
+        .box-content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .box-content strong, .box-content code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            display: inline;
+        }
+
+        /* 逐步解释区 - 蓝色 */
+        .explain-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--explain-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .explain-box .box-label {
+            color: var(--explain-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explain-box .box-content {
+            color: #1a365d; /* Dark Blue */
+        }
+
+        .explain-box .box-content * {
+            color: #1a365d; /* Dark Blue - 所有子元素 */
+        }
+
+        .explain-box .box-content .MathJax, .explain-box .box-content .MathJax * {
+            color: #1a365d !important; /* Dark Blue - 行内公式 */
+        }
+
+        .explain-box ul, .explain-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .explain-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 公式拆解区 - 靛蓝色 */
+        .formula-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--formula-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .formula-box .box-label {
+            color: var(--formula-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .formula-box .box-content {
+            color: var(--text-color); /* 统一使用默认黑色，与原文区块一致 */
+            overflow-x: auto;
+        }
+
+        .formula-box .box-content * {
+            color: var(--text-color); /* 所有子元素 */
+        }
+
+        .formula-box .box-content .MathJax, .formula-box .box-content .MathJax * {
+            color: var(--text-color) !important; /* 行内公式 */
+        }
+
+        /* 数值示例区 - 绿色 */
+        .example-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--example-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .example-box .box-label {
+            color: var(--example-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-box .box-content {
+            color: #166534; /* Dark Green from edstem5 .answer-en */
+        }
+
+        .example-box .box-content * {
+            color: #166534; /* Dark Green - 所有子元素 */
+        }
+
+        .example-box .box-content .MathJax, .example-box .box-content .MathJax * {
+            color: #166534 !important; /* Dark Green - 行内公式 */
+        }
+
+        .example-box ul, .example-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .example-box li {
+            margin-bottom: 6px;
+        }
+
+        .example-box code {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* 易错点区 - 橙色 */
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .warning-box .box-label {
+            color: var(--warning-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warning-box .box-content {
+            color: #92400e;
+        }
+
+        .warning-box .box-content * {
+            color: #92400e; /* 所有子元素 */
+        }
+
+        .warning-box .box-content .MathJax, .warning-box .box-content .MathJax * {
+            color: #92400e !important; /* 行内公式 */
+        }
+
+        .warning-box ul, .warning-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .warning-box li {
+            margin-bottom: 6px;
+        }
+
+        /* 总结区 - Q1修复：使用#36828C青色主题 */
+        .summary-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--summary-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .summary-box .box-label {
+            color: var(--summary-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .summary-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .summary-box .box-content .MathJax, .summary-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 存在目的区 - Q1修复：使用#36828C青色主题 */
+        .purpose-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--purpose-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .purpose-box .box-label {
+            color: var(--purpose-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .purpose-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .purpose-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .purpose-box .box-content .MathJax, .purpose-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直觉心智模型区 - Q1修复：使用#36828C青色主题 */
+        .intuition-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--intuition-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .intuition-box .box-label {
+            color: var(--intuition-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .intuition-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .intuition-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .intuition-box .box-content .MathJax, .intuition-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直观想象区 - Q1修复：使用#36828C青色主题 */
+        .imagination-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--imagination-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .imagination-box .box-label {
+            color: var(--imagination-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .imagination-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .imagination-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .imagination-box .box-content .MathJax, .imagination-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 高亮术语 */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* 代码块 */
+        code {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            margin: 15px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 表格样式 - 紧凑型，行高列宽适应文字最小值 */
+        table {
+            border-collapse: collapse;
+            width: auto;  /* 列宽适应内容 */
+            margin: 15px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;  /* 减小padding使行高更紧凑 */
+            text-align: left;
+            white-space: nowrap;  /* 防止不必要的换行，列宽适应文字 */
+            line-height: 1.4;  /* 紧凑的行高 */
+        }
+
+        th {
+            background: #e0f7fa;
+            color: #006064;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #e2e8f0;
+        }
+
+        /* 表格对齐 */
+        .align-left {
+            text-align: left;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        /* 图例区域 */
+        .legend-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .legend-bar {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .legend-bar.original { background: #8b5cf6; }
+        .legend-bar.explain { background: #0ea5e9; }
+        .legend-bar.formula { background: #6366f1; }
+        .legend-bar.example { background: #10b981; }
+        .legend-bar.warning { background: #f59e0b; }
+        .legend-bar.summary { background: #36828C; }
+        .legend-bar.purpose { background: #36828C; }
+        .legend-bar.intuition { background: #36828C; }
+        .legend-bar.imagination { background: #36828C; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive - 移动端适配 */
+        @media (max-width: 768px) {
+            /* 容器宽度适配 */
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 20px 12px;
+                box-sizing: border-box;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+                padding: 0 15px;
+            }
+            
+            .hero {
+                padding: 50px 15px;
+            }
+            
+            .hero h1 {
+                font-size: 1.6rem;
+                word-break: break-word;
+            }
+            
+            .authors {
+                font-size: 1rem;
+            }
+            
+            /* 内容区块适配 */
+            .content-section {
+                padding: 20px 15px;
+                margin-left: 5px;
+                margin-right: 5px;
+                border-radius: 12px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.4rem;
+                flex-wrap: wrap;
+            }
+            
+            .content-section h3 {
+                font-size: 1.2rem;
+            }
+            
+            .content-section h4 {
+                font-size: 1.1rem;
+            }
+            
+            .section-number {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            /* 各区块box适配 */
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 15px 12px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .original-box .box-label,
+            .explain-box .box-label,
+            .formula-box .box-label,
+            .example-box .box-label,
+            .warning-box .box-label,
+            .summary-box .box-label,
+            .purpose-box .box-label,
+            .intuition-box .box-label,
+            .imagination-box .box-label {
+                font-size: 1.1rem;
+            }
+            
+            /* 图例区域移动端适配 */
+            .legend-section {
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
+            
+            .legend-row {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            
+            .legend-item {
+                font-size: 0.8rem;
+                gap: 5px;
+            }
+            
+            .legend-bar {
+                width: 3px;
+                height: 16px;
+            }
+            
+            /* 列表适配 */
+            ul, ol {
+                margin-left: 15px;
+                padding-left: 5px;
+            }
+            
+            /* 表格移动端适配 */
+            table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.9rem;
+                min-width: 80px;
+            }
+            
+            /* 代码块适配 */
+            pre {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            
+            /* 数学公式适配 */
+            .math-block {
+                padding: 10px 8px;
+                margin: 15px 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* MathJax公式溢出处理 - 只处理块级公式，保持行内公式inline */
+            mjx-container[jax="CHTML"][display="true"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                display: block !important;
+            }
+            
+            /* 行内公式 - 超宽时自动换行 */
+            mjx-container:not([display="true"]) {
+                display: inline-block !important;
+                max-width: 100% !important;
+                overflow-wrap: break-word !important;
+                word-wrap: break-word !important;
+            }
+            
+            /* MathJax内部元素换行支持 */
+            mjx-math {
+                white-space: normal !important;
+            }
+            
+            mjx-mrow {
+                flex-wrap: wrap !important;
+            }
+            
+            /* Footer适配 */
+            .footer {
+                padding: 25px 15px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* 超小屏幕适配 (手机竖屏) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 8px;
+            }
+            
+            .hero {
+                padding: 40px 10px;
+            }
+            
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+            
+            .content-section {
+                padding: 15px 10px;
+                margin-left: 3px;
+                margin-right: 3px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 12px 10px;
+            }
+            
+            .legend-section {
+                padding: 12px 8px;
+            }
+            
+            .legend-row {
+                gap: 8px;
+            }
+            
+            .legend-item {
+                font-size: 0.75rem;
+            }
+            
+            ul, ol {
+                margin-left: 12px;
+            }
+        }
+        
+        /* 确保所有内容不溢出 */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* ========================================
+           TOC 目录样式
+           ======================================== */
+        
+        /* TOC 触发按钮 - 左上角小方块 */
+        .toc-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(54, 130, 140, 0.5);  /* 青色 50% 透明度 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .toc-toggle:hover {
+            background: rgba(54, 130, 140, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .toc-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* TOC 目录面板 */
+        .toc-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 95vw;  /* 手机浏览器宽度的 95% */
+            height: 80vh; /* 手机浏览器高度的 80% */
+            max-width: 450px;  /* 桌面端最大宽度 */
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0 0 16px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .toc-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* TOC 头部 - 标题在图标右侧 */
+        .toc-header {
+            padding: 15px 20px 15px 80px;  /* 左侧留出按钮空间 */
+            background: linear-gradient(135deg, #36828C 0%, #2a6a72 100%);
+            color: white;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .toc-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* TOC 内容区 */
+        .toc-content {
+            flex: 1;
+            overflow-y: auto;   /* 允许垂直滚动 */
+            overflow-x: hidden; /* 禁止水平滚动 */
+            padding: 15px 0;
+        }
+        
+        /* TOC 列表 */
+        .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc-item {
+            margin: 0;
+        }
+        
+        .toc-item a {
+            display: block;
+            padding: 4px 20px;  /* 更紧凑的行间距 */
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #2d3748;
+            text-decoration: none;
+            word-wrap: break-word;   /* 自动换行 */
+            overflow-wrap: break-word;
+            white-space: normal;     /* 允许换行 */
+            line-height: 1.3;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .toc-item a:hover {
+            background: #e8f4f5;
+            color: #36828C;
+            border-left-color: #36828C;
+        }
+        
+        /* 标题项样式 */
+        .toc-heading a {
+            font-weight: 600;
+            color: #1a365d;
+            background: #f7fafc;
+        }
+        
+        .toc-heading a:hover {
+            background: #e8f4f5;
+        }
+        
+        /* 当前活动的标题项样式 */
+        .toc-heading.active a {
+            background: #d0e8ea;
+            color: #36828C;
+            border-left-color: #36828C;
+            font-weight: 700;
+        }
+        
+        /* 当前活动的原文项样式 */
+        .toc-original.active a {
+            background: #36828C;
+            color: white;
+            box-shadow: 0 3px 8px rgba(54, 130, 140, 0.35);
+        }
+        
+        /* 原文项容器 - 横向排列自动换行 */
+        .toc-originals-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 8px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* 原文项样式 - 浅青色带阴影 */
+        .toc-original {
+            margin: 0;
+        }
+        
+        .toc-original a {
+            display: inline-block;
+            width: 64px;  /* 固定宽度确保每行显示数量一致 */
+            padding: 6px 4px;
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #36828C;  /* 青色主题色 */
+            text-decoration: none;
+            text-align: center;
+            background: #e8f4f5;
+            border-radius: 6px;
+            border-left: none;
+            box-shadow: 0 2px 4px rgba(54, 130, 140, 0.2);  /* 青色阴影 */
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .toc-original a:hover {
+            background: #e0f2f4;
+            color: #36828C;
+            box-shadow: 0 3px 6px rgba(54, 130, 140, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        /* TOC 遮罩层 */
+        .toc-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .toc-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 移动端 TOC 适配 */
+        @media (max-width: 768px) {
+            .toc-toggle {
+                top: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .toc-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .toc-panel {
+                width: 90vw;
+                height: 80vh;
+                max-width: none;
+            }
+            
+            .toc-header {
+                padding: 12px 15px 12px 65px;
+            }
+            
+            .toc-header h3 {
+                font-size: 16px;
+            }
+            
+            .toc-item a {
+                padding: 4px 15px;
+                font-size: 15.5px;
+            }
+            
+            .toc-originals-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            .toc-original a {
+                padding: 5px 10px;
+                font-size: 15.5px;
+            }
+        }
+
+        /* 特殊术语着色 */
+        .spectral {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .periodicity {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .fourier {
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        /* 列表样式增强 */
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 - 已移除重复定义，使用上方第602-633行的紧凑型样式 */
+
+        /* 分隔线 */
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 30px 0;
+        }
+
+        /* 数学公式样式 - Q7: 行间公式颜色用黑色 */
+        .math-block {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            color: #000000; /* Q7: 黑色文字 */
+        }
+
+        /* Q7: 确保MathJax渲染的公式为黑色 */
+        .math-block .MathJax {
+            color: #000000 !important;
+        }
+
+        mjx-container {
+            color: #000000 !important;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- TOC 目录按钮 -->
+    <button class="toc-toggle" id="tocToggle" aria-label="打开目录">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+        </svg>
+    </button>
+    
+    <!-- TOC 遮罩层 -->
+    <div class="toc-overlay" id="tocOverlay"></div>
+    
+    <!-- TOC 目录面板 -->
+    <nav class="toc-panel" id="tocPanel">
+        <div class="toc-header">
+            <h3>📑 目录</h3>
+        </div>
+        <div class="toc-content">
+            <ul class="toc-list">
+                <li class="toc-item toc-heading"><a href="#section-1">1. 1. COMS 3261 讲义 2B：确定性有限自动机练习解答</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-1">原文1</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-2">2. 2. 问题一：判断字符串接受情况</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-2">原文2</a></span><span class="toc-original"><a href="#original-3">原文3</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-3">3. 3. 问题二：DFA 的形式化定义</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-4">原文4</a></span><span class="toc-original"><a href="#original-5">原文5</a></span><span class="toc-original"><a href="#original-6">原文6</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-4">4. 4. 问题三：构造 DFA</a></li>
+                <li class="toc-item toc-heading"><a href="#section-5">4. 1.1 原文叙述</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-7">原文7</a></span><span class="toc-original"><a href="#original-8">原文8</a></span><span class="toc-original"><a href="#original-9">原文9</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-6">4. 2.1 原文叙述</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-10">原文10</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-7">4. 2.2 构造 L1 和 L2 的 DFA</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-11">原文11</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-8">4. 2.3 笛卡尔积构造</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-12">原文12</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-9">4. 3.1 原文叙述</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-13">原文13</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-10">4. 3.2 解答分析</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-14">原文14</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-11">5. 5. 问题四：描述 DFA 识别的语言</a></li>
+                <li class="toc-item toc-heading"><a href="#section-12">5. 1.1 原文叙述</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-15">原文15</a></span><span class="toc-original"><a href="#original-16">原文16</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-13">5. 1.2 解答分析</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-17">原文17</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-14">5. 2.1 原文叙述</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-18">原文18</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-15">5. 2.2 解答分析</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-19">原文19</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-16">6. 行间公式索引</a></li>
+                <li class="toc-item toc-heading"><a href="#section-17">7. 6. 附录：脚注解释</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-20">原文20</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-18">8. 行间公式索引</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>1. COMS 3261 讲义 2B：确定性有限自动机练习解答</h1>
+            <p class="authors"></p>
+            <p class="date"></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 图例区域 -->
+        <div class="legend-section">
+            <!-- 第一行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar original"></div>
+                    <span>📜 原文</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar explain"></div>
+                    <span>📖 逐步解释</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar formula"></div>
+                    <span>∑ 公式拆解</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar example"></div>
+                    <span>💡 数值示例</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar warning"></div>
+                    <span>⚠️ 易错点</span>
+                </div>
+            </div>
+            <!-- 第二行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar summary"></div>
+                    <span>📝 总结</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar purpose"></div>
+                    <span>🎯 存在目的</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar intuition"></div>
+                    <span>🧠 直觉心智模型</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar imagination"></div>
+                    <span>💭 直观想象</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="content-section" id="section-1">
+    <h2><span class="section-number">1</span>1. COMS 3261 讲义 2B：确定性有限自动机练习解答</h2>
+    <p id="original-1"><strong style="font-size: 1.3rem;">📜 [原文1]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>COMS 3261 讲义 2B：<strong>确定性有限自动机</strong>练习解答</p>
+<p>Angel Cui 和 Owen Keith</p>
+<p>2024 秋季</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分是文档的标题和作者信息。</p>
+<ul>
+  <li><strong>COMS 3261</strong>：这是课程代码，代表哥伦比亚大学的一门课程，通常与“计算机科学理论”或“计算理论导论”相关。</li>
+  <li><strong>讲义 2B</strong>：这表明该文档是系列讲义中的一部分，具体是第二单元B部分的内容，专注于练习题的解答。</li>
+  <li><strong>确定性有限自动机 (DFA)</strong>：这是本次讲义的核心主题。<strong>DFA</strong> 是一种计算模型，用于识别<strong>正则语言</strong>。它由有限数量的<strong>状态</strong>、一个<strong>字母表</strong>（允许的输入符号集合）、一个<strong>转移函数</strong>（根据当前<strong>状态</strong>和输入符号决定下一个<strong>状态</strong>）、一个<strong>起始状态</strong>和一个<strong>接受状态</strong>集合组成。</li>
+  <li><strong>Angel Cui 和 Owen Keith</strong>：文档的作者。</li>
+  <li><strong>2024 秋季</strong>：文档所属的学期。</li>
+</ul>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这部分为文档提供了上下文，明确了其主题（DFA练习解答）、来源（COMS 3261课程）和归属信息，帮助读者定位和理解文档的用途。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>可以把这份文档想象成一本练习册的答案解析。标题和作者信息就是这本解析的封面，告诉你这是哪门课、哪个章节的答案，由谁编写。</p>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-2">
+    <h2><span class="section-number">2</span>2. 问题一：判断字符串接受情况</h2>
+    <h3>2.1 原文叙述</h3><p id="original-2"><strong style="font-size: 1.3rem;">📜 [原文2]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>确定 $\varepsilon, 11,010,10,0101$ 中哪些被该 <strong>DFA</strong> <strong>接受</strong>。</p>
+<p><img src="https://cdn.mathpix.com/cropped/70c8ce0a-aa30-4c2e-b00a-2761e4d0688d-1.jpg?height=240&width=734&top_left_y=1138&top_left_x=706" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分提出了第一个问题：给定一个<strong>确定性有限自动机 (DFA)</strong> 的<strong>状态图</strong>，要求我们判断一系列给定的<strong>字符串</strong>是否被这个 <strong>DFA</strong> <strong>接受</strong>。</p>
+<ul>
+  <li><strong>DFA 状态图</strong>：这是 <strong>DFA</strong> 的一种可视化表示。</li>
+  <li><strong>圆圈</strong>：代表<strong>状态</strong>。图中有三个<strong>状态</strong>：$q_0, q_1, q_2$。</li>
+  <li><strong>指向 $q_0$ 的无源箭头</strong>：表示 $q_0$ 是<strong>起始状态</strong>。<strong>DFA</strong> 的计算总是从这里开始。</li>
+  <li><strong>双层圆圈</strong>：代表<strong>接受状态</strong>。图中 $q_1$ 是一个<strong>接受状态</strong>。如果一个<strong>字符串</strong>处理完毕后，<strong>DFA</strong> 恰好停在<strong>接受状态</strong>，那么该<strong>字符串</strong>就被<strong>接受</strong>。</li>
+  <li><strong>带标签的箭头</strong>：代表<strong>转移函数</strong> $\delta$。例如，从 $q_0$ 出发，有一个标着 "0" 的箭头指回 $q_0$，这表示当 <strong>DFA</strong> 处于 $q_0$ <strong>状态</strong>时，如果读入符号 "0"，它将转移到 $q_0$ <strong>状态</strong>。$\delta(q_0, 0) = q_0$。同样，$\delta(q_0, 1) = q_1$。</li>
+  <li><strong>接受 (Acceptance)</strong>：一个<strong>字符串</strong>被 <strong>DFA</strong> <strong>接受</strong>，当且仅当 <strong>DFA</strong> 从<strong>起始状态</strong>开始，按顺序读完<strong>字符串</strong>中的每一个<strong>符号</strong>并进行相应的<strong>状态转移</strong>后，最终停留的<strong>状态</strong>是一个<strong>接受状态</strong>。</li>
+  <li><strong>待检测字符串</strong>:</li>
+  <li>$\varepsilon$：<strong>空字符串</strong>，不包含任何<strong>符号</strong>。</li>
+  <li>$11$</li>
+  <li>$010$</li>
+  <li>$10$</li>
+  <li>$0101$</li>
+</ul>
+    </div>
+</div><h3>2.2 解答与分析</h3><p id="original-3"><strong style="font-size: 1.3rem;">📜 [原文3]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>我们从 <strong>起始状态</strong> 开始，逐步“遵循”给定的 <strong>字符串</strong> 通过 <strong>DFA</strong>，并检查它是否在 <strong>接受状态</strong> 结束。具体而言，</p>
+<ul>
+  <li>$\varepsilon$ 不被 <strong>接受</strong>，因为其 <strong>计算</strong> 中的 <strong>状态序列</strong> 为 $\left(q_{0}\right)$，而 $q_{0}$ 不是一个 <strong>接受状态</strong>。</li>
+  <li>11 被 <strong>接受</strong>，因为其 <strong>计算</strong> 中的 <strong>状态序列</strong> 为 $\left(q_{0}, q_{1}, q_{1}\right)$，而 $q_{1}$ 是一个 <strong>接受状态</strong>。</li>
+  <li>010 不被 <strong>接受</strong>，因为其 <strong>计算</strong> 中的 <strong>状态序列</strong> 为 ( $q_{0}, q_{0}, q_{1}, q_{2}$ )，而 $q_{2}$ 不是一个 <strong>接受状态</strong>。</li>
+  <li>10 不被 <strong>接受</strong>，因为其 <strong>计算</strong> 中的 <strong>状态序列</strong> 为 ( $q_{0}, q_{1}, q_{2}$ )，而 $q_{2}$ 不是一个 <strong>接受状态</strong>。</li>
+  <li>0101 被 <strong>接受</strong>，因为其 <strong>计算</strong> 中的 <strong>状态序列</strong> 为 $\left(q_{0}, q_{0}, q_{1}, q_{2}, q_{1}\right)$，而 $q_{1}$ 是一个 <strong>接受状态</strong>。</li>
+</ul>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这里详细解释了每个<strong>字符串</strong>的“计算过程”，即<strong>状态</strong>的演变序列。</p>
+<ol>
+  <li> <strong>处理字符串 $\varepsilon$</strong>：
+<ul>
+  <li><strong>计算开始</strong>：<strong>DFA</strong> 处于<strong>起始状态</strong> $q_0$。</li>
+  <li><strong>读取字符串</strong>：$\varepsilon$ 是<strong>空字符串</strong>，没有<strong>符号</strong>可读。</li>
+  <li><strong>计算结束</strong>：<strong>DFA</strong> 停留在 $q_0$。</li>
+  <li><strong>判断</strong>：$q_0$ 不是<strong>接受状态</strong>（不是双圈）。</li>
+  <li><strong>结论</strong>：$\varepsilon$ 不被<strong>接受</strong>。</li>
+  <li><strong>状态序列</strong>: $(q_0)$</li>
+</ul></li>
+  <li> <strong>处理字符串 $11$</strong>：
+<ul>
+  <li><strong>计算开始</strong>：<strong>DFA</strong> 处于<strong>起始状态</strong> $q_0$。</li>
+  <li><strong>读取第一个 '1'</strong>：根据<strong>转移</strong> $\delta(q_0, 1) = q_1$，<strong>DFA</strong> 从 $q_0$ 转移到 $q_1$。</li>
+  <li><strong>读取第二个 '1'</strong>：根据<strong>转移</strong> $\delta(q_1, 1) = q_1$，<strong>DFA</strong> 从 $q_1$ 转移到 $q_1$。</li>
+  <li><strong>计算结束</strong>：<strong>字符串</strong>读取完毕，<strong>DFA</strong> 停留在 $q_1$。</li>
+  <li><strong>判断</strong>：$q_1$ 是<strong>接受状态</strong>（是双圈）。</li>
+  <li><strong>结论</strong>：$11$ 被<strong>接受</strong>。</li>
+  <li><strong>状态序列</strong>: $(q_0, q_1, q_1)$</li>
+</ul></li>
+  <li> <strong>处理字符串 $010$</strong>：
+<ul>
+  <li><strong>计算开始</strong>：<strong>DFA</strong> 处于<strong>起始状态</strong> $q_0$。</li>
+  <li><strong>读取第一个 '0'</strong>：根据<strong>转移</strong> $\delta(q_0, 0) = q_0$，<strong>DFA</strong> 停留在 $q_0$。</li>
+  <li><strong>读取第二个 '1'</strong>：根据<strong>转移</strong> $\delta(q_0, 1) = q_1$，<strong>DFA</strong> 转移到 $q_1$。</li>
+  <li><strong>读取第三个 '0'</strong>：根据<strong>转移</strong> $\delta(q_1, 0) = q_2$，<strong>DFA</strong> 转移到 $q_2$。</li>
+  <li><strong>计算结束</strong>：<strong>字符串</strong>读取完毕，<strong>DFA</strong> 停留在 $q_2$。</li>
+  <li><strong>判断</strong>：$q_2$ 不是<strong>接受状态</strong>。</li>
+  <li><strong>结论</strong>：$010$ 不被<strong>接受</strong>。</li>
+  <li><strong>状态序列</strong>: $(q_0, q_0, q_1, q_2)$</li>
+</ul></li>
+  <li> <strong>处理字符串 $10$</strong>：
+<ul>
+  <li><strong>计算开始</strong>：<strong>DFA</strong> 处于<strong>起始状态</strong> $q_0$。</li>
+  <li><strong>读取第一个 '1'</strong>：根据<strong>转移</strong> $\delta(q_0, 1) = q_1$，<strong>DFA</strong> 转移到 $q_1$。</li>
+  <li><strong>读取第二个 '0'</strong>：根据<strong>转移</strong> $\delta(q_1, 0) = q_2$，<strong>DFA</strong> 转移到 $q_2$。</li>
+  <li><strong>计算结束</strong>：<strong>字符串</strong>读取完毕，<strong>DFA</strong> 停留在 $q_2$。</li>
+  <li><strong>判断</strong>：$q_2$ 不是<strong>接受状态</strong>。</li>
+  <li><strong>结论</strong>：$10$ 不被<strong>接受</strong>。</li>
+  <li><strong>状态序列</strong>: $(q_0, q_1, q_2)$</li>
+</ul></li>
+  <li> <strong>处理字符串 $0101$</strong>：
+<ul>
+  <li><strong>计算开始</strong>：<strong>DFA</strong> 处于<strong>起始状态</strong> $q_0$。</li>
+  <li><strong>读取第一个 '0'</strong>：$\delta(q_0, 0) = q_0$。当前<strong>状态</strong> $q_0$。</li>
+  <li><strong>读取第二个 '1'</strong>：$\delta(q_0, 1) = q_1$。当前<strong>状态</strong> $q_1$。</li>
+  <li><strong>读取第三个 '0'</strong>：$\delta(q_1, 0) = q_2$。当前<strong>状态</strong> $q_2$。</li>
+  <li><strong>读取第四个 '1'</strong>：$\delta(q_2, 1) = q_1$。当前<strong>状态</strong> $q_1$。</li>
+  <li><strong>计算结束</strong>：<strong>字符串</strong>读取完毕，<strong>DFA</strong> 停留在 $q_1$。</li>
+  <li><strong>判断</strong>：$q_1$ 是<strong>接受状态</strong>。</li>
+  <li><strong>结论</strong>：$0101$ 被<strong>接受</strong>。</li>
+  <li><strong>状态序列</strong>: $(q_0, q_0, q_1, q_2, q_1)$</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1：字符串 "101"</strong></li>
+</ul>
+<ol>
+  <li> 从 $q_0$ 开始。</li>
+  <li> 读 '1'，转移到 $q_1$。</li>
+  <li> 读 '0'，转移到 $q_2$。</li>
+  <li> 读 '1'，转移到 $q_1$。</li>
+  <li> 结束在 $q_1$。$q_1$ 是<strong>接受状态</strong>，所以 "101" 被<strong>接受</strong>。
+<ul>
+  <li><strong>示例2：字符串 "000"</strong></li>
+</ul></li>
+  <li> 从 $q_0$ 开始。</li>
+  <li> 读 '0'，转移到 $q_0$。</li>
+  <li> 读 '0'，转移到 $q_0$。</li>
+  <li> 读 '0'，转移到 $q_0$。</li>
+  <li> 结束在 $q_0$。$q_0$ 不是<strong>接受状态</strong>，所以 "000" 不被<strong>接受</strong>。</li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>空字符串 $\varepsilon$</strong>：初学者容易忽略<strong>空字符串</strong>。对<strong>空字符串</strong>的判断非常简单：只需看<strong>起始状态</strong>本身是否是<strong>接受状态</strong>。</li>
+  <li><strong>混淆状态和转移</strong>：必须严格按照箭头和标签来转移。例如在 $q_1$ 读到 '1'，箭头指回 $q_1$ 自身，而不是去别的<strong>状态</strong>。</li>
+  <li><strong>只看最后一个符号</strong>：<strong>DFA</strong> 的最终<strong>状态</strong>取决于整个<strong>字符串</strong>的计算路径，而不仅仅是最后一个<strong>符号</strong>。例如，对于 "010" 和 "10"，它们都以 '0' 结尾，但前者不被<strong>接受</strong>，后者也不被<strong>接受</strong>，但它们的路径是不同的。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>该问题考察了 <strong>DFA</strong> 的基本工作原理。核心思想是模拟<strong>字符串</strong>在 <strong>DFA</strong> 上的执行过程：从<strong>起始状态</strong>出发，根据<strong>输入符号</strong>，沿着<strong>转移函数</strong>定义的路径一步步改变<strong>状态</strong>，最终检查停留的<strong>状态</strong>是否属于<strong>接受状态</strong>集合。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个练习的目的是为了巩固学生对 <strong>DFA</strong> <strong>计算过程</strong>的理解，即将一个抽象的计算模型应用到具体的输入上，并得出确定的输出（<strong>接受</strong>或<strong>拒绝</strong>）。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>可以把 <strong>DFA</strong> 想象成一个简单的棋盘游戏。</p>
+<ol>
+  <li><strong>棋盘</strong>：就是<strong>状态图</strong>。</li>
+  <li><strong>棋子</strong>：代表当前的计算位置。</li>
+  <li><strong>起点</strong>：<strong>起始状态</strong> $q_0$。</li>
+  <li><strong>骰子</strong>：就是输入的<strong>字符串</strong>。你按顺序掷出<strong>字符串</strong>的每个<strong>符号</strong>。</li>
+  <li><strong>移动规则</strong>：<strong>转移箭头</strong>。每次掷出一个<strong>符号</strong>，你就根据当前棋子位置（<strong>状态</strong>）和掷出的<strong>符号</strong>，把棋子移动到下一个位置。</li>
+  <li><strong>胜利条件</strong>：当所有<strong>符号</strong>都掷完后，如果棋子停在了一个“胜利格子”（<strong>接受状态</strong>）上，你就赢了（<strong>字符串</strong>被<strong>接受</strong>）。</li>
+</ol>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-3">
+    <h2><span class="section-number">3</span>3. 问题二：DFA 的形式化定义</h2>
+    <h3>3.1 原文叙述</h3><p id="original-4"><strong style="font-size: 1.3rem;">📜 [原文4]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>下方的 <strong>DFA 状态图</strong> 定义在 <strong>字母表</strong> $\Sigma=\{a, b, c\}$ 上。写出其 <strong>形式化定义</strong>（作为一个 <strong>五元组</strong>）。在指定 <strong>转移函数</strong> $\delta$ 时，画出一个 <strong>表格</strong>。</p>
+<p><img src="https://cdn.mathpix.com/cropped/70c8ce0a-aa30-4c2e-b00a-2761e4d0688d-2.jpg?height=647&width=873&top_left_y=655&top_left_x=625" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题要求我们将一个给定的 <strong>DFA</strong> <strong>状态图</strong> 翻译成其<strong>形式化定义</strong>。<strong>形式化定义</strong>是描述 <strong>DFA</strong> 的一种精确、无歧义的数学语言。</p>
+<ul>
+  <li><strong>形式化定义 (五元组)</strong>：一个 <strong>DFA</strong> $D$ 被定义为一个五元组 $D = (Q, \Sigma, \delta, q_0, F)$，其中：</li>
+</ul>
+<ol>
+  <li> $Q$：一个<strong>有限</strong>的<strong>状态</strong>集合 (a finite set of states)。</li>
+  <li> $\Sigma$：一个<strong>有限</strong>的<strong>字母表</strong> (a finite alphabet)，即输入<strong>符号</strong>的集合。</li>
+  <li> $\delta: Q \times \Sigma \to Q$：<strong>转移函数</strong> (the transition function)。它接受当前<strong>状态</strong>和当前<strong>输入符号</strong>，输出下一个<strong>状态</strong>。</li>
+  <li> $q_0 \in Q$：<strong>起始状态</strong> (the start state)。</li>
+  <li> $F \subseteq Q$：<strong>接受状态</strong>的集合 (the set of accept states)。
+<ul>
+  <li><strong>分析状态图</strong>:</li>
+  <li><strong>状态 $Q$</strong>：图中有四个圆圈，分别标记为 $q_0, q_1, q_2, q_3$。所以 $Q = \{q_0, q_1, q_2, q_3\}$。</li>
+  <li><strong>字母表 $\Sigma$</strong>：题目已给出 $\Sigma = \{a, b, c\}$。</li>
+  <li><strong>起始状态 $q_0$</strong>：$q_0$ 有一个无源的指向它的箭头，所以 $q_0$ 是<strong>起始状态</strong>。</li>
+  <li><strong>接受状态 $F$</strong>：$q_1$ 是双层圆圈，所以 $F = \{q_1\}$。注意，只有一个<strong>接受状态</strong>，所以它被放在一个集合中。</li>
+  <li><strong>转移函数 $\delta$</strong>：我们需要根据图中的箭头来构建一个表格。表格的行是当前<strong>状态</strong>，列是<strong>输入符号</strong>，表格单元格是下一个<strong>状态</strong>。</li>
+</ul></li>
+</ol>
+    </div>
+</div><h3>3.2 解答与分析</h3><p id="original-5"><strong style="font-size: 1.3rem;">📜 [原文5]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>因此我们有 $D=\left\{Q, \Sigma, \delta, q_{0}, F\right\}$，其中：</p>
+<ul>
+  <li>$Q=\left\{q_{0}, q_{1}, q_{2}, q_{3}\right\}$</li>
+  <li>$\Sigma=\{a, b, c\}$</li>
+  <li>$\delta$ 描述如下：</li>
+</ul>
+<table>
+  <thead>
+    <tr>
+      <th class="align-center"></th>
+      <th class="align-center">a</th>
+      <th class="align-center">b</th>
+      <th class="align-center">c</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="align-center">$q_{0}$</td>
+      <td class="align-center">$q_{1}$</td>
+      <td class="align-center">$q_{3}$</td>
+      <td class="align-center">$q_{3}$</td>
+    </tr>
+    <tr>
+      <td class="align-center">$q_{1}$</td>
+      <td class="align-center">$q_{1}$</td>
+      <td class="align-center">$q_{2}$</td>
+      <td class="align-center">$q_{3}$</td>
+    </tr>
+    <tr>
+      <td class="align-center">$q_{2}$</td>
+      <td class="align-center">$q_{1}$</td>
+      <td class="align-center">$q_{2}$</td>
+      <td class="align-center">$q_{3}$</td>
+    </tr>
+    <tr>
+      <td class="align-center">$q_{3}$</td>
+      <td class="align-center">$q_{3}$</td>
+      <td class="align-center">$q_{3}$</td>
+      <td class="align-center">$q_{3}$</td>
+    </tr>
+  </tbody>
+</table>
+<ul>
+  <li>$q_{0}$ 是 <strong>起始状态</strong></li>
+  <li>$F=\left\{q_{1}\right\}$ 是 <strong>接受状态</strong> 集合</li>
+</ul>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分给出了完整的<strong>五元组</strong>定义。</p>
+<ol>
+  <li> <strong>$Q = \{q_0, q_1, q_2, q_3\}$</strong>：正确地列出了图中所有的<strong>状态</strong>。</li>
+  <li> <strong>$\Sigma = \{a, b, c\}$</strong>：正确地使用了题目给出的<strong>字母表</strong>。</li>
+  <li> <strong>$\delta$ 的表格</strong>：这个表格是对<strong>转移函数</strong>的完整描述。让我们逐行核对：
+<ul>
+  <li><strong>行 $q_0$</strong>：</li>
+  <li>读 'a'：$\delta(q_0, a)$，从 $q_0$ 有个标 'a' 的箭头指向 $q_1$。所以是 $q_1$。正确。</li>
+  <li>读 'b'：$\delta(q_0, b)$，从 $q_0$ 有个标 'b' 的箭头指向 $q_3$。所以是 $q_3$。正确。</li>
+  <li>读 'c'：$\delta(q_0, c)$，从 $q_0$ 有个标 'c' 的箭头指向 $q_3$。所以是 $q_3$。正确。</li>
+  <li><strong>行 $q_1$</strong>：</li>
+  <li>读 'a'：$\delta(q_1, a)$，从 $q_1$ 有个标 'a' 的箭头指回 $q_1$。所以是 $q_1$。正确。</li>
+  <li>读 'b'：$\delta(q_1, b)$，从 $q_1$ 有个标 'b' 的箭头指向 $q_2$。所以是 $q_2$。正确。</li>
+  <li>读 'c'：$\delta(q_1, c)$，从 $q_1$ 有个标 'c' 的箭头指向 $q_3$。所以是 $q_3$。正确。</li>
+  <li><strong>行 $q_2$</strong>：</li>
+  <li>读 'a'：$\delta(q_2, a)$，从 $q_2$ 有个标 'a' 的箭头指向 $q_1$。所以是 $q_1$。正确。</li>
+  <li>读 'b'：$\delta(q_2, b)$，从 $q_2$ 有个标 'b' 的箭头指回 $q_2$。所以是 $q_2$。正确。</li>
+  <li>读 'c'：$\delta(q_2, c)$，从 $q_2$ 有个标 'c' 的箭头指向 $q_3$。所以是 $q_3$。正确。</li>
+  <li><strong>行 $q_3$</strong>：</li>
+  <li>读 'a', 'b', 'c'：从 $q_3$ 有一个标有 "a, b, c" 的箭头指回 $q_3$ 自身。这意味着对于任何<strong>输入符号</strong>，<strong>状态</strong>都保持不变。所以 $\delta(q_3, a)=q_3$, $\delta(q_3, b)=q_3$, $\delta(q_3, c)=q_3$。全部正确。</li>
+</ul></li>
+  <li> <strong>$q_0$ 是起始状态</strong>：正确识别。</li>
+  <li> <strong>$F = \{q_1\}$</strong>：正确识别<strong>接受状态</strong>并将其放入集合中。</li>
+</ol>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>$D=\left\{Q, \Sigma, \delta, q_{0}, F\right\}$</strong>:</li>
+  <li>$D$: 代表这个<strong>DFA</strong>本身。</li>
+  <li>$Q$: <strong>状态</strong>集合，在此例中为 $\{q_0, q_1, q_2, q_3\}$。</li>
+  <li>$\Sigma$: <strong>字母表</strong>，在此例中为 $\{a, b, c\}$。</li>
+  <li>$\delta$: <strong>转移函数</strong>，以表格形式给出。例如，$\delta(q_1, b) = q_2$。</li>
+  <li>$q_0$: <strong>起始状态</strong>，就是 $q_0$。</li>
+  <li>$F$: <strong>接受状态</strong>集合，在此例中为 $\{q_1\}$。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1: 形式化表示的用途</strong></li>
+  <li>假设我们要追踪字符串 "ab"。</li>
+</ul>
+<ol>
+  <li> 开始于 $q_0$。</li>
+  <li> 读取 'a'。我们查找 $\delta(q_0, a)$。根据表格，$\delta(q_0, a) = q_1$。转移到 $q_1$。</li>
+  <li> 读取 'b'。我们查找 $\delta(q_1, b)$。根据表格，$\delta(q_1, b) = q_2$。转移到 $q_2$。</li>
+  <li> 字符串结束，停在 $q_2$。因为 $q_2 \notin F$，所以 "ab" 不被接受。
+<ul>
+  <li><strong>示例2: 字符串 "ac"</strong></li>
+</ul></li>
+  <li> 开始于 $q_0$。</li>
+  <li> 读取 'a'。$\delta(q_0, a) = q_1$。转移到 $q_1$。</li>
+  <li> 读取 'c'。$\delta(q_1, c) = q_3$。转移到 $q_3$。</li>
+  <li> 字符串结束，停在 $q_3$。因为 $q_3 \notin F$，所以 "ac" 不被接受。</li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>$F$ 不是集合</strong>：一个常见的错误是写 $F = q_1$。<strong>接受状态</strong>的定义是一个<strong>集合</strong>，所以即使只有一个<strong>接受状态</strong>，也必须写成 $F = \{q_1\}$。</li>
+  <li><strong>$\delta$ 不是函数</strong>：<strong>DFA</strong> 的<strong>转移函数</strong> $\delta$ 必须是<strong>完全的</strong> (total)，即对于每个<strong>状态</strong>和每个<strong>字母表</strong>中的<strong>符号</strong>，都必须有且只有一个<strong>转移</strong>。表格的形式强制了这一点，每一格都必须被填满。</li>
+  <li><strong>忘记起始/接受状态</strong>：<strong>五元组</strong>的每个部分都至关重要，缺一不可。</li>
+</ol>
+    </div>
+</div><h3>3.3 关于死状态的说明</h3><p id="original-6"><strong style="font-size: 1.3rem;">📜 [原文6]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>注意 $q_{3}$ 是一个 <strong>死状态</strong> $/$ <strong>拒绝状态</strong> $/$ <strong>坏状态</strong>。${ }^{1}$ 我们也可以不画出这个 $q_{3}$ 状态，因为对于 <strong>DFA</strong>，我们有一个 <strong>约定</strong>，即当存在缺失的 <strong>转移</strong> 时，意味着它们将进入一个 <strong>死状态</strong> $/$ <strong>拒绝状态</strong> $/$ <strong>坏状态</strong>。然而，在 <strong>DFA</strong> 的 <strong>正式规范</strong> 中，我们必须包含所有 <strong>状态</strong>。</p>
+<p>[^0]: ${ }^{1}$ 一个“<strong>死</strong>”<strong>状态</strong>是指一个不是 <strong>接受状态</strong> 的 <strong>状态</strong> $q$，且对于每个 <strong>符号</strong> $\sigma$，我们都有 $\delta(q, \sigma)=q$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>死状态 (Dead State)</strong>：也称为<strong>陷阱状态 (Trap State)</strong> 或<strong>垃圾状态 (Garbage State)</strong>。它是一个特殊的<strong>非接受状态</strong>，一旦进入，就再也无法离开。从图中可以看到，$q_3$ 就是一个<strong>死状态</strong>，因为所有从 $q_3$ 出发的<strong>转移</strong>都指回它自己，而且 $q_3$ 不是<strong>接受状态</strong>。一旦计算路径到达 $q_3$，无论后面还有什么<strong>输入符号</strong>，<strong>DFA</strong> 都会一直停留在 $q_3$，因此该<strong>字符串</strong>最终一定会被<strong>拒绝</strong>。</li>
+  <li><strong>省略死状态的约定</strong>：在绘制 <strong>DFA</strong> <strong>状态图</strong>时，为了简化图形，人们常常会省略<strong>死状态</strong>以及所有指向它的<strong>转移</strong>。如果从某个<strong>状态</strong>出发，对于某个<strong>输入符号</strong>，图中没有画出对应的<strong>转移</strong>箭头，那么就默认这个<strong>转移</strong>是指向一个不可见的<strong>死状态</strong>。</li>
+  <li><strong>形式化定义的要求</strong>：尽管在画图时可以省略<strong>死状态</strong>，但在编写<strong>形式化定义</strong>时，<strong>DFA</strong> 的<strong>转移函数</strong> $\delta$ 必须是<strong>完全的</strong>。这意味着定义域 $Q \times \Sigma$ 中的每一个元素都必须有对应的输出。因此，<strong>死状态</strong>必须被明确地包含在<strong>状态</strong>集 $Q$ 中，并且所有指向它的<strong>转移</strong>也必须在<strong>转移函数</strong> $\delta$ 中明确定义。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这个问题考察了从 <strong>DFA</strong> 的<strong>状态图</strong>（可视化表示）转换到其<strong>形式化五元组定义</strong>（数学表示）的能力。这需要准确识别<strong>状态集</strong> $Q$、<strong>字母表</strong> $\Sigma$、<strong>起始状态</strong> $q_0$、<strong>接受状态集</strong> $F$，并以表格或函数列表的形式完整描述<strong>转移函数</strong> $\delta$。同时，该问题也引入了“<strong>死状态</strong>”的概念及其在<strong>形式化定义</strong>和<strong>状态图</strong>约定中的不同处理方式。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个练习的目的是让学生熟练掌握 <strong>DFA</strong> 的两种核心表示方法（<strong>状态图</strong>和<strong>形式化定义</strong>）之间的转换。<strong>形式化定义</strong>是理论分析和证明的基础，而<strong>状态图</strong>则提供了直观的理解。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>状态图</strong>就像一张手绘的城市地图，标出了地点（<strong>状态</strong>）和路线（<strong>转移</strong>）。</li>
+  <li><strong>形式化定义</strong>就像一份用GPS坐标和精确街道名称写成的导航指令文档。</li>
+  <li><strong>死状态</strong>就像地图上的一个“黑洞”区域或一个“有进无出”的迷宫。一旦开车进去，就只能在里面兜圈子，永远到不了任何目的地（<strong>接受状态</strong>）。在手绘地图上，为了简洁，你可能干脆不画这个“黑洞”，只告诉别人“没有路就是死路”。但在精确的导航指令中，你必须明确指出这条路通向“黑洞”。</li>
+</ol>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-4">
+    <h2><span class="section-number">4</span>4. 问题三：构造 DFA</h2>
+    <h3>4.1 构造 DFA (a): 语言补集法</h3>
+</section>
+
+<section class="content-section" id="section-5">
+    <h2><span class="section-number">4</span>1.1 原文叙述</h2>
+    <p id="original-7"><strong style="font-size: 1.3rem;">📜 [原文7]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>画出 <strong>识别</strong> 以下 <strong>语言</strong> 的 <strong>DFA</strong>：</p>
+<p>(a) $L=\left\{w \in\{a, b\}^{*} \mid w \text{ 不包含恰好两个 } a \right\}$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题要求我们为一个特定的<strong>语言</strong> $L$ 设计一个 <strong>DFA</strong>。</p>
+<ul>
+  <li><strong>语言 $L$ 的描述</strong>：</li>
+  <li><strong>字母表</strong>是 $\{a, b\}$。</li>
+  <li><strong>语言</strong>中的<strong>字符串</strong> $w$ 满足一个条件：$w$ 中 'a' 的数量不等于 2。</li>
+  <li>这意味着 'a' 的数量可以是 0, 1, 3, 4, 5, ... 等等，但唯独不能是 2。</li>
+</ul>
+    </div>
+</div><p id="original-8"><strong style="font-size: 1.3rem;">📜 [原文8]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>我们在课上看到 <strong>正则语言</strong> 的 <strong>补集</strong> 也是 <strong>正则</strong> 的，即如果 $L$ 是 <strong>正则</strong> 的，那么 $\bar{L}$ 也是 <strong>正则</strong> 的。有时，为 $\bar{L}$ 构造一个 <strong>DFA</strong> 会更容易，然后通过我们在课上看到的构造方法，翻转所有 <strong>接受状态</strong> 和 <strong>拒绝状态</strong>，从而得到 $L$ 的 <strong>DFA</strong>。</p>
+<p>我们有 $\bar{L}=\left\{w \in\{a, b\}^{*} \mid w \text{ 包含恰好两个 } a \right\}$，因此 $\bar{L}$ 的 <strong>DFA</strong> 如下所示。不难看出以下是一个 $\bar{L}$ 的 <strong>DFA</strong>。</p>
+<p><img src="https://cdn.mathpix.com/cropped/70c8ce0a-aa30-4c2e-b00a-2761e4d0688d-3.jpg?height=205&width=1039&top_left_y=932&top_left_x=541" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这里提出了一种非常重要的解题策略：<strong>通过构造补集语言的 DFA 来解决</strong>。</p>
+<ul>
+  <li><strong>补集语言 (Complement Language)</strong> $\bar{L}$：</li>
+  <li>对于一个定义在<strong>字母表</strong> $\Sigma$ 上的<strong>语言</strong> $L$，它的<strong>补集</strong> $\bar{L}$ 包含了所有不在 $L$ 中，但由 $\Sigma$ 中的<strong>符号</strong>构成的<strong>字符串</strong>。</li>
+  <li>在本例中，$\Sigma^* = \{a,b\}^*$ 是所有可能的 'a' 和 'b' 构成的<strong>字符串</strong>集合。</li>
+  <li>$L$ 是 “'a' 的数量<strong>不</strong>是 2” 的<strong>字符串</strong>集合。</li>
+  <li>那么 $\bar{L}$ 就是 “‘a’ 的数量<strong>是</strong> 2” 的<strong>字符串</strong>集合。</li>
+  <li><strong>为什么先构造 $\bar{L}$ 的 DFA</strong>：</li>
+  <li>描述“恰好有两个 'a'”比描述“'a' 的数量不是 2”要直接得多。我们可以用<strong>状态</strong>来计数 'a' 的出现次数。</li>
+  <li><strong>状态 $q_0$</strong>：表示到目前为止看到了 0 个 'a'。</li>
+  <li><strong>状态 $q_1$</strong>：表示到目前为止看到了 1 个 'a'。</li>
+  <li><strong>状态 $q_2$</strong>：表示到目前为止看到了 2 个 'a'。</li>
+  <li><strong>状态 $q_3$</strong>：表示到目前为止看到了 超过 2 个 'a'。</li>
+  <li><strong>分析 $\bar{L}$ 的 DFA</strong>：</li>
+  <li><strong>起始状态</strong> $q_0$（0 个 'a'）。</li>
+  <li>从 $q_0$ 读到 'b'，'a' 的数量不变，留在 $q_0$。读到 'a'，'a' 的数量变为 1，转移到 $q_1$。</li>
+  <li>从 $q_1$ 读到 'b'，'a' 的数量不变，留在 $q_1$。读到 'a'，'a' 的数量变为 2，转移到 $q_2$。</li>
+  <li>从 $q_2$ 读到 'b'，'a' 的数量不变，留在 $q_2$。读到 'a'，'a' 的数量变为 3，超过了 2，转移到 $q_3$ (一个<strong>死状态</strong>，因为一旦超过 2 个 'a'，就不可能再满足“恰好 2 个”的条件)。</li>
+  <li>从 $q_3$ 读到任何<strong>符号</strong>，'a' 的数量仍然大于 2，留在 $q_3$。</li>
+  <li><strong>接受状态</strong>：<strong>语言</strong> $\bar{L}$ 要求<strong>字符串</strong>结束时有“恰好两个 'a'”。这正好对应<strong>状态</strong> $q_2$。所以 $q_2$ 是唯一的<strong>接受状态</strong>。</li>
+  <li>图中所示的 <strong>DFA</strong> 完全符合这个逻辑。</li>
+</ul>
+    </div>
+</div><p id="original-9"><strong style="font-size: 1.3rem;">📜 [原文9]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>因此，$L$ 的 <strong>DFA</strong> 将会是：</p>
+<p><img src="https://cdn.mathpix.com/cropped/70c8ce0a-aa30-4c2e-b00a-2761e4d0688d-3.jpg?height=214&width=1049&top_left_y=1211&top_left_x=537" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>从 $\bar{L}$ 的 DFA 构造 $L$ 的 DFA</strong>：</li>
+  <li>理论基础：如果一个 <strong>DFA</strong> $M = (Q, \Sigma, \delta, q_0, F)$ <strong>识别</strong> <strong>语言</strong> $\bar{L}$，那么 <strong>DFA</strong> $M' = (Q, \Sigma, \delta, q_0, Q \setminus F)$ 将<strong>识别</strong> <strong>语言</strong> $L$。</li>
+  <li>$Q \setminus F$ 表示从<strong>状态</strong>全集 $Q$ 中去掉原<strong>接受状态</strong>集 $F$ 后剩下的<strong>状态</strong>。</li>
+  <li><strong>直观操作</strong>：将原来所有的<strong>接受状态</strong>变成<strong>非接受状态</strong>，同时将原来所有的<strong>非接受状态</strong>变成<strong>接受状态</strong>。</li>
+  <li><strong>应用到本题</strong>：</li>
+  <li>原 <strong>DFA</strong> (for $\bar{L}$) 中：</li>
+  <li>$Q = \{q_0, q_1, q_2, q_3\}$</li>
+  <li>$F = \{q_2\}$ (唯一的<strong>接受状态</strong>)</li>
+  <li>非<strong>接受状态</strong>是 $\{q_0, q_1, q_3\}$。</li>
+  <li>新 <strong>DFA</strong> (for $L$) 中：</li>
+  <li><strong>状态</strong>、<strong>字母表</strong>、<strong>转移函数</strong>、<strong>起始状态</strong>都保持不变。</li>
+  <li>新的<strong>接受状态</strong>集 $F'$ 就是原来的<strong>非接受状态</strong>集。所以 $F' = \{q_0, q_1, q_3\}$。</li>
+  <li><strong>检查新的DFA</strong>：</li>
+  <li><strong>起始状态</strong> $q_0$ 变为<strong>接受状态</strong>。这<strong>接受</strong>了 'a' 数量为 0 的<strong>字符串</strong> (例如 $\varepsilon$, "b", "bb")。正确。</li>
+  <li>$q_1$ 变为<strong>接受状态</strong>。这<strong>接受</strong>了 'a' 数量为 1 的<strong>字符串</strong> (例如 "a", "bab")。正确。</li>
+  <li>$q_2$ 变为<strong>非接受状态</strong>。这<strong>拒绝</strong>了 'a' 数量恰好为 2 的<strong>字符串</strong> (例如 "aa", "aba")。正确。</li>
+  <li>$q_3$ 变为<strong>接受状态</strong>。这<strong>接受</strong>了 'a' 数量大于 2 的<strong>字符串</strong> (例如 "aaa", "ababa")。正确。</li>
+  <li>这个新的 <strong>DFA</strong> 正确地<strong>识别</strong>了<strong>语言</strong> $L$。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>对 $\bar{L}$ 的 DFA (恰好两个 'a')</strong>:</li>
+  <li><strong>字符串 "aba"</strong>: $q_0 \xrightarrow{a} q_1 \xrightarrow{b} q_1 \xrightarrow{a} q_2$。停在 $q_2$ (接受)。</li>
+  <li><strong>字符串 "bb"</strong>: $q_0 \xrightarrow{b} q_0 \xrightarrow{b} q_0$。停在 $q_0$ (拒绝)。</li>
+  <li><strong>字符串 "aaab"</strong>: $q_0 \xrightarrow{a} q_1 \xrightarrow{a} q_2 \xrightarrow{a} q_3 \xrightarrow{b} q_3$。停在 $q_3$ (拒绝)。</li>
+  <li><strong>对 $L$ 的 DFA (不恰好两个 'a')</strong>:</li>
+  <li><strong>字符串 "aba"</strong>: $q_0 \xrightarrow{a} q_1 \xrightarrow{b} q_1 \xrightarrow{a} q_2$。停在 $q_2$ (拒绝)。</li>
+  <li><strong>字符串 "bb"</strong>: $q_0 \xrightarrow{b} q_0 \xrightarrow{b} q_0$。停在 $q_0$ (接受)。</li>
+  <li><strong>字符串 "aaab"</strong>: $q_0 \xrightarrow{a} q_1 \xrightarrow{a} q_2 \xrightarrow{a} q_3 \xrightarrow{b} q_3$。停在 $q_3$ (接受)。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>忘记翻转所有状态</strong>：在从 $\bar{L}$ 的 <strong>DFA</strong> 构造 $L$ 的 <strong>DFA</strong> 时，必须翻转<strong>每一个</strong>状态的接受属性，不能遗漏。</li>
+  <li><strong>补集思想的误用</strong>：补集法只适用于<strong>DFA</strong>。对于<strong>非确定性有限自动机 (NFA)</strong>，简单地翻转<strong>接受/非接受状态</strong>并不总是能得到其<strong>补集语言</strong>的 <strong>NFA</strong>。</li>
+  <li><strong>死状态的处理</strong>：在翻转时，原来的<strong>死状态</strong>（如 $q_3$）会变成一个新的<strong>接受状态</strong>。这是正确的，因为一旦进入 $q_3$，意味着 'a' 的数量已经大于2，这符合“不等于2”的条件。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本题展示了一个强大的 <strong>DFA</strong> 设计技巧：当直接设计目标<strong>语言</strong> $L$ 的 <strong>DFA</strong> 比较复杂时，可以尝试设计其<strong>补集语言</strong> $\bar{L}$ 的 <strong>DFA</strong>，然后通过“翻转”所有<strong>状态</strong>的<strong>接受/非接受</strong>属性来获得 $L$ 的 <strong>DFA</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个练习旨在教授和巩固<strong>正则语言</strong>的<strong>闭包性质</strong>之一——<strong>对补集运算封闭</strong>。它提供了一个具体的构造性证明，并展示了如何利用这一性质简化 <strong>DFA</strong> 的设计过程。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你要雇一个保安，他的任务是“不允许恰好两个人进入大楼”。</p>
+<ol>
+  <li><strong>直接方法</strong>（设计 $L$ 的 DFA）：你告诉保安：“如果进来的人数是0, 1, 3, 4, 5, ...，就亮绿灯。如果是2个人，就亮红灯。” 这个指令有点绕。</li>
+  <li><strong>补集方法</strong>（设计 $\bar{L}$ 的 DFA，然后翻转）：你换一种方式告诉保安：“你的任务是只在恰好有两个人进来的时候亮红灯，其他任何时候都亮绿灯。” 这个指令更清晰。</li>
+</ol>
+<ol>
+  <li> 你先训练一个“实习保安”（$\bar{L}$ 的 DFA），告诉他：“当且仅当有两个人进来时，你就按下警报。” 他只需要计数到2，然后一直盯着就行了。</li>
+  <li> 然后你告诉“正式保安”（$L$ 的 DFA）：“你就看着实习保安。只要他不按警报，你就一直让大门敞开（<strong>接受</strong>）。他一按警报，你就关门（<strong>拒绝</strong>）。”</li>
+</ol>
+    </div>
+</div><h3>4.2 构造 DFA (b): 语言交集法</h3>
+</section>
+
+<section class="content-section" id="section-6">
+    <h2><span class="section-number">4</span>2.1 原文叙述</h2>
+    <p id="original-10"><strong style="font-size: 1.3rem;">📜 [原文10]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>(b) $L=\left\{w \in\{a, b\}^{*} \mid w \text{ 具有偶数长度且包含奇数个 } a \right\}$</p>
+<p>这里，$L$ 是两个更简单 <strong>语言</strong> 的 <strong>交集</strong>。即 $L=L_{1} \cap L_{2}$，其中</p>
+<p>$$</p>
+<p>\begin{gathered}</p>
+<p>L_{1}=\left\{w \in\{a, b\}^{*} \mid w \text{ 具有偶数长度} \right\} \\</p>
+<p>L_{2}=\left\{w \in\{a, b\}^{*} \mid w \text{ 具有奇数个 } a \right\}</p>
+<p>\end{gathered}</p>
+<p>$$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题要求为<strong>语言</strong> $L$ 设计一个 <strong>DFA</strong>，该<strong>语言</strong>的<strong>字符串</strong>需要同时满足两个条件：</p>
+<ol>
+  <li> <strong>字符串</strong>的总长度是偶数。</li>
+  <li> <strong>字符串</strong>中 'a' 的个数是奇数。</li>
+</ol>
+<p>解题思路是将这个复杂的<strong>语言</strong>分解为两个更简单的<strong>语言</strong>的<strong>交集</strong>：</p>
+<ul>
+  <li><strong>$L_1$</strong>：所有偶数长度的<strong>字符串</strong>的<strong>语言</strong>。</li>
+  <li><strong>$L_2$</strong>：所有包含奇数个 'a' 的<strong>字符串</strong>的<strong>语言</strong>。</li>
+  <li>$L = L_1 \cap L_2$。</li>
+</ul>
+<p>这个思路是基于<strong>正则语言</strong>的另一个<strong>闭包性质</strong>：<strong>正则语言</strong>对<strong>交集运算</strong>是封闭的。这意味着如果 $L_1$ 和 $L_2$ 都是<strong>正则语言</strong>（即它们各自都有对应的 <strong>DFA</strong>），那么它们的<strong>交集</strong> $L$ 也一定是<strong>正则语言</strong>，并且我们可以通过一个标准的<strong>构造方法</strong>（<strong>笛卡尔积构造</strong>）从 $L_1$ 和 $L_2$ 的 <strong>DFA</strong> 得到 $L$ 的 <strong>DFA</strong>。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-7">
+    <h2><span class="section-number">4</span>2.2 构造 L1 和 L2 的 DFA</h2>
+    <p id="original-11"><strong style="font-size: 1.3rem;">📜 [原文11]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>让我们为 $L_{1}$ 和 $L_{2}$ 构造 <strong>DFA</strong>，然后应用我们在课上看到的构造方法来得到 $L$ 的 <strong>DFA</strong>。</p>
+<p>$L_{1}$ 的 <strong>DFA</strong> 为：</p>
+<p><img src="https://cdn.mathpix.com/cropped/70c8ce0a-aa30-4c2e-b00a-2761e4d0688d-4.jpg?height=213&width=448&top_left_y=885&top_left_x=880" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p>$L_{2}$ 的 <strong>DFA</strong> 为：</p>
+<p><img src="https://cdn.mathpix.com/cropped/70c8ce0a-aa30-4c2e-b00a-2761e4d0688d-4.jpg?height=237&width=459&top_left_y=1237&top_left_x=876" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ol>
+  <li> <strong>构造 $L_1$ (偶数长度) 的 DFA ($M_1$)</strong>:
+<ul>
+  <li>我们需要记录<strong>字符串</strong>长度的奇偶性。</li>
+  <li><strong>状态 $q_e$ (even)</strong>：表示到目前为止读过的<strong>字符串</strong>长度为偶数。</li>
+  <li><strong>状态 $q_o$ (odd)</strong>：表示到目前为止读过的<strong>字符串</strong>长度为奇数。</li>
+  <li><strong>起始状态</strong>：<strong>空字符串</strong> $\varepsilon$ 的长度是 0（偶数），所以<strong>起始状态</strong>是 $q_e$。</li>
+  <li><strong>转移</strong>：无论读到 'a' 还是 'b'，<strong>字符串</strong>长度都加 1。这会使长度的奇偶性翻转。所以，从 $q_e$ 读任何<strong>符号</strong>都到 $q_o$；从 $q_o$ 读任何<strong>符号</strong>都到 $q_e$。</li>
+  <li><strong>接受状态</strong>：<strong>语言</strong> $L_1$ 要求偶数长度，所以 $q_e$ 是<strong>接受状态</strong>。</li>
+  <li>图中 $p_0$ 对应这里的 $q_e$ (even)，$p_1$ 对应 $q_o$ (odd)。该 <strong>DFA</strong> 正确。</li>
+</ul></li>
+  <li> <strong>构造 $L_2$ (奇数个 'a') 的 DFA ($M_2$)</strong>:
+<ul>
+  <li>我们需要记录<strong>字符串</strong>中 'a' 个数的奇偶性。</li>
+  <li><strong>状态 $r_e$ (even)</strong>：表示到目前为止读过的 'a' 的个数为偶数。</li>
+  <li><strong>状态 $r_o$ (odd)</strong>：表示到目前为止读过的 'a' 的个数为奇数。</li>
+  <li><strong>起始状态</strong>：<strong>空字符串</strong> $\varepsilon$ 中 'a' 的个数是 0（偶数），所以<strong>起始状态</strong>是 $r_e$。</li>
+  <li><strong>转移</strong>：</li>
+  <li>如果读到 'b'，'a' 的个数不变，所以奇偶性不变。<strong>状态</strong>保持不变 ($r_e \xrightarrow{b} r_e$, $r_o \xrightarrow{b} r_o$)。</li>
+  <li>如果读到 'a'，'a' 的个数加 1，奇偶性翻转。<strong>状态</strong>发生切换 ($r_e \xrightarrow{a} r_o$, $r_o \xrightarrow{a} r_e$)。</li>
+  <li><strong>接受状态</strong>：<strong>语言</strong> $L_2$ 要求奇数个 'a'，所以 $r_o$ 是<strong>接受状态</strong>。</li>
+  <li>图中 $s_0$ 对应这里的 $r_e$ (even)，$s_1$ 对应 $r_o$ (odd)。该 <strong>DFA</strong> 正确。</li>
+</ul></li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-8">
+    <h2><span class="section-number">4</span>2.3 笛卡尔积构造</h2>
+    <p id="original-12"><strong style="font-size: 1.3rem;">📜 [原文12]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>现在通过课上的 <strong>笛卡尔积构造</strong>， $L$ 的 <strong>DFA</strong> 将会是：</p>
+<p><img src="https://cdn.mathpix.com/cropped/70c8ce0a-aa30-4c2e-b00a-2761e4d0688d-4.jpg?height=482&width=502&top_left_y=1645&top_left_x=846" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p><strong>笛卡尔积构造 (Cartesian Product Construction)</strong> 是一种标准算法，用于从两个 <strong>DFA</strong> $M_1 = (Q_1, \Sigma, \delta_1, q_{0,1}, F_1)$ 和 $M_2 = (Q_2, \Sigma, \delta_2, q_{0,2}, F_2)$ 构造一个<strong>识别</strong>它们<strong>交集语言</strong> $L(M_1) \cap L(M_2)$ 的新 <strong>DFA</strong> $M = (Q, \Sigma, \delta, q_0, F)$。</p>
+<ul>
+  <li><strong>新状态集 $Q$</strong>：是 $Q_1$ 和 $Q_2$ 的<strong>笛卡尔积</strong>，$Q = Q_1 \times Q_2$。新<strong>状态</strong>是一个有序对 $(p, r)$，其中 $p \in Q_1, r \in Q_2$。这个<strong>状态</strong>对同时追踪 $M_1$ 和 $M_2$ 的<strong>状态</strong>。</li>
+  <li>$Q_1 = \{p_0, p_1\}$, $Q_2 = \{s_0, s_1\}$。</li>
+  <li>$Q = \{(p_0, s_0), (p_0, s_1), (p_1, s_0), (p_1, s_1)\}$。图中这四个<strong>状态</strong>分别被命名为 $q_0, q_1, q_2, q_3$。</li>
+  <li>$q_0 = (p_0, s_0)$: (偶数长, 偶数个a)</li>
+  <li>$q_1 = (p_0, s_1)$: (偶数长, 奇数个a)</li>
+  <li>$q_2 = (p_1, s_0)$: (奇数长, 偶数个a)</li>
+  <li>$q_3 = (p_1, s_1)$: (奇数长, 奇数个a)</li>
+  <li><strong>新起始状态 $q_0$</strong>：是原<strong>起始状态</strong>的有序对。</li>
+  <li>$q_0 = (q_{0,1}, q_{0,2}) = (p_0, s_0)$。图中 $q_0$ 被正确设为<strong>起始状态</strong>。</li>
+  <li><strong>新转移函数 $\delta$</strong>：对于任何新<strong>状态</strong> $(p, r)$ 和<strong>输入符号</strong> $\sigma$，新<strong>转移</strong>定义为 $\delta((p, r), \sigma) = (\delta_1(p, \sigma), \delta_2(r, \sigma))$。即两个 <strong>DFA</strong> 并行运行，各自独立进行<strong>转移</strong>。</li>
+  <li><strong>以 $(p_0, s_0)$ 为例</strong>：</li>
+  <li><strong>读 'a'</strong>: $\delta((p_0, s_0), a) = (\delta_1(p_0, a), \delta_2(s_0, a)) = (p_1, s_1)$。所以从 $(p_0, s_0)$ 有一条标 'a' 的箭头指向 $(p_1, s_1)$。图中即 $q_0 \xrightarrow{a} q_3$。正确。</li>
+  <li><strong>读 'b'</strong>: $\delta((p_0, s_0), b) = (\delta_1(p_0, b), \delta_2(s_0, b)) = (p_1, s_0)$。所以从 $(p_0, s_0)$ 有一条标 'b' 的箭头指向 $(p_1, s_0)$。图中即 $q_0 \xrightarrow{b} q_2$。正确。</li>
+  <li><strong>以 $(p_1, s_1)$ 为例</strong>:</li>
+  <li><strong>读 'a'</strong>: $\delta((p_1, s_1), a) = (\delta_1(p_1, a), \delta_2(s_1, a)) = (p_0, s_0)$。所以从 $(p_1, s_1)$ 有一条标 'a' 的箭头指向 $(p_0, s_0)$。图中即 $q_3 \xrightarrow{a} q_0$。正确。</li>
+  <li><strong>读 'b'</strong>: $\delta((p_1, s_1), b) = (\delta_1(p_1, b), \delta_2(s_1, b)) = (p_0, s_1)$。所以从 $(p_1, s_1)$ 有一条标 'b' 的箭头指向 $(p_0, s_1)$。图中即 $q_3 \xrightarrow{b} q_1$。正确。</li>
+  <li>(其余转移可同理验证，图中均正确)</li>
+  <li><strong>新接受状态集 $F$</strong>：一个<strong>字符串</strong>要被<strong>交集语言</strong>接受，必须同时被 $M_1$ 和 $M_2$ <strong>接受</strong>。这意味着最终<strong>状态</strong>必须在 $F_1$ 和 $F_2$ 中。所以，新<strong>接受状态</strong>是那些两个分量都分别是原<strong>接受状态</strong>的<strong>状态</strong>对。</li>
+  <li>$F = F_1 \times F_2 = \{p \in F_1 \text{ and } r \in F_2 \mid (p,r) \in Q\}$</li>
+  <li>在本题中，$F_1 = \{p_0\}$, $F_2 = \{s_1\}$。</li>
+  <li>$F = \{(p_0, s_1)\}$。</li>
+  <li>对应的<strong>状态</strong>是 $q_1$。图中 $q_1$ 是唯一的<strong>接受状态</strong>。正确。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>字符串 "ab"</strong>:</li>
+  <li>$M_1$ 路径: $p_0 \xrightarrow{a} p_1 \xrightarrow{b} p_0$。停在 $p_0$ (接受)。</li>
+  <li>$M_2$ 路径: $s_0 \xrightarrow{a} s_1 \xrightarrow{b} s_1$。停在 $s_1$ (接受)。</li>
+  <li>$M$ (乘积机) 路径: $(p_0, s_0) \xrightarrow{a} (p_1, s_1) \xrightarrow{b} (p_0, s_1)$。停在 $(p_0, s_1)$。</li>
+  <li>结果: "ab" 长度为2(偶数)，'a' 个数为1(奇数)。符合条件。最终<strong>状态</strong> $(p_0, s_1)$ 也是<strong>接受状态</strong>。</li>
+  <li><strong>字符串 "aab"</strong>:</li>
+  <li>$M_1$ 路径: $p_0 \xrightarrow{a} p_1 \xrightarrow{a} p_0 \xrightarrow{b} p_1$。停在 $p_1$ (拒绝)。</li>
+  <li>$M_2$ 路径: $s_0 \xrightarrow{a} s_1 \xrightarrow{a} s_0 \xrightarrow{b} s_0$。停在 $s_0$ (拒绝)。</li>
+  <li>$M$ (乘积机) 路径: $(p_0, s_0) \xrightarrow{a} (p_1, s_1) \xrightarrow{a} (p_0, s_0) \xrightarrow{b} (p_1, s_0)$。停在 $(p_1, s_0)$。</li>
+  <li>结果: "aab" 长度为3(奇数)，'a' 个数为2(偶数)。不符合条件。最终<strong>状态</strong> $(p_1, s_0)$ 也不是<strong>接受状态</strong>。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>混淆交集和并集的接受状态</strong>：对于<strong>交集</strong> ($L_1 \cap L_2$)，新的<strong>接受状态</strong>集是 $F_1 \times F_2$（两个都要<strong>接受</strong>）。对于<strong>并集</strong> ($L_1 \cup L_2$)，新的<strong>接受状态</strong>集是 $(F_1 \times Q_2) \cup (Q_1 \times F_2)$（至少一个<strong>接受</strong>就行）。</li>
+  <li><strong>转移函数计算错误</strong>：必须保证新<strong>DFA</strong>的每个<strong>转移</strong>都分别对应两个旧<strong>DFA</strong>的<strong>转移</strong>。</li>
+  <li><strong>状态命名与实际对应的混淆</strong>：最终图中的 $q_0, ..., q_3$ 只是个名字，关键是理解它们背后代表的<strong>状态</strong>对，如 $q_1$ 代表 (偶数长度, 奇数个a)。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本题展示了如何使用<strong>笛卡尔积构造</strong>来设计一个<strong>识别</strong>两个<strong>正则语言</strong>交集的 <strong>DFA</strong>。该方法的核心思想是创建一个新的“并行”自动机，其<strong>状态</strong>是原自动机<strong>状态</strong>的组合，从而可以同时跟踪多个属性（本例中为长度奇偶性和'a'个数奇偶性）。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>该练习旨在教授和巩固<strong>正则语言</strong>对<strong>交集运算</strong>的<strong>闭包性质</strong>，并让学生掌握<strong>笛卡尔积构造</strong>这一具体的、算法化的构造过程。这是计算理论中一个非常基础且重要的构造方法。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你有两个独立的监视器。</p>
+<ol>
+  <li><strong>监视器1</strong> ($M_1$)：只关心进来的人数是奇数还是偶数。它有两个灯：”偶数“灯和”奇数“灯。</li>
+  <li><strong>监视器2</strong> ($M_2$)：只关心进来的人里穿红衣服的是奇数个还是偶数个。它也有两个灯：”偶数红衣“和”奇数红衣“。</li>
+  <li>你想知道什么时候“总人数是偶数 <strong>且</strong> 穿红衣的人是奇数”。</li>
+  <li><strong>笛卡尔积构造</strong>就是把这两个监视器组合成一个超级监视器。这个超级监视器有四个<strong>状态</strong>灯，每个灯都显示了两个基础信息：</li>
+  <li>(偶数总人数, 偶数红衣)</li>
+  <li>(偶数总人数, 奇数红衣) $\leftarrow$ 这是你想要的，把它设为“警报”灯（<strong>接受状态</strong>）</li>
+  <li>(奇数总人数, 偶数红衣)</li>
+  <li>(奇数总人数, 奇数红衣)</li>
+</ol>
+<p>每进来一个人，这个超级监视器的<strong>状态</strong>就会根据两个基础监视器的变化而更新。</p>
+    </div>
+</div><h3>4.3 构造 DFA (c): 有限语言</h3>
+</section>
+
+<section class="content-section" id="section-9">
+    <h2><span class="section-number">4</span>3.1 原文叙述</h2>
+    <p id="original-13"><strong style="font-size: 1.3rem;">📜 [原文13]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>(c) $L=\{11,101,010,0110\}$</p>
+<p><img src="https://cdn.mathpix.com/cropped/70c8ce0a-aa30-4c2e-b00a-2761e4d0688d-5.jpg?height=828&width=770&top_left_y=524&top_left_x=717" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题要求为一个<strong>有限语言</strong> $L$ 设计一个 <strong>DFA</strong>。<strong>有限语言</strong>是指其包含的<strong>字符串</strong>数量是有限的。所有<strong>有限语言</strong>都是<strong>正则语言</strong>。</p>
+<ul>
+  <li><strong>语言 $L$</strong>：只包含 "11", "101", "010", "0110" 这四个<strong>字符串</strong>。</li>
+</ul>
+<p>构造<strong>有限语言</strong>的 <strong>DFA</strong> 的一种直接方法是：</p>
+<ol>
+  <li> 为<strong>语言</strong>中所有<strong>字符串</strong>的所有<strong>前缀</strong>（包括<strong>空字符串</strong> $\varepsilon$ 和<strong>字符串</strong>本身）创建一个<strong>状态</strong>。</li>
+  <li> <strong>起始状态</strong>是代表<strong>空字符串</strong> $\varepsilon$ 的<strong>状态</strong>。</li>
+  <li> <strong>转移函数</strong>：如果当前在代表<strong>前缀</strong> $p$ 的<strong>状态</strong>，读入<strong>符号</strong> $\sigma$，则转移到代表<strong>前缀</strong> $p\sigma$ 的<strong>状态</strong>。</li>
+  <li> <strong>接受状态</strong>：所有代表<strong>语言</strong> $L$ 中<strong>字符串</strong>的<strong>状态</strong>都是<strong>接受状态</strong>。</li>
+  <li> <strong>死状态</strong>：如果一个<strong>转移</strong>会产生一个不属于任何<strong>语言</strong>内<strong>字符串</strong>的<strong>前缀</strong>的<strong>字符串</strong>，那么该<strong>转移</strong>指向一个<strong>死状态</strong>。</li>
+</ol>
+<p>让我们来分析图中的 <strong>DFA</strong> 是否符合这个思想：</p>
+<ul>
+  <li><strong>状态的命名</strong>:</li>
+  <li>$q_{\text{start}}$: 代表<strong>前缀</strong> $\varepsilon$。</li>
+  <li>$q_1$: 代表<strong>前缀</strong> "1"。</li>
+  <li>$q_0$: 代表<strong>前缀</strong> "0"。</li>
+  <li>$q_{11}$: 代表<strong>前缀</strong> "11"。它是<strong>语言</strong>中的一个词，所以可以是<strong>接受状态</strong>。</li>
+  <li>$q_{10}$: 代表<strong>前缀</strong> "10"。</li>
+  <li>$q_{01}$: 代表<strong>前缀</strong> "01"。</li>
+  <li>$q_{101}$: 代表<strong>前缀</strong> "101"。</li>
+  <li>$q_{010}$: 代表<strong>前缀</strong> "010"。</li>
+  <li>$q_{011}$: 代表<strong>前缀</strong> "011"。</li>
+  <li>$q_{0110}$: 代表<strong>前缀</strong> "0110"。</li>
+  <li><strong>图中设计思路的微小区别</strong>：</li>
+  <li>图中的设计者并没有严格为每个<strong>前缀</strong>都创建一个<strong>状态</strong>（例如 "01" 的<strong>前缀</strong> "0" 和 "1" 的<strong>前缀</strong> "1" 最终都可能导向别的路径）。但大体思路是为<strong>语言</strong>中的每个<strong>字符串</strong>构建一条“成功路径”。</li>
+  <li>它引入了一个通用的<strong>接受状态</strong> $q_{\text{accept}}$ 和一个通用的<strong>拒绝状态</strong> $q_{\text{reject}}$。</li>
+</ul>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-10">
+    <h2><span class="section-number">4</span>3.2 解答分析</h2>
+    <p id="original-14"><strong style="font-size: 1.3rem;">📜 [原文14]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>该 <strong>DFA</strong> 对 <strong>语言</strong> 中任何 <strong>字符串</strong> 的每个 <strong>真前缀</strong> 都有一个不同的 <strong>状态</strong>（注意我们可以这样做是因为该 <strong>语言</strong> 是 <strong>有限的</strong>，所以这类 <strong>前缀</strong> 也是 <strong>有限的</strong>），以及一个额外的 <strong>接受状态</strong> 和一个 <strong>拒绝状态</strong>。当输入是 L 中的 <strong>字符串</strong> 时，<strong>DFA</strong> 将在 $q_{\text {accept }}$ 中结束 <strong>计算</strong>，而当 <strong>字符串</strong> 不在 L 中时，它将最终处于 $q_{\text {reject }} \cdot$</p>
+<p>这里，$q_{\text {reject }}$ 是一个 <strong>死状态</strong>/<strong>拒绝状态</strong>/<strong>坏状态</strong>，为了简单起见，也可以从图中省略。我们可以根据上面提到的 <strong>约定</strong> 移除 $q_{\text {reject }}$ 及其所有指向它的 <strong>转移</strong>。</p>
+<p>此外，你始终可以以有助于使事情更清晰的方式为 <strong>状态</strong> 命名。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>DFA 的工作方式</strong>:</li>
+</ul>
+<ol>
+  <li> <strong>路径 "11"</strong>: $q_{\text{start}} \xrightarrow{1} q_1 \xrightarrow{1} q_{11}$。在 $q_{11}$ 之后，原文图中没有画出从 $q_{11}$ 出发的箭头，这通常意味着<strong>转移</strong>到<strong>死状态</strong>。但如果我们将 $q_{11}$ 本身就视为一个临时的<strong>接受状态</strong>，或者像图中一样，在识别出"11"后需要一个明确的结束信号，这里的设计有些不标准。更规范的画法是从 $q_{11}$ 出发，如果后面还有字符，则转移到$q_{reject}$。但这里的图似乎把 $q_{11}, q_{101}, q_{010}, q_{0110}$ 直接画成了最终的<strong>接受状态</strong>（虽然它们不是双圈，但没有后续路径）。然而，解答的文字描述是有一个统一的 $q_{accept}$，这与图不符。<strong>我们以图的结构为准进行分析。</strong>
+<ul>
+  <li>让我们重新解读这个图：$q_{11}, q_{101}, q_{010}, q_{0110}$ 就是<strong>接受状态</strong>。</li>
+  <li><strong>路径 "11"</strong>: $q_{\text{start}} \xrightarrow{1} q_1 \xrightarrow{1} q_{11}$。结束在 $q_{11}$ (接受)。</li>
+  <li><strong>路径 "101"</strong>: $q_{\text{start}} \xrightarrow{1} q_1 \xrightarrow{0} q_{10} \xrightarrow{1} q_{101}$。结束在 $q_{101}$ (接受)。</li>
+  <li><strong>路径 "010"</strong>: $q_{\text{start}} \xrightarrow{0} q_0 \xrightarrow{1} q_{01} \xrightarrow{0} q_{010}$。结束在 $q_{010}$ (接受)。</li>
+  <li><strong>路径 "0110"</strong>: $q_{\text{start}} \xrightarrow{0} q_0 \xrightarrow{1} q_{01} \xrightarrow{1} q_{011} \xrightarrow{0} q_{0110}$。结束在 $q_{0110}$ (接受)。</li>
+  <li><strong>$q_{reject}$ (死状态)</strong>: 任何不属于上述四个<strong>字符串</strong>及其<strong>前缀</strong>的路径都会导向 $q_{reject}$。</li>
+  <li>例如，<strong>字符串 "00"</strong>: $q_{\text{start}} \xrightarrow{0} q_0 \xrightarrow{0} q_{reject}$。</li>
+  <li>例如，<strong>字符串 "110"</strong>: $q_{\text{start}} \xrightarrow{1} q_1 \xrightarrow{1} q_{11} \xrightarrow{0} q_{reject}$。</li>
+  <li>例如，<strong>字符串 "10"</strong>: $q_{\text{start}} \xrightarrow{1} q_1 \xrightarrow{0} q_{10}$。停在 $q_{10}$，它不是<strong>接受状态</strong>，并且任何后续输入都会进入 $q_{reject}$。所以 "10" 不被<strong>接受</strong>。</li>
+</ul></li>
+</ol>
+<ul>
+  <li><strong>关于 $q_{reject}$ 的省略</strong>: 如前所述，为了简化 <strong>DFA</strong> 图，可以省略<strong>死状态</strong> $q_{reject}$ 和所有指向它的箭头。这样，任何在图中“无路可走”的<strong>转移</strong>都默认进入一个不可见的<strong>死状态</strong>。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>字符串 "0110" (在语言 L 中)</strong></li>
+</ul>
+<ol>
+  <li> 开始于 $q_{start}$。</li>
+  <li> 读 '0' $\to q_0$。</li>
+  <li> 读 '1' $\to q_{01}$。</li>
+  <li> 读 '1' $\to q_{011}$。</li>
+  <li> 读 '0' $\to q_{0110}$。</li>
+  <li> 结束。$q_{0110}$ 是<strong>接受状态</strong> (根据我们的解读)。所以 "0110" 被<strong>接受</strong>。
+<ul>
+  <li><strong>字符串 "1011" (不在语言 L 中)</strong></li>
+</ul></li>
+  <li> 开始于 $q_{start}$。</li>
+  <li> 读 '1' $\to q_1$。</li>
+  <li> 读 '0' $\to q_{10}$。</li>
+  <li> 读 '1' $\to q_{101}$。</li>
+  <li> 读 '1' $\to q_{reject}$ (因为从 $q_{101}$ 读 '1' 没有定义路径)。</li>
+  <li> 结束。$q_{reject}$ 是<strong>非接受状态</strong>。所以 "1011" 不被<strong>接受</strong>。</li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>前缀与完整字符串的混淆</strong>：一个<strong>字符串</strong>是另一个<strong>字符串</strong>的<strong>前缀</strong>时要特别小心。例如 "11" 和 "110"。DFA 必须确保在读完 "11" 时停在<strong>接受状态</strong>，但如果后面还有 "0"，则必须离开该<strong>接受状态</strong>进入一个<strong>非接受状态</strong>。图中从 $q_{11}$ 到 $q_{reject}$ 的转移就处理了这种情况。</li>
+  <li><strong>状态复用</strong>：如果不同<strong>字符串</strong>有相同的<strong>前缀</strong>，它们的路径可以共享<strong>状态</strong>。例如 "010" 和 "0110" 共享了从 $q_{start}$ 到 $q_{01}$ 的路径。</li>
+  <li><strong>不完整的转移</strong>：在设计时，必须为每个<strong>状态</strong>（非<strong>死状态</strong>）和每个<strong>字母表</strong>中的<strong>符号</strong>都定义一个<strong>转移</strong>。如果某个<strong>转移</strong>在图中缺失，要明确这是指向一个省略的<strong>死状态</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本题展示了如何为<strong>有限语言</strong>构造一个 <strong>DFA</strong>。基本策略是构建一个“<strong>前缀树</strong>”（Trie）结构，其中每个节点是一个<strong>状态</strong>，代表一个<strong>前缀</strong>。凡是代表<strong>语言</strong>中完整<strong>字符串</strong>的节点都设为<strong>接受状态</strong>。所有不匹配的路径都导向一个统一的<strong>死状态</strong>（<strong>拒绝状态</strong>）。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个练习的目的是让学生理解任何<strong>有限语言</strong>都是<strong>正则</strong>的，并掌握一种为<strong>有限语言</strong>系统地构造 <strong>DFA</strong> 的方法。这强化了 <strong>DFA</strong> 识别<strong>字符串</strong>前缀的概念。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一个自动售货机，它只接受几种特定的硬币序列 (例如 "1角-1角", "1角-5角-1角" 等)。</p>
+<ol>
+  <li><strong>状态</strong>：售货机内部记录当前已投币序列的记忆。</li>
+  <li><strong>起始状态</strong>：未投币。</li>
+  <li><strong>转移</strong>：每投一个硬币，售货机就更新它的记忆，进入下一个<strong>状态</strong>。</li>
+  <li><strong>接受状态</strong>：当投入的硬币序列恰好是它接受的某一种时，它就进入一个“出货”<strong>状态</strong>。</li>
+  <li><strong>拒绝/死状态</strong>：如果投币序列错误（例如 "5角-5角"），机器就进入“吞币”<strong>状态</strong>，之后再投什么也没用了。</li>
+</ol>
+<p>这个 <strong>DFA</strong> 就是这个售货机的逻辑电路图。</p>
+    </div>
+</div><hr>
+</section>
+
+<section class="content-section" id="section-11">
+    <h2><span class="section-number">5</span>5. 问题四：描述 DFA 识别的语言</h2>
+    <h3>5.1 描述 DFA (a)</h3>
+</section>
+
+<section class="content-section" id="section-12">
+    <h2><span class="section-number">5</span>1.1 原文叙述</h2>
+    <p id="original-15"><strong style="font-size: 1.3rem;">📜 [原文15]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>给定 <strong>DFA</strong>，指定它所 <strong>识别</strong> 的 <strong>语言</strong>：</p>
+<p>(a) <strong>DFA</strong> $M$ ：</p>
+<p><img src="https://cdn.mathpix.com/cropped/70c8ce0a-aa30-4c2e-b00a-2761e4d0688d-6.jpg?height=368&width=1335&top_left_y=644&top_left_x=541" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+</div><p id="original-16"><strong style="font-size: 1.3rem;">📜 [原文16]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>如何处理此问题：</h3><p>首先，我们可以检查哪些 <strong>状态</strong> 是 <strong>接受状态</strong>。</p><p>这里，$\left\{q_{1}, q_{2}, q_{3}, q_{4}\right\}$ 是 <strong>接受状态</strong>。</p><p>然后我们可以检查一些被该 <strong>DFA</strong> <strong>接受</strong> 的 <strong>字符串</strong> 和一些被该 <strong>DFA</strong> <strong>拒绝</strong> 的 <strong>字符串</strong>。例如，0, 11111, 011111, 0101010101, 1111111111 是该 <strong>DFA</strong> <strong>拒绝</strong> 的一些 <strong>字符串</strong>。01, 010, 011, 0101, 1, 10, 11, 111111111 是该 <strong>DFA</strong> <strong>接受</strong> 的一些 <strong>字符串</strong>。</p><p>我们可以发现，被该 <strong>DFA</strong> <strong>拒绝</strong> 的 <strong>字符串</strong> 始终具有 $\{0, 5, 10, 15, 20, \ldots\}$ 个 1。</p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题是之前问题的“逆问题”：给定一个 <strong>DFA</strong>，要求我们用自然语言或集合符号来描述它所<strong>识别</strong>的<strong>语言</strong>。</p>
+<p><strong>分析步骤</strong>:</p>
+<ol>
+  <li> <strong>识别 DFA 的基本组件</strong>:
+<ul>
+  <li><strong>状态</strong> $Q = \{q_0, q_1, q_2, q_3, q_4\}$。</li>
+  <li><strong>字母表</strong> $\Sigma = \{0, 1\}$。</li>
+  <li><strong>起始状态</strong>是 $q_0$。</li>
+  <li><strong>接受状态</strong> $F = \{q_1, q_2, q_3, q_4\}$。唯一的<strong>非接受状态</strong>是 $q_0$。</li>
+</ul></li>
+  <li> <strong>理解状态的含义</strong>: 这是关键一步。我们需要弄清楚每个<strong>状态</strong>代表了<strong>字符串</strong>的什么属性。
+<ul>
+  <li>读 '0'：在任何<strong>状态</strong>下读 '0'，<strong>状态</strong>都保持不变。这意味着 '0' 不影响我们正在追踪的属性。</li>
+  <li>读 '1'：</li>
+  <li>$q_0 \xrightarrow{1} q_1$</li>
+  <li>$q_1 \xrightarrow{1} q_2$</li>
+  <li>$q_2 \xrightarrow{1} q_3$</li>
+  <li>$q_3 \xrightarrow{1} q_4$</li>
+  <li>$q_4 \xrightarrow{1} q_0$</li>
+  <li>这个结构是一个环！每次读到一个 '1'，<strong>状态</strong>就在这个环上前进一格。这表明 <strong>DFA</strong> 正在对 '1' 的数量进行模运算（modulo）。环的大小是 5，所以是模 5。</li>
+  <li>让我们验证一下：</li>
+  <li><strong>状态 $q_0$</strong>: 表示到目前为止 '1' 的数量是 $0 \pmod 5$。</li>
+  <li><strong>状态 $q_1$</strong>: 表示到目前为止 '1' 的数量是 $1 \pmod 5$。</li>
+  <li><strong>状态 $q_2$</strong>: 表示到目前为止 '1' 的数量是 $2 \pmod 5$。</li>
+  <li><strong>状态 $q_3$</strong>: 表示到目前为止 '1' 的数量是 $3 \pmod 5$。</li>
+  <li><strong>状态 $q_4$</strong>: 表示到目前为止 '1' 的数量是 $4 \pmod 5$。</li>
+</ul></li>
+  <li> <strong>结合接受状态得出结论</strong>:
+<ul>
+  <li><strong>接受状态</strong>是 $\{q_1, q_2, q_3, q_4\}$。</li>
+  <li>这意味着，只要<strong>字符串</strong>处理完毕后，'1' 的数量模 5 的结果是 1, 2, 3, 或 4，该<strong>字符串</strong>就被<strong>接受</strong>。</li>
+  <li>换句话说，只要 '1' 的数量<strong>不是</strong> 0 (模 5)，<strong>字符串</strong>就被<strong>接受</strong>。</li>
+  <li>“'1' 的数量是 $0 \pmod 5$” 等价于 “'1' 的数量是 5 的整数倍”。</li>
+  <li>因此，被<strong>接受</strong>的<strong>字符串</strong>是那些 '1' 的数量<strong>不是</strong> 5 的整数倍的<strong>字符串</strong>。</li>
+</ul></li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-13">
+    <h2><span class="section-number">5</span>1.2 解答分析</h2>
+    <p id="original-17"><strong style="font-size: 1.3rem;">📜 [原文17]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>解答：</h3><p>该 <strong>DFA</strong> <strong>识别</strong> 以下 <strong>语言</strong>：</p><p>$L=\left\{w \in\{0,1\}^{*} \mid w \text{ 中 1 的数量不是 5 的整数倍}\right\}$</p><p>我们可以看到，对于任何 <strong>字符串</strong>，如果 M 的 <strong>计算</strong> 到达 $q_{i}$，这意味着到目前为止我们已经看到了 $\mathrm{i} \bmod 5$ 个 1。唯一不被 <strong>接受</strong> 的 <strong>字符串</strong> 是那些 1 的数量为 5 的 <strong>整数倍</strong> 的 <strong>字符串</strong>（注意 0 也是 5 的 <strong>整数倍</strong>）。</p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>解答完全正确，并清晰地指出了每个<strong>状态</strong> $q_i$ 的含义是代表已经看到了 $i$ 个 '1' (模 5)。</p>
+<ul>
+  <li><strong>语言 $L$ 的形式化描述</strong>: $L = \{ w \in \{0,1\}^* \mid (\text{count}_1(w) \pmod 5) \neq 0 \}$，其中 $\text{count}_1(w)$ 是 $w$ 中 '1' 的数量。</li>
+  <li><strong>关于 0</strong>: <strong>空字符串</strong> $\varepsilon$ 中有 0 个 '1'。$0 \pmod 5 = 0$。计算路径是停在 $q_0$，而 $q_0$ 是<strong>非接受状态</strong>。所以 $\varepsilon$ 不被<strong>接受</strong>。这符合“0 是 5 的倍数”的逻辑。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>字符串 "1011"</strong>:</li>
+  <li>'1' 的数量是 3。$3 \pmod 5 = 3$。应该被<strong>接受</strong>。</li>
+  <li>路径: $q_0 \xrightarrow{1} q_1 \xrightarrow{0} q_1 \xrightarrow{1} q_2 \xrightarrow{1} q_3$。结束在 $q_3$。$q_3$ 是<strong>接受状态</strong>。正确。</li>
+  <li><strong>字符串 "110111"</strong>:</li>
+  <li>'1' 的数量是 5。$5 \pmod 5 = 0$。应该被<strong>拒绝</strong>。</li>
+  <li>路径: $q_0 \xrightarrow{1} q_1 \xrightarrow{1} q_2 \xrightarrow{0} q_2 \xrightarrow{1} q_3 \xrightarrow{1} q_4 \xrightarrow{1} q_0$。结束在 $q_0$。$q_0$ 是<strong>非接受状态</strong>。正确。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>混淆状态索引和计数值</strong>: 在这个例子中，状态 $q_i$ 恰好对应计数值 $i \pmod 5$，但并非总是如此。需要仔细分析才能确定每个状态的真正含义。</li>
+  <li><strong>忽略不改变状态的转移</strong>: '0' 在这个 <strong>DFA</strong> 中是“中性”的，它不改变状态。在分析时，这些转移和改变状态的转移同样重要。</li>
+  <li><strong>对“0是...的倍数”的理解</strong>: 0 是任何非零整数的倍数。这是一个数学上的约定，也符合模运算的定义。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本题的核心是“破解” <strong>DFA</strong> 的设计意图。通过观察<strong>状态转移</strong>的模式（特别是循环结构），可以推断出<strong>状态</strong>所代表的抽象属性（例如计数、奇偶性、模运算结果）。再结合<strong>接受状态</strong>，就可以完整地描述出<strong>语言</strong>的特征。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>该练习旨在培养学生逆向工程 <strong>DFA</strong> 的能力，从一个具体的自动机抽象出它所定义的<strong>语言</strong>的通用规则。这是理解计算模型和其所能表达的<strong>语言</strong>之间关系的关键一步。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这个 <strong>DFA</strong> 就像一个有5个槽位的旋转拨盘（槽位 0 到 4）。</p>
+<ol>
+  <li><strong>拨盘初始在 0 号槽位</strong>。</li>
+  <li>每当来一个 '1'，拨盘就顺时针转一格。</li>
+  <li>每当来一个 '0'，拨盘不动。</li>
+  <li>只要最后拨盘停在 1、2、3、4 号槽位中的任何一个，就亮绿灯（<strong>接受</strong>）。</li>
+  <li>只有当拨盘恰好停在 0 号槽位时，才亮红灯（<strong>拒绝</strong>）。</li>
+  <li>这个机器实际上是在检查 '1' 的个数是不是 5 的倍数。</li>
+</ol>
+    </div>
+</div><h3>5.2 描述 DFA (b)</h3>
+</section>
+
+<section class="content-section" id="section-14">
+    <h2><span class="section-number">5</span>2.1 原文叙述</h2>
+    <p id="original-18"><strong style="font-size: 1.3rem;">📜 [原文18]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>(b) <strong>DFA</strong> N:</p>
+<p><img src="https://cdn.mathpix.com/cropped/70c8ce0a-aa30-4c2e-b00a-2761e4d0688d-7.jpg?height=495&width=742&top_left_y=567&top_left_x=732" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+</div><h3>如何处理此问题：</h3><p>类似地，我们可以先检查哪些 <strong>状态</strong> 是 <strong>接受状态</strong>。</p><p>这里，$\left\{q_{2}\right\}$ 是 <strong>接受状态</strong>。我们可以很容易地看出 $q_{3}$ 是一个 <strong>死状态</strong>/<strong>拒绝状态</strong>/<strong>坏状态</strong>。</p><p>然后我们可以检查一些被该 <strong>DFA</strong> <strong>接受</strong> 的 <strong>字符串</strong> 和一些被该 <strong>DFA</strong> <strong>拒绝</strong> 的 <strong>字符串</strong>。例如，0, 00, 1, 11, 000, 001, 100, 101 是该 <strong>DFA</strong> <strong>拒绝</strong> 的一些 <strong>字符串</strong>。01, 010, 011, 0101 是该 <strong>DFA</strong> <strong>接受</strong> 的一些 <strong>字符串</strong>。</p><p>我们可以看出该 <strong>DFA</strong> 仅 <strong>接受</strong> 以 <strong>前缀</strong> 01 开头的 <strong>字符串</strong>。</p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>同样，我们来分析这个 <strong>DFA</strong>。</p>
+<ol>
+  <li> <strong>识别 DFA 的基本组件</strong>:
+<ul>
+  <li><strong>状态</strong> $Q = \{q_0, q_1, q_2, q_3\}$。</li>
+  <li><strong>字母表</strong> $\Sigma = \{0, 1\}$。</li>
+  <li><strong>起始状态</strong>是 $q_0$。</li>
+  <li><strong>接受状态</strong> $F = \{q_2\}$。</li>
+</ul></li>
+  <li> <strong>分析状态转移路径</strong>:
+<ul>
+  <li><strong>从起始状态 $q_0$ 出发</strong>:</li>
+  <li>如果第一个<strong>符号</strong>是 '1'，路径是 $q_0 \xrightarrow{1} q_3$。$q_3$ 是一个<strong>死状态</strong>（所有出边都指向自身，且非<strong>接受</strong>）。所以任何以 '1' 开头的<strong>字符串</strong>都会被<strong>拒绝</strong>。</li>
+  <li>如果第一个<strong>符号</strong>是 '0'，路径是 $q_0 \xrightarrow{0} q_1$。这开启了一条通往<strong>接受状态</strong>的可能路径。</li>
+  <li><strong>从状态 $q_1$ 出发 (已经读了 '0')</strong>:</li>
+  <li>如果第二个<strong>符号</strong>是 '0'，路径是 $q_1 \xrightarrow{0} q_3$。进入<strong>死状态</strong>。所以任何以 "00" 开头的<strong>字符串</strong>都会被<strong>拒绝</strong>。</li>
+  <li>如果第二个<strong>符号</strong>是 '1'，路径是 $q_1 \xrightarrow{1} q_2$。进入了<strong>接受状态</strong> $q_2$！</li>
+  <li><strong>从状态 $q_2$ 出发 (已经读了 "01")</strong>:</li>
+  <li>无论读到 '0' 还是 '1'，<strong>状态</strong>都保持在 $q_2$ ($q_2 \xrightarrow{0,1} q_2$)。</li>
+  <li>这意味着，一旦<strong>字符串</strong>的<strong>前缀</strong>是 "01"，<strong>DFA</strong> 就会进入并永远停留在<strong>接受状态</strong> $q_2$。</li>
+</ul></li>
+  <li> <strong>总结</strong>:
+<ul>
+  <li>只有以 "01" 开头的<strong>字符串</strong>才能到达<strong>接受状态</strong> $q_2$。</li>
+  <li>一旦到达 $q_2$，就再也不会离开。</li>
+  <li>因此，这个 <strong>DFA</strong> <strong>接受</strong>所有以 "01" 为<strong>前缀</strong>的<strong>字符串</strong>。</li>
+</ul></li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-15">
+    <h2><span class="section-number">5</span>2.2 解答分析</h2>
+    <p id="original-19"><strong style="font-size: 1.3rem;">📜 [原文19]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>解答：</h3><p>该 <strong>DFA</strong> <strong>识别</strong> 以下 <strong>语言</strong>：</p><p>$L=\left\{w \in\{0,1\}^{*} \mid w \text{ 以前缀 01 开头}\right\}$</p><p>任何以 01 开头的 <strong>字符串</strong>，其 <strong>计算</strong> 都会以 <strong>状态</strong> ( $q 0, q 1, q 2$ ) 开始，然后在 <strong>字符串</strong> 的剩余部分保持在 $q 2$，因此它被 <strong>接受</strong>。任何不以 01 开头的 <strong>字符串</strong>，要么以 1 开始，然后其 <strong>计算</strong> 从 $q 0$ 转到 $q 3$ 并停留在 $q 3$；要么以 00 开始，然后 <strong>计算</strong> 以 ( $q 0, q 1, q 3$ ) 开始，并停留在 $q 3$。</p><h3>注意：</h3><p>注意这里 $q_{3}$ 是一个 <strong>死状态</strong>/<strong>拒绝状态</strong>/<strong>坏状态</strong>，可以像下面这样省略：</p><p><img src="https://cdn.mathpix.com/cropped/70c8ce0a-aa30-4c2e-b00a-2761e4d0688d-7.jpg?height=205&width=742&top_left_y=2101&top_left_x=732" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ul>
+  <li>解答是完全正确的。它准确地描述了<strong>语言</strong>为“所有以'01'为<strong>前缀</strong>的<strong>字符串</strong>的集合”。</li>
+  <li>解答还清晰地分析了两种被<strong>拒绝</strong>的情况：以 '1' 开头和以 "00" 开头，这两种情况都会导致<strong>计算</strong>陷入<strong>死状态</strong> $q_3$。</li>
+  <li><strong>关于省略死状态的图示</strong>：最后的图示展示了省略<strong>死状态</strong> $q_3$ 后的简化版 <strong>DFA</strong>。</li>
+  <li>从 $q_0$ 出发，标 '1' 的箭头被移除了。</li>
+  <li>从 $q_1$ 出发，标 '0' 的箭头被移除了。</li>
+  <li>按照约定，这些缺失的<strong>转移</strong>都默认指向一个不可见的<strong>死状态</strong>。这个简化图与原图在功能上是完全等价的，但视觉上更简洁。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>字符串 "01001" (以 "01" 开头)</strong>:</li>
+  <li>路径: $q_0 \xrightarrow{0} q_1 \xrightarrow{1} q_2 \xrightarrow{0} q_2 \xrightarrow{0} q_2 \xrightarrow{1} q_2$。结束于 $q_2$ (接受)。</li>
+  <li><strong>字符串 "0" (不以 "01" 开头)</strong>:</li>
+  <li>路径: $q_0 \xrightarrow{0} q_1$。结束于 $q_1$ (非接受)。</li>
+  <li><strong>字符串 "101" (不以 "01" 开头)</strong>:</li>
+  <li>路径: $q_0 \xrightarrow{1} q_3 \xrightarrow{0} q_3 \xrightarrow{1} q_3$。结束于 $q_3$ (非接受)。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>只检查前两个字符</strong>: 不能简单地认为这是一个只检查前两个字符的机器。它必须能处理任意长度的<strong>字符串</strong>。$q_2$ 上的自循环是确保在 "01" 之后无论跟什么，<strong>字符串</strong>仍然被<strong>接受</strong>的关键。</li>
+  <li><strong>状态的含义</strong>:</li>
+  <li>$q_0$: 初始状态，什么都没看到。</li>
+  <li>$q_1$: 看到了<strong>前缀</strong> "0"。</li>
+  <li>$q_2$: 看到了<strong>前缀</strong> "01"。</li>
+  <li>$q_3$: 已经确定<strong>字符串</strong>不可能是以 "01" 开头，进入“失败”状态。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这个 <strong>DFA</strong> 的设计模式是“<strong>前缀检测器</strong>”。它通过一系列<strong>状态</strong>来匹配一个特定的<strong>前缀</strong>。一旦<strong>前缀</strong>匹配成功，就进入一个“永久<strong>接受</strong>”的<strong>状态</strong>。如果匹配中途失败，就进入一个“永久<strong>拒绝</strong>”（<strong>死</strong>）<strong>状态</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个练习让学生熟悉一种常见的 <strong>DFA</strong> 应用场景：识别具有特定<strong>前缀</strong>的<strong>语言</strong>。它也再次强调了“<strong>死状态</strong>”的作用以及在绘图时为了简化而省略它的约定。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这台 <strong>DFA</strong> 就像一个保险箱的密码锁，但它只检查密码的开头两位。</p>
+<ol>
+  <li><strong>密码必须是 "01..."</strong>。</li>
+  <li>$q_0$: 等待输入第一位。</li>
+  <li>你输入 '0' ($q_0 \to q_1$)：锁芯转动了一下，似乎对了。</li>
+  <li>你输入 '1' ($q_0 \to q_3$)：错了，锁卡死了，再转什么都没用。</li>
+  <li>在 $q_1$ 状态，你输入 '1' ($q_1 \to q_2$)：对了！锁“咔嗒”一声打开了（进入<strong>接受状态</strong>）。一旦打开，它就保持打开状态，你再随便按什么数字都无所谓了。</li>
+  <li>在 $q_1$ 状态，你输入 '0' ($q_1 \to q_3$)：错了，锁卡死了。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-16">
+    <h2><span class="section-number">6</span>行间公式索引</h2>
+    <p>1. <strong>语言L1和L2的定义</strong>：将一个复杂语言分解为两个简单语言L1（偶数长度）和L2（奇数个'a'）的交集。</p><p><div class="math-block">$$
+\begin{gathered}
+L_{1}=\left\{w \in\{a, b\}^{*} \mid w \text{ 具有偶数长度} \right\} \\
+L_{2}=\left\{w \in\{a, b\}^{*} \mid w \text{ 具有奇数个 } a \right\}
+\end{gathered}
+$$</div></p>
+</section>
+
+<section class="content-section" id="section-17">
+    <h2><span class="section-number">7</span>6. 附录：脚注解释</h2>
+    <h3>6.1 “死状态”的定义</h3><p id="original-20"><strong style="font-size: 1.3rem;">📜 [原文20]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>[^0]: ${ }^{1}$ 一个“<strong>死</strong>”<strong>状态</strong>是指一个不是 <strong>接受状态</strong> 的 <strong>状态</strong> $q$，且对于每个 <strong>符号</strong> $\sigma$，我们都有 $\delta(q, \sigma)=q$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分是文档末尾的一个脚注，它为在正文中多次提到的“<strong>死状态</strong>”提供了一个精确的、形式化的定义。理解这个定义对于掌握 <strong>DFA</strong> 的完整概念至关重要。让我们将这个定义分解成它的两个核心组成部分来详细解释。</p>
+<ol>
+  <li> <strong><strong>一个不是 接受状态 的 状态 q</strong></strong>: 这是成为一个<strong>死状态</strong>的首要条件。<strong>死状态</strong>本质上是一个<strong>拒绝状态</strong>；它永远不能是<strong>接受状态</strong>（即在<strong>状态图</strong>中，它永远不会是双圈）。这意味着，只要一个<strong>字符串</strong>的计算过程最终停留在<strong>死状态</strong>，该<strong>字符串</strong>就一定被<strong>拒绝</strong>。这个特性是<strong>死状态</strong>“失败”属性的根本来源。</li>
+  <li> <strong><strong>对于每个 符号 σ，我们都有 δ(q, σ)=q</strong></strong>: 这是第二个关键条件，它描述了<strong>死状态</strong>的行为模式。
+<ul>
+  <li>这里的 <strong>q</strong> 指的就是我们正在定义的这个<strong>死状态</strong>。</li>
+  <li><strong>σ</strong> (sigma) 是一个变量，代表<strong>字母表</strong> <strong>Σ</strong> 中的<strong>任意</strong>一个<strong>符号</strong>。</li>
+  <li><strong>δ(q, σ) = q</strong> 是<strong>转移函数</strong>的表达。它说明：“如果你当前处于<strong>状态</strong> <strong>q</strong>，并且你读入了<strong>任何</strong>一个<strong>符号</strong> <strong>σ</strong>，那么你接下来要转移到的<strong>状态</strong>仍然是 <strong>q</strong>。”</li>
+  <li>综合起来，这句话的含义是：一旦自动机的计算路径进入了<strong>死状态</strong>，它就再也无法离开。无论后续输入什么<strong>字符串</strong>，它都会永远被“困”在这个<strong>状态</strong>里。这就像一个计算的“黑洞”。</li>
+</ul></li>
+</ol>
+<p>将这两个条件合在一起，我们得到一个完整的画像：<strong>死状态</strong>是一个<strong>非接受状态</strong>，并且它会将计算永久地困在自身内部。</p>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong><strong>δ(q, σ)=q</strong></strong>:</li>
+  <li><strong><strong>δ</strong> (delta)</strong>: 这是 <strong>DFA</strong> 的<strong>转移函数</strong>的通用符号。它是一个数学函数，其输入是“当前<strong>状态</strong>”和“当前<strong>输入符号</strong>”，其输出是“下一个<strong>状态</strong>”。</li>
+  <li><strong><strong>q</strong></strong>: 在这个公式中，<strong>q</strong> 代表一个特定的<strong>状态</strong>，也就是我们正在定义的<strong>死状态</strong>。</li>
+  <li><strong><strong>σ</strong> (sigma)</strong>: 代表一个来自<strong>字母表</strong> <strong>Σ</strong> 的通用<strong>符号</strong>。例如，如果 <strong>Σ = {a, b, c}</strong>，那么 <strong>σ</strong> 可以是 <strong>a</strong>、<strong>b</strong> 或 <strong>c</strong> 中的任何一个。</li>
+  <li><strong><strong>=</strong></strong>: 等号表示函数调用的结果。整个表达式的含义是，对于<strong>状态</strong> <strong>q</strong> 和<strong>任何</strong>可能的<strong>输入符号</strong> <strong>σ</strong>，<strong>转移函数</strong> <strong>δ</strong> 的计算结果总是返回<strong>状态</strong> <strong>q</strong> 本身。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<p>让我们以讲义问题2中的 <strong>DFA</strong> 为例来具体说明。</p>
+<ul>
+  <li><strong>问题2的DFA信息</strong>:</li>
+  <li><strong>状态集</strong>: $Q = \{q_0, q_1, q_2, q_3\}$</li>
+  <li><strong>字母表</strong>: $\Sigma = \{a, b, c\}$</li>
+  <li><strong>接受状态集</strong>: $F = \{q_1\}$</li>
+  <li>在该 <strong>DFA</strong> 中，<strong>状态</strong> $q_3$ 就是<strong>死状态</strong>。</li>
+  <li><strong>验证 $q_3$ 是否符合定义</strong>:</li>
+</ul>
+<ol>
+  <li> <strong>它是非接受状态吗？</strong> 是的。<strong>接受状态</strong>只有 $q_1$，$q_3$ 不在<strong>接受状态</strong>集 $F$ 中。满足条件一。</li>
+  <li> <strong>它会困住计算吗？</strong> 我们需要检查对于<strong>字母表</strong>中的所有<strong>符号</strong> {a, b, c}，从 $q_3$ 的<strong>转移</strong>是否都回到 $q_3$。
+<ul>
+  <li><strong>输入 'a'</strong>: 从<strong>状态图</strong>中看到，$\delta(q_3, a) = q_3$。是的。</li>
+  <li><strong>输入 'b'</strong>: 从<strong>状态图</strong>中看到，$\delta(q_3, b) = q_3$。是的。</li>
+  <li><strong>输入 'c'</strong>: 从<strong>状态图</strong>中看到，$\delta(q_3, c) = q_3$。是的。</li>
+  <li>满足条件二。</li>
+  <li>因为 $q_3$ 同时满足两个条件，所以它被严格地定义为一个<strong>死状态</strong>。</li>
+  <li><strong>计算示例</strong>: 让我们追踪<strong>字符串</strong> "acb" 的计算过程。</li>
+</ul></li>
+  <li> 从<strong>起始状态</strong> $q_0$ 开始。</li>
+  <li> 读入 'a'，根据 $\delta(q_0, a) = q_1$，转移到 $q_1$。</li>
+  <li> 读入 'c'，根据 $\delta(q_1, c) = q_3$，转移到 $q_3$。此时，自动机已经进入了<strong>死状态</strong>。</li>
+  <li> 读入 'b'，根据 $\delta(q_3, b) = q_3$，停留在 $q_3$。</li>
+  <li> <strong>字符串</strong>处理完毕，最终<strong>状态</strong>是 $q_3$。因为 $q_3$ 是<strong>非接受状态</strong>，所以<strong>字符串</strong> "acb" 被<strong>拒绝</strong>。一旦进入 $q_3$，就注定了被<strong>拒绝</strong>的命运。</li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>并非所有非接受状态都是死状态</strong>: 这是一个非常关键的区别。一个<strong>状态</strong>可以是<strong>非接受</strong>的，但它不是一个“终点”。例如，在问题2中，$q_0$ 是<strong>非接受状态</strong>，但它不是<strong>死状态</strong>，因为从 $q_0$ 出发，可以通过读入 'a' 到达<strong>接受状态</strong> $q_1$。<strong>死状态</strong>是一个不可逆转的失败点。</li>
+  <li><strong>图的简化与形式化定义</strong>: 在绘制<strong>状态图</strong>时，为了让图形更简洁，通常会省略<strong>死状态</strong>以及所有指向它的<strong>转移</strong>。当你在图中发现某个<strong>状态</strong>在面对某个<strong>输入符号</strong>时“无路可走”，你应该默认那条缺失的路是指向一个未画出的<strong>死状态</strong>。然而，在编写<strong>形式化定义</strong>（即<strong>五元组</strong>）时，<strong>转移函数</strong> <strong>δ</strong> 必须是<strong>完备的</strong>（Total Function），即必须为每一个“<strong>状态</strong>-<strong>符号</strong>”对都明确指定一个<strong>转移</strong>。因此，<strong>死状态</strong>必须被包含在<strong>状态集</strong> $Q$ 中，并且所有相关的<strong>转移</strong>都必须在函数 <strong>δ</strong> 中被明确写出。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>该脚注为“<strong>死状态</strong>”这一概念提供了严谨的数学定义。它必须同时满足两个条件：（1）它本身不是一个<strong>接受状态</strong>；（2）对于任何可能的<strong>输入符号</strong>，它都只会<strong>转移</strong>回自身。它在 <strong>DFA</strong> 中的功能是充当一个统一的、永久性的“失败”收集器，将所有不符合<strong>语言</strong>规则的计算路径都导向这个不可逃脱的陷阱，从而使自动机的逻辑变得清晰。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>设立此脚注的目的是为了给出一个在正文中被非正式使用的术语的严格定义。在计算理论中，精确性是至关重要的。该脚注确保了读者能够从数学上准确地理解“<strong>死状态</strong>”的含义，而不仅仅停留在“坏状态”或“陷阱”的直观感觉上。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>把 <strong>DFA</strong> 的计算过程想象成在一个有许多房间（<strong>状态</strong>）的建筑里寻宝。</p>
+<ol>
+  <li><strong>接受状态</strong>：是藏有宝藏的房间。你的目标是停在其中一个房间。</li>
+  <li><strong>其他状态</strong>：是普通的、空无一物的房间。</li>
+  <li><strong>死状态</strong>：是一间“储藏室”，它的门是单向的，只能进不能出，而且里面没有宝藏。</li>
+</ol>
+<ol>
+  <li> 你一旦走进这间储藏室（进入<strong>死状态</strong>），门就在你身后锁上了。</li>
+  <li> 房间里没有任何通往其他房间的门，你无论做什么（读入任何<strong>符号</strong>），你都只能留在储藏室里（<strong>转移</strong>到自身）。</li>
+  <li> 因为储藏室里没有宝藏（它是<strong>非接受状态</strong>），所以你的寻宝之旅就此失败了。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-18">
+    <h2><span class="section-number">8</span>行间公式索引</h2>
+    <p>1. <strong>语言L1和L2的定义</strong>：将一个复杂语言分解为两个简单语言L1（偶数长度）和L2（奇数个'a'）的交集。</p><p><div class="math-block">$$
+\begin{gathered}
+L_{1}=\left\{w \in\{a, b\}^{*} \mid w \text{ 具有偶数长度} \right\} \\
+L_{2}=\left\{w \in\{a, b\}^{*} \mid w \text{ 具有奇数个 } a \right\}
+\end{gathered}
+$$</div></p><p>[[END_OF_RESPONSE]]所有解释内容已全部输出完毕。</p>
+</section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>1. COMS 3261 讲义 2B：确定性有限自动机练习解答</p>
+    </footer>
+
+
+    <!-- 手机端点击翻页功能 -->
+    <script>
+        (function() {
+            // 点击翻页功能（在所有设备上启用）
+            
+            document.addEventListener('click', function(e) {
+                // 如果 TOC 目录面板处于打开状态，不触发翻页
+                var tocPanel = document.getElementById('tocPanel');
+                if (tocPanel && tocPanel.classList.contains('active')) {
+                    return;
+                }
+                
+                // 排除对链接、按钮、输入框等交互元素的点击
+                var target = e.target;
+                var tagName = target.tagName.toLowerCase();
+                if (tagName === 'a' || tagName === 'button' || tagName === 'input' || 
+                    tagName === 'textarea' || tagName === 'select' || 
+                    target.closest('a') || target.closest('button') ||
+                    target.closest('.toc-panel') || target.closest('.toc-toggle') ||
+                    target.closest('.toc-overlay')) {
+                    return;
+                }
+                
+                var clickY = e.clientY;
+                var windowHeight = window.innerHeight;
+                var scrollAmount = windowHeight * 0.85; // 滚动85%的屏幕高度
+                
+                if (clickY > windowHeight / 2) {
+                    // 点击下半部分：向下翻页
+                    window.scrollBy({
+                        top: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 点击上半部分：向上翻页
+                    window.scrollBy({
+                        top: -scrollAmount,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        })();
+    </script>
+
+    <!-- TOC 目录控制脚本 -->
+    <script>
+        (function() {
+            var tocToggle = document.getElementById('tocToggle');
+            var tocPanel = document.getElementById('tocPanel');
+            var tocOverlay = document.getElementById('tocOverlay');
+            
+            // 切换目录显示/隐藏
+            function toggleTOC() {
+                var isOpen = tocPanel.classList.contains('active');
+                if (isOpen) {
+                    closeTOC();
+                } else {
+                    openTOC();
+                }
+            }
+            
+            // 打开目录
+            function openTOC() {
+                tocPanel.classList.add('active');
+                tocOverlay.classList.add('active');
+                tocToggle.setAttribute('aria-label', '关闭目录');
+            }
+            
+            // 关闭目录
+            function closeTOC() {
+                tocPanel.classList.remove('active');
+                tocOverlay.classList.remove('active');
+                tocToggle.setAttribute('aria-label', '打开目录');
+            }
+            
+            // 点击按钮切换目录
+            tocToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTOC();
+            });
+            
+            // 点击遮罩层关闭目录
+            tocOverlay.addEventListener('click', function() {
+                closeTOC();
+            });
+            
+            // 点击目录项后关闭目录
+            var tocLinks = tocPanel.querySelectorAll('a');
+            tocLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    closeTOC();
+                });
+            });
+            
+            // ESC 键关闭目录
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && tocPanel.classList.contains('active')) {
+                    closeTOC();
+                }
+            });
+            
+            // 高亮当前可见的目录条目
+            function updateActiveItem() {
+                var scrollPos = window.scrollY + 150;  // 偏移量
+                var activeSection = null;
+                var activeOriginal = null;
+                
+                // 查找当前可见的 section
+                var sections = document.querySelectorAll('section[id^="section-"]');
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    if (section.offsetTop <= scrollPos) {
+                        activeSection = section.id;
+                    }
+                }
+                
+                // 查找当前可见的原文区块
+                var originals = document.querySelectorAll('[id^="original-"]');
+                for (var j = 0; j < originals.length; j++) {
+                    var original = originals[j];
+                    if (original.offsetTop <= scrollPos) {
+                        activeOriginal = original.id;
+                    }
+                }
+                
+                // 先移除所有 active 类
+                var allHeadings = tocPanel.querySelectorAll('.toc-heading');
+                for (var h = 0; h < allHeadings.length; h++) {
+                    allHeadings[h].classList.remove('active');
+                }
+                
+                var allOriginals = tocPanel.querySelectorAll('.toc-original');
+                for (var o = 0; o < allOriginals.length; o++) {
+                    allOriginals[o].classList.remove('active');
+                }
+                
+                // 只给当前活动的条目添加 active 类
+                if (activeSection) {
+                    var activeHeadingLink = tocPanel.querySelector('.toc-heading a[href="#' + activeSection + '"]');
+                    if (activeHeadingLink) {
+                        activeHeadingLink.parentElement.classList.add('active');
+                    }
+                }
+                
+                if (activeOriginal) {
+                    var activeOriginalLink = tocPanel.querySelector('.toc-original a[href="#' + activeOriginal + '"]');
+                    if (activeOriginalLink) {
+                        activeOriginalLink.parentElement.classList.add('active');
+                    }
+                }
+            }
+            
+            // 节流函数
+            var scrollTimeout;
+            function throttledUpdate() {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(function() {
+                    updateActiveItem();
+                    scrollTimeout = null;
+                }, 100);
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', throttledUpdate);
+            
+            // 打开目录时立即更新高亮
+            var originalOpenTOC = openTOC;
+            openTOC = function() {
+                originalOpenTOC();
+                updateActiveItem();
+            };
+            
+            // 初始化
+            updateActiveItem();
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,4008 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1 COMS 3261 讲义 6B: NFA 和正则表达式练习题解答</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- MathJax v4 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            output: {
+                displayOverflow: 'linebreak',
+                linebreaks: {
+                    inline: true,
+                    width: '100%',
+                    lineleading: 0.2
+                }
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            /* 五大区块主题色 */
+            --original-color: #8b5cf6;
+            --explain-color: #0ea5e9;
+            --formula-color: #6366f1;
+            --example-color: #10b981;
+            --warning-color: #f59e0b;
+            /* Q1修复：总结、存在目的、直觉心智模型、直观想象 统一使用 #36828C 青色主题 */
+            --summary-color: #36828C;     /* 青色主题 */
+            --purpose-color: #36828C;     /* 青色主题 */
+            --intuition-color: #36828C;   /* 青色主题 */
+            --imagination-color: #36828C; /* 青色主题 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .authors {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
+        .content-section h4 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h5 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 18px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h6 {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            margin: 15px 0 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        /* ===============================
+           五大内容区块 - 统一风格不同主题色
+           =============================== */
+
+        /* 原文区 - 紫色 */
+        .original-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid var(--original-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .original-box .box-label {
+            color: var(--original-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-box .box-content {
+            font-style: italic;
+            color: #6b21a8;
+        }
+
+        /* 📜 [原文]区块内容 - 使用统一的黑色 */
+        .original-content {
+            color: #2d3748; /* 统一的深灰黑色 */
+        }
+
+        .original-content * {
+            color: #2d3748; /* 所有子元素 */
+        }
+
+        .original-content .MathJax, .original-content .MathJax * {
+            color: #2d3748 !important; /* 行内公式 */
+        }
+
+        /* 通用 .box-content 换行规则 - 确保长文本（如代码调用）能自动换行 */
+        .box-content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .box-content strong, .box-content code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            display: inline;
+        }
+
+        /* 逐步解释区 - 蓝色 */
+        .explain-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--explain-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .explain-box .box-label {
+            color: var(--explain-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explain-box .box-content {
+            color: #1a365d; /* Dark Blue */
+        }
+
+        .explain-box .box-content * {
+            color: #1a365d; /* Dark Blue - 所有子元素 */
+        }
+
+        .explain-box .box-content .MathJax, .explain-box .box-content .MathJax * {
+            color: #1a365d !important; /* Dark Blue - 行内公式 */
+        }
+
+        .explain-box ul, .explain-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .explain-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 公式拆解区 - 靛蓝色 */
+        .formula-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--formula-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .formula-box .box-label {
+            color: var(--formula-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .formula-box .box-content {
+            color: var(--text-color); /* 统一使用默认黑色，与原文区块一致 */
+            overflow-x: auto;
+        }
+
+        .formula-box .box-content * {
+            color: var(--text-color); /* 所有子元素 */
+        }
+
+        .formula-box .box-content .MathJax, .formula-box .box-content .MathJax * {
+            color: var(--text-color) !important; /* 行内公式 */
+        }
+
+        /* 数值示例区 - 绿色 */
+        .example-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--example-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .example-box .box-label {
+            color: var(--example-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-box .box-content {
+            color: #166534; /* Dark Green from edstem5 .answer-en */
+        }
+
+        .example-box .box-content * {
+            color: #166534; /* Dark Green - 所有子元素 */
+        }
+
+        .example-box .box-content .MathJax, .example-box .box-content .MathJax * {
+            color: #166534 !important; /* Dark Green - 行内公式 */
+        }
+
+        .example-box ul, .example-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .example-box li {
+            margin-bottom: 6px;
+        }
+
+        .example-box code {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* 易错点区 - 橙色 */
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .warning-box .box-label {
+            color: var(--warning-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warning-box .box-content {
+            color: #92400e;
+        }
+
+        .warning-box .box-content * {
+            color: #92400e; /* 所有子元素 */
+        }
+
+        .warning-box .box-content .MathJax, .warning-box .box-content .MathJax * {
+            color: #92400e !important; /* 行内公式 */
+        }
+
+        .warning-box ul, .warning-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .warning-box li {
+            margin-bottom: 6px;
+        }
+
+        /* 总结区 - Q1修复：使用#36828C青色主题 */
+        .summary-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--summary-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .summary-box .box-label {
+            color: var(--summary-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .summary-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .summary-box .box-content .MathJax, .summary-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 存在目的区 - Q1修复：使用#36828C青色主题 */
+        .purpose-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--purpose-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .purpose-box .box-label {
+            color: var(--purpose-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .purpose-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .purpose-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .purpose-box .box-content .MathJax, .purpose-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直觉心智模型区 - Q1修复：使用#36828C青色主题 */
+        .intuition-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--intuition-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .intuition-box .box-label {
+            color: var(--intuition-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .intuition-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .intuition-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .intuition-box .box-content .MathJax, .intuition-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直观想象区 - Q1修复：使用#36828C青色主题 */
+        .imagination-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--imagination-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .imagination-box .box-label {
+            color: var(--imagination-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .imagination-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .imagination-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .imagination-box .box-content .MathJax, .imagination-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 高亮术语 */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* 代码块 */
+        code {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            margin: 15px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 表格样式 - 紧凑型，行高列宽适应文字最小值 */
+        table {
+            border-collapse: collapse;
+            width: auto;  /* 列宽适应内容 */
+            margin: 15px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;  /* 减小padding使行高更紧凑 */
+            text-align: left;
+            white-space: nowrap;  /* 防止不必要的换行，列宽适应文字 */
+            line-height: 1.4;  /* 紧凑的行高 */
+        }
+
+        th {
+            background: #e0f7fa;
+            color: #006064;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #e2e8f0;
+        }
+
+        /* 表格对齐 */
+        .align-left {
+            text-align: left;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        /* 图例区域 */
+        .legend-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .legend-bar {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .legend-bar.original { background: #8b5cf6; }
+        .legend-bar.explain { background: #0ea5e9; }
+        .legend-bar.formula { background: #6366f1; }
+        .legend-bar.example { background: #10b981; }
+        .legend-bar.warning { background: #f59e0b; }
+        .legend-bar.summary { background: #36828C; }
+        .legend-bar.purpose { background: #36828C; }
+        .legend-bar.intuition { background: #36828C; }
+        .legend-bar.imagination { background: #36828C; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive - 移动端适配 */
+        @media (max-width: 768px) {
+            /* 容器宽度适配 */
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 20px 12px;
+                box-sizing: border-box;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+                padding: 0 15px;
+            }
+            
+            .hero {
+                padding: 50px 15px;
+            }
+            
+            .hero h1 {
+                font-size: 1.6rem;
+                word-break: break-word;
+            }
+            
+            .authors {
+                font-size: 1rem;
+            }
+            
+            /* 内容区块适配 */
+            .content-section {
+                padding: 20px 15px;
+                margin-left: 5px;
+                margin-right: 5px;
+                border-radius: 12px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.4rem;
+                flex-wrap: wrap;
+            }
+            
+            .content-section h3 {
+                font-size: 1.2rem;
+            }
+            
+            .content-section h4 {
+                font-size: 1.1rem;
+            }
+            
+            .section-number {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            /* 各区块box适配 */
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 15px 12px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .original-box .box-label,
+            .explain-box .box-label,
+            .formula-box .box-label,
+            .example-box .box-label,
+            .warning-box .box-label,
+            .summary-box .box-label,
+            .purpose-box .box-label,
+            .intuition-box .box-label,
+            .imagination-box .box-label {
+                font-size: 1.1rem;
+            }
+            
+            /* 图例区域移动端适配 */
+            .legend-section {
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
+            
+            .legend-row {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            
+            .legend-item {
+                font-size: 0.8rem;
+                gap: 5px;
+            }
+            
+            .legend-bar {
+                width: 3px;
+                height: 16px;
+            }
+            
+            /* 列表适配 */
+            ul, ol {
+                margin-left: 15px;
+                padding-left: 5px;
+            }
+            
+            /* 表格移动端适配 */
+            table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.9rem;
+                min-width: 80px;
+            }
+            
+            /* 代码块适配 */
+            pre {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            
+            /* 数学公式适配 */
+            .math-block {
+                padding: 10px 8px;
+                margin: 15px 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* MathJax公式溢出处理 - 只处理块级公式，保持行内公式inline */
+            mjx-container[jax="CHTML"][display="true"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                display: block !important;
+            }
+            
+            /* 行内公式 - 超宽时自动换行 */
+            mjx-container:not([display="true"]) {
+                display: inline-block !important;
+                max-width: 100% !important;
+                overflow-wrap: break-word !important;
+                word-wrap: break-word !important;
+            }
+            
+            /* MathJax内部元素换行支持 */
+            mjx-math {
+                white-space: normal !important;
+            }
+            
+            mjx-mrow {
+                flex-wrap: wrap !important;
+            }
+            
+            /* Footer适配 */
+            .footer {
+                padding: 25px 15px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* 超小屏幕适配 (手机竖屏) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 8px;
+            }
+            
+            .hero {
+                padding: 40px 10px;
+            }
+            
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+            
+            .content-section {
+                padding: 15px 10px;
+                margin-left: 3px;
+                margin-right: 3px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 12px 10px;
+            }
+            
+            .legend-section {
+                padding: 12px 8px;
+            }
+            
+            .legend-row {
+                gap: 8px;
+            }
+            
+            .legend-item {
+                font-size: 0.75rem;
+            }
+            
+            ul, ol {
+                margin-left: 12px;
+            }
+        }
+        
+        /* 确保所有内容不溢出 */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* ========================================
+           TOC 目录样式
+           ======================================== */
+        
+        /* TOC 触发按钮 - 左上角小方块 */
+        .toc-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(54, 130, 140, 0.5);  /* 青色 50% 透明度 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .toc-toggle:hover {
+            background: rgba(54, 130, 140, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .toc-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* TOC 目录面板 */
+        .toc-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 95vw;  /* 手机浏览器宽度的 95% */
+            height: 80vh; /* 手机浏览器高度的 80% */
+            max-width: 450px;  /* 桌面端最大宽度 */
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0 0 16px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .toc-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* TOC 头部 - 标题在图标右侧 */
+        .toc-header {
+            padding: 15px 20px 15px 80px;  /* 左侧留出按钮空间 */
+            background: linear-gradient(135deg, #36828C 0%, #2a6a72 100%);
+            color: white;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .toc-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* TOC 内容区 */
+        .toc-content {
+            flex: 1;
+            overflow-y: auto;   /* 允许垂直滚动 */
+            overflow-x: hidden; /* 禁止水平滚动 */
+            padding: 15px 0;
+        }
+        
+        /* TOC 列表 */
+        .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc-item {
+            margin: 0;
+        }
+        
+        .toc-item a {
+            display: block;
+            padding: 4px 20px;  /* 更紧凑的行间距 */
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #2d3748;
+            text-decoration: none;
+            word-wrap: break-word;   /* 自动换行 */
+            overflow-wrap: break-word;
+            white-space: normal;     /* 允许换行 */
+            line-height: 1.3;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .toc-item a:hover {
+            background: #e8f4f5;
+            color: #36828C;
+            border-left-color: #36828C;
+        }
+        
+        /* 标题项样式 */
+        .toc-heading a {
+            font-weight: 600;
+            color: #1a365d;
+            background: #f7fafc;
+        }
+        
+        .toc-heading a:hover {
+            background: #e8f4f5;
+        }
+        
+        /* 当前活动的标题项样式 */
+        .toc-heading.active a {
+            background: #d0e8ea;
+            color: #36828C;
+            border-left-color: #36828C;
+            font-weight: 700;
+        }
+        
+        /* 当前活动的原文项样式 */
+        .toc-original.active a {
+            background: #36828C;
+            color: white;
+            box-shadow: 0 3px 8px rgba(54, 130, 140, 0.35);
+        }
+        
+        /* 原文项容器 - 横向排列自动换行 */
+        .toc-originals-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 8px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* 原文项样式 - 浅青色带阴影 */
+        .toc-original {
+            margin: 0;
+        }
+        
+        .toc-original a {
+            display: inline-block;
+            width: 64px;  /* 固定宽度确保每行显示数量一致 */
+            padding: 6px 4px;
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #36828C;  /* 青色主题色 */
+            text-decoration: none;
+            text-align: center;
+            background: #e8f4f5;
+            border-radius: 6px;
+            border-left: none;
+            box-shadow: 0 2px 4px rgba(54, 130, 140, 0.2);  /* 青色阴影 */
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .toc-original a:hover {
+            background: #e0f2f4;
+            color: #36828C;
+            box-shadow: 0 3px 6px rgba(54, 130, 140, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        /* TOC 遮罩层 */
+        .toc-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .toc-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 移动端 TOC 适配 */
+        @media (max-width: 768px) {
+            .toc-toggle {
+                top: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .toc-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .toc-panel {
+                width: 90vw;
+                height: 80vh;
+                max-width: none;
+            }
+            
+            .toc-header {
+                padding: 12px 15px 12px 65px;
+            }
+            
+            .toc-header h3 {
+                font-size: 16px;
+            }
+            
+            .toc-item a {
+                padding: 4px 15px;
+                font-size: 15.5px;
+            }
+            
+            .toc-originals-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            .toc-original a {
+                padding: 5px 10px;
+                font-size: 15.5px;
+            }
+        }
+
+        /* 特殊术语着色 */
+        .spectral {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .periodicity {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .fourier {
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        /* 列表样式增强 */
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 - 已移除重复定义，使用上方第602-633行的紧凑型样式 */
+
+        /* 分隔线 */
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 30px 0;
+        }
+
+        /* 数学公式样式 - Q7: 行间公式颜色用黑色 */
+        .math-block {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            color: #000000; /* Q7: 黑色文字 */
+        }
+
+        /* Q7: 确保MathJax渲染的公式为黑色 */
+        .math-block .MathJax {
+            color: #000000 !important;
+        }
+
+        mjx-container {
+            color: #000000 !important;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- TOC 目录按钮 -->
+    <button class="toc-toggle" id="tocToggle" aria-label="打开目录">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+        </svg>
+    </button>
+    
+    <!-- TOC 遮罩层 -->
+    <div class="toc-overlay" id="tocOverlay"></div>
+    
+    <!-- TOC 目录面板 -->
+    <nav class="toc-panel" id="tocPanel">
+        <div class="toc-header">
+            <h3>📑 目录</h3>
+        </div>
+        <div class="toc-content">
+            <ul class="toc-list">
+                <li class="toc-item toc-heading"><a href="#section-1">1. 1 COMS 3261 讲义 6B: NFA 和正则表达式练习题解答</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-1">原文1</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-2">2. 2 NFA</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-2">原文2</a></span><span class="toc-original"><a href="#original-3">原文3</a></span><span class="toc-original"><a href="#original-4">原文4</a></span><span class="toc-original"><a href="#original-5">原文5</a></span><span class="toc-original"><a href="#original-6">原文6</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-3">3. 3 正规语言的封闭性质</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-7">原文7</a></span><span class="toc-original"><a href="#original-8">原文8</a></span><span class="toc-original"><a href="#original-9">原文9</a></span><span class="toc-original"><a href="#original-10">原文10</a></span><span class="toc-original"><a href="#original-11">原文11</a></span><span class="toc-original"><a href="#original-12">原文12</a></span><span class="toc-original"><a href="#original-13">原文13</a></span><span class="toc-original"><a href="#original-14">原文14</a></span><span class="toc-original"><a href="#original-15">原文15</a></span><span class="toc-original"><a href="#original-16">原文16</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-4">4. 4 正则表达式</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-17">原文17</a></span><span class="toc-original"><a href="#original-18">原文18</a></span><span class="toc-original"><a href="#original-19">原文19</a></span><span class="toc-original"><a href="#original-20">原文20</a></span><span class="toc-original"><a href="#original-21">原文21</a></span><span class="toc-original"><a href="#original-22">原文22</a></span><span class="toc-original"><a href="#original-23">原文23</a></span><span class="toc-original"><a href="#original-24">原文24</a></span><span class="toc-original"><a href="#original-25">原文25</a></span><span class="toc-original"><a href="#original-26">原文26</a></span><span class="toc-original"><a href="#original-27">原文27</a></span><span class="toc-original"><a href="#original-28">原文28</a></span><span class="toc-original"><a href="#original-29">原文29</a></span><span class="toc-original"><a href="#original-30">原文30</a></span><span class="toc-original"><a href="#original-31">原文31</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-5">5. 行间公式索引</a></li>
+                <li class="toc-item toc-heading"><a href="#section-6">6. 5 讲义总结</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>1 COMS 3261 讲义 6B: NFA 和正则表达式练习题解答</h1>
+            <p class="authors"></p>
+            <p class="date"></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 图例区域 -->
+        <div class="legend-section">
+            <!-- 第一行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar original"></div>
+                    <span>📜 原文</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar explain"></div>
+                    <span>📖 逐步解释</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar formula"></div>
+                    <span>∑ 公式拆解</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar example"></div>
+                    <span>💡 数值示例</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar warning"></div>
+                    <span>⚠️ 易错点</span>
+                </div>
+            </div>
+            <!-- 第二行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar summary"></div>
+                    <span>📝 总结</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar purpose"></div>
+                    <span>🎯 存在目的</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar intuition"></div>
+                    <span>🧠 直觉心智模型</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar imagination"></div>
+                    <span>💭 直观想象</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="content-section" id="section-1">
+    <h2><span class="section-number">1</span>1 COMS 3261 讲义 6B: NFA 和正则表达式练习题解答</h2>
+    <p id="original-1"><strong style="font-size: 1.3rem;">📜 [原文1]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>COMS 3261 讲义 6B: &lt;br&gt; <strong>NFA</strong> 和<strong>正则表达式</strong>练习题解答</p>
+<p>Ziheng Huang 和 Kiru Arjunan&lt;br&gt;(致谢 Cindy Wang，2018 助教)</p>
+<p>2024 秋季</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这份文档是哥伦比亚大学计算机科学理论课程（COMS W3261）的讲义解答，具体来说是关于<strong>非确定性有限自动机 (NFA)</strong> 和<strong>正则表达式 (Regular Expression)</strong> 的练习题解答。文档由 Ziheng Huang 和 Kiru Arjunan 编写，并感谢了 2018 年的助教 Cindy Wang 的贡献。这份材料适用于 2024 年秋季学期。它旨在帮助学生理解和掌握 <strong>NFA</strong> 和<strong>正则表达式</strong>的核心概念，以及它们之间的转换方法。</p>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这是一个课程讲义的解答部分，专注于 <strong>NFA</strong> 和<strong>正则表达式</strong>的练习题。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>该文档的目的是为学生提供一个参考，使他们能够核对自己的作业答案，理解解题过程，并深化对 <strong>NFA</strong> 和<strong>正则表达式</strong>相关理论的认识。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>您可以将这份文档看作是一本带有详细“官方题解”的练习册。当您完成 <strong>NFA</strong> 和<strong>正则表达式</strong>的练习后，可以翻阅这本题解，看看自己的答案是否正确，更重要的是，学习解决这类问题的标准思路和方法。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一下，您正在学习一门新的语言（计算理论的语言），这份文档就像是语言学习中的答案之书。每当您尝试翻译一个句子（解决一个问题）后，都可以打开这本书来检查自己的翻译是否地道、准确，并从中学习语法规则（理论知识）和表达技巧（解题方法）。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-2">
+    <h2><span class="section-number">2</span>2 NFA</h2>
+    <h3>2.1 问题 1</h3><p id="original-2"><strong style="font-size: 1.3rem;">📜 [原文2]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>问题 1. 画出一个识别以下内容的 <strong>NFA</strong>：</p>
+<p>(a) 所有包含 101 的字符串。</p>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-01.jpg?height=250&width=1013&top_left_y=1105&top_left_x=529" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题要求我们构造一个<strong>非确定性有限自动机 (NFA)</strong>，该 <strong>NFA</strong> 能够识别所有包含子串 "101" 的二进制字符串。</p>
+<p><strong>NFA</strong> 的核心思想是“猜测和验证”。对于这个问题，<strong>NFA</strong> 需要“猜测”子串 "101" 何时开始，然后“验证”接下来的三个字符是否确实是 "101"。</p>
+<ol>
+  <li> <strong>起始状态 $q_0$</strong>：这是自动机的起点。在看到 "101" 子串之前，任何字符（0 或 1）的出现都只是“等待”阶段。因此，在 $q_0$ 状态，我们设置一个自循环，无论输入是 0 还是 1，状态都保持在 $q_0$。这表示 <strong>NFA</strong> 正在读取字符串的开头部分，但还没有找到 "101" 的迹象。</li>
+  <li> <strong>检测到 '1'</strong>：当处于 $q_0$ 状态时，如果读入一个 '1'，<strong>NFA</strong> 会进行“猜测”。它有两个选择：
+<ul>
+  <li><strong>选择一（留在 $q_0$）</strong>：它猜测这个 '1' 不是 "101" 子串的开始，于是继续停留在 $q_0$ 状态，等待下一个可能的 "101" 的开头。</li>
+  <li><strong>选择二（进入 $q_1$）</strong>：它猜测这个 '1' <strong>可能</strong>是 "101" 子串的开始。于是，它从 $q_0$ <strong>转移</strong>到新状态 $q_1$。</li>
+</ul></li>
+  <li> <strong>检测到 '0'</strong>：现在假设 <strong>NFA</strong> 处于 $q_1$ 状态（因为它刚刚看到了一个 '1'）。如果下一个输入是 '0'，这符合 "101" 模式的第二个字符。于是，<strong>NFA</strong> 从 $q_1$ <strong>转移</strong>到状态 $q_2$。</li>
+  <li> <strong>检测到 '1' (完成)</strong>：如果 <strong>NFA</strong> 处于 $q_2$ 状态（意味着它已经看到了 "10"），并且下一个输入是 '1'，那么 "101" 子串就完整地出现了。此时，<strong>NFA</strong> 从 $q_2$ <strong>转移</strong>到状态 $q_3$。</li>
+  <li> <strong>接受状态 $q_3$</strong>：状态 $q_3$ 是一个<strong>接受状态</strong>。一旦进入这个状态，就意味着字符串中已经成功找到了 "101" 这个子串。由于题目要求是“包含” "101"，所以一旦找到，无论后面跟着什么字符，该字符串都应该被接受。因此，在 $q_3$ 状态，我们设置一个自循环，对于任何输入（0 或 1），状态都保持在 $q_3$。</li>
+  <li> <strong>失败路径</strong>：如果猜测失败了怎么办？例如，在 $q_1$ 状态（已看到 '1'）时，如果下一个输入不是 '0' 而是 '1'，那么 "10" 的模式就断了。在 <strong>NFA</strong> 中，如果没有为某个输入定义<strong>转移</strong>，那么这条计算路径就会“死亡”。这正是 <strong>NFA</strong> 的便利之处，我们只需要关心成功路径即可。</li>
+</ol>
+<p>综上所述，构造出的 <strong>NFA</strong> 如下图所示：</p>
+<ul>
+  <li>$q_0$ 是<strong>起始状态</strong>。</li>
+  <li>$q_0$ 上有一个指向自身的环，标签为 0, 1，表示在找到 "101" 的第一个 '1' 之前，可以消耗任意数量的 0 和 1。</li>
+  <li>从 $q_0$ 到 $q_1$ 有一条标签为 1 的边，代表猜测 "101" 的开始。</li>
+  <li>从 $q_1$ 到 $q_2$ 有一条标签为 0 的边。</li>
+  <li>从 $q_2$ 到 $q_3$ 有一条标签为 1 的边。</li>
+  <li>$q_3$ 是<strong>接受状态</strong>。</li>
+  <li>$q_3$ 上有一个指向自身的环，标签为 0, 1，表示一旦找到 "101"，后面可以跟任意字符。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例 1：字符串 "01010"</strong></li>
+</ul>
+<ol>
+  <li> 开始于 $q_0$。</li>
+  <li> 读入 '0'：留在 $q_0$。</li>
+  <li> 读入 '1'：<strong>NFA</strong> 分裂成两条路径。一条留在 $q_0$，另一条<strong>转移</strong>到 $q_1$。
+<ul>
+  <li>路径 A: ...$q_0$</li>
+  <li>路径 B: ...$q_1$</li>
+</ul></li>
+  <li> 读入 '0'：
+<ul>
+  <li>路径 A (在 $q_0$): 留在 $q_0$。</li>
+  <li>路径 B (在 $q_1$): <strong>转移</strong>到 $q_2$。</li>
+</ul></li>
+  <li> 读入 '1'：
+<ul>
+  <li>路径 A (在 $q_0$): 分裂，一条留在 $q_0$，一条到 $q_1$。</li>
+  <li>路径 B (在 $q_2$): <strong>转移</strong>到 $q_3$。</li>
+</ul></li>
+  <li> 读入 '0'：
+<ul>
+  <li>路径 B (在 $q_3$): 留在 $q_3$。其他路径我们不再关心。</li>
+</ul></li>
+  <li> 字符串结束。由于至少有一条路径（路径 B）最终停在<strong>接受状态</strong> $q_3$，所以字符串 "01010" 被接受。</li>
+</ol>
+<ul>
+  <li><strong>示例 2：字符串 "1100"</strong></li>
+</ul>
+<ol>
+  <li> 开始于 $q_0$。</li>
+  <li> 读入 '1'：分裂成两条路径。
+<ul>
+  <li>路径 A: $q_0$</li>
+  <li>路径 B: $q_1$</li>
+</ul></li>
+  <li> 读入 '1'：
+<ul>
+  <li>路径 A (在 $q_0$): 分裂成 $q_0$ 和 $q_1$。</li>
+  <li>路径 B (在 $q_1$): 路径死亡，因为没有从 $q_1$ 出发，输入为 '1' 的<strong>转移</strong>。</li>
+</ul></li>
+  <li> 读入 '0'：
+<ul>
+  <li>路径 A' (来自 $q_0$): 留在 $q_0$。</li>
+  <li>路径 A'' (来自 $q_1$): <strong>转移</strong>到 $q_2$。</li>
+</ul></li>
+  <li> 读入 '0'：
+<ul>
+  <li>路径 A' (在 $q_0$): 留在 $q_0$。</li>
+  <li>路径 A'' (在 $q_2$): 路径死亡。</li>
+</ul></li>
+  <li> 字符串结束。所有路径都没有停在<strong>接受状态</strong> $q_3$。因此字符串 "1100" 被拒绝。</li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>忘记起始状态的自循环</strong>：如果 $q_0$ 没有 (0,1) 的自循环，那么 <strong>NFA</strong> 将只能识别以 "101" 开头的字符串，而不能识别 "00101" 这样的字符串。</li>
+  <li><strong>忘记接受状态的自循环</strong>：如果 $q_3$ 没有 (0,1) 的自循环，那么 <strong>NFA</strong> 将只能识别以 "101" 结尾的字符串，而不能识别 "10100" 这样的字符串。</li>
+  <li><strong>将 NFA 当作 DFA 设计</strong>：如果试图为每个状态的所有可能输入都定义唯一的<strong>转移</strong>（例如，从 $q_1$ 收到 '1' 该去哪里），就会把问题复杂化。<strong>NFA</strong> 的优势在于可以忽略失败路径。</li>
+  <li><strong>边界情况</strong>：字符串 "101" 本身应该被接受。空字符串 $\epsilon$ 不包含 "101"，应该被拒绝。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>我们设计了一个四状态的 <strong>NFA</strong> 来识别包含 "101" 的语言。该 <strong>NFA</strong> 利用非确定性来“猜测”子串的起始位置，并通过一条线性的状态路径来“验证”该子串。起始和结束状态的自循环确保了 "101" 可以出现在字符串的任何位置。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个问题的目的是检验对 <strong>NFA</strong> 基本构造的理解，特别是如何利用非确定性来简化对“包含某个子串”这类语言的识别。这与 <strong>DFA</strong> 的设计形成了鲜明对比，用 <strong>DFA</strong> 解决同样的问题会需要更多的状态来“记忆”已经匹配的部分。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>把这个 <strong>NFA</strong> 想象成一个寻宝游戏。你有一张藏宝图，上面写着“找到连续的'1'、'0'、'1'三个标记”。</p>
+<ol>
+  <li>$q_0$ 是你的大本营。你一直在周围闲逛（$q_0$ 的自循环），寻找第一个标记 '1'。</li>
+  <li>每当你看到一个 '1'，你都可以在原地继续闲逛，也可以选择相信“宝藏就在这里！”，然后迈出第一步，到达 $q_1$。</li>
+  <li>到了 $q_1$，你开始寻找第二个标记 '0'。如果找到了，就前进到 $q_2$。如果没找到（比如又看到了一个 '1'），那这条寻宝路线就失败了，你得从头再来。</li>
+  <li>到了 $q_2$，你寻找最后的标记 '1'。如果找到了，恭喜你，到达了藏宝地 $q_3$！</li>
+  <li>一旦到达 $q_3$，你就找到了宝藏，可以躺平了（$q_3$ 的自循环），不管后面发生什么，你都已经成功了。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一条流水线，上面传送着一串由 0 和 1 组成的珠子。你有三个机器人（$q_1, q_2, q_3$）排成一队。</p>
+<ol>
+  <li>你（$q_0$）在流水线起点，看着珠子一个个过去。</li>
+  <li>当你看到一个 '1' 珠子时，你立刻复制一个自己，让复制体去启动第一个机器人 $q_1$。你自己则继续留在原地观望。</li>
+  <li>机器人 $q_1$ 启动后，只等待 '0' 珠子。如果等到了，它就启动机器人 $q_2$，然后自己下班。如果没等到，它就报废。</li>
+  <li>机器人 $q_2$ 启动后，只等待 '1' 珠子。如果等到了，它就启动机器人 $q_3$，然后自己下班。</li>
+  <li>机器人 $q_3$ 一旦被启动，就会亮起一盏绿灯，并且这盏灯永远不会熄灭。</li>
+</ol>
+<p>只要最后流水线走完时，绿灯是亮的，就说明这串珠子是合格的。</p>
+    </div>
+</div><hr><p id="original-3"><strong style="font-size: 1.3rem;">📜 [原文3]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>(b) $L=\left\{w \in\{0,1\}^{*} \mid w\right.$ 恰好有两个 0 或有偶数个 1$\}$</p>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-01.jpg?height=559&width=876&top_left_y=1500&top_left_x=596" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题要求我们构造一个 <strong>NFA</strong>，它接受的语言 $L$ 包含两类字符串：要么字符串中<strong>恰好有两个 0</strong>，要么字符串中有<strong>偶数个 1</strong>。</p>
+<p>这里的关键词是“或”，这强烈暗示了我们可以分别构造识别这两个子语言的自动机，然后用<strong>并集</strong>操作将它们组合起来。<strong>NFA</strong> 的一个巨大优势就是可以轻松地实现<strong>并集</strong>操作。</p>
+<p><strong>第一部分：构造识别“恰好有两个 0”的 NFA ($N_1$)</strong></p>
+<p>我们需要一个计数器来记录 0 的数量。</p>
+<ol>
+  <li> <strong>状态 $c_0$</strong>：<strong>起始状态</strong>，表示到目前为止有 0 个 0。在这个状态下，可以读取任意数量的 1，状态不变。如果读到 0，就<strong>转移</strong>到下一个状态。</li>
+  <li> <strong>状态 $c_1$</strong>：表示到目前为止有 1 个 0。同样，可以读取任意数量的 1 而状态不变。如果读到第二个 0，就<strong>转移</strong>到下一个状态。</li>
+  <li> <strong>状态 $c_2$</strong>：表示到目前为止<strong>恰好有两个 0</strong>。这是一个<strong>接受状态</strong>。在此之后，不能再出现 0，否则 0 的数量就超过 2 了。所以，这个状态只允许读取 1，并且状态保持不变。</li>
+</ol>
+<p>这个子自动机 ($c_0, c_1, c_2$) 是一个 <strong>DFA</strong>。</p>
+<p><strong>第二部分：构造识别“偶数个 1”的 NFA ($N_2$)</strong></p>
+<p>我们需要一个计数器来记录 1 的奇偶性。</p>
+<ol>
+  <li> <strong>状态 $p_0$</strong>：<strong>起始状态</strong>，表示到目前为止有偶数个 1（0 是偶数）。这是一个<strong>接受状态</strong>。如果读到 0，1 的奇偶性不变，所以状态不变。如果读到 1，1 的数量变为奇数，<strong>转移</strong>到下一个状态。</li>
+  <li> <strong>状态 $p_1$</strong>：表示到目前为止有奇数个 1。这不是一个<strong>接受状态</strong>。如果读到 0，状态不变。如果读到 1，1 的数量变为偶数，<strong>转移</strong>回 $p_0$。</li>
+</ol>
+<p>这个子自动机 ($p_0, p_1$) 也是一个 <strong>DFA</strong>。</p>
+<p><strong>第三部分：组合 $N_1$ 和 $N_2$ 得到最终的 NFA</strong></p>
+<p><strong>并集</strong>的构造方法是：</p>
+<ol>
+  <li> 创建一个新的<strong>起始状态</strong> $q_0$。</li>
+  <li> 从新的<strong>起始状态</strong> $q_0$ 添加 $\epsilon$-<strong>转移</strong>（空<strong>转移</strong>）到原来两个自动机的<strong>起始状态</strong>，即 $c_0$ 和 $p_0$。</li>
+</ol>
+<p>这样，当 <strong>NFA</strong> 开始处理一个字符串时，它会立即“猜测”这个字符串应该满足哪个条件：</p>
+<ul>
+  <li>如果它猜测字符串有“恰好两个 0”，它就会沿着 $\epsilon$-<strong>转移</strong>进入 $c_0$ 开始计算。</li>
+  <li>如果它猜测字符串有“偶数个 1”，它就会沿着另一条 $\epsilon$-<strong>转移</strong>进入 $p_0$ 开始计算。</li>
+</ul>
+<p>只要最终至少有一条计算路径停在<strong>接受状态</strong>（$c_2$ 或 $p_0$），整个字符串就被接受。</p>
+<p>最终的 <strong>NFA</strong> 结构如下：</p>
+<ul>
+  <li><strong>新起始状态</strong> $q_0$。</li>
+  <li>从 $q_0$ 到 $c_0$ 有一条 $\epsilon$-<strong>转移</strong>。</li>
+  <li>从 $q_0$ 到 $p_0$ 有一条 $\epsilon$-<strong>转移</strong>。</li>
+  <li><strong>上半部分（来自 $N_1$）</strong>：</li>
+  <li>$c_0 \xrightarrow{1} c_0$, $c_0 \xrightarrow{0} c_1$</li>
+  <li>$c_1 \xrightarrow{1} c_1$, $c_1 \xrightarrow{0} c_2$</li>
+  <li>$c_2 \xrightarrow{1} c_2$</li>
+  <li>$c_2$ 是<strong>接受状态</strong>。</li>
+  <li><strong>下半部分（来自 $N_2$）</strong>：</li>
+  <li>$p_0 \xrightarrow{0} p_0$, $p_0 \xrightarrow{1} p_1$</li>
+  <li>$p_1 \xrightarrow{0} p_1$, $p_1 \xrightarrow{1} p_0$</li>
+  <li>$p_0$ 是<strong>接受状态</strong>。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例 1：字符串 "010"</strong></li>
+</ul>
+<ol>
+  <li> 从 $q_0$ 开始，<strong>NFA</strong> 立即分裂到 $c_0$ 和 $p_0$。</li>
+  <li> <strong>路径 C (从 $c_0$ 开始)</strong>:
+<ul>
+  <li>读 '0': $c_0 \rightarrow c_1$</li>
+  <li>读 '1': $c_1 \rightarrow c_1$</li>
+  <li>读 '0': $c_1 \rightarrow c_2$</li>
+  <li>字符串结束，停在<strong>接受状态</strong> $c_2$。</li>
+</ul></li>
+  <li> <strong>路径 P (从 $p_0$ 开始)</strong>:
+<ul>
+  <li>读 '0': $p_0 \rightarrow p_0$</li>
+  <li>读 '1': $p_0 \rightarrow p_1$</li>
+  <li>读 '0': $p_1 \rightarrow p_1$</li>
+  <li>字符串结束，停在非<strong>接受状态</strong> $p_1$。</li>
+</ul></li>
+  <li> 因为路径 C 成功了，所以字符串 "010" 被接受（因为它恰好有两个 0）。</li>
+</ol>
+<ul>
+  <li><strong>示例 2：字符串 "101"</strong></li>
+</ul>
+<ol>
+  <li> 从 $q_0$ 开始，分裂到 $c_0$ 和 $p_0$。</li>
+  <li> <strong>路径 C (从 $c_0$ 开始)</strong>:
+<ul>
+  <li>读 '1': $c_0 \rightarrow c_0$</li>
+  <li>读 '0': $c_0 \rightarrow c_1$</li>
+  <li>读 '1': $c_1 \rightarrow c_1$</li>
+  <li>字符串结束，停在非<strong>接受状态</strong> $c_1$。</li>
+</ul></li>
+  <li> <strong>路径 P (从 $p_0$ 开始)</strong>:
+<ul>
+  <li>读 '1': $p_0 \rightarrow p_1$</li>
+  <li>读 '0': $p_1 \rightarrow p_1$</li>
+  <li>读 '1': $p_1 \rightarrow p_0$</li>
+  <li>字符串结束，停在<strong>接受状态</strong> $p_0$。</li>
+</ul></li>
+  <li> 因为路径 P 成功了，所以字符串 "101" 被接受（因为它有偶数个 1）。</li>
+</ol>
+<ul>
+  <li><strong>示例 3：字符串 "01010"</strong></li>
+</ul>
+<ol>
+  <li> 从 $q_0$ 开始，分裂到 $c_0$ 和 $p_0$。</li>
+  <li> <strong>路径 C (从 $c_0$ 开始)</strong>:
+<ul>
+  <li>读 '0': $c_0 \rightarrow c_1$</li>
+  <li>读 '1': $c_1 \rightarrow c_1$</li>
+  <li>读 '0': $c_1 \rightarrow c_2$</li>
+  <li>读 '1': $c_2 \rightarrow c_2$</li>
+  <li>读 '0': $c_2$ 之后没有输入为 '0' 的<strong>转移</strong>，路径死亡。</li>
+</ul></li>
+  <li> <strong>路径 P (从 $p_0$ 开始)</strong>:
+<ul>
+  <li>读 '0': $p_0 \rightarrow p_0$</li>
+  <li>读 '1': $p_0 \rightarrow p_1$</li>
+  <li>读 '0': $p_1 \rightarrow p_1$</li>
+  <li>读 '1': $p_1 \rightarrow p_0$</li>
+  <li>读 '0': $p_0 \rightarrow p_0$</li>
+  <li>字符串结束，停在<strong>接受状态</strong> $p_0$。</li>
+</ul></li>
+  <li> 因为路径 P 成功了，所以字符串 "01010" 被接受（因为它有偶数个 1，尽管它有三个 0）。</li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>错误地合并状态</strong>：不能简单地认为两个子自动机的<strong>起始状态</strong>是同一个状态。使用新的<strong>起始状态</strong>和 $\epsilon$-<strong>转移</strong>是实现<strong>并集</strong>的标准和可靠方法。</li>
+  <li><strong>对“恰好”理解错误</strong>：在构造 $N_1$ 时，一旦到达 $c_2$（两个 0），就不能再接受任何 0。这意味着从 $c_2$ 出发没有为输入 '0' 定义的<strong>转移</strong>。</li>
+  <li><strong>对“偶数”理解错误</strong>：0 是一个偶数。因此，对于 $N_2$，“偶数个 1”的<strong>起始状态</strong> $p_0$（代表 0 个 1）本身就必须是<strong>接受状态</strong>。这意味着不包含 '1' 的字符串（如 "00"）应该被 $N_2$ 部分接受。</li>
+  <li><strong>边界情况</strong>：空字符串 $\epsilon$。</li>
+  <li>路径 C：$c_0$ 不是<strong>接受状态</strong>。</li>
+  <li>路径 P：$p_0$ 是<strong>接受状态</strong>。</li>
+  <li>所以 $\epsilon$ 被接受（因为它有 0 个 1，是偶数）。这是正确的。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这个问题展示了如何使用<strong>并集</strong>的构造方法来解决“或”类型的语言识别问题。我们首先为每个子条件（“恰好有两个 0”和“偶数个 1”）分别设计了独立的自动机，然后通过一个带 $\epsilon$-<strong>转移</strong>的新<strong>起始状态</strong>将它们组合成一个大的 <strong>NFA</strong>。这个 <strong>NFA</strong> 利用非确定性来同时探索两种可能性。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个问题的目的是考察学生对<strong>正规语言</strong>的<strong>封闭性质</strong>（特别是<strong>并集</strong>）的理解，以及如何将这种理论上的构造方法应用到实际的 <strong>NFA</strong> 设计中。它强调了模块化设计的思想：将复杂问题分解为简单子问题，分别求解，然后组合。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一个公司招聘，有两个独立的部门在同时面试你。</p>
+<ol>
+  <li><strong>部门 C（计数部）</strong>：他们的要求是“你的简历里必须不多不少，正好提到过两次 '0' 项目”。面试官 $c_0$（0 次）、$c_1$（1 次）、$c_2$（2 次）会检查你的简历。只有面试官 $c_2$ 检查完后才会给你发 offer（<strong>接受状态</strong>）。</li>
+  <li><strong>部门 P（奇偶校验部）</strong>：他们的要求是“你的简历里提到 '1' 项目的次数必须是偶数”。面试官 $p_0$（偶数次）和 $p_1$（奇数次）会检查你的简历。只有面试官 $p_0$ 会给你发 offer。</li>
+  <li><strong>你（字符串）</strong> 去公司前台 ($q_0$) 报道。前台小姐告诉你：“你可以选择去 C 部门面试，也可以选择去 P 部门面试，或者两边都去试试。”（$\epsilon$-<strong>转移</strong>）。</li>
+</ol>
+<p>只要最后你拿到了任何一个部门的 offer，你就被这家公司录用了（字符串被接受）。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个分岔的管道系统。</p>
+<ol>
+  <li>水流（输入的字符串）从总入口 $q_0$ 进入。</li>
+  <li>入口处立刻有一个 T 型岔路口，水流被分成两股，分别流向管道系统 C 和管道系统 P。</li>
+  <li><strong>管道 C</strong> 有三个阀门（$c_0, c_1, c_2$）。水流中的 '0' 杂质会打开下一级阀门，'1' 杂质则让水流在当前阀门区域循环。如果 '0' 杂质超过两个，管道就会堵塞。只有水流最终从阀门 $c_2$ 流出，才算成功。</li>
+  <li><strong>管道 P</strong> 有两个阀门 ($p_0, p_1$)。水流中的 '1' 杂质会让水流在两个阀门之间切换，'0' 杂质则不影响。只有当水流最终从阀门 $p_0$ 流出时，才算成功。</li>
+  <li>只要最后有任意一股水流从 C 或 P 的出口流出，就表示整个系统是通的（字符串被接受）。</li>
+</ol>
+    </div>
+</div><h3>2.2 问题 2</h3><p id="original-4"><strong style="font-size: 1.3rem;">📜 [原文4]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>(a) 该 <strong>NFA</strong> 识别的语言是什么？</p>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-01.jpg?height=104&width=108&top_left_y=2252&top_left_x=708" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p><strong>状态</strong> $q_{0}$ 不是<strong>接受状态</strong>。该 <strong>NFA</strong> 识别的语言是 $\emptyset$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题展示了一个非常简单的 <strong>NFA</strong>，并询问它能识别哪种语言。</p>
+<ol>
+  <li> <strong>分析 NFA 结构</strong>:
+<ul>
+  <li>该 <strong>NFA</strong> 只有一个状态，$q_0$。</li>
+  <li>$q_0$ 是<strong>起始状态</strong>（由指向它的箭头指示）。</li>
+  <li>$q_0$ <strong>不是</strong>一个<strong>接受状态</strong>（它没有用双圈表示）。</li>
+  <li>$q_0$ 上有一个自循环，标签为 '0'。这意味着当 <strong>NFA</strong> 处于 $q_0$ 状态时，如果读入一个 '0'，它会回到 $q_0$。</li>
+  <li>没有为输入 '1' 定义任何<strong>转移</strong>。</li>
+</ul></li>
+  <li> <strong>寻找接受路径</strong>:
+<ul>
+  <li>根据有限自动机的定义，一个字符串被接受，当且仅当在读完整个字符串后，自动机至少存在一条计算路径，使其最终停在一个<strong>接受状态</strong>上。</li>
+  <li>在这个 <strong>NFA</strong> 中，唯一的<strong>状态</strong> $q_0$ 不是<strong>接受状态</strong>。事实上，这个 <strong>NFA</strong> 根本<strong>没有接受状态</strong>。</li>
+  <li>因此，无论输入什么字符串（包括空字符串 $\epsilon$），计算路径的终点（必然是 $q_0$）永远不会是一个<strong>接受状态</strong>。</li>
+  <li>例如，对于字符串 "00"：$q_0 \xrightarrow{0} q_0 \xrightarrow{0} q_0$。结束于 $q_0$，不是<strong>接受状态</strong>，拒绝。</li>
+  <li>对于字符串 $\epsilon$：停在<strong>起始状态</strong> $q_0$，不是<strong>接受状态</strong>，拒绝。</li>
+  <li>对于字符串 "1"：从 $q_0$ 开始，没有为 '1' 定义的<strong>转移</strong>，计算路径死亡，拒绝。</li>
+</ul></li>
+  <li> <strong>结论</strong>:
+<ul>
+  <li>由于没有任何字符串能够使这个 <strong>NFA</strong> 停在<strong>接受状态</strong>，所以它不接受任何字符串。</li>
+  <li>不包含任何字符串的语言被称为<strong>空语言</strong>，用符号 $\emptyset$ 表示。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例 1：字符串 "0"</strong></li>
+</ul>
+<p>计算路径为 $q_0 \xrightarrow{0} q_0$。最终状态是 $q_0$，它不是<strong>接受状态</strong>。所以 "0" 被拒绝。</p>
+<ul>
+  <li><strong>示例 2：字符串 "" (空字符串 $\epsilon$)</strong></li>
+</ul>
+<p>计算从<strong>起始状态</strong> $q_0$ 开始，不消耗任何输入。最终状态是 $q_0$，不是<strong>接受状态</strong>。所以 $\epsilon$ 被拒绝。</p>
+<ul>
+  <li><strong>示例 3：字符串 "010"</strong></li>
+</ul>
+<p>计算路径为 $q_0 \xrightarrow{0} q_0$。当读到 '1' 时，由于没有从 $q_0$ 出发，输入为 '1' 的<strong>转移</strong>，计算路径死亡。所以 "010" 被拒绝。</p>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>混淆空语言 $\emptyset$ 和包含空字符串的语言 $\{\epsilon\}$</strong>：</li>
+  <li><strong>空语言 $\emptyset$</strong> 是一个集合，里面什么元素都没有。这个 <strong>NFA</strong> 识别的就是空语言。</li>
+  <li><strong>包含空字符串的语言 $\{\epsilon\}$</strong> 是一个集合，里面有且只有一个元素，那就是空字符串 $\epsilon$。这两种语言是完全不同的。</li>
+  <li><strong>认为有状态就一定能接受字符串</strong>：自动机可以存在，但其设计的结构可能导致它一个字符串也无法接受。关键在于是否有从<strong>起始状态</strong>到<strong>接受状态</strong>的成功路径。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>该 <strong>NFA</strong> 识别的语言是<strong>空语言</strong> $\emptyset$，因为它没有任何<strong>接受状态</strong>。因此，任何计算路径都不可能在<strong>接受状态</strong>结束。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个问题的目的是检验对<strong>接受状态</strong>在语言识别中作用的基本理解。它通过一个极端例子强调了：没有<strong>接受状态</strong>的自动机，其识别的语言就是<strong>空语言</strong>。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像一个只有一个房间的迷宫。你是从这个房间开始的（<strong>起始状态</strong>），但这个房间本身并不是出口（非<strong>接受状态</strong>）。更糟糕的是，这个迷宫根本就没有设置任何出口。所以无论你怎么走（处理输入字符串），你永远也走不出这个迷宫。因此，你永远无法“成功”完成任务。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个自动售货机。你投币，按下按钮（输入字符串），但机器里没有任何商品（没有<strong>接受状态</strong>）。无论你做什么操作，都不可能掉出任何东西。这台机器的功能是“什么也不卖”，它能“卖出”的商品集合是空的。</p>
+    </div>
+</div><hr><p id="original-5"><strong style="font-size: 1.3rem;">📜 [原文5]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>(b) 该 <strong>NFA</strong> 识别的语言是什么？</p>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-02.jpg?height=102&width=101&top_left_y=328&top_left_x=694" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p>这里，$q_{0}$ 是一个<strong>接受状态</strong>，因此 $\epsilon$ 被接受。然而，由于没有从 $q_{0}$ 出发的<strong>转移</strong>，对于任何长度 $&gt;0$ 的字符串都没有<strong>接受计算</strong>。该 <strong>NFA</strong> 识别的语言是 $\{\epsilon\}$。</p>
+<p>注意：$\emptyset \neq\{\epsilon\}$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题展示了另一个简单的 <strong>NFA</strong>，并询问它识别的语言。</p>
+<ol>
+  <li> <strong>分析 NFA 结构</strong>:
+<ul>
+  <li>该 <strong>NFA</strong> 只有一个状态，$q_0$。</li>
+  <li>$q_0$ 是<strong>起始状态</strong>（由指向它的箭头指示）。</li>
+  <li>$q_0$ <strong>是</strong>一个<strong>接受状态</strong>（由双圈表示）。</li>
+  <li>这个 <strong>NFA</strong> <strong>没有定义任何转移</strong>。从 $q_0$ 出发，无论输入是 '0' 还是 '1'，都没有对应的<strong>转移</strong>箭头。</li>
+</ul></li>
+  <li> <strong>寻找接受路径</strong>:
+<ul>
+  <li><strong>情况一：输入为空字符串 $\epsilon$</strong></li>
+  <li>根据定义，处理空字符串 $\epsilon$ 意味着自动机从<strong>起始状态</strong>开始，不消耗任何输入。</li>
+  <li>因此，当输入为 $\epsilon$ 时，自动机停留在其<strong>起始状态</strong> $q_0$。</li>
+  <li>由于 $q_0$ 恰好是一个<strong>接受状态</strong>，所以空字符串 $\epsilon$ 被接受。</li>
+  <li><strong>情况二：输入为任何非空字符串 (长度 > 0)</strong></li>
+  <li>例如，考虑字符串 "0"。计算从<strong>起始状态</strong> $q_0$ 开始。</li>
+  <li>当自动机尝试读取第一个字符 '0' 时，它发现没有从 $q_0$ 出发，输入为 '0' 的<strong>转移</strong>。</li>
+  <li>此时，这条计算路径“死亡”。</li>
+  <li>对于任何以 '0' 或 '1' 开头的字符串，其计算路径都会在第一步死亡。</li>
+  <li>由于没有计算路径能够在读完非空字符串后停留在任何状态（更不用说<strong>接受状态</strong>了），所以所有长度大于 0 的字符串都被拒绝。</li>
+</ul></li>
+  <li> <strong>结论</strong>:
+<ul>
+  <li>这个 <strong>NFA</strong> 唯一能接受的字符串就是空字符串 $\epsilon$。</li>
+  <li>因此，它识别的语言是<strong>只包含空字符串的语言</strong>，用集合表示为 $\{\epsilon\}$。</li>
+</ul></li>
+  <li> <strong>与前一题的对比</strong>:
+<ul>
+  <li>解答中特意强调 $\emptyset \neq \{\epsilon\}$。</li>
+  <li>前一个 <strong>NFA</strong> (2a) 识别<strong>空语言</strong> $\emptyset$，这是一个不包含任何元素的集合。</li>
+  <li>当前的 <strong>NFA</strong> (2b) 识别语言 $\{\epsilon\}$，这是一个包含一个元素（即空字符串）的集合。</li>
+  <li>这是计算理论中一个非常基础且重要的区别。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例 1：字符串 "" (空字符串 $\epsilon$)</strong></li>
+</ul>
+<p>计算从<strong>起始状态</strong> $q_0$ 开始，不移动。最终状态是 $q_0$，它是一个<strong>接受状态</strong>。所以 $\epsilon$ 被接受。</p>
+<ul>
+  <li><strong>示例 2：字符串 "0"</strong></li>
+</ul>
+<p>计算从 $q_0$ 开始。当尝试读取 '0' 时，没有定义<strong>转移</strong>，路径死亡。所以 "0" 被拒绝。</p>
+<ul>
+  <li><strong>示例 3：字符串 "101"</strong></li>
+</ul>
+<p>计算从 $q_0$ 开始。当尝试读取 '1' 时，没有定义<strong>转移</strong>，路径死亡。所以 "101" 被拒绝。</p>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>最大的易错点</strong>：混淆 $\emptyset$ 和 $\{\epsilon\}$。这在考试和理论讨论中是完全不同的两个概念。前者是空集，后者是包含空字符串这个特定元素的单元素集。</li>
+  <li><strong>忽略起始状态就是接受状态</strong>：看到一个<strong>NFA</strong>，第一步就应该检查<strong>起始状态</strong>的性质。如果<strong>起始状态</strong>本身就是<strong>接受状态</strong>，那么语言中至少包含了 $\epsilon$。</li>
+  <li><strong>认为没有转移就什么都不接受</strong>：虽然没有<strong>转移</strong>确实限制了非空字符串的接受，但这并不影响对 $\epsilon$ 的判断。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>该 <strong>NFA</strong> 识别的语言是 $\{\epsilon\}$，即只包含空字符串的语言。这是因为它的<strong>起始状态</strong>本身就是一个<strong>接受状态</strong>，但没有任何<strong>转移</strong>来处理非空字符串。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个问题的目的是为了巩固对<strong>起始状态</strong>和<strong>接受状态</strong>之间关系的理解，并清晰地区分<strong>空语言</strong> $\emptyset$ 和<strong>包含空字符串的语言</strong> $\{\epsilon\}$。它展示了一个只接受空字符串的最小自动机。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这个 <strong>NFA</strong> 就像一个“入门即巅峰”的测试。</p>
+<ol>
+  <li>测试的起点 ($q_0$) 本身就是终点线（<strong>接受状态</strong>）。</li>
+  <li>如果你选择“原地不动”（输入 $\epsilon$），你立刻就成功了。</li>
+  <li>但测试规则是，只要你敢迈出任何一步（输入任何非空字符），你脚下就会出现一个陷阱（没有<strong>转移</strong>），你直接就掉下去了（计算死亡）。</li>
+  <li>所以，唯一能通过这个测试的方法就是什么都不做。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个非常奇怪的俱乐部。</p>
+<ol>
+  <li>俱乐部的大门 ($q_0$) 上挂着一个“欢迎光临”的牌子（<strong>接受状态</strong>）。</li>
+  <li>如果你站在门口，什么都不干（输入 $\epsilon$），你就已经被认为是“进入”了俱乐部。</li>
+  <li>但是，大门后面是一堵墙，没有任何通道可以让你走进俱乐部内部（没有<strong>转移</strong>）。只要你试图往里走一步（输入任何字符），你就会撞在墙上，被保安请出去（计算死亡）。</li>
+  <li>所以，这个俱乐部唯一能“接纳”的成员，就是那些“精神上”在门口站着的人。</li>
+</ol>
+    </div>
+</div><h3>2.3 问题 3</h3><p id="original-6"><strong style="font-size: 1.3rem;">📜 [原文6]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>问题 3. 使用<strong>子集构造法</strong>将此 <strong>NFA</strong> 转换为等价的 <strong>DFA</strong>：</p>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-02.jpg?height=289&width=944&top_left_y=769&top_left_x=333" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-02.jpg?height=867&width=1312&top_left_y=1281&top_left_x=379" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p>不要忘记标注<strong>接受状态</strong>！</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题要求我们将一个给定的 <strong>NFA</strong> 转换成一个等价的 <strong>DFA</strong>，方法是使用<strong>子集构造法</strong>。</p>
+<p><strong>子集构造法</strong>的核心思想是：<strong>DFA</strong> 的每一个状态对应 <strong>NFA</strong> 的一个<strong>状态子集</strong>。<strong>DFA</strong> 在某个状态下读入一个输入字符后，它会<strong>转移</strong>到一个新的状态，这个新状态对应的新子集，是原 <strong>NFA</strong> 从旧子集中的所有状态出发，经过该输入字符以及所有可能的 $\epsilon$-<strong>转移</strong>后，能够到达的所有状态的集合。</p>
+<p><strong>第一步：确定 NFA 的基本信息</strong></p>
+<ul>
+  <li><strong>状态集 Q</strong>: $\{q_0, q_1, q_2\}$</li>
+  <li><strong>字母表 $\Sigma$</strong>: $\{a, b\}$</li>
+  <li><strong>起始状态</strong>: $q_0$</li>
+  <li><strong>接受状态 F</strong>: $\{q_2\}$</li>
+  <li><strong>转移函数 $\delta$</strong>:</li>
+  <li>$\delta(q_0, a) = \{q_1\}$</li>
+  <li>$\delta(q_0, b) = \{q_0\}$</li>
+  <li>$\delta(q_1, a) = \{q_2\}$</li>
+  <li>$\delta(q_1, b) = \{q_0, q_2\}$</li>
+  <li>$\delta(q_2, a) = \emptyset$</li>
+  <li>$\delta(q_2, b) = \{q_1\}$</li>
+</ul>
+<p><strong>第二步：开始构造 DFA</strong></p>
+<ol>
+  <li> <strong>DFA 的起始状态</strong>:
+<ul>
+  <li>DFA 的<strong>起始状态</strong>是包含 NFA <strong>起始状态</strong>的子集，并包括从它出发可以经过 $\epsilon$-<strong>转移</strong>到达的所有状态。</li>
+  <li>在这个 NFA 中，没有 $\epsilon$-<strong>转移</strong>。</li>
+  <li>所以，DFA 的<strong>起始状态</strong>就是 $\{q_0\}$。我们将其标记为 DFA 的一个新状态，例如 <strong>S0</strong>。</li>
+  <li><strong>S0 = {q_0}</strong>。</li>
+</ul></li>
+  <li> <strong>从 DFA 的起始状态 <strong>S0</strong> 出发进行转移</strong>:
+<ul>
+  <li><strong>输入 'a'</strong>:</li>
+  <li>从 <strong>S0 = {q_0}</strong> 中的每个状态出发，看在 NFA 中输入 'a' 能到达哪些状态。</li>
+  <li>从 $q_0$ 输入 'a'，到达 $\{q_1\}$。</li>
+  <li>由于没有 $\epsilon$-<strong>转移</strong>，所以 DFA 从 <strong>S0</strong> 输入 'a' 后到达的新状态是 $\{q_1\}$。</li>
+  <li>这是一个我们没见过的新子集，我们将其标记为 <strong>S1</strong>。<strong>S1 = {q_1}</strong>。</li>
+  <li>所以，$\delta_{DFA}(S0, a) = S1$。</li>
+  <li><strong>输入 'b'</strong>:</li>
+  <li>从 <strong>S0 = {q_0}</strong> 中的 $q_0$ 出发，输入 'b'，到达 $\{q_0\}$。</li>
+  <li>所以 DFA 从 <strong>S0</strong> 输入 'b' 后到达的新状态是 $\{q_0\}$，也就是 <strong>S0</strong> 本身。</li>
+  <li>所以，$\delta_{DFA}(S0, b) = S0$。</li>
+</ul></li>
+  <li> <strong>处理新发现的状态 <strong>S1</strong></strong>:
+<ul>
+  <li>我们现在有了一个新状态 <strong>S1 = {q_1}</strong>，需要计算它的<strong>转移</strong>。</li>
+  <li><strong>输入 'a'</strong>:</li>
+  <li>从 $q_1$ 输入 'a'，到达 $\{q_2\}$。</li>
+  <li>这是一个新子集，我们标记为 <strong>S2</strong>。<strong>S2 = {q_2}</strong>。</li>
+  <li>所以，$\delta_{DFA}(S1, a) = S2$。</li>
+  <li><strong>输入 'b'</strong>:</li>
+  <li>从 $q_1$ 输入 'b'，到达 $\{q_0, q_2\}$。</li>
+  <li>这是一个新子集，我们标记为 <strong>S3</strong>。<strong>S3 = {q_0, q_2}</strong>。</li>
+  <li>所以，$\delta_{DFA}(S1, b) = S3$。</li>
+</ul></li>
+  <li> <strong>处理新发现的状态 <strong>S2</strong></strong>:
+<ul>
+  <li>我们现在有了新状态 <strong>S2 = {q_2}</strong>。</li>
+  <li><strong>输入 'a'</strong>:</li>
+  <li>从 $q_2$ 输入 'a'，到达 $\emptyset$（空集）。</li>
+  <li>空集是一个新子集，我们标记为 <strong>S_dead</strong> (死亡状态)。<strong>S_dead = {}</strong>。</li>
+  <li>所以，$\delta_{DFA}(S2, a) = S_{dead}$。</li>
+  <li><strong>输入 'b'</strong>:</li>
+  <li>从 $q_2$ 输入 'b'，到达 $\{q_1\}$。</li>
+  <li>子集 $\{q_1\}$ 是我们已经见过的 <strong>S1</strong>。</li>
+  <li>所以，$\delta_{DFA}(S2, b) = S1$。</li>
+</ul></li>
+  <li> <strong>处理新发现的状态 <strong>S3</strong></strong>:
+<ul>
+  <li>我们现在有了新状态 <strong>S3 = {q_0, q_2}</strong>。</li>
+  <li><strong>输入 'a'</strong>:</li>
+  <li>从 $q_0$ 输入 'a' 到达 $\{q_1\}$。</li>
+  <li>从 $q_2$ 输入 'a' 到达 $\emptyset$。</li>
+  <li>将结果<strong>并集</strong>起来：$\{q_1\} \cup \emptyset = \{q_1\}$。</li>
+  <li>子集 $\{q_1\}$ 是我们已经见过的 <strong>S1</strong>。</li>
+  <li>所以，$\delta_{DFA}(S3, a) = S1$。</li>
+  <li><strong>输入 'b'</strong>:</li>
+  <li>从 $q_0$ 输入 'b' 到达 $\{q_0\}$。</li>
+  <li>从 $q_2$ 输入 'b' 到达 $\{q_1\}$。</li>
+  <li>将结果<strong>并集</strong>起来：$\{q_0\} \cup \{q_1\} = \{q_0, q_1\}$。</li>
+  <li>这是一个新子集，我们标记为 <strong>S4</strong>。<strong>S4 = {q_0, q_1}</strong>。</li>
+  <li>所以，$\delta_{DFA}(S3, b) = S4$。</li>
+</ul></li>
+  <li> <strong>处理新发现的死亡状态 <strong>S_dead</strong></strong>:
+<ul>
+  <li><strong>S_dead = {}</strong>。</li>
+  <li><strong>输入 'a'</strong>: 从空集中的状态出发，什么也到不了，结果还是空集 $\emptyset$。所以 $\delta_{DFA}(S_{dead}, a) = S_{dead}$。</li>
+  <li><strong>输入 'b'</strong>: 同理，$\delta_{DFA}(S_{dead}, b) = S_{dead}$。</li>
+  <li>这是一个陷阱状态，一旦进入就无法离开。</li>
+</ul></li>
+  <li> <strong>处理新发现的状态 <strong>S4</strong></strong>:
+<ul>
+  <li><strong>S4 = {q_0, q_1}</strong>。</li>
+  <li><strong>输入 'a'</strong>:</li>
+  <li>从 $q_0$ 输入 'a' 到达 $\{q_1\}$。</li>
+  <li>从 $q_1$ 输入 'a' 到达 $\{q_2\}$。</li>
+  <li><strong>并集</strong>: $\{q_1\} \cup \{q_2\} = \{q_1, q_2\}$。</li>
+  <li>这是一个新子集，我们标记为 <strong>S5</strong>。<strong>S5 = {q_1, q_2}</strong>。</li>
+  <li>所以，$\delta_{DFA}(S4, a) = S5$。</li>
+  <li><strong>输入 'b'</strong>:</li>
+  <li>从 $q_0$ 输入 'b' 到达 $\{q_0\}$。</li>
+  <li>从 $q_1$ 输入 'b' 到达 $\{q_0, q_2\}$。</li>
+  <li><strong>并集</strong>: $\{q_0\} \cup \{q_0, q_2\} = \{q_0, q_2\}$。</li>
+  <li>子集 $\{q_0, q_2\}$ 是我们已经见过的 <strong>S3</strong>。</li>
+  <li>所以，$\delta_{DFA}(S4, b) = S3$。</li>
+</ul></li>
+  <li> <strong>处理新发现的状态 <strong>S5</strong></strong>:
+<ul>
+  <li><strong>S5 = {q_1, q_2}</strong>。</li>
+  <li><strong>输入 'a'</strong>:</li>
+  <li>从 $q_1$ 输入 'a' 到达 $\{q_2\}$。</li>
+  <li>从 $q_2$ 输入 'a' 到达 $\emptyset$。</li>
+  <li><strong>并集</strong>: $\{q_2\} \cup \emptyset = \{q_2\}$。</li>
+  <li>子集 $\{q_2\}$ 是我们已经见过的 <strong>S2</strong>。</li>
+  <li>所以，$\delta_{DFA}(S5, a) = S2$。</li>
+  <li><strong>输入 'b'</strong>:</li>
+  <li>从 $q_1$ 输入 'b' 到达 $\{q_0, q_2\}$。</li>
+  <li>从 $q_2$ 输入 'b' 到达 $\{q_1\}$。</li>
+  <li><strong>并集</strong>: $\{q_0, q_2\} \cup \{q_1\} = \{q_0, q_1, q_2\}$。</li>
+  <li>这是一个新子集，我们标记为 <strong>S6</strong>。<strong>S6 = {q_0, q_1, q_2}</strong>。</li>
+  <li>所以，$\delta_{DFA}(S5, b) = S6$。</li>
+</ul></li>
+  <li> <strong>处理新发现的状态 <strong>S6</strong></strong>:
+<ul>
+  <li><strong>S6 = {q_0, q_1, q_2}</strong>。</li>
+  <li><strong>输入 'a'</strong>:</li>
+  <li>从 $q_0$ 到 $\{q_1\}$。从 $q_1$ 到 $\{q_2\}$。从 $q_2$ 到 $\emptyset$。</li>
+  <li><strong>并集</strong>: $\{q_1, q_2\}$，即 <strong>S5</strong>。</li>
+  <li>所以，$\delta_{DFA}(S6, a) = S5$。</li>
+  <li><strong>输入 'b'</strong>:</li>
+  <li>从 $q_0$ 到 $\{q_0\}$。从 $q_1$ 到 $\{q_0, q_2\}$。从 $q_2$ 到 $\{q_1\}$。</li>
+  <li><strong>并集</strong>: $\{q_0, q_1, q_2\}$，即 <strong>S6</strong> 本身。</li>
+  <li>所以，$\delta_{DFA}(S6, b) = S6$。</li>
+</ul></li>
+  <li><strong>确定 DFA 的接受状态</strong>:
+<ul>
+  <li>DFA 的一个状态是<strong>接受状态</strong>，当且仅当它对应的 NFA 状态子集<strong>包含</strong>至少一个 NFA 的<strong>接受状态</strong>。</li>
+  <li>NFA 的<strong>接受状态</strong>是 $\{q_2\}$。</li>
+  <li>检查我们所有的 DFA 状态：</li>
+  <li><strong>S0 = {q_0}</strong>: 不含 $q_2$，非接受。</li>
+  <li><strong>S1 = {q_1}</strong>: 不含 $q_2$，非接受。</li>
+  <li><strong>S2 = {q_2}</strong>: <strong>包含</strong> $q_2$，是<strong>接受状态</strong>。</li>
+  <li><strong>S3 = {q_0, q_2}</strong>: <strong>包含</strong> $q_2$，是<strong>接受状态</strong>。</li>
+  <li><strong>S_dead = {}</strong>: 不含 $q_2$，非接受。</li>
+  <li><strong>S4 = {q_0, q_1}</strong>: 不含 $q_2$，非接受。</li>
+  <li><strong>S5 = {q_1, q_2}</strong>: <strong>包含</strong> $q_2$，是<strong>接受状态</strong>。</li>
+  <li><strong>S6 = {q_0, q_1, q_2}</strong>: <strong>包含</strong> $q_2$，是<strong>接受状态</strong>。</li>
+</ul></li>
+</ol>
+<p><strong>第三步：绘制最终的 DFA</strong></p>
+<p>将上述所有<strong>转移</strong>关系和<strong>接受状态</strong>画成一个状态图，就得到了最终的 <strong>DFA</strong>。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例 1：字符串 "ab"</strong></li>
+  <li><strong>NFA 路径</strong>: $q_0 \xrightarrow{a} q_1 \xrightarrow{b} \{q_0, q_2\}$。因为最终状态集 $\{q_0, q_2\}$ 中包含<strong>接受状态</strong> $q_2$，所以 NFA 接受 "ab"。</li>
+  <li><strong>DFA 路径</strong>:</li>
+</ul>
+<ol>
+  <li> 从<strong>起始状态</strong> <strong>{q_0}</strong> 开始。</li>
+  <li> 读入 'a'，<strong>转移</strong>到 <strong>{q_1}</strong>。</li>
+  <li> 读入 'b'，<strong>转移</strong>到 <strong>{q_0, q_2}</strong>。</li>
+  <li> 字符串结束，停在 <strong>{q_0, q_2}</strong>。因为这个状态是<strong>接受状态</strong>，所以 DFA 接受 "ab"。
+<ul>
+  <li>结果一致。</li>
+</ul></li>
+</ol>
+<ul>
+  <li><strong>示例 2：字符串 "aba"</strong></li>
+  <li><strong>NFA 路径</strong>: $q_0 \xrightarrow{a} q_1 \xrightarrow{b} q_2 \xrightarrow{a} \text{死亡}$。另一条路径 $q_0 \xrightarrow{a} q_1 \xrightarrow{b} q_0 \xrightarrow{a} q_1$。最终停在非接受状态，NFA 拒绝 "aba"。</li>
+  <li><strong>DFA 路径</strong>:</li>
+</ul>
+<ol>
+  <li> 从 <strong>{q_0}</strong> 开始。</li>
+  <li> 读入 'a'，到 <strong>{q_1}</strong>。</li>
+  <li> 读入 'b'，到 <strong>{q_0, q_2}</strong>。</li>
+  <li> 读入 'a'，到 <strong>{q_1}</strong>。</li>
+  <li> 字符串结束，停在 <strong>{q_1}</strong>。因为这个状态是非<strong>接受状态</strong>，所以 DFA 拒绝 "aba"。
+<ul>
+  <li>结果一致。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>忘记处理 $\epsilon$-闭包</strong>：在这个特定的 NFA 中没有 $\epsilon$-<strong>转移</strong>，但如果有，必须在每次计算<strong>转移</strong>后都计算新子集的 $\epsilon$-闭包（即从新子集中的状态出发，只通过 $\epsilon$-<strong>转移</strong>能到达的所有状态的集合）。</li>
+  <li><strong>DFA 接受状态判断错误</strong>：只要 NFA 状态子集中<strong>有一个</strong>是原 NFA 的<strong>接受状态</strong>，这个子集对应的 DFA 状态就是<strong>接受状态</strong>。不是要求全部。</li>
+  <li><strong>遗漏状态</strong>：必须系统地处理所有新生成的子集状态，直到没有新的子集出现为止。使用表格或队列来跟踪未处理的子集是个好方法。</li>
+  <li><strong>空集/死亡状态</strong>：从某个子集出发，对于某个输入，可能无路可走。这会<strong>转移</strong>到空集状态 $\emptyset$。这个空集状态是 DFA 的一个合法的（非接受）状态，通常是一个陷阱状态。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p><strong>子集构造法</strong>是一个将任意 <strong>NFA</strong>（或带 $\epsilon$-<strong>转移</strong>的 <strong>NFA</strong>）机械化地转换为等价 <strong>DFA</strong> 的算法。其核心在于，<strong>DFA</strong> 的每个状态模拟了 <strong>NFA</strong> 在读入相同输入后可能处于的所有状态的集合。通过系统地探索这些状态子集及其<strong>转移</strong>，我们可以构建出完整的 <strong>DFA</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个问题的目的是检验学生是否掌握了<strong>子集构造法</strong>这一核心算法。该算法不仅在理论上证明了 <strong>NFA</strong> 和 <strong>DFA</strong> 的等价性（即它们都能且只能识别<strong>正规语言</strong>），在实践中也是正则表达式引擎等工具实现的基础。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一下，<strong>NFA</strong> 是一个有多重人格的特工。在执行任务时（读取字符串），他可以同时“分身”到多个地点（处于多个状态）。</p>
+<p>而 <strong>DFA</strong> 是一个观察这个特工的指挥官。指挥官无法同时跟踪每一个“分身”，但他有一个全景地图。</p>
+<ol>
+  <li>DFA 的每个状态，就是指挥官地图上的一个“包围圈”，这个圈圈住了特工所有可能的分身位置（NFA 的状态子集）。</li>
+  <li>当新的情报（输入字符）传来，指挥官不需要关心每个分身具体怎么跑的，他只需要根据规则，直接计算出下一个“包- 围圈”应该画在哪里。</li>
+  <li>只要在任务结束时，指挥官的“包围圈”里包含了任何一个“成功地点”（NFA 的<strong>接受状态</strong>），指挥官就判定整个任务成功。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>把 NFA 想象成一个在多维宇宙中穿梭的旅行者。每一步，他都可能分裂成多个自己，走向不同的宇宙（状态）。</p>
+<p>而 <strong>子集构造法</strong> 就是上帝视角。你不是去跟踪每一个分裂的旅行者，而是把所有旅行者在某个时刻所处的宇宙打包成一个“元宇宙”（DFA 的状态）。</p>
+<ol>
+  <li>DFA 的一次<strong>转移</strong>，就是从一个“元宇宙”整体演化到下一个“元- 宇宙”。</li>
+  <li>如果某个“元宇宙”里包含了“天堂”这个宇宙（NFA 的<strong>接受状态</strong>），那么这个“元宇宙”就被标记为“好的元宇宙”（DFA 的<strong>接受状态</strong>）。</li>
+</ol>
+<p>最终，你看的是整个“元宇宙”的演化路径，而不是单个旅行者的轨迹。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-3">
+    <h2><span class="section-number">3</span>3 正规语言的封闭性质</h2>
+    <h3>3.1 a) 并集下的封闭性</h3><h3>3.1.1 问题 4</h3><p id="original-7"><strong style="font-size: 1.3rem;">📜 [原文7]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>$L_{1}=\left\{w \in\{0,1\}^{*} \mid w\right.$ 有偶数个 0$\}$</p>
+<p>$L_{2}=\left\{w \in\{0,1\}^{*} \mid w\right.$ 不包含两个连续的 1$\}$</p>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-03.jpg?height=213&width=400&top_left_y=621&top_left_x=443" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p>$L_{1}$ 的 <strong>DFA</strong></p>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-03.jpg?height=268&width=593&top_left_y=566&top_left_x=1128" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p>$L_{2}$ 的 <strong>DFA</strong></p>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-03.jpg?height=426&width=945&top_left_y=959&top_left_x=561" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p>$L_{1} \cup L_{2}$ 的 <strong>NFA</strong></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题展示了如何利用<strong>正规语言</strong>在<strong>并集</strong>运算下的<strong>封闭性</strong>来构造一个新的自动机。<strong>封闭性</strong>意味着，如果 $L_1$ 和 $L_2$ 都是<strong>正规语言</strong>，那么它们的<strong>并集</strong> $L_1 \cup L_2$ 也必然是<strong>正规语言</strong>。我们可以通过构造一个识别 $L_1 \cup L_2$ 的 <strong>NFA</strong> 来证明这一点。</p>
+<p><strong>第一步：分析两个语言及其 DFA</strong></p>
+<ul>
+  <li><strong>语言 $L_1$</strong>: 包含偶数个 0 的所有二进制字符串。</li>
+  <li><strong>DFA for $L_1$</strong>:</li>
+  <li>$q_0$: <strong>起始状态</strong>，表示已看到偶数个 0 (包括 0 个)。这是<strong>接受状态</strong>。</li>
+  <li>$q_1$: 表示已看到奇数个 0。这不是<strong>接受状态</strong>。</li>
+  <li><strong>转移</strong>: 读到 '1' 不改变 0 的奇偶性，状态不变。读到 '0' 改变 0 的奇偶性，状态在 $q_0$ 和 $q_1$ 之间切换。</li>
+</ul>
+<ul>
+  <li><strong>语言 $L_2$</strong>: 不包含连续两个 '1' ("11") 的所有二进制字符串。</li>
+  <li><strong>DFA for $L_2$</strong>:</li>
+  <li>$p_0$: <strong>起始状态</strong>，最近没有看到 '1'，或者刚看到 '0'。这是<strong>接受状态</strong>。</li>
+  <li>$p_1$: 刚刚看到了一个 '1'。这也是<strong>接受状态</strong>。</li>
+  <li>$p_2$: 已经看到了连续的 "11"。这是一个“陷阱”状态或“死亡”状态，非接受，并且任何输入都会留在这里。</li>
+  <li><strong>转移</strong>:</li>
+  <li>在 $p_0$，读 '0' 留在 $p_0$，读 '1' 到 $p_1$。</li>
+  <li>在 $p_1$，读 '0' 回到 $p_0$，读 '1' 则触发了 "11"，进入陷阱状态 $p_2$。</li>
+  <li>在 $p_2$，任何输入都留在 $p_2$。</li>
+</ul>
+<p><strong>第二步：构造识别 $L_1 \cup L_2$ 的 NFA</strong></p>
+<p>构造<strong>并集</strong>的 <strong>NFA</strong> 的标准方法非常直观：</p>
+<ol>
+  <li> <strong>创建一个全新的起始状态</strong>，我们称之为 $s$。</li>
+  <li> <strong>从新起始状态 $s$ 出发，画两条 $\epsilon$-转移</strong>（空转移）。一条指向 $L_1$ 的 DFA 的<strong>起始状态</strong> $q_0$，另一条指向 $L_2$ 的 DFA 的<strong>起始状态</strong> $p_0$。</li>
+  <li> <strong>保留原来两个 DFA 的所有状态和转移</strong>。</li>
+  <li> <strong>保留原来两个 DFA 的所有接受状态</strong>。在这个例子中，$q_0, p_0, p_1$ 都是最终 NFA 的<strong>接受状态</strong>。</li>
+</ol>
+<p><strong>工作原理</strong>:</p>
+<p>当这个新的 <strong>NFA</strong> 开始处理一个输入字符串时，它会从状态 $s$ 开始。由于有两条 $\epsilon$-<strong>转移</strong>，它会立刻、不消耗任何输入地“分裂”成两条并行的计算路径：</p>
+<ul>
+  <li><strong>路径 1</strong>: 进入 $q_0$，然后完全按照 $L_1$ 的 DFA 规则进行计算。</li>
+  <li><strong>路径 2</strong>: 进入 $p_0$，然后完全按照 $L_2$ 的 DFA 规则进行计算。</li>
+</ul>
+<p>在字符串处理完毕后，只要这两条路径中<strong>至少有一条</strong>停在了<strong>接受状态</strong>，整个字符串就被这个新的 <strong>NFA</strong> 接受。这完美地对应了<strong>并集</strong>的定义：一个字符串属于 $L_1 \cup L_2$，当且仅当它属于 $L_1$ <strong>或</strong>属于 $L_2$。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例 1：字符串 "001"</strong></li>
+  <li><strong>在 $L_1$ 的 DFA 中</strong>: $q_0 \xrightarrow{0} q_1 \xrightarrow{0} q_0 \xrightarrow{1} q_0$。停在<strong>接受状态</strong> $q_0$。所以 "001" $\in L_1$。</li>
+  <li><strong>在 $L_2$ 的 DFA 中</strong>: $p_0 \xrightarrow{0} p_0 \xrightarrow{0} p_0 \xrightarrow{1} p_1$。停在<strong>接受状态</strong> $p_1$。所以 "001" $\in L_2$。</li>
+  <li><strong>在并集 NFA 中</strong>:</li>
+</ul>
+<ol>
+  <li>从 $s$ 开始，分裂到 $q_0$ 和 $p_0$。</li>
+  <li>路径1 (模拟 $L_1$): ... 最终停在 $q_0$ (接受)。</li>
+  <li>路径2 (模拟 $L_2$): ... 最终停在 $p_1$ (接受)。</li>
+  <li>因为至少有一条路径成功，所以 "001" 被并集 NFA 接受。</li>
+</ol>
+<ul>
+  <li><strong>示例 2：字符串 "11"</strong></li>
+  <li><strong>在 $L_1$ 的 DFA 中</strong>: $q_0 \xrightarrow{1} q_0 \xrightarrow{1} q_0$。停在<strong>接受状态</strong> $q_0$ (因为有 0 个 0，是偶数)。所以 "11" $\in L_1$。</li>
+  <li><strong>在 $L_2$ 的 DFA 中</strong>: $p_0 \xrightarrow{1} p_1 \xrightarrow{1} p_2$。停在非<strong>接受状态</strong> $p_2$。所以 "11" $\notin L_2$。</li>
+  <li><strong>在并集 NFA 中</strong>:</li>
+</ul>
+<ol>
+  <li>从 $s$ 开始，分裂。</li>
+  <li>路径1 (模拟 $L_1$): 最终停在 $q_0$ (接受)。</li>
+  <li>路径2 (模拟 $L_2$): 最终停在 $p_2$ (拒绝)。</li>
+  <li>因为路径 1 成功了，所以 "11" 被并集 NFA 接受。</li>
+</ol>
+<ul>
+  <li><strong>示例 3：字符串 "011"</strong></li>
+  <li><strong>在 $L_1$ 的 DFA 中</strong>: $q_0 \xrightarrow{0} q_1 \xrightarrow{1} q_1 \xrightarrow{1} q_1$。停在非<strong>接受状态</strong> $q_1$。所以 "011" $\notin L_1$。</li>
+  <li><strong>在 $L_2$ 的 DFA 中</strong>: $p_0 \xrightarrow{0} p_0 \xrightarrow{1} p_1 \xrightarrow{1} p_2$。停在非<strong>接受状态</strong> $p_2$。所以 "011" $\notin L_2$。</li>
+  <li><strong>在并集 NFA 中</strong>: 两条路径都失败了。所以 "011" 被并集 NFA 拒绝。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>试图合并原始起始状态</strong>：一个常见的错误是直接将 $q_0$ 和 $p_0$ 当作一个状态，或者让它们之间有某种<strong>转移</strong>。正确的构造方法是引入一个全新的、中立的<strong>起始状态</strong>。</li>
+  <li><strong>忘记 $\epsilon$-转移</strong>：$\epsilon$-<strong>转移</strong>是这个构造的核心，它实现了非确定性的“选择”。</li>
+  <li><strong>处理接受状态出错</strong>：并集 NFA 的<strong>接受状态</strong>就是原来所有 DFA 的<strong>接受状态</strong>的集合。不要遗漏，也不要添加额外的。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>该示例清晰地展示了<strong>正规语言</strong>关于<strong>并集</strong>的<strong>封闭性</strong>的构造性证明。通过引入一个带 $\epsilon$-<strong>转移</strong>的新<strong>起始状态</strong>，我们可以将两个独立的自动机“粘合”在一起，创建一个新的 <strong>NFA</strong>，它能识别原来两个语言的<strong>并集</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个问题的目的是让学生亲手实践<strong>封闭性</strong>的构造。理论上知道“<strong>正规语言</strong>对<strong>并集</strong>封闭”是一回事，能够根据这个理论画出具体的自动机是另一回事。这个练习巩固了理论与实践的联系。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像你有两张不同俱乐部的会员卡 ($L_1$ 和 $L_2$)。现在你想办一张“联合会员卡”($L_1 \cup L_2$)，这张卡在两个俱乐部都能使用。</p>
+<ol>
+  <li>这张联合会员卡本身 ($s$) 只是一个凭证。</li>
+  <li>当你到达一个场所时，你需要出示这张卡。保安会给你两个选择（$\epsilon$-<strong>转移</strong>）：“你可以选择激活你的 $L_1$ 会员身份进入，或者激活你的 $L_2$ 会员身份进入。”</li>
+  <li>只要你满足其中任何一个俱乐部的入场要求，你就可以进入。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象有两套不同的安检系统，分别用于检查“0 病毒”偶数和“11 病毒”不存在。</p>
+<ol>
+  <li>旅客（字符串）来到一个分流口 ($s$)。</li>
+  <li>系统会立刻复制这个旅客，一个送去安检系统1（检查 $L_1$），另一个送去安检系统2（检查 $L_2$）。</li>
+  <li>只要旅客能通过其中任意一个安检系统，他就可以登机（被接受）。</li>
+</ol>
+    </div>
+</div><h3>3.2 b) 连接下的封闭性</h3><h3>3.2.1 问题 5</h3><p id="original-8"><strong style="font-size: 1.3rem;">📜 [原文8]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>$L_{1}=\left\{w \in\{0,1\}^{*} \mid w\right.$ 有奇数个 1 或恰好有两个 0$\}$。$L_{2}=\left\{w \in\{0,1\}^{*} \mid w\right.$ 以 101 结尾$\}$。</p>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-03.jpg?height=463&width=646&top_left_y=1772&top_left_x=319" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-03.jpg?height=259&width=654&top_left_y=1973&top_left_x=1105" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题展示了如何利用<strong>正规语言</strong>在<strong>连接</strong>（concatenation）运算下的<strong>封闭性</strong>来构造一个新的自动机。如果 $L_1$ 和 $L_2$ 是<strong>正规语言</strong>，那么它们的<strong>连接</strong> $L_1L_2 = \{xy \mid x \in L_1, y \in L_2\}$ 也是<strong>正规语言</strong>。</p>
+<p><strong>第一步：分析两个语言及其 NFA</strong></p>
+<ul>
+  <li><strong>语言 $L_1$</strong>: 包含奇数个 1 <strong>或</strong> 恰好有两个 0 的所有二进制字符串。</li>
+  <li>这是一个“或”类型的语言，所以它的 <strong>NFA</strong> (我们称之为 $N_1$) 本身就是通过<strong>并集</strong>构造得到的（类似于问题 4b）。</li>
+  <li>从图中可以看出，$N_1$ 有一个<strong>起始状态</strong> $s_0$，它通过 $\epsilon$-<strong>转移</strong>连接到两个子模块：</li>
+  <li><strong>上半部分</strong>：识别“奇数个 1”。有两个状态，一个代表偶数个 1（非接受），一个代表奇数个 1（接受）。</li>
+  <li><strong>下半部分</strong>：识别“恰好有两个 0”。有三个状态，分别代表 0 个、1 个、2 个 0。最后一个状态是<strong>接受状态</strong>。</li>
+  <li>$N_1$ 的<strong>接受状态</strong>是 $q_1$ 和 $c_2$。</li>
+</ul>
+<ul>
+  <li><strong>语言 $L_2$</strong>: 以 "101" 结尾的所有二进制字符串。</li>
+  <li>它的 <strong>NFA</strong> (我们称之为 $N_2$) 的构造类似于问题 1a，但是是识别“以...结尾”，所以<strong>接受状态</strong>后面没有自循环。</li>
+  <li>$p_0 \xrightarrow{0,1} p_0$：等待 "101" 的开始。</li>
+  <li>$p_0 \xrightarrow{1} p_1$：匹配到 '1'。</li>
+  <li>$p_1 \xrightarrow{0} p_2$：匹配到 '10'。</li>
+  <li>$p_2 \xrightarrow{1} p_3$：匹配到 '101'。$p_3$ 是<strong>接受状态</strong>。</li>
+</ul>
+<p><strong>第二步：构造识别 $L_1L_2$ 的 NFA</strong></p>
+<p>构造<strong>连接</strong> $N_1N_2$ 的 <strong>NFA</strong> 的标准方法是：</p>
+<ol>
+  <li> <strong>将 $N_1$ 的所有接受状态连接到 $N_2$ 的起始状态</strong>。这个连接通过 $\epsilon$-<strong>转移</strong>实现。</li>
+  <li> <strong>$N_1$ 的起始状态</strong> 成为新 <strong>NFA</strong> 的<strong>起始状态</strong>。</li>
+  <li> <strong>$N_2$ 的接受状态</strong> 成为新 <strong>NFA</strong> 的<strong>接受状态</strong>。</li>
+  <li> <strong>$N_1$ 原来的接受状态不再是接受状态</strong>（因为它们现在是中间站，而不是终点）。</li>
+</ol>
+<p><strong>工作原理</strong>:</p>
+<p>这个构造模拟了语言<strong>连接</strong>的定义 $xy$。</p>
+<ul>
+  <li>首先，自动机从 $N_1$ 的<strong>起始状态</strong> $s_0$ 开始，处理输入字符串的前半部分。</li>
+  <li>如果这部分字符串能在 $N_1$ 中走到一个<strong>接受状态</strong>（比如 $q_1$ 或 $c_2$），这就意味着前半部分字符串 $x$ 属于 $L_1$。</li>
+  <li>此时，自动机不停止，而是通过一条 $\epsilon$-<strong>转移</strong>，“跳”到 $N_2$ 的<strong>起始状态</strong> $p_0$。这个跳转不消耗任何输入字符。</li>
+  <li>然后，自动机从 $p_0$ 开始，继续处理输入字符串的后半部分。</li>
+  <li>如果后半部分字符串 $y$ 能让 $N_2$ 走到它的<strong>接受状态</strong> $p_3$，那么就意味着 $y \in L_2$。</li>
+  <li>整个过程成功完成，字符串 $xy$ 被接受。</li>
+</ul>
+<p><strong>NFA</strong> 的非确定性在这里至关重要，因为它需要“猜测”在哪里分割字符串，即在哪里从 $N_1$ 跳转到 $N_2$。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例 1：字符串 "1101"</strong></li>
+  <li>我们期望它被接受，因为可以分割成 $x="1" \in L_1$ (奇数个 1) 和 $y="101" \in L_2$ (以 101 结尾)。</li>
+  <li><strong>在连接 NFA 中的路径</strong>:</li>
+</ul>
+<ol>
+  <li> 从 $s_0$ 开始，通过 $\epsilon$-<strong>转移</strong>到 $q_0$ (偶数个1) 和 $c_0$ (0个0)。</li>
+  <li> 我们关注能成功的路径：走 $q_0$ 这条线。</li>
+  <li> 读入 '1'：$q_0 \xrightarrow{1} q_1$。此时 $q_1$ 是 $N_1$ 的一个<strong>接受状态</strong>。</li>
+  <li> <strong>NFA 做出猜测</strong>：在这里分割字符串！通过 $\epsilon$-<strong>转移</strong>从 $q_1$ 跳转到 $N_2$ 的<strong>起始状态</strong> $p_0$。</li>
+  <li> 现在自动机在 $p_0$ 状态，字符串剩下 "101"。</li>
+  <li> 读入 '1'：$p_0 \xrightarrow{1} p_1$。</li>
+  <li> 读入 '0'：$p_1 \xrightarrow{0} p_2$。</li>
+  <li> 读入 '1'：$p_2 \xrightarrow{1} p_3$。</li>
+  <li> 字符串结束，停在 $p_3$，这是整个连接 NFA 的<strong>接受状态</strong>。所以字符串 "1101" 被接受。</li>
+</ol>
+<ul>
+  <li><strong>示例 2：字符串 "010"</strong></li>
+  <li>它不应该被接受，因为无法分割成 $x \in L_1$ 和 $y \in L_2$。</li>
+  <li>例如，如果 $x=\epsilon$，$\epsilon \in L_1$ (0个1是偶数)，但 $y="010" \notin L_2$。</li>
+  <li>如果 $x="0" \notin L_1$。</li>
+  <li>如果 $x="01" \in L_1$ (奇数个1)，但 $y="0" \notin L_2$。</li>
+  <li>... 无论如何分割，都无法满足条件。在 NFA 中，这意味着所有可能的计算路径最终都会失败。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>忘记取消 $N_1$ 的接受状态</strong>：在连接构造中， $N_1$ 的<strong>接受状态</strong>变成了“中转站”，它们本身不再是最终的<strong>接受状态</strong>。如果忘记取消，会导致接受不应接受的字符串（例如，只属于 $L_1$ 但后面没有跟 $L_2$ 字符串的情况）。</li>
+  <li><strong>连接点错误</strong>：$\epsilon$-<strong>转移</strong>必须从 $N_1$ 的<strong>所有</strong>原<strong>接受状态</strong>出发，连接到 $N_2$ 的<strong>起始状态</strong>。</li>
+  <li><strong>起始/接受状态指定错误</strong>：新 NFA 的<strong>起始状态</strong>就是 $N_1$ 的<strong>起始状态</strong>，<strong>接受状态</strong>就是 $N_2$ 的<strong>接受状态</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>该示例展示了<strong>连接</strong>运算的<strong>封闭性</strong>构造。通过添加 $\epsilon$-<strong>转移</strong>，将第一个自动机 ($N_1$) 的终点连接到第二个自动机 ($N_2$) 的起点，我们构建了一个能够识别两个语言<strong>连接</strong>的 <strong>NFA</strong>。这个过程就像是顺序执行两个任务，完成了第一个才能开始第二个。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>此问题旨在让学生掌握<strong>连接</strong>运算的<strong>封闭性</strong>构造方法。这是继<strong>并集</strong>和<strong>星号</strong>运算之后，将简单<strong>正规语言</strong>组合成更复杂<strong>正规语言</strong>的又一基本工具。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像一个两段式的接力赛。</p>
+<ol>
+  <li>第一棒选手（自动机 $N_1$）从起点（$N_1$ <strong>起始状态</strong>）出发。</li>
+  <li>他必须跑到指定的交接区（$N_1$ 的<strong>接受状态</strong>）才能交接。</li>
+  <li>在交接区，他把接力棒（控制权）通过一次“瞬移”（$\epsilon$-<strong>转移</strong>）交给第二棒选手。</li>
+  <li>第二棒选手（自动机 $N_2$）从他自己的起跑线（$N_2$ <strong>起始状态</strong>）出发，跑完剩下的路程。</li>
+  <li>只有当第二棒选手冲过终点线（$N_2$ <strong>接受状态</strong>），整个团队才算获胜。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你在玩一个闯关游戏。游戏有两关。</p>
+<ol>
+  <li>你从第一关的入口（$N_1$ <strong>起始状态</strong>）开始玩。</li>
+  <li>你必须成功打通第一关，到达第一关的出口（$N_1$ <strong>接受状态</strong>）。</li>
+  <li>在出口处，有一个传送门（$\epsilon$-<strong>转移</strong>），它会立即把你传送到第二关的入口（$N_2$ <strong>起始状态</strong>）。</li>
+  <li>然后你开始玩第二关。</li>
+  <li>只有当你成功打通第二关，到达最终的宝藏室（$N_2$ <strong>接受状态</strong>），你才算赢得了整个游戏。</li>
+</ol>
+    </div>
+</div><h3>3.3 c) 克莱尼星号下的封闭性</h3><p id="original-9"><strong style="font-size: 1.3rem;">📜 [原文9]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>问题 6. 我们提供了尝试失败的例子——当然，还有许多其他成功的例子。</p>
+<ol>
+  <li>令 $L=\{10\}$。则 $L^{*}=\left\{(10)^{n} \mid n \geq 0\right\}$。虽然 $\epsilon \notin L$，但根据<strong>克莱尼星号</strong>运算的定义，$\epsilon \in L^{*}$。在这里，我们看到尝试 1 不接受<strong>空串</strong>。</li>
+</ol>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-04.jpg?height=469&width=1123&top_left_y=237&top_left_x=477" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-04.jpg?height=101&width=517&top_left_y=836&top_left_x=386" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p>$L$ 的 <strong>DFA</strong></p>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-04.jpg?height=179&width=547&top_left_y=749&top_left_x=1160" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p>$L^{*}$ 的错误尝试 1</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题通过一系列失败的尝试，来引导我们理解构造<strong>克莱尼星号 (Kleene Star)</strong> 的正确方法。<strong>克莱尼星号</strong> $L^*$ 的定义是：由 $L$ 中的字符串任意连接 0 次或多次形成的所有字符串的集合。即 $L^* = L^0 \cup L^1 \cup L^2 \cup \dots$，其中 $L^0 = \{\epsilon\}$。</p>
+<p><strong>失败尝试 1：简单地将接受状态变起始状态，或加回指的边</strong></p>
+<p>这个尝试的核心错误在于没有正确处理空字符串 $\epsilon$。</p>
+<ul>
+  <li><strong>语言 L</strong>: $\{10\}$。它的 DFA 很简单：$q_0 \xrightarrow{1} q_1 \xrightarrow{0} q_2$ (接受)。</li>
+  <li><strong>语言 $L^*$</strong>: $\{\epsilon, 10, 1010, 101010, \dots\}$。</li>
+  <li><strong>错误构造 1</strong>: 将原 DFA 的<strong>接受状态</strong> $q_2$ 直接用一条边指回<strong>起始状态</strong> $q_0$。</li>
+  <li><strong>分析错误</strong>:</li>
+</ul>
+<ol>
+  <li> <strong>空字符串 $\epsilon$</strong>: 语言 $L^*$ 必须包含 $\epsilon$。在这个错误的 NFA 中，<strong>起始状态</strong> $q_0$ 不是<strong>接受状态</strong>。要接受 $\epsilon$，自动机必须在不消耗任何输入的情况下停在<strong>接受状态</strong>。显然，这个构造做不到。因此，这个构造至少漏掉了 $\epsilon$。</li>
+  <li> <strong>接受 "10"</strong>: $q_0 \xrightarrow{1} q_1 \xrightarrow{0} q_2$。$q_2$ 是<strong>接受状态</strong>，可以接受。</li>
+  <li> <strong>接受 "1010"</strong>: $q_0 \xrightarrow{1} q_1 \xrightarrow{0} q_2 \xrightarrow{\text{错误构造的边?}} q_0 \xrightarrow{1} q_1 \xrightarrow{0} q_2$。这里假设从 $q_2$ 有一条 $\epsilon$ 边回到 $q_0$。这样可以接受 "1010"。
+<ul>
+  <li><strong>核心缺陷</strong>: <strong>最根本的问题是它不接受 $\epsilon$</strong>。任何对 $L$ 的星号运算 $L^*$，只要 $L$ 本身不是只包含 $\epsilon$ 的语言或者空语言，那么 $L^*$ 都会包含 $\epsilon$。而原语言 $L=\{10\}$ 不包含 $\epsilon$，所以它的 DFA 的<strong>起始状态</strong>不是<strong>接受状态</strong>。简单地加一条返回的边无法改变<strong>起始状态</strong>的性质。</li>
+</ul></li>
+</ol>
+<p><strong>正确的构造方法应该是什么样？</strong></p>
+<ol>
+  <li> <strong>处理 $\epsilon$</strong>: 为了接受 $\epsilon$，最直接的方法是让<strong>起始状态</strong>本身就是<strong>接受状态</strong>。</li>
+  <li> <strong>处理重复</strong>: 为了接受 $L$ 中字符串的多次重复，需要从原自动机的<strong>接受状态</strong>返回到<strong>起始状态</strong>。</li>
+</ol>
+<p>正确的构造（稍后会看到）是：</p>
+<ol>
+  <li> 创建一个<strong>新的起始状态</strong> $s_{new}$，并让它成为<strong>接受状态</strong>（这就解决了 $\epsilon$ 的问题）。</li>
+  <li> 从 $s_{new}$ 画一条 $\epsilon$-<strong>转移</strong>到旧的<strong>起始状态</strong> $q_0$。</li>
+  <li> 从旧的<strong>所有接受状态</strong>（这里是 $q_2$）画一条 $\epsilon$-<strong>转移</strong>回到旧的<strong>起始状态</strong> $q_0$（实现循环）。</li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例：字符串 $\epsilon$</strong></li>
+  <li><strong>期望</strong>: 属于 $L^*$，应被接受。</li>
+  <li><strong>错误构造 1</strong>: 停在 $q_0$，非接受。<strong>失败</strong>。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>首要易错点：忘记 $\epsilon$</strong>。这是星号运算最容易被忽略但又最基本的组成部分。一个语言 $L$ 的星号闭包 $L^*$ 总是包含空字符串 $\epsilon$。</li>
+  <li><strong>构造过于简单</strong>：直接在原 DFA 上“小修小补”通常是行不通的，因为 DFA 的结构很僵化。引入新的状态和 $\epsilon$-<strong>转移</strong>来构造 NFA 是更通用和可靠的方法。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>失败尝试 1 的主要教训是：构造 $L^*$ 时，必须确保空字符串 $\epsilon$ 被接受。一个简单的方法是让<strong>起始状态</strong>成为<strong>接受状态</strong>，但这种直接修改在原图上可能不可行。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>通过展示一个看似合理但实际错误的构造，这个问题强迫我们思考<strong>克莱尼星号</strong>的完整定义，特别是 $L^0 = \{\epsilon\}$ 这一部分。它为引出更复杂的失败案例和最终的正确构造方法做了铺垫。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一个任务是“重复吃掉一个‘10’套餐”。</p>
+<ol>
+  <li>$L$ 的 DFA 是“吃一个‘10’套餐”的流程。</li>
+  <li>$L^*$ 是“可以不吃，也可以吃任意多份‘10’套餐”。</li>
+  <li><strong>错误构造 1</strong> 相当于说：“你吃完一份后，可以回到起点再吃一份”。但它忘了规定“你也可以选择一份都不吃”。这个规则（不吃也算完成任务）是至关重要的。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个旋转门。</p>
+<ol>
+  <li>$L$ 的 DFA 是走过一条从 A 到 B 的普通走廊。</li>
+  <li>$L^*$ 是一个可以让你在 A 和 B 之间无限次来回的系统，并且你甚至可以站在系统外，一次都不走，也算“参与”了。</li>
+  <li><strong>错误构造 1</strong> 相当于在 B 点装了一个传送门，可以把你送回 A 点。但它没有在 A 点本身设置一个“成功”的标记。你必须至少走完一次全程才能到达 B 点。这不符合“可以一次都不走”的要求。</li>
+</ol>
+    </div>
+</div><hr><p id="original-10"><strong style="font-size: 1.3rem;">📜 [原文10]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ol>
+  <li>令 $L=\left\{w \in\{0,1\}^{*} \mid \mathrm{w}\right.$ 以 01 结尾$\}$。则 $L^{*}=\{\epsilon\} \cup\left\{w \in\{0,1\}^{*} \mid \mathrm{w}\right.$ 以 01 结尾$\}$。让我们画出 $L$ 的 <strong>NFA</strong> 和 $L^{*}$ 的错误 <strong>NFA</strong>。</li>
+</ol>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-04.jpg?height=273&width=556&top_left_y=1178&top_left_x=372" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-04.jpg?height=193&width=545&top_left_y=1194&top_left_x=1160" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p>$L^{*}$ 的错误尝试 2</p>
+<p>右侧的 <strong>NFA</strong> 接受 $\epsilon$ 以及来自 $\left\{w \in\{0,1\}^{*} \mid \mathrm{w}\right.$ 以 01 结尾$\}$ 的字符串。然而，它还接受了额外的错误字符串，例如不在 $L^{*}$ 中的 000。事实上，由于 $q_{0}$ 对 0 和 1 的<strong>自转移</strong>，它识别的是 $\Sigma^{*}$。因此右侧的 <strong>NFA</strong> 并不识别 $L^{*}$。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p><strong>失败尝试 2：将起始状态直接设为接受状态</strong></p>
+<p>这个尝试吸取了上一个失败的教训，试图解决 $\epsilon$ 的问题。</p>
+<ul>
+  <li><strong>语言 L</strong>: 所有以 "01" 结尾的字符串。</li>
+  <li>$L$ 的 NFA: $q_0$ 有 (0,1) 自循环，然后 $q_0 \xrightarrow{0} q_1 \xrightarrow{1} q_2$ (接受)。</li>
+  <li><strong>语言 $L^*$</strong>: $\{\epsilon\} \cup L$。这里有一个有趣的性质：由于 $L$ 是“以...结尾”的语言，任何两个 $L$ 中字符串的<strong>连接</strong>，结果仍然是以 "01" 结尾，所以 $L \cdot L \subseteq L$。因此，$L^*$ 就简化为了 $\{\epsilon\} \cup L$。</li>
+  <li><strong>错误构造 2</strong>: 直接将原 NFA 的<strong>起始状态</strong> $q_0$ 变成<strong>接受状态</strong>。</li>
+  <li><strong>分析错误</strong>:</li>
+</ul>
+<ol>
+  <li> <strong>它能接受正确的字符串吗？</strong>
+<ul>
+  <li><strong>接受 $\epsilon$</strong>: 能。因为<strong>起始状态</strong> $q_0$ 现在是<strong>接受状态</strong>。</li>
+  <li><strong>接受 $L$ 中的字符串 (如 "101")</strong>: 能。$q_0 \xrightarrow{1} q_0 \xrightarrow{0} q_1 \xrightarrow{1} q_2$。停在 $q_2$，是<strong>接受状态</strong>。</li>
+</ul></li>
+  <li> <strong>它接受了不该接受的字符串吗？</strong>
+<ul>
+  <li><strong>是的，这是问题的关键。</strong></li>
+  <li>考虑字符串 "0"。计算路径是 $q_0 \xrightarrow{0} q_0$。字符串结束，停在 $q_0$。由于这个构造把 $q_0$ 变成了<strong>接受状态</strong>，所以 "0" 被错误地接受了。</li>
+  <li>但 "0" 并不在 $L^* = \{\epsilon\} \cup L$ 中，因为它既不是 $\epsilon$，也不以 "01" 结尾。</li>
+  <li>同理，任何不以 "01" 结尾的非空字符串，比如 "11", "000", "1010"，都会停在 $q_0$ 或 $q_1$，但因为 $q_0$ 是接受的，所以只要能回到 $q_0$ 的前缀都会被接受。实际上，由于 $q_0$ 的自循环，任何字符串都能在 $q_0$ 结束一个计算分支，所以这个错误的 NFA 接受了所有字符串 $\Sigma^*$。</li>
+</ul></li>
+</ol>
+<ul>
+  <li><strong>核心缺陷</strong>: <strong>污染了起始状态</strong>。原 NFA 的<strong>起始状态</strong> $q_0$ 具有“正在读取字符串，但尚未完成匹配”的语义。将其强行变为<strong>接受状态</strong>，就破坏了这种语义，导致所有尚未完成匹配的前缀都被错误地接受了。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例：字符串 "00"</strong></li>
+  <li><strong>期望</strong>: 不属于 $L^*$，应被拒绝。</li>
+  <li><strong>错误构造 2</strong>: $q_0 \xrightarrow{0} q_0 \xrightarrow{0} q_0$。停在 $q_0$，而 $q_0$ 被设为<strong>接受状态</strong>。<strong>错误地接受了</strong>。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>治标不治本</strong>：为了解决一个问题（接受 $\epsilon$），引入了一个更严重的问题（接受了所有不该接受的字符串）。这在算法设计中是常见的陷阱。</li>
+  <li><strong>忽略状态的语义</strong>：自动机中的每个状态都有其特定的含义（例如“已匹配...”、“等待...”、“失败”等）。修改一个状态的性质（比如是否接受）会根本性地改变其语义，必须谨慎。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>失败尝试 2 的教训是：不能通过简单地改变原自动机状态的性质来构造 $L^*$。特别是，将具有“进行中”语义的<strong>起始状态</strong>变成<strong>接受状态</strong>，会引入大量非预期的接受情况。正确的做法是物理地增加一个全新的状态来专门处理 $\epsilon$ 的接受。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个问题揭示了星号运算构造的另一个难点：如何优雅地加入 $\epsilon$ 而不干扰原有的识别逻辑。它强调了“不要在原地修改，而要增加新结构”的设计原则。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这好比你想给一个正在进行的游戏增加一个“直接胜利”的选项。</p>
+<ol>
+  <li>原游戏（$L$ 的 NFA）是你必须按部就班打怪升级，最后才能赢。</li>
+  <li><strong>错误构造 2</strong> 相当于你在游戏开始的第一个房间（<strong>起始状态</strong> $q_0$）门口直接挂了一个“你赢了”的牌子。</li>
+  <li>结果是，玩家一进游戏就赢了 ($\epsilon$ 被接受)。但问题是，玩家在第一个房间里随便逛几圈再出来（处理了 "00" 等字符串后回到 $q_0$），也看到了“你赢了”的牌子，于是他也以为自己赢了，但这不符合规则。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你在烤一个蛋糕。</p>
+<ol>
+  <li>原流程（$L$ 的 NFA）是：准备材料 ($q_0$) -&gt; 搅拌 ($q_1$) -&gt; 烘烤 ($q_2$) -&gt; 蛋糕出炉 (接受)。</li>
+  <li>你想增加一个选项，就是“可以不烤蛋糕也算完成任务”。</li>
+  <li><strong>错误构造 2</strong> 的做法是，你在“准备材料”这个步骤的台子上放了一个牌子：“任务完成！”。</li>
+  <li>结果是，你啥也不干，站在台子前，就算完成任务 (接受 $\epsilon$)。但问题是，你拿了个鸡蛋又放回去，又拿了点面粉又放回去（在 $q_0$ 状态自循环），一抬头，看到“任务完成！”的牌子，你也以为自己完成任务了。但你手上根本没有蛋糕，这显然是错误的。</li>
+</ol>
+    </div>
+</div><hr><p id="original-11"><strong style="font-size: 1.3rem;">📜 [原文11]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ol>
+  <li>此构造实际上与尝试 2 中的构造相同。对于相同的 $L=\{w \in \{0,1\}^{*} \mid$ w 以 01 结尾$\}$，让我们画出 $L$ 的 <strong>NFA</strong> 和 $L^{*}$ 的错误 <strong>NFA</strong>。</li>
+</ol>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-04.jpg?height=268&width=552&top_left_y=1875&top_left_x=374" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-04.jpg?height=374&width=547&top_left_y=1772&top_left_x=1160" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p>同样，虽然这个错误构造的 <strong>NFA</strong> 接受 $\epsilon$ 和来自 $\left\{w \in\{0,1\}^{*} \mid \mathrm{w}\right.$ 以 01 结尾$\}$ 的字符串，它也接受 $\Sigma^{*}$。这是因为由于到新<strong>接受状态</strong>的 $\epsilon$-<strong>转移</strong>，任何到达 $q_{0}$ 的计算都会被自动接受。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p><strong>失败尝试 3：增加一个新接受状态，并从起始状态 $\epsilon$-转移过去</strong></p>
+<p>这个尝试是上一个的变体，它试图通过增加一个全新的状态来避免“污染”<strong>起始状态</strong>。</p>
+<ul>
+  <li><strong>语言 L 和 $L^*$</strong>: 同上。</li>
+  <li><strong>错误构造 3</strong>:</li>
+</ul>
+<ol>
+  <li> 保留原 NFA 不变。</li>
+  <li> 创建一个<strong>新的状态</strong> $q_{new}$，并将其设为<strong>接受状态</strong>。</li>
+  <li> 从原 NFA 的<strong>起始状态</strong> $q_0$ 到这个新<strong>接受状态</strong> $q_{new}$ 画一条 $\epsilon$-<strong>转移</strong>。</li>
+  <li> 让 $q_0$ 仍然是<strong>起始状态</strong>。</li>
+</ol>
+<ul>
+  <li><strong>分析错误</strong>:</li>
+  <li>这个构造在逻辑上和<strong>失败尝试 2</strong> 是等价的。为什么呢？</li>
+  <li>在 NFA 中，如果一个状态 $A$ 可以通过 $\epsilon$-<strong>转移</strong>到达一个<strong>接受状态</strong> $B$，那么状态 $A$ 本身在功能上也等同于一个<strong>接受状态</strong>。</li>
+  <li>因为任何计算路径只要到达了 $A$，它就可以不消耗任何输入，立刻“免费”跳转到 $B$，从而使得整个路径成为一条接受路径。</li>
+  <li>在这个构造中，$q_0$ 可以通过 $\epsilon$-<strong>转移</strong>到达新的<strong>接受状态</strong> $q_{new}$。因此，任何停在 $q_0$ 的计算路径实际上都是成功的。</li>
+  <li>这和直接把 $q_0$ 设为<strong>接受状态</strong>（失败尝试 2）造成了完全相同的后果：所有能回到 $q_0$ 的前缀都被错误地接受了，导致整个 NFA 接受了所有字符串 $\Sigma^*$。</li>
+</ul>
+<ul>
+  <li><strong>核心缺陷</strong>: 仍然是<strong>起始状态</strong>被“污染”了，只不过这次是间接污染。通过 $\epsilon$-<strong>转移</strong>，<strong>接受</strong>的性质从 $q_{new}$ “传递”给了 $q_0$。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例：字符串 "00"</strong></li>
+  <li><strong>期望</strong>: 拒绝。</li>
+  <li><strong>错误构造 3</strong>:</li>
+</ul>
+<ol>
+  <li> 从<strong>起始状态</strong> $q_0$ 开始。</li>
+  <li> 读入第一个 '0'，停在 $q_0$。</li>
+  <li> 读入第二个 '0'，停在 $q_0$。</li>
+  <li> 字符串结束，路径停在 $q_0$。</li>
+  <li> 从 $q_0$ 可以通过 $\epsilon$-<strong>转移</strong>到达<strong>接受状态</strong> $q_{new}$。</li>
+  <li> 因此，存在一条接受路径 $q_0 \xrightarrow{0} q_0 \xrightarrow{0} q_0 \xrightarrow{\epsilon} q_{new}$。</li>
+  <li> 字符串 "00" <strong>被错误地接受了</strong>。</li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>低估 $\epsilon$-转移的威力</strong>：$\epsilon$-<strong>转移</strong>不仅是连接工具，它还会传递“可接受性”。在分析 NFA 时，一个状态的 $\epsilon$-闭包（它能通过任意多步 $\epsilon$-<strong>转移</strong>到达的所有状态的集合）非常重要。如果一个状态的 $\epsilon$-闭包里包含<strong>接受状态</strong>，那这个状态本身就起到了<strong>接受状态</strong>的作用。</li>
+  <li><strong>新状态的引入位置错误</strong>：引入新状态是正确的方向，但必须放在正确的位置。新<strong>起始状态</strong>应该是整个结构的“最高层”，而不是从旧的<strong>起始状态</strong>引出一个分支。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>失败尝试 3 的教训是，通过 $\epsilon$-<strong>转移</strong>将<strong>起始状态</strong>连接到一个新的<strong>接受状态</strong>，等同于将<strong>起始状态</strong>本身变成<strong>接受状态</strong>，这同样会引入错误。正确的构造需要一个全新的、独立的<strong>起始状态</strong>。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个问题进一步深化了对 NFA 行为，特别是 $\epsilon$-<strong>转移</strong>如何影响“接受”判定的理解。它排除了又一个看似可行但错误的构造方案，为最终的正确方案清除了障碍。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>回到“直接胜利”的游戏。</p>
+<ol>
+  <li><strong>错误构造 3</strong> 相当于，游戏开始的第一个房间 ($q_0$) 本身不是出口，但房间里有一个“免费传送门”($\epsilon$-<strong>转移</strong>)，可以直接把你送到终点 ($q_{new}$)。</li>
+  <li>这和在房间门口直接挂“你赢了”的牌子（失败尝试 2）有什么区别？没有区别。玩家只要能回到第一个房间，就能通过传送门直接胜利。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>回到烤蛋糕的想象。</p>
+<ol>
+  <li><strong>错误构造 3</strong> 是，在“准备材料”的台子 ($q_0$) 旁边，你放了一个按钮，上面写着“一键完成”($\epsilon$-<strong>转移</strong>到 $q_{new}$)。</li>
+  <li>结果还是和之前一样。你一进厨房就可以按按钮，直接“完成”任务。你准备了一下材料又放回去，还是可以按按钮“完成”任务。这仍然是错误的。</li>
+</ol>
+    </div>
+</div><hr><p id="original-12"><strong style="font-size: 1.3rem;">📜 [原文12]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ol>
+  <li>让我们看看 $L=\{10\}$。则 $L^{*}=\left\{(10)^{n} \mid n \geq 0\right\}$</li>
+</ol>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-04.jpg?height=158&width=526&top_left_y=2508&top_left_x=386" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-04.jpg?height=236&width=542&top_left_y=2435&top_left_x=1160" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p>新的 <strong>NFA</strong> 接受字符串 $\{\epsilon, 10\}$。然而，它不接受 $L^{*}$ 中的任何其他字符串，例如 1010。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p><strong>失败尝试 4：从接受状态 $\epsilon$-转移到新接受状态，并让新状态成为循环点</strong></p>
+<p>这个尝试是之前所有失败尝试的某种混合，想法更加复杂，但也同样存在缺陷。</p>
+<ul>
+  <li><strong>语言 L</strong>: $\{10\}$。</li>
+  <li><strong>语言 $L^*$</strong>: $\{\epsilon, 10, 1010, \dots\}$。</li>
+  <li><strong>错误构造 4</strong>:</li>
+</ul>
+<ol>
+  <li> 保留原 NFA ($q_0 \xrightarrow{1} q_1 \xrightarrow{0} q_2$)。</li>
+  <li> 创建一个<strong>新的状态</strong> $q_{new}$，并设为<strong>接受状态</strong>。</li>
+  <li> 从原 NFA 的<strong>接受状态</strong> $q_2$ 到 $q_{new}$ 画一条 $\epsilon$-<strong>转移</strong>。</li>
+  <li> 让 $q_{new}$ 成为新的<strong>起始状态</strong>。</li>
+  <li> 从 $q_{new}$ 到原 NFA 的<strong>起始状态</strong> $q_0$ 画一条 $\epsilon$-<strong>转移</strong>。</li>
+</ol>
+<ul>
+  <li><strong>分析错误</strong>:</li>
+</ul>
+<ol>
+  <li> <strong>它能接受 $\epsilon$ 吗？</strong>
+<ul>
+  <li>能。因为新的<strong>起始状态</strong> $q_{new}$ 本身就是<strong>接受状态</strong>。</li>
+</ul></li>
+  <li> <strong>它能接受 "10" 吗？</strong>
+<ul>
+  <li>能。路径是 $q_{new} \xrightarrow{\epsilon} q_0 \xrightarrow{1} q_1 \xrightarrow{0} q_2$。停在 $q_2$ (非接受)，但可以继续 $\epsilon$-<strong>转移</strong>到 $q_{new}$ (接受)。所以接受。</li>
+</ul></li>
+  <li> <strong>它能接受 "1010" 吗？</strong>
+<ul>
+  <li><strong>不能。这是问题的关键。</strong></li>
+  <li>让我们追踪路径：$q_{new} \xrightarrow{\epsilon} q_0 \xrightarrow{1} q_1 \xrightarrow{0} q_2 \xrightarrow{\epsilon} q_{new}$。到这里，字符串 "10" 被消耗完毕，自动机回到了<strong>起始状态</strong> $q_{new}$。</li>
+  <li>现在要处理后半部分的 "10"。自动机会再次沿着路径 $q_{new} \xrightarrow{\epsilon} q_0 \xrightarrow{1} q_1 \xrightarrow{0} q_2$。</li>
+  <li>但是，当它从 $q_2$ 再次尝试进行 $\epsilon$-<strong>转移</strong>时，它只能到达 $q_{new}$。它<strong>无法</strong>回到 $q_0$ 去开始下一次循环。</li>
+  <li>这个构造中，循环的路径是 $q_0 \to q_1 \to q_2 \to q_{new} \to q_0$。但是，字符串的消耗只发生在 $q_0 \to q_1 \to q_2$ 这一段。一旦到了 $q_{new}$，再想开始新一轮的 "10" 匹配，就必须再次回到 $q_0$。而这个构造中，从 $q_2$ 无法直接回到 $q_0$。</li>
+</ul></li>
+</ol>
+<ul>
+  <li><strong>核心缺陷</strong>: <strong>循环路径设置错误</strong>。正确的循环应该是完成一次匹配后，能回到<strong>开始下一次匹配的地方</strong>。这个构造让它回到了一个“终点兼起点”($q_{new}$)，但从这个点出发，虽然能到达 $q_0$，但完成匹配后($q_2$)却无法再次回到 $q_0$。它把“完成一次”和“准备下一次”的路径搞混了。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例：字符串 "1010"</strong></li>
+  <li><strong>期望</strong>: 接受。</li>
+  <li><strong>错误构造 4</strong>:</li>
+</ul>
+<ol>
+  <li> $q_{new} \xrightarrow{\epsilon} q_0$</li>
+  <li> 消耗 "10": $q_0 \xrightarrow{1} q_1 \xrightarrow{0} q_2$</li>
+  <li> $q_2 \xrightarrow{\epsilon} q_{new}$</li>
+  <li> 此时 "10" 消耗完毕，状态回到 $q_{new}$。</li>
+  <li> 现在要消耗第二个 "10"。</li>
+  <li> $q_{new} \xrightarrow{\epsilon} q_0$</li>
+  <li> 消耗 "10": $q_0 \xrightarrow{1} q_1 \xrightarrow{0} q_2$</li>
+  <li> 字符串结束，停在 $q_2$。$q_2$ 不是<strong>接受状态</strong>。</li>
+  <li> 可以继续 $\epsilon$-<strong>转移</strong>到 $q_{new}$，这是一个<strong>接受状态</strong>。所以 "1010" 似乎可以被接受。
+<ul>
+  <li><strong>等等，原文的分析说不接受 "1010"。让我们重新仔细审视图和原文的逻辑。</strong></li>
+  <li>原文的图示可能与我的描述略有不同。让我们严格按照图示来分析。</li>
+  <li>图示中，新的<strong>起始状态</strong>是 $q_{start}$，新的<strong>接受状态</strong>是 $q_{accept}$。</li>
+  <li>$q_{start} \xrightarrow{\epsilon} q_0$</li>
+  <li>$q_2 \xrightarrow{\epsilon} q_{accept}$</li>
+  <li>$q_{start}$ 也是 $q_{accept}$。</li>
+  <li>$q_{accept} \xrightarrow{\epsilon} q_0$。</li>
+  <li>这个构造确实很混乱。让我们遵循原文的结论：“它不接受 $L^*$ 中的任何其他字符串，例如 1010”。这暗示了循环机制是有问题的。</li>
+  <li>最清晰的解释是：当一次 "10" 匹配完成到达 $q_2$ 后，它可以通过 $\epsilon$ 到达<strong>接受状态</strong>。但如果要开始下一次匹配，必须回到 $q_0$。这个构造中，从<strong>接受状态</strong>返回 $q_0$ 的路径可能没有被正确设置，或者说，这个跳转逻辑使得连续匹配无法实现。</li>
+  <li><strong>让我们重新审视标准构造</strong>：(1) 新建一个起始/接受状态 $S_{new}$。(2) $S_{new} \xrightarrow{\epsilon} q_0$。(3) 从原接受状态 $q_2 \xrightarrow{\epsilon} S_{new}$。这个构造是可以正确工作的！$q_0 \to q_1 \to q_2 \to S_{new} \to q_0 \dots$ 这样可以循环。</li>
+  <li>那么为什么原文中的这个构造失败了？原文的图示可能是想表达一个特定的错误思想。该图中，新的<strong>接受状态</strong>没有画出到 $q_0$ 的 $\epsilon$ 边，它只接受了一次<strong>转移</strong>。如果从 $q_2$ 到达新的<strong>接受状态</strong>后，就没有出路了，那自然无法循环。原文的图示确实没有从那个新的双圈状态画出任何边。那么它的结论就是对的：这个 NFA 只能走 $q_{start} \to q_0 \to q_1 \to q_2 \to q_{accept}$ 一次。所以只能接受 $\epsilon$ (直接停在 $q_{start}$) 和 "10"。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>失败尝试 4 的教训是，循环结构必须被精确地设计。必须确保完成一次匹配后，能够无缝地回到准备开始下一次匹配的状态。错误的连接会导致循环中断，从而无法识别重复多次的字符串。</p>
+<p><strong>最终正确的克莱尼星号构造方法</strong></p>
+<p>经过以上所有失败的探索，正确的构造方法浮出水面：</p>
+<p>对于一个识别语言 $L$ 的自动机 $N_L$（起始状态 $q_{start,L}$，接受状态集 $F_L$）：</p>
+<ol>
+  <li> <strong>创建一个全新的状态 $q_{new}$</strong>。</li>
+  <li> 将 $q_{new}$ 同时设为新 NFA 的<strong>起始状态</strong>和<strong>接受状态</strong>。这保证了 $\epsilon$ 被接受。</li>
+  <li> 从 $q_{new}$ 到 $N_L$ 的原<strong>起始状态</strong> $q_{start,L}$ 添加一条 $\epsilon$-<strong>转移</strong>。这允许从头开始一次匹配。</li>
+  <li> 从 $N_L$ 的<strong>每一个</strong>原<strong>接受状态</strong> $q \in F_L$ 到这个新的状态 $q_{new}$ 添加一条 $\epsilon$-<strong>转移</strong>。这表示一次成功的匹配已完成。</li>
+</ol>
+<p>这个构造结合了 $q_{new} \to q_{start,L}$ 和 $q \to q_{new}$，形成了一个大循环 $q_{new} \to q_{start,L} \to \dots \to q \to q_{new}$，从而完美地实现了任意多次重复，且简洁地处理了 $\epsilon$ 的情况。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个系列失败案例的目的是通过排除法，让学生深刻理解正确构造方法的每一个组成部分都是不可或缺的，并理解它们各自的作用：新起始/接受状态用于处理 $\epsilon$ 和提供循环的“枢纽”，而 $\epsilon$ 边则负责“进入循环”和“完成一次循环并返回枢纽”。</p>
+    </div>
+</div><h3>3.4 d) 更多运算</h3><h3>3.4.1 问题 7a (逆转)</h3><p id="original-13"><strong style="font-size: 1.3rem;">📜 [原文13]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>对于 7a，我将给出一个非常正式的证明，以便你了解如何详细地完成这些证明。</p>
+<p>问题 7a (逆转)。证明思路：为了构造一个识别 $L^{R}$ 的 <strong>DFA</strong> $B$，我们复制识别 $L$ 的 <strong>DFA</strong> $A$，反转所有箭头，将 $B$ 的<strong>起始状态</strong>定义为 $A$ 的<strong>接受状态</strong>，并将 $B$ 的<strong>接受状态</strong>定义为 $A$ 的<strong>起始状态</strong>。由于 $A$ 中可能有多个<strong>接受状态</strong>（它们现在是 $B$ 中的“<strong>起始状态</strong>”，而起始状态只能有一个），我们创建一个新的<strong>起始状态</strong>，通过 $\epsilon$ <strong>转移</strong>到所有这些状态，从而得到一个识别 $L^{R}$ 的 <strong>NFA</strong>。</p>
+<p>存在一个 <strong>DFA</strong> $A=\left(Q_{A}, \Sigma, \delta_{A}, q_{0}, F_{A}\right)$ 使得 $L(A)=L$。构造如下 <strong>NFA</strong> $B=\left(Q_{B}, \Sigma, \delta_{B}, q_{0}^{\prime}, F_{B}\right)$，其中：</p>
+<ul>
+  <li>$Q_{B}=Q_{A} \cup\left\{q_{0}^{\prime}\right\}$。我们沿用来自 $A$ 的旧<strong>状态</strong>，但添加一个新<strong>起始状态</strong> $q_{0}^{\prime}$。</li>
+  <li>$\delta_{B}\left(q_{0}^{\prime}, \epsilon\right)=F_{A}$。新<strong>起始状态</strong>对 $A$ 中所有以前的<strong>接受状态</strong>都有 <strong>epsilon 转移</strong>。</li>
+  <li>对于所有 $r \in Q_{B}$ 和 $a \in \Sigma, \delta_{B}(r, a)=\left\{q \in Q_{A} \mid \delta_{A}(q, a)=r\right\}$。我们将来自每个<strong>状态</strong> $r \in Q_{B}$ 的<strong>转移</strong>定义为结束于 $A$ 中所有<strong>转移</strong>到相同 $r$ 的<strong>状态</strong>。换句话说，我们正在反转箭头。</li>
+  <li>$F_{B}=\left\{q_{0}\right\}$。$B$ 中的<strong>接受状态</strong>是 $A$ 的<strong>起始状态</strong>。</li>
+</ul>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-05.jpg?height=374&width=611&top_left_y=1322&top_left_x=342" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p>$L$ 的 <strong>DFA</strong></p>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-05.jpg?height=369&width=757&top_left_y=1324&top_left_x=1041" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+<p>$L^{R}$ 的 <strong>NFA</strong></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题要求证明<strong>正规语言</strong>对于<strong>逆转 (reversal)</strong> 运算是封闭的。一个语言 $L$ 的<strong>逆转</strong> $L^R$ 是将 $L$ 中每个字符串都反写过来得到的语言。例如，如果 $L = \{ab, cde\}$，那么 $L^R = \{ba, edc\}$。</p>
+<p>证明思路是构造性的：如果我们有一个识别 $L$ 的自动机 $A$，我们能否通过改造它来得到一个识别 $L^R$ 的自动机 $B$？</p>
+<p><strong>直观想法</strong>: 如果字符串 $w$ 能让自动机 $A$ 从<strong>起始状态</strong>走到<strong>接受状态</strong>，那么它的逆转字符串 $w^R$ 应该能让新自动机 $B$ 从原来的<strong>接受状态</strong>“倒着走”回到原来的<strong>起始状态</strong>。</p>
+<p>这启发我们进行以下改造：</p>
+<ol>
+  <li> <strong>反转所有转移箭头</strong>: 如果在 $A$ 中有 $q_i \xrightarrow{a} q_j$，那么在 $B$ 中就应该有 $q_j \xrightarrow{a} q_i$。</li>
+  <li> <strong>交换起始和接受状态</strong>:
+<ul>
+  <li>$A$ 的<strong>起始状态</strong>应该成为 $B$ 的<strong>接受状态</strong>。</li>
+  <li>$A$ 的<strong>接受状态</strong>应该成为 $B$ 的<strong>起始状态</strong>。</li>
+</ul></li>
+</ol>
+<p><strong>出现的问题</strong>:</p>
+<ul>
+  <li>一个 <strong>DFA</strong> (或 <strong>NFA</strong>) 只能有一个<strong>起始状态</strong>，但它可能有很多个<strong>接受状态</strong>。当我们把 $A$ 的所有<strong>接受状态</strong>都变成 $B$ 的“起始状态”时，就违反了这个规则。</li>
+  <li>一个状态对于一个输入，在 <strong>DFA</strong> 中只有一个出边。反转后，一个状态对于一个输入，可能有很多个出边（因为在原 <strong>DFA</strong> 中，可能有很多状态通过同一个字符<strong>转移</strong>到这个状态）。因此，反转后的自动机通常是一个 <strong>NFA</strong>，而不是 <strong>DFA</strong>。</li>
+</ul>
+<p><strong>标准构造方法 (生成 NFA)</strong>:</p>
+<p>为了解决上述问题，我们构造一个 <strong>NFA</strong> $B$ 来识别 $L^R$，步骤如下：</p>
+<ol>
+  <li> <strong>状态</strong>: 保留 $A$ 的所有状态，并<strong>增加一个全新的起始状态</strong> $q_0'$。</li>
+  <li> <strong>起始状态</strong>: 新的 <strong>NFA</strong> $B$ 的<strong>起始状态</strong>就是这个 $q_0'$。</li>
+  <li> <strong>转移</strong>:
+<ul>
+  <li><strong>反转箭头</strong>: 对于 $A$ 中的每一个<strong>转移</strong> $\delta_A(q, a) = r$，我们在 $B$ 中添加一个<strong>转移</strong> $\delta_B(r, a)$ 包含 $q$。</li>
+  <li><strong>处理多“起始”点</strong>: 从新的<strong>起始状态</strong> $q_0'$ 画 $\epsilon$-<strong>转移</strong>到 $A$ 中<strong>所有</strong>的<strong>接受状态</strong> $F_A$。这相当于说：“你可以从任何一个原来的终点开始你的‘逆向旅程’。”</li>
+</ul></li>
+  <li> <strong>接受状态</strong>: 将 $A$ 的原<strong>起始状态</strong> $q_0$ 设为 $B$ 的<strong>唯一接受状态</strong>。</li>
+</ol>
+<p><strong>图示例子</strong>:</p>
+<ul>
+  <li><strong>$L$ 的 DFA</strong>: 识别以 'b' 结尾的语言 $L = (a \cup b)^*b$。</li>
+  <li>$q_0$ (起始), $q_1$ (接受)。</li>
+  <li>$q_0 \xrightarrow{a} q_0$, $q_0 \xrightarrow{b} q_1$。</li>
+  <li>$q_1 \xrightarrow{a} q_0$, $q_1 \xrightarrow{b} q_1$。</li>
+  <li><strong>构造 $L^R$ 的 NFA</strong>: $L^R$ 是以 'b' 开头的语言。</li>
+</ul>
+<ol>
+  <li> <strong>新起始状态</strong>: $q_0'$。</li>
+  <li> <strong>新接受状态</strong>: $\{q_0\}$。</li>
+  <li> <strong>反转箭头</strong>:
+<ul>
+  <li>$q_0 \xleftarrow{a} q_0$, $q_1 \xleftarrow{b} q_0$</li>
+  <li>$q_0 \xleftarrow{a} q_1$, $q_1 \xleftarrow{b} q_1$</li>
+</ul></li>
+  <li> <strong>添加 $\epsilon$-转移</strong>: 从 $q_0'$ 到原<strong>接受状态</strong> $q_1$ 添加 $\epsilon$-<strong>转移</strong>。
+<ul>
+  <li>这样得到的 NFA (图示右侧)，它的<strong>起始状态</strong>是 $q_0'$，<strong>接受状态</strong>是 $q_0$。让我们看看它是否识别以 'b' 开头的语言。</li>
+  <li>对于 "ba"：$q_0' \xrightarrow{\epsilon} q_1 \xrightarrow{b} q_1 \xrightarrow{a} q_0$。停在<strong>接受状态</strong> $q_0$，接受。正确。</li>
+  <li>对于 "b"：$q_0' \xrightarrow{\epsilon} q_1 \xrightarrow{b} q_1$。停在非<strong>接受状态</strong> $q_1$，拒绝。等等，"b" 应该被接受！</li>
+  <li><strong>啊哈，图示中有一个微妙之处</strong>：仔细看右图，从 $q_0'$ 出发有两条 $\epsilon$-<strong>转移</strong>，一条到 $q_0$，一条到 $q_1$。这是因为原图的 $q_0$ 状态没有被明确标为非接受，如果 $L$ 包含 $\epsilon$，那么 $q_0$ 也是接受状态。但在这个例子里，$L$ 不含 $\epsilon$。我们假设只有 $q_1$ 是接受。那么，从 $q_0'$ 只需 $\epsilon$-<strong>转移</strong>到 $q_1$。</li>
+  <li><strong>再次检查 "b"</strong>: $q_0' \xrightarrow{\epsilon} q_1 \xrightarrow{b} q_1$。停在 $q_1$，非接受。为什么？因为原语言是 <strong>(a|b)<em>b</strong>，而逆转 <strong>b(a|b)</em></strong> 包含 "b"。</li>
+  <li><strong>让我们重新审视原图</strong>：原图 $L$ 的 DFA 描述的是“以b结尾”。$q_0$ 读a留在 $q_0$，读b到 $q_1$。$q_1$ 读a到 $q_0$，读b留在 $q_1$。$q_0$ 是起始， $q_1$ 是接受。这是正确的。</li>
+  <li><strong>那么 $L^R$ 的 NFA 为什么拒绝了 "b"</strong>？让我们重新走一遍构造。</li>
+  <li>$A$ 的接受状态是 $F_A = \{q_1\}$。</li>
+  <li>$B$ 的起始状态 $q_0'$，接受状态 $F_B = \{q_0\}$。</li>
+  <li>$\delta_B(q_0', \epsilon) = \{q_1\}$。</li>
+  <li>$\delta_A(q_0, a)=q_0 \implies q_0 \in \delta_B(q_0, a)$。</li>
+  <li>$\delta_A(q_1, a)=q_0 \implies q_1 \in \delta_B(q_0, a)$。所以 $\delta_B(q_0, a) = \{q_0, q_1\}$。(图中画的箭头是从 $q_0$ 到 $q_1$)</li>
+  <li>$\delta_A(q_0, b)=q_1 \implies q_0 \in \delta_B(q_1, b)$。</li>
+  <li>$\delta_A(q_1, b)=q_1 \implies q_1 \in \delta_B(q_1, b)$。所以 $\delta_B(q_1, b) = \{q_0, q_1\}$。(图中画的箭头是从 $q_1$ 到 $q_0$ 和 $q_1$)</li>
+  <li><strong>图示画错了！</strong> 解答中的图示与它自己描述的构造规则不完全一致。这是一个常见的讲义错误。根据构造规则，从 $q_0$ 输入 a 应该能到 $q_0$ 和 $q_1$。但图中只画了到 $q_1$。</li>
+  <li><strong>让我们忽略图中的小错误，用正确的逻辑来验证</strong>: 识别 $L^R = b(a|b)^*$ 的 NFA 应该是什么样的？一个简单的 NFA 是 $s_0 \xrightarrow{b} s_1$，其中 $s_1$ 是接受状态且有 (a,b) 自循环。我们的构造是否等价于这个？</li>
+  <li>$q_0' \xrightarrow{\epsilon} q_1$。</li>
+  <li>$q_1 \xrightarrow{b} \{q_0, q_1\}$。</li>
+  <li>$q_0$ 是接受状态。所以读入 "b" 之后，一条路径到 $q_0$，一条到 $q_1$。因为到达了<strong>接受状态</strong> $q_0$，所以 "b" 被接受。</li>
+  <li>这说明构造本身是正确的，但图示可能为了简化而省略了一些细节，或者有误。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>语言 $L = \{w \mid w \text{以 } ab \text{ 结尾}\}$</strong></li>
+  <li>DFA A: $q_0 \xrightarrow{a,b} q_0 \xrightarrow{a} q_1 \xrightarrow{b} q_2$ (接受)。</li>
+  <li><strong>构造 $L^R = \{w \mid w \text{以 } ba \text{ 开头}\}$ 的 NFA B</strong>:</li>
+</ul>
+<ol>
+  <li> 新起始状态 $s$。</li>
+  <li> 新接受状态 $\{q_0\}$。</li>
+  <li> $s \xrightarrow{\epsilon} q_2$ (因为 $q_2$ 是 $A$ 的唯一接受状态)。</li>
+  <li> 反转箭头:
+<ul>
+  <li>$q_1 \xrightarrow{b} q_2$ 反转为 $q_2 \xrightarrow{b} q_1$。</li>
+  <li>$q_0 \xrightarrow{a} q_1$ 反转为 $q_1 \xrightarrow{a} q_0$。</li>
+  <li>$q_0 \xrightarrow{a} q_0$ 反转为 $q_0 \xrightarrow{a} q_0$。</li>
+  <li>$q_0 \xrightarrow{b} q_0$ 反转为 $q_0 \xrightarrow{b} q_0$。</li>
+  <li><strong>验证字符串 "ba"</strong>: 路径 $s \xrightarrow{\epsilon} q_2 \xrightarrow{b} q_1 \xrightarrow{a} q_0$。停在<strong>接受状态</strong> $q_0$。接受。</li>
+  <li><strong>验证字符串 "b"</strong>: 路径 $s \xrightarrow{\epsilon} q_2 \xrightarrow{b} q_1$。停在非接受状态 $q_1$。拒绝。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>DFA 与 NFA 的转换</strong>: 即使从一个 <strong>DFA</strong> 开始，逆向构造通常会产生一个 <strong>NFA</strong>。因为原 <strong>DFA</strong> 中可能有多个<strong>转移</strong>指向同一个状态，反转后就变成一个状态对同一输入有多个<strong>转移</strong>。</li>
+  <li><strong>多个接受状态的处理</strong>: 这是最关键的易错点。如果原 <strong>DFA</strong> 有多个<strong>接受状态</strong>，必须通过一个新的<strong>起始状态</strong>和多条 $\epsilon$-<strong>转移</strong>来处理，绝不能创建多个<strong>起始状态</strong>。</li>
+  <li><strong>对 $\epsilon$ 的处理</strong>: 如果原语言 $L$ 包含 $\epsilon$，那么其<strong>起始状态</strong> $q_0$ 也是<strong>接受状态</strong>。在构造 $L^R$ 时，$q_0$ 既是 $B$ 的<strong>接受状态</strong>，也（作为原<strong>接受状态</strong>之一）是新<strong>起始状态</strong> $q_0'$ 通过 $\epsilon$-<strong>转移</strong>指向的目标之一。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>通过“反转箭头”并妥善处理“起始”和“接受”状态的转换，我们可以从一个识别 $L$ 的自动机构造出一个识别 $L^R$ 的 <strong>NFA</strong>。这个构造性证明表明，<strong>正规语言</strong>对<strong>逆转</strong>运算是封闭的。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个问题一方面展示了另一个重要的<strong>封闭性质</strong>（逆转），另一方面也提供了一个非常正式的证明框架，教导学生如何严谨地论证一个构造的正确性（双向蕴含的证明）。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象你看了一场电影（自动机 $A$ 处理字符串 $w$）。</p>
+<ol>
+  <li>电影从开头（<strong>起始状态</strong>）放到结尾（<strong>接受状态</strong>）。</li>
+  <li>现在你想“倒着看”这部电影（处理 $w^R$）。</li>
+  <li>构造 $L^R$ 的自动机 $B$ 就是你的“倒放”播放器。</li>
+  <li>你得从电影的结尾（$A$ 的<strong>接受状态</strong>）开始播放。但一部电影可能有多个结局（多个<strong>接受状态</strong>），所以你的播放器需要一个“选择结局”的菜单（新的<strong>起始状态</strong>和 $\epsilon$-<strong>转移</strong>）。</li>
+  <li>然后你按下了倒放键，所有情节都反向发生（箭头反转）。</li>
+  <li>如果你最终能“倒放”到电影的开头（$A$ 的<strong>起始状态</strong>），那么这次“倒看”就是成功的（$w^R$ 被接受）。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一条单行道的公路网（DFA $A$）。</p>
+<ol>
+  <li>你从唯一的入口（<strong>起始状态</strong>）开车，希望到达某个或某几个出口（<strong>接受状态</strong>）。</li>
+  <li>现在政府决定，把所有路牌都掉个头，让大家反向行驶（构造 NFA $B$）。</li>
+  <li>原来的所有出口都变成了入口。为了方便管理，政府在所有旧出口前修了一个巨大的环岛（新<strong>起始状态</strong> $q_0'$），并修了匝道（$\epsilon$-<strong>转移</strong>）连接到这些旧出口。现在所有车都从这个大环岛进入。</li>
+  <li>原来的唯一入口，现在变成了唯一的终点收费站（新<strong>接受状态</strong>）。</li>
+  <li>如果你能从这个大环岛出发，沿着反向的路网，最终开到终点收费站，你就完成了一次合法的逆向旅程。</li>
+</ol>
+    </div>
+</div><hr><p id="original-14"><strong style="font-size: 1.3rem;">📜 [原文14]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>现在我们证明 <strong>NFA</strong> $B$ 识别 $L^{R}$。为了证明这一点，我们必须证明：</p>
+<p><div class="math-block">$$
+w^{R} \in L^{R} \Longleftrightarrow \text { NFA } B \text { 接受 } w^{R}
+$$</div></p>
+<p>正向：$w^{R} \in L^{R} \Longrightarrow$ <strong>NFA</strong> $B$ 接受 $w^{R}$。</p>
+<p>令 $w=a_{1}, a_{2} \ldots, a_{n} \in L, n \geq 0$ 且 $w^{R}=a^{n}, \ldots, a_{2}, a_{1} \in L^{R}$。由于 $w \in L$，对于所有 $a_{1}, \ldots, a_{n}$，存在某些 $q_{i}, r_{i} \in Q_{A}$ 使得 $\delta_{A}\left(q_{i}, a_{i+1}\right)=r_{i+1}, 0 \leq i \leq n-1$，其中 $q_{0}$ 是 $A$ 的<strong>起始状态</strong>且 $r_{n} \in F_{A}$。根据我们对 <strong>NFA</strong> $B$ 的定义，$r_{n} \in F_{A}$ 意味着存在一个<strong>起始状态</strong> $q_{0}^{\prime} \in Q_{B}$ 使得 $\delta\left(q_{0}, \epsilon\right)=r$。再次根据我们对 $B$ 的定义，对于所有 $\delta_{A}\left(q_{i}, a_{i+1}\right)=r_{i+1}, 0 \leq i \leq n-1$，存在 $\delta_{B}\left(r_{i+1}, a_{i+1}\right)=q_{i} \in Q_{B}$。最后，由于 $F_{B}=\left\{q_{0}\right\}$，且存在 $\delta_{B}\left(r_{1}, a_{1}\right)=q_{0}$，字符串 $w^{R}=a_{n}, \ldots, a_{2}, a_{1} \in L^{R}$ 在 <strong>NFA</strong> $B$ 中有一条从其<strong>起始状态</strong> $q_{0}^{\prime}$ 到其<strong>接受状态</strong> $q_{0}$ 的<strong>接受计算</strong>。</p>
+<p>反向：<strong>NFA</strong> $B$ 接受 $w^{R} \Longrightarrow w^{R} \in L^{R}$</p>
+<p>这与正向类似，但我们论证由于 <strong>NFA</strong> $B$ 接受 $w^{R}$，存在一条从 $q_{0}^{\prime} \in Q_{B}$ 到 $F_{B}=\{$<strong>起始状态</strong> $q_{0} \in Q_{A}\}$ 的<strong>接受计算路径</strong>。（此处非正式描述）根据我们对 <strong>NFA</strong> $B$ 的构造，那么在 <strong>NFA</strong> $A$ 中对于字符串 $w=a_{1} a_{2} \ldots a_{n}$ 必须存在一条从 $q_{0} \in Q_{A}$ 到 $q_{n} \in F_{A}$ 的计算路径，因此 $w \in L=L(A)$。如果 $w \in L$，那么根据 $L^{R}$ 的定义，$w^{R} \in L^{R}$。我们证明了如果 $B$ 接受 $w^{R}$，那么 $w^{R} \in L^{R}$。</p>
+<p><strong>NFA</strong> $B$ 识别 $L^{R}$，因此 $L^{R}$ 是<strong>正规</strong>的。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分是上一个构造的严格数学证明，旨在展示如何形式化地论证一个构造的正确性。证明一个自动机 $B$ 识别一个语言 $L_B$ 的标准方法是证明一个双向蕴含关系：一个字符串 $w$ 属于语言 $L_B$ <strong>当且仅当</strong>自动机 $B$ 接受字符串 $w$。</p>
+<p><strong>证明目标</strong>: $w^R \in L^R \iff B \text{ 接受 } w^R$。</p>
+<p><strong>第一部分：正向证明 ($\Longrightarrow$)</strong></p>
+<ul>
+  <li><strong>前提</strong>: 假设 $w^R \in L^R$。</li>
+  <li><strong>目标</strong>: 证明 NFA $B$ 接受 $w^R$。</li>
+  <li><strong>推导链</strong>:</li>
+</ul>
+<ol>
+  <li> 如果 $w^R \in L^R$，根据<strong>逆转</strong>定义，那么原字符串 $w \in L$。</li>
+  <li> 因为 DFA $A$ 识别 $L$，所以存在一条在 $A$ 中接受 $w$ 的计算路径。设 $w = a_1a_2...a_n$。这条路径可以写成状态序列：$s_0, s_1, ..., s_n$，其中 $s_0=q_0$ (A的起始)，$s_n \in F_A$ (A的接受状态集)，并且对于每一步 $i$ (从 0 到 n-1)，都有 $\delta_A(s_i, a_{i+1}) = s_{i+1}$。</li>
+  <li> 现在我们要在 NFA $B$ 中为 $w^R = a_n...a_2a_1$ 构造一条接受路径。</li>
+  <li> $B$ 的计算从其<strong>起始状态</strong> $q_0'$ 开始。</li>
+  <li> 根据构造，从 $q_0'$ 有一条 $\epsilon$-<strong>转移</strong>到所有 $A$ 的<strong>接受状态</strong>。因为 $s_n \in F_A$，所以 $B$ 可以从 $q_0'$ 经过 $\epsilon$-<strong>转移</strong>到达状态 $s_n$。</li>
+  <li> 接下来，$B$ 需要消耗 $w^R$ 的第一个字符 $a_n$。在 $A$ 中，我们有 $\delta_A(s_{n-1}, a_n) = s_n$。根据 $B$ 的构造（箭头反转），在 $B$ 中必然存在一个<strong>转移</strong>，使得从状态 $s_n$ 读入 $a_n$ 可以到达状态 $s_{n-1}$。</li>
+  <li> 依此类推，对于 $w^R$ 的每一个字符 $a_i$ (从 $n$ 到 1)，在 $B$ 中都存在一条路径 $s_i \xrightarrow{a_i} s_{i-1}$。</li>
+  <li> 这样，我们就在 $B$ 中构建了一条完整的计算路径：$q_0' \xrightarrow{\epsilon} s_n \xrightarrow{a_n} s_{n-1} \xrightarrow{a_{n-1}} \dots \xrightarrow{a_2} s_1 \xrightarrow{a_1} s_0$。</li>
+  <li> 这条路径的终点是 $s_0$。根据构造，$s_0$ (即 $A$ 的原<strong>起始状态</strong>) 正是 $B$ 的<strong>接受状态</strong>。</li>
+  <li><strong>结论</strong>: 我们成功地为 $w^R$ 在 $B$ 中找到了一条接受路径。因此，$B$ 接受 $w^R$。</li>
+</ol>
+<p><strong>第二部分：反向证明 ($\Longleftarrow$)</strong></p>
+<ul>
+  <li><strong>前提</strong>: 假设 NFA $B$ 接受 $w^R$。</li>
+  <li><strong>目标</strong>: 证明 $w^R \in L^R$。</li>
+  <li><strong>推导链</strong>:</li>
+</ul>
+<ol>
+  <li> 如果 $B$ 接受 $w^R = a_n...a_1$，那么在 $B$ 中一定存在一条从<strong>起始状态</strong> $q_0'$ 到<strong>接受状态</strong> $q_0$ (即 $F_B$) 的路径。</li>
+  <li> 这条路径必然以 $q_0' \xrightarrow{\epsilon} s_n$ 开始，其中 $s_n$ 是 $A$ 的一个<strong>接受状态</strong> ($s_n \in F_A$)。</li>
+  <li> 然后，路径必须是 $s_n \xrightarrow{a_n} s_{n-1} \dots \xrightarrow{a_1} s_0$，其中终点 $s_0$ 必须是 $B$ 的<strong>接受状态</strong>，也就是 $A$ 的原<strong>起始状态</strong>。</li>
+  <li> 由于 $B$ 的<strong>转移</strong>是 $A$ 的<strong>转移</strong>的逆向，那么对于 $B$ 中的每一步 $s_i \xrightarrow{a_i} s_{i-1}$，在 $A$ 中都必然存在一步 $\delta_A(s_{i-1}, a_i) = s_i$。</li>
+  <li> 将 $B$ 的整个计算路径反过来看，我们在 $A$ 中就得到了一条路径：$s_0 \xrightarrow{a_1} s_1 \xrightarrow{a_2} \dots \xrightarrow{a_n} s_n$。</li>
+  <li> 这条路径在 $A$ 中，从<strong>起始状态</strong> $s_0$ 开始，到<strong>接受状态</strong> $s_n$ 结束，消耗的字符串是 $w = a_1a_2...a_n$。</li>
+  <li> 因此，$A$ 接受字符串 $w$，即 $w \in L$。</li>
+  <li> 根据<strong>逆转</strong>的定义，如果 $w \in L$，那么 $w^R \in L^R$。</li>
+  <li> <strong>结论</strong>: 我们证明了如果 $B$ 接受 $w^R$，那么 $w^R$ 必然属于语言 $L^R$。</li>
+</ol>
+<p><strong>最终结论</strong>:</p>
+<p>由于双向蕴含关系都已证明，所以我们得出结论：NFA $B$ 识别的语言恰好是 $L^R$。因为我们能够为任何<strong>正规语言</strong> $L$ 构造出这样一个识别 $L^R$ 的 <strong>NFA</strong>，所以 $L^R$ 也必然是<strong>正规语言</strong>。<strong>正规语言</strong>集合在<strong>逆转</strong>运算下是<strong>封闭</strong>的。</p>
+    </div>
+</div><div class="formula-box">
+    <div class="box-label">∑ [公式拆解]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>$w^{R} \in L^{R} \Longleftrightarrow \text { NFA } B \text { 接受 } w^{R}$</strong>:</li>
+  <li><strong>$w^R$</strong>: 字符串 $w$ 的逆序。</li>
+  <li><strong>$L^R$</strong>: 语言 $L$ 的逆转，是 $L$ 中所有字符串的逆序组成的集合。</li>
+  <li><strong>$\Longleftrightarrow$</strong>: "当且仅当"，表示左右两边的命题互为充要条件，需要双向证明。</li>
+  <li><strong>NFA B 接受 $w^R$</strong>: 存在一条从 B 的<strong>起始状态</strong>开始，消耗完 $w^R$ 后，最终停在 B 的某个<strong>接受状态</strong>的计算路径。</li>
+</ul>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这部分内容提供了一个构造性证明的经典范例。它通过严谨的逻辑推理，一步步地将在 DFA $A$ 上的正向计算路径与在 NFA $B$ 上的逆向计算路径对应起来，从而证明了构造的正确性。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这部分的存在目的不仅仅是为了证明<strong>逆转</strong>的<strong>封闭性</strong>，更重要的是，它是一个教学示例，用来展示如何将直观的构造思想转化为形式化的、滴水不漏的数学证明。这对于培养计算机科学理论所必需的严谨思维至关重要。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像是在证明一个双向翻译器是完美的。</p>
+<ol>
+  <li><strong>正向证明</strong>: 随便拿一句中文 ($w$)，用你的翻译器 $A$ 翻译成英文（被 $A$ 接受）。然后，把这句英文倒过来说 ($w^R$)，交给你的逆向翻译器 $B$。如果 $B$ 能准确地把倒装的英文翻译回倒装的中文（被 $B$ 接受），说明正向翻译没问题。</li>
+  <li><strong>反向证明</strong>: 随便拿一句倒装的英文 ($w^R$)，如果你的逆向翻译器 $B$ 能成功处理它（接受 $w^R$），然后你检查一下，发现它对应的正向英文 ($w$) 确实是一句合法的、能被正向翻译器 $A$ 处理的句子。那就说明逆向翻译也没问题。</li>
+  <li>只有双向都验证无误，才能说这个逆向翻译器 $B$ 是完美对应翻译器 $A$ 的。</li>
+</ol>
+    </div>
+</div><hr><h3>3.4.2 问题 7b</h3><p id="original-15"><strong style="font-size: 1.3rem;">📜 [原文15]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>问题 7b。理解 $\min (L)$ 的作用很重要。当我们说 $w \in L$ 且 $w$ 的<strong>真前缀</strong>不在 $L$ 中时，$\min (L)$ 运算会丢弃所有其前缀也可被接受的已接受字符串。例如，如果 $q_{i}, q_{j} \in F_{A}$，且存在一个字符串 $w=x y \in L$，其中 $\delta_{A}^{*}\left(q_{0}, x\right)=q_{i}, \delta_{A}^{*}\left(q_{i}, x\right)=q_{j}$，那么 $w \notin \min (L)$。换句话说，来自<strong>接受状态</strong>的每个<strong>转移</strong>都将导致一个<strong>拒绝状态</strong>。</p>
+<p>对于一个 <strong>DFA</strong> $A=\left(Q_{A}, \Sigma, \delta_{A}, q_{0}, F_{A}\right)$ 使得 $L(A)=L$，我们将构造 <strong>DFA</strong> $B=\left(Q_{B}, \Sigma, \delta_{B}, q_{0}^{\prime}, F_{B}\right)$ 使得</p>
+<ul>
+  <li>$Q_{B}=Q_{A} \cup\left\{q_{\text{reject}}\right\}$，其中 $q_{\text{reject}}$ 是<strong>拒绝状态</strong>。我们需要这个额外的<strong>拒绝状态</strong>来捕获所有来自<strong>接受状态</strong>的<strong>转移</strong>。</li>
+  <li>$q_{0}^{\prime}=q_{0}$。$A$ 的<strong>起始状态</strong>与 $B$ 的<strong>起始状态</strong>相同。</li>
+  <li>$F_{B}=F_{A}$。$A$ 和 $B$ 具有相同的<strong>接受状态</strong>。</li>
+  <li>对于所有 $a \in \Sigma$ 和 $q \in F_{A}=F_{B}, \delta_{B}(q, a)=q_{\text{reject}}$。所有来自<strong>接受状态</strong>的<strong>转移</strong>都将到达<strong>拒绝状态</strong> $q_{\text{reject}}$。</li>
+  <li>对于所有 $a \in \Sigma, \delta_{B}\left(q_{\text{reject}}, a\right)=q_{\text{reject}}$。一旦到达 $q_{\text{reject}}$，<strong>DFA</strong> 的<strong>状态</strong>就不再改变。</li>
+  <li>对于所有 $a \in \Sigma$ 和 $q \notin F_{B} \cup q_{\text{reject}}, \delta_{B}(q, a)=\delta_{A}(q, a)$。来自所有其他<strong>状态</strong>的<strong>转移</strong>保持不变。</li>
+</ul>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题要求证明<strong>正规语言</strong>对一个名为 $\min$ 的运算是封闭的。首先我们需要理解 $\min(L)$ 的定义。</p>
+<p><strong>$\min(L)$ 的定义</strong>:</p>
+<p>$\min(L) = \{w \in L \mid w \text{ 的任何真前缀都不在 } L \text{ 中}\}$。</p>
+<p>一个字符串的<strong>真前缀</strong>是指该字符串的、不等于其自身的前缀。例如，"apple" 的真前缀有 $\epsilon$, "a", "ap", "app", "appl"。</p>
+<p>$\min(L)$ 语言的本质是：保留 $L$ 中那些“最短”的、不可再缩短的被接受的字符串。如果一个字符串 $w$ 在 $L$ 中，但它的某个前缀 $x$ 也在 $L$ 中，那么 $w$ 就像是一个“多余”的、更长的版本，它会被 $\min(L)$ 丢弃。</p>
+<p><strong>构造思路</strong>:</p>
+<p>我们要从一个识别 $L$ 的 <strong>DFA</strong> $A$ 出发，构造一个识别 $\min(L)$ 的 <strong>DFA</strong> $B$。</p>
+<ul>
+  <li>根据 $\min(L)$ 的定义，如果一个字符串 $w=xy$ 被 $A$ 接受，并且它的前缀 $x$ 也被 $A$ 接受，那么 $w$ 不应该被 $B$ 接受。</li>
+  <li>在 <strong>DFA</strong> $A$ 中，这意味着什么？如果处理前缀 $x$ 后，DFA $A$ 到达了一个<strong>接受状态</strong>，那么之后再处理后续的字符串 $y$ 时，无论最终停在哪里，整个字符串 $w=xy$ 都不属于 $\min(L)$。</li>
+  <li>这启发我们：一旦进入一个<strong>接受状态</strong>，就不能再“出来”继续进行有效的计算了。任何从<strong>接受状态</strong>出发的<strong>转移</strong>，都应该导向一个万劫不复的“失败”境地。</li>
+</ul>
+<p><strong>DFA $B$ 的构造步骤</strong>:</p>
+<ol>
+  <li> <strong>状态</strong>: 复制 $A$ 的所有状态，并增加一个全新的<strong>拒绝状态</strong>（或称“陷阱状态”、“死亡状态”），记为 $q_{reject}$。</li>
+  <li> <strong>起始状态</strong>: $B$ 的<strong>起始状态</strong>和 $A$ 的<strong>起始状态</strong>相同。</li>
+  <li> <strong>接受状态</strong>: $B$ 的<strong>接受状态</strong>集合和 $A$ 的<strong>接受状态</strong>集合相同。</li>
+  <li> <strong>修改转移</strong>:
+<ul>
+  <li><strong>核心修改</strong>: 对于 $A$ 中<strong>所有</strong>的<strong>接受状态</strong> $q$，在 $B$ 中，从 $q$ 出发的所有<strong>转移</strong>（无论输入什么字符）全部指向我们新加的 $q_{reject}$。</li>
+  <li><strong>陷阱状态的自循环</strong>: $q_{reject}$ 对所有输入都有一个指向自身的<strong>转移</strong>。一旦进入，永不离开。</li>
+  <li><strong>其他转移不变</strong>: 对于 $A$ 中所有<strong>非接受状态</strong> $q$，它们原来的<strong>转移</strong>在 $B$ 中保持不变。</li>
+</ul></li>
+</ol>
+<p><strong>工作原理</strong>:</p>
+<ul>
+  <li>当 <strong>DFA</strong> $B$ 处理一个字符串 $w$ 时，只要它还没有遇到一个属于 $L$ 的前缀，它的行为就和 <strong>DFA</strong> $A$ 完全一样。</li>
+  <li>如果 $w$ 本身属于 $L$，并且没有任何真前缀属于 $L$，那么 $B$ 会和 $A$ 一样，在消耗完 $w$ 的最后一个字符时，<strong>恰好</strong>到达一个<strong>接受状态</strong>。因此，$w$ 被 $B$ 接受。</li>
+  <li>如果 $w$ 有一个真前缀 $x$ 属于 $L$ (设 $w=xy, y$ 非空)，那么当 $B$ 处理完前缀 $x$ 时，它会到达一个<strong>接受状态</strong>。但此时字符串还没结束，还需要处理 $y$。根据我们的新规则，从这个<strong>接受状态</strong>出发的第一步（即处理 $y$ 的第一个字符），就会立即让 $B$ <strong>转移</strong>到 $q_{reject}$ 状态。之后无论 $y$ 剩下什么，B 都会一直停在 $q_{reject}$。最终字符串 $w$ 结束时，B 停在非接受的 $q_{reject}$ 状态，$w$ 被拒绝。</li>
+</ul>
+<p>这个构造完美地实现了 $\min(L)$ 的定义。</p>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>语言 $L = \{a^n b \mid n \ge 0\}$</strong> (任意多个 a 后面跟一个 b)。</li>
+  <li>DFA A: $q_0 \xrightarrow{a} q_0$, $q_0 \xrightarrow{b} q_1$ (接受)。$q_1$ 对 a,b 的转移可以指向一个死亡状态（或省略）。</li>
+  <li>字符串 "ab" $\in L$，"aab" $\in L$。</li>
+  <li>但 "a" 是 "ab" 的前缀，而 "a" $\notin L$。</li>
+  <li>"ab" 是 "abb" 的前缀，"ab" $\in L$。所以 "abb" $\notin \min(L)$。</li>
+  <li>实际上，$\min(L) = L$。因为 $L$ 中没有一个字符串是另一个字符串的前缀。</li>
+  <li><strong>用构造法验证</strong>:</li>
+</ul>
+<ol>
+  <li>$A$ 的接受状态是 $q_1$。</li>
+  <li>构造 $B$：将从 $q_1$ 出发的所有<strong>转移</strong>都指向 $q_{reject}$。</li>
+  <li>结果 $B$ 和 $A$ 的行为对于 $L$ 中的字符串完全一样，因为一旦到达 $q_1$，字符串就结束了。所以 $B$ 识别的语言还是 $L$。</li>
+</ol>
+<ul>
+  <li><strong>语言 $L = (01)^*$</strong> (01 的任意次重复: $\{\epsilon, 01, 0101, \dots\}$)。</li>
+  <li>字符串 "01" $\in L$。</li>
+  <li>字符串 "0101" $\in L$。</li>
+  <li>"01" 是 "0101" 的真前缀。所以 "0101" $\notin \min(L)$。</li>
+  <li>同理，所有长度大于 0 的字符串都会被剔除。</li>
+  <li>只有 $\epsilon$ 没有真前缀。$\epsilon \in L$。所以 $\min(L) = \{\epsilon\}$。</li>
+  <li><strong>用构造法验证</strong>:</li>
+</ul>
+<ol>
+  <li> DFA A: $q_0 \xrightarrow{0} q_1 \xrightarrow{1} q_0$。$q_0$ 是起始和接受状态。</li>
+  <li> 构造 $B$：$A$ 的接受状态是 $\{q_0\}$。</li>
+  <li> 修改<strong>转移</strong>: 从 $q_0$ 出发的所有<strong>转移</strong>都要指向 $q_{reject}$。
+<ul>
+  <li>$\delta_B(q_0, 0) = q_{reject}$</li>
+  <li>$\delta_B(q_0, 1) = q_{reject}$</li>
+</ul></li>
+  <li> $q_1$ 的<strong>转移</strong>不变: $\delta_B(q_1, 1) = q_0$。</li>
+  <li> $B$ 的<strong>起始状态</strong>是 $q_0$，也是<strong>接受状态</strong>。</li>
+  <li> <strong>分析 $B$</strong>:
+<ul>
+  <li>输入 $\epsilon$：停在 $q_0$，接受。</li>
+  <li>输入 "0"：$q_0 \xrightarrow{0} q_{reject}$，拒绝。</li>
+  <li>输入任何非空字符串，第一步就会进入 $q_{reject}$。</li>
+  <li>所以 $B$ 只接受 $\epsilon$。$L(B) = \{\epsilon\}$，与我们推导的 $\min(L)$ 一致。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>DFA vs NFA</strong>: 这个构造是基于 <strong>DFA</strong> 的。如果起始自动机是 <strong>NFA</strong>，情况会复杂得多，因为 NFA 在同一步可能处于多个状态，其中一个可能是接受的，而另一个不是。</li>
+  <li><strong>处理所有接受状态</strong>: 如果原 DFA 有多个<strong>接受状态</strong>，必须修改从<strong>所有</strong>这些<strong>接受状态</strong>出发的<strong>转移</strong>。</li>
+  <li><strong>新旧状态的区分</strong>: 构造的新 DFA $B$ 是一个全新的对象，虽然它借用了 $A$ 的大部分结构，但其<strong>转移</strong>函数 $\delta_B$ 已经与 $\delta_A$ 不同了。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>我们通过一个构造性证明，展示了<strong>正规语言</strong>对 $\min$ 运算是封闭的。其核心思想是：修改原 <strong>DFA</strong>，使得任何计算路径一旦到达一个<strong>接受状态</strong>，就“锁死”在那里或进入一个陷阱状态，无法再继续匹配更长的字符串。这精确地移除了所有“非最小”的被接受字符串。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个问题引入了一个不那么常见但很有趣的语言运算，并要求为其<strong>封闭性</strong>提供构造证明。这能检验学生是否能深刻理解 <strong>DFA</strong> 的计算过程，并能根据一个新的语言定义，创造性地修改 <strong>DFA</strong> 的结构以实现新的识别逻辑。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像一个“见好就收”的赌徒。</p>
+<ol>
+  <li>DFA A 是一个普通的赌徒，只要最终赢钱（停在<strong>接受状态</strong>），他就高兴。他可能会在赢了一局（到达一个<strong>接受状态</strong>）之后，继续玩下去，可能会赢更多，也可能会输光。</li>
+  <li>DFA B (识别 $\min(L)$) 是一个非常谨慎的赌徒。他的规则是：一旦赢了钱（到达一个<strong>接受状态</strong>），必须马上收手回家（进入 $q_{reject}$ 状态）。如果他不收手，还想继续玩下一局，那他之前赢的钱就全部作废（最终停在 $q_{reject}$）。</li>
+  <li>所以，DFA B 只会认可那些“刚好在最后一刻才赢钱”的玩法。</li>
+</ol>
+    </div>
+</div><hr><p id="original-16"><strong style="font-size: 1.3rem;">📜 [原文16]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>要证明这是正确的，我们需要证明：</p>
+<p><div class="math-block">$$
+\begin{aligned}
+&amp; w \in \min (L) \Longrightarrow \text { DFA } B \text { 接受 } w \\
+&amp; w \notin \min (L) \Longrightarrow \text { DFA } B \text { 拒绝 } w
+\end{aligned}
+$$</div></p>
+<p>第一条陈述：$w \in \min (L) \Longrightarrow$ <strong>DFA</strong> $B$ 接受 $w$。</p>
+<p>注意 $\min (L) \subset L$。如果 $w \in \min (L)$，则 $w \in L$，且在输入 $w$ 时，<strong>DFA</strong> $A$ 结束于一个<strong>接受状态</strong> $q \in F_{A}=F_{B}$。其次，由于 $w \in \min (L)$，没有 $w$ 的<strong>真前缀</strong>在 $L$ 中。这意味着，对于任何满足 $w=x y,|y|&gt;0$ 的 $x$，$x \notin L$。在输入 $x$ 时，<strong>DFA</strong> $A$ 将结束于一个<strong>状态</strong> $q \notin F_{A}=F_{B}$。这意味着在计算 $w$ 时，<strong>DFA</strong> $A$ 和 $B$ 仅在最后一个字符时到达<strong>接受状态</strong>。因此 <strong>DFA</strong> $B$ 接受 $w$。</p>
+<p>第二条陈述：$w \notin \min (L) \Longrightarrow$ <strong>DFA</strong> $B$ 拒绝 $w$。</p>
+<p>如果 $w \notin \min (L)$，则 $w \notin L$ 或者存在 $w$ 的某些<strong>真前缀</strong> $\in L$。</p>
+<ul>
+  <li>如果 $w \notin L$，那么 $w$ 在 <strong>DFA</strong> $A$ 中将结束于一个非<strong>接受状态</strong>。由于 $F_{A}=F_{B}$，该<strong>状态</strong>在 <strong>DFA</strong> $B$ 中也是非接受的。$w$ 将被 <strong>DFA</strong> $B$ 拒绝。</li>
+  <li>如果存在某些<strong>真前缀</strong> $w \in L$，那么存在一个最短的<strong>真前缀</strong> $x \in L$，其中 $w=x y,|y|&gt;0$。那么 <strong>DFA</strong> $B$ 将拒绝 $w$，因为在看到 $x$ 之后的任何<strong>转移</strong>都将进入并保持在 $q_{\text{reject}}$。</li>
+</ul>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这部分是对 <strong>min(L)</strong> 构造的正确性进行形式化证明。证明分为两个部分，对应于 <strong>min(L)</strong> 定义的两个方面。</p>
+<p><strong>第一部分：证明 $w \in \min (L) \Longrightarrow B \text{ 接受 } w$</strong></p>
+<ul>
+  <li><strong>前提</strong>: 假设 $w \in \min(L)$。</li>
+  <li><strong>目标</strong>: 证明 DFA $B$ 接受 $w$。</li>
+  <li><strong>推导链</strong>:</li>
+</ul>
+<ol>
+  <li> 根据 $\min(L)$ 的定义，如果 $w \in \min(L)$，那么它必须满足两个条件：
+<ul>
+  <li>(a) $w \in L$。</li>
+  <li>(b) $w$ 的任何真前缀 $x$ 都不在 $L$ 中。</li>
+</ul></li>
+  <li> 从条件 (a) $w \in L$ 可知，DFA $A$ 在处理完 $w$ 后，会停在一个<strong>接受状态</strong> $q_{final} \in F_A$。</li>
+  <li> 从条件 (b) 可知，对于 $w$ 的任何真前缀 $x$，DFA $A$ 在处理完 $x$ 后，会停在一个<strong>非接受状态</strong>。</li>
+  <li> 现在来看 DFA $B$ 的行为。当 $B$ 处理 $w$ 时，对于 $w$ 的所有真前缀 $x$，计算路径所经过的状态都是<strong>非接受状态</strong>。根据我们的构造，在这些非接受状态上，$B$ 的<strong>转移</strong>行为与 $A$ 完全相同。</li>
+  <li> 因此，在消耗完 $w$ 的最后一个字符之前，$B$ 的计算路径与 $A$ 的完全一样。</li>
+  <li> 当最后一个字符被消耗时，$B$ 会和 $A$ 一样，到达状态 $q_{final}$。</li>
+  <li> 因为 $F_B = F_A$，所以 $q_{final}$ 也是 $B$ 的一个<strong>接受状态</strong>。</li>
+  <li> 字符串处理结束，B 停在<strong>接受状态</strong> $q_{final}$。</li>
+  <li> <strong>结论</strong>: DFA $B$ 接受 $w$。</li>
+</ol>
+<p><strong>第二部分：证明 $w \notin \min (L) \Longrightarrow B \text{ 拒绝 } w$</strong></p>
+<ul>
+  <li><strong>前提</strong>: 假设 $w \notin \min(L)$。</li>
+  <li><strong>目标</strong>: 证明 DFA $B$ 拒绝 $w$。</li>
+  <li><strong>推导链</strong>:</li>
+  <li>$w \notin \min(L)$ 意味着以下两种情况之一为真：</li>
+  <li><strong>情况 1: $w$ 本身就不在 $L$ 中。</strong></li>
+</ul>
+<ol>
+  <li> 如果 $w \notin L$，那么 DFA $A$ 处理完 $w$ 后会停在一个<strong>非接受状态</strong>。</li>
+  <li> 我们来分析 $B$ 的行为。在处理 $w$ 的过程中，如果路径从未经过任何 $A$ 的<strong>接受状态</strong>，那么 $B$ 的行为和 $A$ 完全一样，最终也会停在同一个<strong>非接受状态</strong>，因此拒绝 $w$。</li>
+  <li> 如果在处理 $w$ 的过程中，路径经过了某个 $A$ 的<strong>接受状态</strong>（即 $w$ 的某个前缀 $x \in L$），那么这就变成了下面的情况 2。</li>
+  <li> 因此，只要我们能证明情况 2 会导致拒绝，情况 1 也就被覆盖了。
+<ul>
+  <li><strong>情况 2: $w \in L$ 但它有一个真前缀 $x$ 也在 $L$ 中。</strong></li>
+</ul></li>
+  <li> 设 $w = xy$，其中 $x$ 是 $w$ 的一个真前缀（所以 $y$ 非空），并且 $x \in L$。</li>
+  <li> 当 DFA $B$ 开始处理 $w$ 时，它首先处理前缀 $x$。</li>
+  <li> 因为 $x \in L$，DFA $A$ 在处理完 $x$ 后会到达一个<strong>接受状态</strong> $q_x \in F_A$。</li>
+  <li> 由于在到达 $q_x$ 之前，$B$ 的行为和 $A$ 一样，所以 $B$ 在处理完 $x$ 后也会到达 $q_x$。</li>
+  <li> 此时，字符串还没结束，B 需要继续处理 $y$ 的第一个字符，设为 $a$。</li>
+  <li> 根据我们的构造，从<strong>接受状态</strong> $q_x$ 出发，对于任何输入 $a$，B 的下一状态是 $\delta_B(q_x, a) = q_{reject}$。</li>
+  <li> 一旦进入 $q_{reject}$ 状态，对于 $y$ 剩下的所有字符，B 都会一直停留在 $q_{reject}$。</li>
+  <li> 字符串 $w$ 处理完毕后，B 最终停在状态 $q_{reject}$。</li>
+  <li> $q_{reject}$ 不是<strong>接受状态</strong>。</li>
+  <li><strong>结论</strong>: DFA $B$ 拒绝 $w$。</li>
+</ol>
+<p><strong>最终结论</strong>:</p>
+<p>两个方向的证明都已完成。我们证明了我们构造的 DFA $B$ 精确地识别了语言 $\min(L)$。因此，$\min(L)$ 是<strong>正规语言</strong>。</p>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这部分通过分情况讨论，严谨地证明了构造的 DFA $B$ 的正确性。证明的核心在于，DFA $B$ 的行为与 DFA $A$ 的差异点（即从接受状态出发的转移）恰好对应了 $\min(L)$ 语言定义中“没有真前缀在L中”这一关键约束。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这部分的存在目的与上一节类似，都是为了展示如何进行形式化证明。它教会学生如何将一个语言的定义（包含逻辑“与”和“非”）分解成可以在自动机计算路径上追踪的条件，并通过分析这些条件下的自动机行为来完成证明。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-4">
+    <h2><span class="section-number">4</span>4 正则表达式</h2>
+    <h3>4.1 问题 8</h3><p id="original-17"><strong style="font-size: 1.3rem;">📜 [原文17]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>问题 8. 用文字描述这些<strong>正则表达式</strong>表达的语言：答案。</p>
+<p>(a) $0^{*} 1^{*}$</p>
+<p>这是具有任意数量的 0，后跟任意数量的 1 的二进制字符串集合。</p>
+<p>$\left\{0^{n} 1^{m} \mid n, m \geq 0\right\}$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>正则表达式</strong>: $0^*1^*$</li>
+  <li><strong>拆解</strong>:</li>
+  <li><strong>$0^*$</strong>: 这里的 <strong>*</strong> 是<strong>克莱尼星号</strong>，表示它前面的元素 <strong>0</strong> 可以出现 0 次或任意多次。所以 $0^*$ 代表的语言是 $\{\epsilon, 0, 00, 000, \dots\}$。</li>
+  <li><strong>$1^*$</strong>: 同理，这代表 <strong>1</strong> 出现 0 次或任意多次。语言是 $\{\epsilon, 1, 11, 111, \dots\}$。</li>
+  <li><strong>连接</strong>: 整个表达式是 $0^*$ <strong>连接</strong> $1^*$。<strong>连接</strong>操作意味着先从 $0^*$ 代表的语言里取一个字符串，然后从 $1^*$ 代表的语言里取一个字符串，把它们拼在一起。</li>
+  <li><strong>语言描述</strong>:</li>
+  <li>取 $w_0 \in 0^*$ 和 $w_1 \in 1^*$，则语言中的字符串形式为 $w_0w_1$。</li>
+  <li>这意味着，字符串必须先由若干个（包括零个）'0' 组成，然后由若干个（包括零个）'1' 组成。</li>
+  <li>一旦出现了一个 '1'，后面就不能再出现 '0'。</li>
+  <li><strong>形式化描述</strong>: $\{0^n 1^m \mid n \ge 0, m \ge 0\}$。$n$ 和 $m$ 分别代表 0 和 1 出现的次数，它们可以独立地取任何非负整数。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>n=2, m=3</strong>: "00111" (属于该语言)</li>
+  <li><strong>n=1, m=0</strong>: "0" (属于该语言)</li>
+  <li><strong>n=0, m=2</strong>: "11" (属于该语言)</li>
+  <li><strong>n=0, m=0</strong>: $\epsilon$ (空字符串，属于该语言)</li>
+  <li><strong>"010"</strong>: 不属于该语言，因为在 '1' 出现之后又出现了 '0'。</li>
+</ul>
+    </div>
+</div><hr><p id="original-18"><strong style="font-size: 1.3rem;">📜 [原文18]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>(b) $(01)^{*}$</p>
+<p>这是具有重复模式 01 的二进制字符串集合。$\left\{(01)^{n} \mid n \geq 0\right\}$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>正则表达式</strong>: $(01)^*$</li>
+  <li><strong>拆解</strong>:</li>
+  <li><strong>(01)</strong>: 括号用于组合。<strong>01</strong> 表示字符 '0' 后面紧跟着字符 '1'。这是一个单元。</li>
+  <li><strong>$^*$</strong>: <strong>克莱尼星号</strong>作用于括号里的整个单元 <strong>01</strong>。</li>
+  <li><strong>语言描述</strong>:</li>
+  <li>这意味着 <strong>01</strong> 这个单元可以重复 0 次或任意多次。</li>
+  <li><strong>形式化描述</strong>: $\{(01)^n \mid n \ge 0\}$。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>n=0</strong>: $\epsilon$ (空字符串)</li>
+  <li><strong>n=1</strong>: "01"</li>
+  <li><strong>n=3</strong>: "010101"</li>
+  <li><strong>"010"</strong>: 不属于该语言，因为它不是 "01" 的整数次重复。</li>
+  <li><strong>"10"</strong>: 不属于该语言。</li>
+</ul>
+    </div>
+</div><hr><p id="original-19"><strong style="font-size: 1.3rem;">📜 [原文19]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>(c) $\left(0^{*} 1^{*}\right)^{*}$</p>
+<p>这是所有二进制字符串的集合。$L=\{0,1\}^{*}$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>正则表达式</strong>: $(0^*1^*)^*$</li>
+  <li><strong>拆解</strong>:</li>
+  <li><strong>$0^*1^*$</strong>: 我们已经知道，这代表“任意个 0 后面跟任意个 1”。例如 $\epsilon, 0, 1, 00, 11, 01, 001$ 都在这个语言里。</li>
+  <li><strong>$()^*$</strong>: 最外层的星号表示，我们可以从括号里的语言 ($0^*1^*$) 中任意挑选字符串，然后把它们<strong>连接</strong>起来任意多次。</li>
+  <li><strong>语言描述</strong>:</li>
+  <li>让我们看看能生成什么。</li>
+  <li>只选一次，可选 "01"。</li>
+  <li>只选一次，可选 "1"。</li>
+  <li>只选一次，可选 "0"。</li>
+  <li>选两次：第一次选 "1"，第二次选 "0"。拼起来就是 "10"。</li>
+  <li>既然我们可以生成 "0" 和 "1"，并且可以任意次地将它们<strong>连接</strong>起来，那么我们就能生成由 "0" 和 "1" 构成的任何字符串。例如，要生成 "101"，我们可以选三次：第一次选 "1"，第二次选 "0"，第三次选 "1"。</li>
+  <li><strong>结论</strong>: 这个<strong>正则表达式</strong>可以生成字母表 $\{0, 1\}$ 上的所有可能字符串。</li>
+  <li><strong>形式化描述</strong>: $\{0,1\}^*$。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>生成 "101"</strong>:</li>
+  <li>取 $(0^*1^*)$ 中的 "1" (n=0, m=1)。</li>
+  <li>再取 $(0^*1^*)$ 中的 "0" (n=1, m=0)。</li>
+  <li>再取 $(0^*1^*)$ 中的 "1" (n=0, m=1)。</li>
+  <li>连接起来："1" + "0" + "1" = "101"。</li>
+  <li><strong>生成 "00110"</strong>:</li>
+  <li>取 $(0^*1^*)$ 中的 "0011" (n=2, m=2)。</li>
+  <li>再取 $(0^*1^*)$ 中的 "0" (n=1, m=0)。</li>
+  <li>连接起来："0011" + "0" = "00110"。</li>
+</ul>
+    </div>
+</div><hr><p id="original-20"><strong style="font-size: 1.3rem;">📜 [原文20]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>(d) $(0 \cup 1)^{*}$</p>
+<p>这也是所有二进制字符串的集合！思考为什么 c 部分的<strong>正则表达式</strong>与 d 部分表示相同的语言。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>正则表达式</strong>: $(0 \cup 1)^*$</li>
+  <li><strong>拆解</strong>:</li>
+  <li><strong>$0 \cup 1$</strong>: <strong>$\cup$</strong> 符号代表<strong>并集</strong>或“或”。所以 <strong>0 $\cup$ 1</strong> 代表的语言是 <strong>{0, 1}</strong>，即可以选 '0' 或者选 '1'。</li>
+  <li><strong>$()^*$</strong>: 星号作用于括号内的语言 <strong>{0, 1}</strong>。</li>
+  <li><strong>语言描述</strong>:</li>
+  <li>这意味着我们可以从集合 <strong>{0, 1}</strong> 中任意挑选字符（'0' 或 '1'），并重复这个过程任意多次（0 次或多次）。</li>
+  <li>这正是“所有由 '0' 和 '1' 构成的字符串”的定义。</li>
+  <li><strong>形式化描述</strong>: $\{0,1\}^*$。</li>
+</ul>
+<p><strong>为什么 $(0^*1^*)^*$ 和 $(0 \cup 1)^*$ 等价？</strong></p>
+<ul>
+  <li>$(0 \cup 1)^*$ 很明显是所有二进制字符串。我们需要证明 $(0^*1^*)^*$ 也能生成所有二进制字符串。</li>
+  <li>证明的关键在于证明 $(0^*1^*)^*$ 可以生成任意单个的 '0' 和任意单个的 '1'。</li>
+  <li>要生成 '0'，我们可以在 $(0^*1^*)^*$ 中只重复一次，那次选择 $0^*1^*$ 中的 "0" (令 n=1, m=0)。</li>
+  <li>要生成 '1'，我们可以在 $(0^*1^*)^*$ 中只重复一次，那次选择 $0^*1^*$ 中的 "1" (令 n=0, m=1)。</li>
+  <li>既然我们可以生成基本的构建块 '0' 和 '1'，并且外层的星号允许我们将这些构建块任意次地<strong>连接</strong>起来，那么我们自然可以构建出任何由 '0' 和 '1' 组成的字符串。</li>
+  <li>因此，$(0^*1^*)^*$ 描述的语言和 $(0 \cup 1)^*$ 描述的语言是相同的。</li>
+</ul>
+    </div>
+</div><hr><p id="original-21"><strong style="font-size: 1.3rem;">📜 [原文21]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>(e) $0^{*}\left(10^{*} 1\right)^{*} 0^{*}$</p>
+<p>这是所有具有偶数个 1 的二进制字符串集合。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>正则表达式</strong>: $0^*(10^*1)^*0^*$</li>
+  <li><strong>拆解</strong>:</li>
+  <li><strong>$0^*$ (开头)</strong>: 字符串可以由任意多个（包括 0 个）'0' 开始。</li>
+  <li><strong>$0^*$ (结尾)</strong>: 字符串可以由任意多个（包括 0 个）'0' 结束。</li>
+  <li><strong>(10\*1)</strong>: 这是核心部分。它描述了什么？</li>
+  <li>一个 '1'。</li>
+  <li>后面跟着任意多个 '0' ($0^*$)。</li>
+  <li>再后面跟着一个 '1'。</li>
+  <li>所以，<strong>10*1</strong> 描述的是<strong>一对 '1'</strong>，它们之间可以被任意多个 '0' 分隔。例如："11", "101", "1001"。</li>
+  <li><strong>$(10^*1)^*$</strong>: 星号作用于 <strong>10*1</strong> 这个单元。这意味着，这种“成对出现的 '1'”的模式可以重复 0 次或任意多次。</li>
+  <li>重复 0 次：语言是 $\epsilon$。</li>
+  <li>重复 1 次：语言是 $10^*1$。</li>
+  <li>重复 2 次：语言是 $(10^*1)(10^*1)$，例如 "11101"。</li>
+  <li><strong>语言描述</strong>:</li>
+  <li>把所有部分组合起来看：$0^* (10^*1)^* 0^*$。</li>
+  <li>字符串的结构是：一堆 '0' (可选) + 一堆“成对的 '1' 模式” (可选) + 一堆 '0' (可选)。</li>
+  <li>关键在于 '1' 的数量。'1' 只出现在 <strong>(10*1)</strong> 这个部分。而这个部分每次都提供<strong>两个</strong> '1'。由于这个部分可以重复任意次 ($n \ge 0$)，所以 '1' 的总数必然是 $2n$，即<strong>偶数</strong>。</li>
+  <li>'0' 可以出现在开头、结尾，以及成对的 '1' 之间，所以 '0' 的数量和位置是任意的。</li>
+  <li><strong>结论</strong>: 这个<strong>正则表达式</strong>描述的是所有包含偶数个 '1' 的二进制字符串。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>字符串 "010100"</strong>: 有两个 '1' (偶数)，应该被接受。</li>
+  <li>匹配 $0^*$ (开头): "0"。</li>
+  <li>匹配 $(10^*1)^*$ 一次: "101"。</li>
+  <li>匹配 $0^*$ (结尾): "00"。</li>
+  <li>组合起来: "0" + "101" + "00" = "010100"。匹配成功。</li>
+  <li><strong>字符串 "111"</strong>: 有三个 '1' (奇数)，应该被拒绝。</li>
+  <li>$0^*$ (开头): $\epsilon$。</li>
+  <li>$(10^*1)^*$ 部分: 可以匹配 "11" (一次 <strong>10<em>1</strong> 中间 0</em> 取 $\epsilon$)。剩下 "1"。</li>
+  <li>剩下的 "1" 无法被结尾的 $0^*$ 匹配。</li>
+  <li>或者，可以匹配 "1" ... 无法匹配 <strong>10*1</strong>。</li>
+  <li>无论如何都无法完全匹配。</li>
+  <li><strong>字符串 "000"</strong>: 有零个 '1' (偶数)，应该被接受。</li>
+  <li>匹配 $0^*$ (开头): "000"。</li>
+  <li>匹配 $(10^*1)^*$ 零次: $\epsilon$。</li>
+  <li>匹配 $0^*$ (结尾): $\epsilon$。</li>
+  <li>组合起来: "000" + $\epsilon$ + $\epsilon$ = "000"。匹配成功。</li>
+</ul>
+    </div>
+</div><h3>4.2 问题 9</h3><p id="original-22"><strong style="font-size: 1.3rem;">📜 [原文22]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>问题 9. 为以下语言构造<strong>正则表达式</strong>。</p>
+<p>(a) 这很简单。我们将 10 与该字母表上所有字符串的语言进行<strong>连接</strong>。</p>
+<p>答案：$10(0 \cup 1)^{*}$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>语言</strong>: 所有以 "10" 开头的字符串。</li>
+  <li><strong>分析</strong>:</li>
+  <li>一个字符串要满足这个条件，必须分为两部分：</li>
+</ul>
+<ol>
+  <li> <strong>开头部分</strong>: 必须是固定的 "10"。</li>
+  <li> <strong>结尾部分</strong>: 在 "10" 之后，可以是任何东西。
+<ul>
+  <li>"任何东西" 在二进制字母表上，就是“任意由 0 和 1 组成的字符串”，其<strong>正则表达式</strong>是 $(0 \cup 1)^*$。</li>
+  <li><strong>构造</strong>:</li>
+  <li>将这两部分<strong>连接</strong>起来即可。</li>
+  <li><strong>正则表达式</strong>: $10 (0 \cup 1)^*$。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>字符串 "1001"</strong>: 匹配。开头是 "10"，后面 "01" 属于 $(0 \cup 1)^*$。</li>
+  <li><strong>字符串 "10"</strong>: 匹配。开头是 "10"，后面是空字符串 $\epsilon$，它属于 $(0 \cup 1)^*$。</li>
+  <li><strong>字符串 "010"</strong>: 不匹配，因为它不是以 "10" 开头。</li>
+</ul>
+    </div>
+</div><hr><p id="original-23"><strong style="font-size: 1.3rem;">📜 [原文23]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>(b) 注意两个 0 的位置可以在被接受字符串中的任何位置。我们如何在<strong>正则表达式</strong>中表达这一点？想法是将两个 0 固定在一个位置，并在其周围填充 1，如下所示：$1^{*} 01^{*} 01^{*}$。这确保了在只有两个 0 的同时，任何位置都可以有任意数量的 1。</p>
+<p>答案：1<em>01</em>01*</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>语言</strong>: 恰好包含两个 '0' 的字符串。</li>
+  <li><strong>分析</strong>:</li>
+  <li>整个字符串中必须有两个 '0'，不多也不少。</li>
+  <li>'1' 可以出现任意多次，并且可以出现在任何位置：在第一个 '0' 之前，在两个 '0' 之间，以及在第二个 '0' 之后。</li>
+  <li><strong>构造</strong>:</li>
+  <li>我们可以把结构想象成：<strong>(一些1) 0 (一些1) 0 (一些1)</strong>。</li>
+  <li>"一些1" 或 "任意多个1" 的<strong>正则表达式</strong>是 $1^*$。</li>
+  <li>将这个模式替换到结构中：$1^* 0 1^* 0 1^*$。</li>
+  <li><strong>验证</strong>:</li>
+  <li><strong>$1^*$ (开头)</strong>: 允许在第一个 '0' 之前有任意多个 '1'。</li>
+  <li><strong>0</strong>: 这是第一个必须出现的 '0'。</li>
+  <li><strong>$1^*$ (中间)</strong>: 允许在两个 '0' 之间有任意多个 '1'。</li>
+  <li><strong>0</strong>: 这是第二个必须出现的 '0'。</li>
+  <li><strong>$1^*$ (结尾)</strong>: 允许在第二个 '0' 之后有任意多个 '1'。</li>
+  <li>这个结构保证了 '0' 恰好出现两次，而 '1' 可以自由地填充在这些 '0' 的周围。</li>
+</ul>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>字符串 "10110"</strong>: 匹配。</li>
+  <li>$1^*$ (开头) 匹配 "1"。</li>
+  <li>第一个 '0' 匹配 '0'。</li>
+  <li>$1^*$ (中间) 匹配 "11"。</li>
+  <li>第二个 '0' 匹配 '0'。</li>
+  <li>$1^*$ (结尾) 匹配 $\epsilon$。</li>
+  <li><strong>字符串 "00"</strong>: 匹配。</li>
+  <li>$1^*$ (开头) 匹配 $\epsilon$。</li>
+  <li>第一个 '0' 匹配 '0'。</li>
+  <li>$1^*$ (中间) 匹配 $\epsilon$。</li>
+  <li>第二个 '0' 匹配 '0'。</li>
+  <li>$1^*$ (结尾) 匹配 $\epsilon$。</li>
+  <li><strong>字符串 "0111"</strong>: 不匹配，因为它只有一个 '0'。</li>
+  <li><strong>字符串 "000"</strong>: 不匹配，因为它有三个 '0'。</li>
+</ul>
+    </div>
+</div><hr><p id="original-24"><strong style="font-size: 1.3rem;">📜 [原文24]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>(c) 奇数个 0 意味着有 $2n+1$ 个 0，其中 $n \geq 0$。所以我们可以在表达式中固定一个 0，并对两个 0 应用<strong>克莱尼星号</strong>运算来覆盖剩余的 $2n$。但仅仅说 $1^{*} 01^{*}(00 \cup 1)^{*}$ 是不够的。这迫使除第一个 0 之外的所有 0 都成对出现（例如 1010011），并且无法识别像 1010101 这样的字符串。相反，记住在前一个例子中我们已经展示了如何识别只有两个零（在任何位置）的字符串。我们可以简单地对其应用<strong>克莱尼星号</strong>来解释 $2n$ 个 0！然后在前面添加一个 $1^{*} 0$ 来解释额外的奇数 0。练习：将奇数 0 添加到前面还是后面有关系吗？为什么？</p>
+<p>答案：$1^{*} 0\left(1^{*} 01^{*} 01^{*}\right)^{*}$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>语言</strong>: 包含奇数个 '0' 的字符串。</li>
+  <li><strong>分析</strong>:</li>
+  <li>奇数个 '0' 意味着至少有一个 '0'，然后可以有任意多“成对的 '0'”。即 1 个，3 个，5 个...</li>
+  <li>我们可以把问题分解：<strong>一个'0'</strong> + <strong>偶数个'0'</strong>。</li>
+  <li>'1' 可以在任何地方出现。</li>
+  <li><strong>构造</strong>:</li>
+</ul>
+<ol>
+  <li> <strong>偶数个 '0' 的模块</strong>:
+<ul>
+  <li>我们如何表达“偶数个 '0'，中间可以任意插入 '1'”？</li>
+  <li>一个想法是，'0' 总是成对出现的。从 (b) 小题，我们知道 $1^*01^*01^*$ 代表恰好两个 '0'，周围是任意 '1'。</li>
+  <li>我们可以把这个 <strong>(1^<em>01^</em>01^*)</strong> 作为一个“产生一对 '0'”的单元。</li>
+  <li>对其应用<strong>克莱尼星号</strong> <strong>(1^<em>01^</em>01^<em>)^</em></strong>，就代表了这个单元可以重复 0 次，1 次，2 次... 每次重复都增加两个 '0'。所以这部分就代表了“偶数个'0'，并且'1'可以任意分布”。</li>
+</ul></li>
+  <li> <strong>奇数个 '0'</strong>:
+<ul>
+  <li>我们只需要在上述“偶数个'0'”的模式基础上，再增加一个 '0' 即可。</li>
+  <li>这个额外的 '0' 可以放在哪里？它可以放在最前面。</li>
+  <li>我们需要一个 '0'，它前面可以有任意个 '1'。这部分是 $1^*0$。</li>
+  <li>将这两部分<strong>连接</strong>起来：$1^*0$ (产生第一个'0') <strong>连接</strong> $(1^*01^*01^*)^*$ (产生后续成对的'0')。</li>
+  <li><strong>最终表达式</strong>: $1^*0(1^*01^*01^*)^*$</li>
+  <li><strong>解答练习</strong>: 将奇数 '0' 添加到前面还是后面有关系吗？</li>
+  <li>表达式是 $1^*0 \text{ (偶数模块) } 1^*$ (因为最后的 '0' 后面也可能有 '1')。</li>
+  <li>如果我们把单个 '0' 放到后面，比如 <strong>(偶数模块) 1<em>0 1</em></strong>，是否等价？</li>
+  <li><strong>偶数模块</strong> 是 <strong>(1^<em>01^</em>01^<em>)^</em></strong>。</li>
+  <li>前面：$1^*0(1^*01^*01^*)^*$。让我们考虑它能否生成 "01010"。</li>
+  <li>$1^*0$ 匹配第一个 "0"。</li>
+  <li>$(1^*01^*01^*)$ 匹配 "1010"。其中，第一个 $1^*$ 匹配 "1"，第一个 $0$ 匹配 "0"，第二个 $1^*$ 匹配 "1"，第二个 $0$ 匹配 "0"，第三个 $1^*$ 匹配 $\epsilon$。</li>
+  <li>所以可以生成。</li>
+  <li>后面：$(1^*01^*01^*)^* 1^*01^*$。让我们考虑能否生成 "01010"。</li>
+  <li>$(1^*01^*01^*)$ 匹配 "010"。这是不可能的，因为它需要两个 '0'。</li>
+  <li>也许 $(1^*01^*01^*)$ 匹配 "01"？不可能。</li>
+  <li>也许 $(1^*01^*01^*)$ 重复 0 次，即 $\epsilon$。那么表达式剩下 $1^*01^*$。这只能匹配含有一个 '0' 的字符串。</li>
+  <li>这说明简单的把 $1^*0$ 放在后面是不行的。</li>
+  <li><strong>正确的思考方式</strong>: 整个字符串由任意多个 '1' 和奇数个 '0' 组成。</li>
+  <li>$1^*0(1^*01^*01^*)^*$ 的结构是 <strong>(任意1) (第一个0) (任意1和偶数个0)</strong>。</li>
+  <li>等价的结构也可以是 <strong>(任意1和偶数个0) (最后一个0) (任意1)</strong>。</li>
+  <li>所以 <strong>(1^<em>01^</em>01^<em>)^</em> 1^<em>0 1^</em></strong> 也是可以的。</li>
+  <li>答案给出的 <strong>1<em>0(1</em>01<em>01</em>)<em></strong> 是不完整的，因为它没有考虑最后一个'0'后面可能还有'1'。一个更完整的答案应该是 $1^*0(1^*01^*01^*)^*1^*$，或者 $1^*(1^*01^*01^*)^*01^*$。不过通常为了简化，末尾的 $1^*$ 如果可以被并入前面的星号表达式，可能会被省略。在 <strong>(1</em>01<em>01</em>)*</strong> 中，最后一个 $1^*$ 已经包含了处理结尾的 $1$ 的能力。所以答案 $1^{*} 0\left(1^{*} 01^{*} 01^{*}\right)^{*}$ 是正确的。</li>
+</ul></li>
+</ol>
+    </div>
+</div><hr><p id="original-25"><strong style="font-size: 1.3rem;">📜 [原文25]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>(d) 这是一个具有挑战性的题目。如果你无法独立解决，不要担心！这里的想法是观察语言并看看可以利用什么模式。</p>
+<p>令 $L$ 为所讨论的语言。$\{a, b, c\}$ 上所有字符串的语言的<strong>正则表达式</strong>是 $(a \cup b \cup c)^{*}$。我观察到，对于 $L$ 中出现的任何 $b$，我可以通过在 $b$ 之前添加 $c$、在 $b$ 之后添加 $a$、或者在 $b$ 之前和/或之后添加另一个 $b$ 来防止 $abc$ 的形成。这会导致像 $\ldots abc \ldots$ 这样的子串变成 $\ldots acbc \ldots, \ldots abac \ldots, \ldots abbc \ldots$ 或 $\ldots abbbc \ldots$。我可以通过 $(a \cup cb \cup ba \cup bb \cup bbb \cup c)^{*}$ 来做到这一点。注意 $(bb \cup bbb)^{*}$ 与 $\{b^{n} \mid n&gt;=2\}$ 相同。这解释了合法的子串，如 $a b^{2n+1} c$，其中 $n&gt;=1$。现在如果我们回头检查，我们无法构造任何带有子串 $a b c$ 的字符串。但我们还没有完成。通过强迫 $b$ 后面跟着 $b$ 或 $a$，或者前面跟着 $b$ 或 $c$，我们遗漏了可以以 $b$ 开头或结尾的好字符串，无论它前面是什么。例如，$bc$ 或 $ab$。为了解决这个问题，我们在开头和结尾添加 $(\epsilon \cup b)$ 以允许在那里添加 $b$。</p>
+<p>答案：$(\epsilon \cup b)(a \cup cb \cup ba \cup bb \cup bbb \cup c)^{*}(\epsilon \cup b)$</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>语言</strong>: 不包含子串 "abc" 的所有由 {a, b, c} 组成的字符串。</li>
+  <li><strong>分析 (这是一个难题，通常用补集思想更容易)</strong>:</li>
+  <li>直接构造“不包含”的<strong>正则表达式</strong>通常非常困难。</li>
+  <li>一个更系统的方法是：</li>
+</ul>
+<ol>
+  <li> 构造识别“包含”子串 "abc" 的语言的<strong>正则表达式</strong>。这个很简单：$(a \cup b \cup c)^* abc (a \cup b \cup c)^*$。</li>
+  <li> 将这个<strong>正则表达式</strong>转换为 NFA，再转换为 DFA。</li>
+  <li> 将这个 DFA 的<strong>接受状态</strong>和<strong>非接受状态</strong>对调，得到一个识别<strong>补集</strong>语言（即“不包含 a-b-c”）的 DFA。</li>
+  <li> 再将这个新的 DFA 转换回<strong>正则表达式</strong>。
+<ul>
+  <li>这个过程非常繁琐。解答中提供的是一种直接构造的思路，虽然巧妙但非常难以想到。</li>
+</ul></li>
+</ol>
+<ul>
+  <li><strong>解答中的直接构造思路分析</strong>:</li>
+  <li><strong>核心思想</strong>: 不要生成 "abc"。这意味着，每当出现一个 'a' 时，如果后面要跟 'b'，那么再后面就不能跟 'c'。</li>
+  <li>或者反过来看，每当出现一个 'b'，我们需要检查它的“邻居”。</li>
+  <li>如果 'b' 的前面是 'a'，那它的后面就不能是 'c'。</li>
+  <li>如果 'b' 的后面是 'c'，那它的前面就不能是 'a'。</li>
+  <li>解答的思路是，把所有“安全”的构建块列出来，然后用星号把它们串起来。</li>
+  <li><strong>安全的块</strong>:</li>
+  <li><strong>a</strong>: 安全。</li>
+  <li><strong>c</strong>: 安全。</li>
+  <li><strong>b</strong>: 不一定安全，取决于上下文。</li>
+  <li><strong>如何让 <strong>b</strong> 变得安全？</strong></li>
+  <li>如果 <strong>b</strong> 前面是 <strong>c</strong> -&gt; <strong>cb</strong> 是安全的，因为 <strong>cb</strong> 后面跟任何东西都不会构成 "abc"。</li>
+  <li>如果 <strong>b</strong> 后面是 <strong>a</strong> -&gt; <strong>ba</strong> 是安全的。</li>
+  <li>如果 <strong>b</strong> 后面是 <strong>b</strong> -&gt; <strong>bb</strong> 是安全的。</li>
+  <li>...</li>
+  <li>解答将所有可能的安全组合起来：<strong>a</strong>, <strong>c</strong>, <strong>cb</strong>, <strong>ba</strong>, <strong>bb</strong>, <strong>bbb</strong> 等。</li>
+  <li><strong>a</strong></li>
+  <li><strong>c</strong></li>
+  <li><strong>ba</strong> ('b' 后面跟了个 'a')</li>
+  <li><strong>cb</strong> ('b' 前面跟了个 'c')</li>
+  <li><strong>bb</strong> (<strong>b</strong> 后面跟了个 <strong>b</strong>)</li>
+  <li><strong>bbb</strong></li>
+  <li>把这些安全的“原子”组合起来： <strong>(a \cup c \cup ba \cup cb \cup bb \cup bbb ...)^*</strong></li>
+  <li><strong>处理b的边界情况</strong>:</li>
+  <li>上面的构造忽略了 <strong>b</strong> 可以出现在字符串的开头或结尾。例如，字符串 "b" 是合法的，"bc" 是合法的，"ab" 是合法的。</li>
+  <li>在 <strong>(a \cup cb \cup ...)^*</strong> 的构造中，<strong>b</strong> 总是被 <strong>a</strong> 或 <strong>c</strong> 或其他 <strong>b</strong> "包裹"着。</li>
+  <li>为了允许 <strong>b</strong> 单独出现在开头或结尾，解答在前后加上了 <strong>(\epsilon \cup b)</strong>。</li>
+  <li><strong>(\epsilon \cup b)</strong> 表示：开头可以有一个 <strong>b</strong>，也可以没有。结尾也可以有一个 <strong>b</strong>，也可以没有。</li>
+  <li><strong>最终表达式</strong>: $(\epsilon \cup b)(a \cup cb \cup ba \cup bb \cup bbb \cup c)^{*}(\epsilon \cup b)$。</li>
+  <li>这个表达式非常复杂，而且 <strong>(bb \cup bbb \cup c)</strong> 似乎有误，应该是 <strong>(bb \cup bbb)</strong> 和 <strong>c</strong> 分开。正确的应该是 <strong>(a \cup c \cup ba \cup cb \cup b^+)^*</strong>，其中 $b^+$ 表示一个或多个b。解答中 <strong>bb \cup bbb</strong> 只是 $b^n, n\ge2$ 的一个不完整尝试。</li>
+  <li><strong>这是一个非常tricky的题目，其解答的思路也较为晦涩和可能存在不严谨之处，理解其尝试规避"abc"的核心思想即可。</strong></li>
+</ul>
+    </div>
+</div><h3>4.3 问题 10</h3><p id="original-26"><strong style="font-size: 1.3rem;">📜 [原文26]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>问题 10. 将以下 <strong>NFA</strong> 转换为 <strong>GNFA</strong>。然后通过<strong>消除状态</strong>将 <strong>GNFA</strong> 转换为<strong>正则表达式</strong>（我们注意到以不同顺序<strong>消除状态</strong>会导致不同但等价的<strong>正则表达式</strong>）。</p>
+<p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-07.jpg?height=522&width=623&top_left_y=1978&top_left_x=721" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题要求我们使用“通过 GNFA 消除状态”的方法，将一个 NFA 转换为等价的<strong>正则表达式</strong>。这是一个标准的算法。</p>
+<p><strong>算法步骤</strong>:</p>
+<ol>
+  <li> <strong>转换为 GNFA 格式</strong>:
+<ul>
+  <li>a. 添加一个<strong>新的起始状态</strong> $s_{start}$，并从它画一条 $\epsilon$-<strong>转移</strong>到原 NFA 的<strong>起始状态</strong>。</li>
+  <li>b. 添加一个<strong>新的唯一接受状态</strong> $s_{accept}$，并从所有原 NFA 的<strong>接受状态</strong>画 $\epsilon$-<strong>转移</strong>到 $s_{accept}$。</li>
+  <li>c. 如果两个状态之间有多条边，用<strong>并集</strong> <strong>$\cup$</strong> 合并它们。</li>
+  <li>d. 如果两个状态之间没有边，可以认为有一条用 $\emptyset$ 标记的边。</li>
+</ul></li>
+  <li> <strong>依次消除状态</strong>:
+<ul>
+  <li>选择一个非 $s_{start}$ 和 $s_{accept}$ 的中间状态 $q_{rip}$ 进行消除。</li>
+  <li>对于每一对状态 $(q_i, q_j)$（$q_i$ 可以是 $s_{start}$，$q_j$ 可以是 $s_{accept}$），我们需要更新从 $q_i$ 到 $q_j$ 的路径，以包含原来“经过” $q_{rip}$ 的路径。</li>
+  <li>更新公式：$R_{new}(i, j) = R_{old}(i, j) \cup R(i, rip) (R(rip, rip))^* R(rip, j)$。</li>
+  <li>$R(i, j)$ 是从 $q_i$ 到 $q_j$ 的<strong>正则表达式</strong>标签。</li>
+  <li>这个公式的含义是：从 $i$ 到 $j$ 的新路径 = 原来从 $i$ 直达 $j$ 的路径 <strong>或</strong> (从 $i$ 到 $rip$ 的路径，接着在 $rip$ 自身循环任意次，再接着从 $rip$ 到 $j$ 的路径)。</li>
+</ul></li>
+  <li> <strong>重复步骤 2</strong>，直到只剩下 $s_{start}$ 和 $s_{accept}$。此时，从 $s_{start}$ 到 $s_{accept}$ 的边上的<strong>正则表达式</strong>就是最终答案。</li>
+</ol>
+    </div>
+</div><hr><p id="original-27"><strong style="font-size: 1.3rem;">📜 [原文27]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>步骤 1：构造 GNFA</h3><p>回想一下，<strong>GNFA</strong> 只是一个其<strong>转移</strong>箭头可以用任何<strong>正则表达式</strong>作为标签（而不仅仅是 $a \in \Sigma$ 或 $\epsilon$）的 <strong>NFA</strong>。给定一个任意的 <strong>DFA</strong> 或 <strong>NFA</strong>，按如下方式将其转换为 <strong>GNFA</strong>：</p><p>- 新<strong>起始状态</strong> $s$，具有到原始状态的 $\epsilon$-<strong>转移</strong></p><p>- 新<strong>接受状态</strong> $f$，这将是唯一的<strong>接受状态</strong>。添加从旧<strong>接受状态</strong>到 $f$ 的 $\epsilon$-<strong>转移</strong></p><p>- 用标有符号<strong>并集</strong>的<strong>转移</strong>替换标有多个符号的<strong>转移</strong></p><p>- 所有缺失的<strong>转移</strong>都标为 $\emptyset$。为了清晰起见，我们在此省略。</p><p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-08.jpg?height=531&width=972&top_left_y=598&top_left_x=550" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>原始 NFA</strong>:</li>
+  <li>起始状态: $q_0$</li>
+  <li>接受状态: $\{q_0\}$</li>
+  <li>状态: $\{q_0, q_1, q_2\}$</li>
+  <li><strong>转换为 GNFA 格式</strong>:</li>
+</ul>
+<ol>
+  <li> <strong>新起始状态 $s$</strong>: 添加 $s$，并画一条 $\epsilon$-<strong>转移</strong>到原<strong>起始状态</strong> $q_0$。</li>
+  <li> <strong>新接受状态 $f$</strong>: 添加 $f$。原<strong>接受状态</strong>是 $q_0$，所以从 $q_0$ 画一条 $\epsilon$-<strong>转移</strong>到 $f$。</li>
+  <li> <strong>合并转移</strong>:
+<ul>
+  <li>从 $q_2$ 到 $q_1$ 有两条边，分别标 '0' 和 '1'。合并为一条边，标签为 $0 \cup 1$。</li>
+</ul></li>
+  <li> <strong>$\epsilon$ 替换为正则表达式</strong>: $\epsilon$ 是一个合法的<strong>正则表达式</strong>。</li>
+  <li> <strong>缺失的边</strong>: 比如从 $q_1$ 到 $q_1$ 没有边，可以认为标签是 $\emptyset$。
+<ul>
+  <li>得到的 GNFA 如图所示，它有 5 个状态 {$s, q_0, q_1, q_2, f$}，并准备好进行状态消除。</li>
+</ul></li>
+</ol>
+    </div>
+</div><hr><p id="original-28"><strong style="font-size: 1.3rem;">📜 [原文28]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>步骤 2：移除 $q_{1}$</h3><p>当我们从 <strong>GNFA</strong> 中移除一个<strong>状态</strong>时，我们必须考虑进入和离开该<strong>状态</strong>的所有<strong>转移</strong>。因此，考虑所有边对 ( $q \rightarrow q_{1}, q_{1} \rightarrow q^{\prime}$ )，其中 $q, q^{\prime} \neq q_{1}$</p><p>- $q_{2} \rightarrow q_{1}, q_{1} \rightarrow q_{0}:(0 \cup 1) 1 \equiv 01 \cup 11$</p><p>- $q_{2} \rightarrow q_{1}, q_{1} \rightarrow q_{2}:(0 \cup 1) 0 \equiv 00 \cup 10$</p><p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-08.jpg?height=323&width=1013&top_left_y=1480&top_left_x=529" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>选择要消除的状态</strong>: $q_1$。</li>
+  <li><strong>识别相关的路径</strong>: 我们需要找到所有“经过” $q_1$ 的路径，即形如 $q_i \to q_1 \to q_j$ 的路径。</li>
+  <li>$q_1$ 的入边: 从 $q_2$ 来，标签是 $0 \cup 1$。</li>
+  <li>$q_1$ 的出边: 到 $q_0$ (标签 1)，到 $q_2$ (标签 0)。</li>
+  <li>$q_1$ 没有自循环，所以 $R(1,1) = \emptyset$，那么 $(R(1,1))^* = \epsilon$。</li>
+  <li><strong>应用公式</strong> $R_{new}(i, j) = R_{old}(i, j) \cup R(i, 1) (R(1, 1))^* R(1, j)$</li>
+  <li><strong>路径 $q_2 \to q_1 \to q_0$</strong>:</li>
+  <li>$i=2, j=0, rip=1$。</li>
+  <li>$R_{new}(2,0) = R_{old}(2,0) \cup R(2,1) (\epsilon) R(1,0)$</li>
+  <li>$R_{old}(2,0) = \emptyset$ (原来 $q_2$ 到 $q_0$ 没有直达边)。</li>
+  <li>$R(2,1) = 0 \cup 1$。</li>
+  <li>$R(1,0) = 1$。</li>
+  <li>所以 $R_{new}(2,0) = \emptyset \cup (0 \cup 1) \cdot \epsilon \cdot 1 = (0 \cup 1)1 = 01 \cup 11$。</li>
+  <li>于是在新图中，我们从 $q_2$ 到 $q_0$ 画一条标签为 $01 \cup 11$ 的边。</li>
+  <li><strong>路径 $q_2 \to q_1 \to q_2$</strong>:</li>
+  <li>$i=2, j=2, rip=1$。</li>
+  <li>$R_{new}(2,2) = R_{old}(2,2) \cup R(2,1) (\epsilon) R(1,2)$</li>
+  <li>$R_{old}(2,2) = \emptyset$ (原来 $q_2$ 没有自循环)。</li>
+  <li>$R(2,1) = 0 \cup 1$。</li>
+  <li>$R(1,2) = 0$。</li>
+  <li>所以 $R_{new}(2,2) = \emptyset \cup (0 \cup 1) \cdot \epsilon \cdot 0 = (0 \cup 1)0 = 00 \cup 10$。</li>
+  <li>于是在新图中，$q_2$ 获得了一个自循环，标签为 $00 \cup 10$。</li>
+  <li>消除 $q_1$ 后，将这些新计算出的边画入图中，得到一个 4 状态的 GNFA。</li>
+</ul>
+    </div>
+</div><hr><p id="original-29"><strong style="font-size: 1.3rem;">📜 [原文29]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>步骤 3：移除 $q_{2}$</h3><p>- $s \rightarrow q_{0}, q_{0} \rightarrow f:\left(1 \cup 0(00 \cup 10)^{*}(01 \cup 11)\right)^{*} 0(00 \cup 10)^{*}$</p><p>- $q_{0} \rightarrow q_{2}, q_{2} \rightarrow q_{0}: 1 \cup 0(00 \cup 10)^{*}(01 \cup 11)$</p><p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-08.jpg?height=259&width=1175&top_left_y=2069&top_left_x=447" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>选择要消除的状态</strong>: $q_2$。</li>
+  <li><strong>识别相关的路径</strong>:</li>
+  <li>$q_2$ 的入边: 从 $q_0$ 来，标签是 $0$。</li>
+  <li>$q_2$ 的出边: 到 $q_0$ (标签 $01 \cup 11$)，到 $f$ (标签 $\epsilon$)。</li>
+  <li>$q_2$ 有自循环: 标签是 $00 \cup 10$。所以 $R(2,2) = 00 \cup 10$。</li>
+  <li><strong>应用公式更新路径</strong>:</li>
+  <li><strong>路径 $q_0 \to q_2 \to f$</strong>:</li>
+  <li>$i=0, j=f, rip=2$。</li>
+  <li>$R_{new}(0,f) = R_{old}(0,f) \cup R(0,2) (R(2,2))^* R(2,f)$</li>
+  <li>$R_{old}(0,f) = \epsilon$ (原来 $q_0$ 到 $f$ 的直达边)。</li>
+  <li>$R(0,2) = 0$。</li>
+  <li>$(R(2,2))^* = (00 \cup 10)^*$。</li>
+  <li>$R(2,f) = \epsilon$。</li>
+  <li>所以 $R_{new}(0,f) = \epsilon \cup 0(00 \cup 10)^*\epsilon = \epsilon \cup 0(00 \cup 10)^*$。</li>
+  <li><strong>注意</strong>: 解答中似乎将这一步与下一步合并了，或者顺序不同。让我们严格按照图示的更新结果来反推。图中从 $q_0$ 到 $f$ 的新边是 $0(00 \cup 10)^*$。这说明它只计算了经过 $q_2$ 的那部分 $R(0,2)(R(2,2))^*R(2,f)$，并将其作为一条<strong>新的</strong>平行边添加，而不是与旧的 $\epsilon$ 边合并。这在算法执行中也是可以的，最后再合并平行边。</li>
+  <li><strong>路径 $q_0 \to q_2 \to q_0$</strong>:</li>
+  <li>$i=0, j=0, rip=2$。</li>
+  <li>$R_{new}(0,0) = R_{old}(0,0) \cup R(0,2) (R(2,2))^* R(2,0)$</li>
+  <li>$R_{old}(0,0) = 1$ (原来 $q_0$ 的自循环)。</li>
+  <li>$R(0,2) = 0$。</li>
+  <li>$(R(2,2))^* = (00 \cup 10)^*$。</li>
+  <li>$R(2,0) = 01 \cup 11$。</li>
+  <li>所以 $R_{new}(0,0) = 1 \cup 0(00 \cup 10)^*(01 \cup 11)$。</li>
+  <li>这更新了 $q_0$ 的自循环的标签。</li>
+  <li>消除 $q_2$ 后，剩下 $s, q_0, f$ 三个状态。</li>
+  <li>$s \xrightarrow{\epsilon} q_0$。</li>
+  <li>$q_0$ 有一个自循环，标签为 $1 \cup 0(00 \cup 10)^*(01 \cup 11)$。</li>
+  <li>从 $q_0$ 到 $f$ 有两条边：一条是原来的 $\epsilon$，一条是新加的 $0(00 \cup 10)^*$。我们可以将它们合并为 $\epsilon \cup 0(00 \cup 10)^*$。</li>
+  <li><strong>再次注意</strong>：解答的图中，从 $q_0$到 $f$ 只画了一条边，标签是 $0(00 \cup 10)^*$。它似乎在这里犯了一个错误，<strong>遗漏了</strong>原来从 $q_0$ 到 $f$ 的 $\epsilon$ 边。这个遗漏会影响最终结果。让我们暂时跟着它的错误计算下去。</li>
+</ul>
+    </div>
+</div><hr><p id="original-30"><strong style="font-size: 1.3rem;">📜 [原文30]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+
+</div><h3>步骤 4：移除 $q_{0}$</h3><p>- $s \rightarrow q_{0}, q_{0} \rightarrow f:\left(1 \cup 0(00 \cup 10)^{*}(01 \cup 11)\right)^{*} 0(00 \cup 10)^{*}$</p><p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-08.jpg?height=145&width=1328&top_left_y=2526&top_left_x=370" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p><p>从开始到结束<strong>状态</strong>的<strong>正则表达式</strong>是 $\left(1 \cup 0(00 \cup 10)^{*}(01 \cup 11)\right)^{*} 0(00 \cup 10)^{*}$</p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>选择要消除的状态</strong>: $q_0$。</li>
+  <li><strong>识别相关的路径</strong>: 只有一条路径需要计算，就是 $s \to q_0 \to f$。</li>
+  <li><strong>应用公式</strong>:</li>
+  <li>$i=s, j=f, rip=0$。</li>
+  <li>$R_{new}(s,f) = R_{old}(s,f) \cup R(s,0) (R(0,0))^* R(0,f)$。</li>
+  <li>$R_{old}(s,f) = \emptyset$ (s 和 f 原来不直连)。</li>
+  <li>$R(s,0) = \epsilon$。</li>
+  <li>$(R(0,0))^* = (1 \cup 0(00 \cup 10)^*(01 \cup 11))^*$。</li>
+  <li>$R(0,f) = 0(00 \cup 10)^*$ (这里我们使用了解答上一步中那条可能错误的边)。</li>
+  <li>所以 $R_{new}(s,f) = \epsilon (1 \cup 0(00 \cup 10)^*(01 \cup 11))^* 0(00 \cup 10)^*$。</li>
+  <li><strong>最终表达式</strong>: $(1 \cup 0(00 \cup 10)^*(01 \cup 11))^* 0(00 \cup 10)^*$。</li>
+</ul>
+<p><strong>如果我们修正上一步的错误</strong>:</p>
+<ul>
+  <li>如果上一步从 $q_0$ 到 $f$ 的边是 $\epsilon \cup 0(00 \cup 10)^*$。</li>
+  <li>那么 $R(0,f) = \epsilon \cup 0(00 \cup 10)^*$。</li>
+  <li>最终表达式会变成: $\epsilon (1 \cup 0(00 \cup 10)^*(01 \cup 11))^* (\epsilon \cup 0(00 \cup 10)^*)$。</li>
+  <li>这个表达式更复杂，但它和解答给出的表达式描述的是<strong>不同</strong>的语言。解答的版本不接受 $\epsilon$，而修正后的版本接受 $\epsilon$。</li>
+  <li>原始 NFA 的<strong>起始状态</strong> $q_0$ 是<strong>接受状态</strong>，所以它接受 $\epsilon$。因此，正确的<strong>正则表达式</strong>必须能生成 $\epsilon$。</li>
+  <li><strong>结论</strong>: 解答在第 3 步中犯了一个错误，导致最终的<strong>正则表达式</strong>是错误的，它丢失了对 $\epsilon$ 和其他一些字符串的识别能力。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>消除顺序</strong>: 以不同的顺序消除状态，会得到不同形式但等价的<strong>正则表达式</strong>。但无论何种顺序，最终语言应该相同。</li>
+  <li><strong>公式应用</strong>: 必须精确应用公式，特别是 $(R(rip,rip))^*$ 这一项，很容易忘记。</li>
+  <li><strong>合并边</strong>: 在消除一步后，要记得将所有新产生的路径考虑到下一步的计算中。平行边要用 $\cup$ 合并。解答中的错误正是源于对平行边处理不当。</li>
+  <li><strong>$\epsilon$ 和 $\emptyset$</strong>: 在<strong>正则表达式</strong>代数中，$\epsilon$ 是单位元（$R \epsilon = \epsilon R = R$），$\emptyset$ 是零元（$R \emptyset = \emptyset R = \emptyset$, $R \cup \emptyset = R$）。要小心区分。</li>
+</ol>
+    </div>
+</div><h3>4.4 问题 11</h3><p id="original-31"><strong style="font-size: 1.3rem;">📜 [原文31]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>问题 11. 将 $(01)^{*}\left(10^{*} \cup 0\right)$ 转换为 <strong>NFA</strong>。我们不会尝试优化 <strong>NFA</strong> 或利用我们对语言的直觉，而是直接使用我们在课堂上看到的关于<strong>封闭性</strong>的构造，以便练习这些构造。运算顺序是 $()$，${ }^{*}$，$\circ$，$\cup$。因此，让我们适当地分解<strong>正则表达式</strong>。</p>
+<ol>
+  <li>构建识别 (01)* 的 <strong>NFA</strong></li>
+</ol>
+<p>(a) 首先，构建识别 01 的 <strong>NFA</strong></p>
+<p>(b) 应用<strong>克莱尼星号</strong>得到识别 (01)* 的 <strong>NFA</strong></p>
+<ol>
+  <li>构建识别 $\left(10^{*} \cup 0\right)$ 的 <strong>NFA</strong></li>
+</ol>
+<p>(a) 构建识别 $\left(10^{*}\right)$ 的 <strong>NFA</strong></p>
+<p>(b) 构建识别 0 的 <strong>NFA</strong></p>
+<p>(c) 应用<strong>并集</strong>运算得到识别 $\left(10^{*} \cup 0\right)$ 的 <strong>NFA</strong></p>
+<ol>
+  <li>应用<strong>连接</strong>得到识别 $(01)^{*}\left(10^{*} \cup 0\right)$ 的 <strong>NFA</strong></li>
+</ol>
+</div><h3>步骤 1a：构造识别 01 的 NFA</h3><p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-10.jpg?height=136&width=698&top_left_y=324&top_left_x=685" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p><p>步骤 1b：应用<strong>克莱尼星号</strong>得到识别 (01)* 的 <strong>NFA</strong></p><p>为了应用<strong>克莱尼星号</strong>运算，我们添加一个新<strong>起始状态</strong>，它通过 $\epsilon$-<strong>转移</strong>连接到旧的<strong>起始状态</strong>，并且<strong>接受状态</strong>通过 $\epsilon$-<strong>转移</strong>连接回<strong>起始状态</strong> $s_{0}$。新的<strong>起始状态</strong>也是一个<strong>接受状态</strong>。</p><p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-10.jpg?height=228&width=1093&top_left_y=657&top_left_x=488" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p><h3>步骤 2a：构建识别 (10*) 的 NFA</h3><p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-10.jpg?height=246&width=506&top_left_y=993&top_left_x=781" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p><h3>步骤 2b：构建识别 0 的 NFA</h3><p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-10.jpg?height=135&width=479&top_left_y=1343&top_left_x=794" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p><h3>步骤 2c：应用并集运算得到识别 $\left(10^{*} \cup 0\right)$ 的 NFA</h3><p>为了应用<strong>并集</strong>，我们添加一个额外的<strong>起始状态</strong>，它通过 epsilon 转移连接到所有旧的<strong>起始状态</strong>。</p><p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-10.jpg?height=496&width=789&top_left_y=1631&top_left_x=639" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p><h3>步骤 3：应用连接得到识别 $(01)^{*}\left(10^{*} \cup 0\right)$ 的 NFA</h3><p>为了应用<strong>连接</strong>，添加从<strong>接受状态</strong> $s$ 和 $q_{2}$ 到<strong>状态</strong> $s_{1}$ 的 $\epsilon$-<strong>转移</strong>。然后从新 <strong>NFA</strong> 的<strong>接受状态</strong>集中移除 $s_{0}$ 和 $q_{2}$。</p><p><img src="https://cdn.mathpix.com/cropped/7a5ed778-81f9-4a16-bcb5-31fa0e7231da-11.jpg?height=819&width=1276&top_left_y=413&top_left_x=244" alt="" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p><p>上述 <strong>NFA</strong> 识别由 $(01)^{*}\left(10^{*} \cup 0\right)$ 生成的语言。</p><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题要求我们将一个复杂的<strong>正则表达式</strong>通过标准的递归构造方法（汤普森构造法）转换为一个 <strong>NFA</strong>。这种方法不追求状态最少，但保证了过程的机械化和正确性。</p>
+<p><strong>正则表达式</strong>: $(01)^*(10^* \cup 0)$</p>
+<p><strong>分解与构造</strong>:</p>
+<p><strong>第一部分：构造识别 $(01)^*$ 的 NFA ($N_1$)</strong></p>
+<ul>
+  <li><strong>1a. 构造 <strong>01</strong></strong>: 这是<strong>连接</strong>。</li>
+  <li>构造 <strong>0</strong>: $s_0 \xrightarrow{0} s_1$ ($s_1$ 接受)。</li>
+  <li>构造 <strong>1</strong>: $s_2 \xrightarrow{1} s_3$ ($s_3$ 接受)。</li>
+  <li>连接它们：从 $s_1$ (0的接受状态) 画 $\epsilon$-<strong>转移</strong>到 $s_2$ (1的起始状态)，并取消 $s_1$ 的接受状态。最终得到 $s_0 \xrightarrow{0} s_1 \xrightarrow{\epsilon} s_2 \xrightarrow{1} s_3$。可以简化为 $q_0 \xrightarrow{0} q_1 \xrightarrow{1} q_2$。</li>
+  <li><strong>1b. 构造 <strong>(01)^*</strong> (星号运算)</strong>:</li>
+  <li>取上面 <strong>01</strong> 的 NFA ($q_0 \to q_1 \to q_2$)。</li>
+  <li>1. 添加新<strong>起始状态</strong> $s_{new}$，并设为<strong>接受状态</strong>。</li>
+  <li>2. 添加 $\epsilon$-<strong>转移</strong>: $s_{new} \to q_0$ (进入循环)。</li>
+  <li>3. 添加 $\epsilon$-<strong>转移</strong>: $q_2 \to s_{new}$ (完成一次并返回)。</li>
+  <li>解答中的图示采用了另一种等价的星号构造方法：(1) 添加新起始/接受状态 $s$ (2) 添加 $s \xrightarrow{\epsilon} q_0$ (3) 添加 $q_2 \xrightarrow{\epsilon} s$ (4) 添加 $q_2 \xrightarrow{\epsilon} q_0$ 的返回边和 $s$ 成为接受状态。解答中的图更复杂，但核心思想都是为了实现“0次或多次重复”。</li>
+</ul>
+<p><strong>第二部分：构造识别 $(10^* \cup 0)$ 的 NFA ($N_2$)</strong></p>
+<ul>
+  <li>这是一个<strong>并集</strong>，所以我们先构造两部分，再合并。</li>
+  <li><strong>2a. 构造 <strong>10*</strong></strong>:</li>
+  <li>构造 <strong>1</strong>: $p_0 \xrightarrow{1} p_1$。</li>
+  <li>构造 <strong>0*</strong>: (使用星号构造) $p_2 \xrightarrow{\epsilon} p_3 \xrightarrow{0} p_3 \xrightarrow{\epsilon} p_4$，$p_2,p_4$ 是接受状态。</li>
+  <li>连接它们：$p_1$ (1的接受状态) $\epsilon$-<strong>转移</strong>到 $p_2$ (0*的起始状态)。$p_1$ 不再是接受状态。最终<strong>接受状态</strong>是 $p_4$。</li>
+  <li>解答的图示简化了这个过程，直接画出：$p_0 \xrightarrow{1} p_1$，然后 $p_1$ 上有一个 '0' 的自循环。这在直觉上更简单，也是对 <strong>0*</strong> 的一种有效表达。所以得到 $p_0 \xrightarrow{1} p_1(\text{自循环}0)$，$p_1$ 是接受。</li>
+  <li><strong>2b. 构造 <strong>0</strong></strong>: 很简单，$p_5 \xrightarrow{0} p_6$ ($p_6$ 接受)。</li>
+  <li><strong>2c. 构造 <strong>(10* \cup 0)</strong> (并集运算)</strong>:</li>
+  <li>取上面 <strong>10*</strong> 的 NFA 和 <strong>0</strong> 的 NFA。</li>
+  <li>添加新<strong>起始状态</strong> $s_{union}$。</li>
+  <li>从 $s_{union}$ 分别画 $\epsilon$-<strong>转移</strong>到它们的原<strong>起始状态</strong>（$p_0$ 和 $p_5$）。</li>
+  <li>保留它们原来的<strong>接受状态</strong>（$p_1$ 和 $p_6$）。</li>
+</ul>
+<p><strong>第三部分：构造最终 NFA (连接运算)</strong></p>
+<ul>
+  <li>我们现在有两个 NFA：$N_1$ 识别 $(01)^*$，$N_2$ 识别 $(10^* \cup 0)$。</li>
+  <li>要构造 $N_1N_2$ 的 NFA。</li>
+  <li><strong>连接</strong>:</li>
+</ul>
+<ol>
+  <li> 取 $N_1$ 的所有<strong>接受状态</strong>。在步骤 1b 的图中，是 $\{s, q_2\}$。</li>
+  <li> 从这<strong>每一个</strong>接受状态画 $\epsilon$-<strong>转移</strong>到 $N_2$ 的<strong>起始状态</strong> $s_{union}$。</li>
+  <li> 取消 $N_1$ 的<strong>接受状态</strong>资格。它们现在是中转站。</li>
+  <li> $N_1$ 的<strong>起始状态</strong>（$s$）成为最终 NFA 的<strong>起始状态</strong>。</li>
+  <li> $N_2$ 的<strong>接受状态</strong>（$\{p_1, p_6\}$）成为最终 NFA 的<strong>接受状态</strong>。
+<ul>
+  <li>最终得到的那个巨大的、有很多 $\epsilon$-<strong>转移</strong>的图，就是严格按照构造规则生成的 NFA。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这个问题是<strong>封闭性</strong>构造的大集合，它系统地、自底向上地展示了如何将一个复杂的<strong>正则表达式</strong>分解成原子部分（如 '0', '1'），然后使用<strong>连接</strong>、<strong>并集</strong>和<strong>星号</strong>三种基本构造规则，像搭积木一样，一步步地搭建出最终的 NFA。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个问题的目的是让学生完整地演练一遍从<strong>正则表达式</strong>到 <strong>NFA</strong> 的标准转换算法（汤普森构造法）。这个算法是编译器理论中的一个基石，用于将用户写的模式（<strong>正则表达式</strong>）转换为机器可以执行的状态机。通过这个练习，学生能深刻理解该算法的递归和模块化本质。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>这就像用一套标准的乐高积木来拼一个复杂的模型。</p>
+<ol>
+  <li><strong>原子操作</strong>: <strong>a</strong> -&gt; <strong>(start) --a--&gt; (end)</strong></li>
+  <li><strong>并集</strong>: $R_1 \cup R_2$ -&gt; <strong>(new_start) --e--&gt; (start_1)</strong>, <strong>(new_start) --e--&gt; (start_2)</strong></li>
+  <li><strong>连接</strong>: $R_1R_2$ -&gt; <strong>(end_1) --e--&gt; (start_2)</strong></li>
+  <li><strong>星号</strong>: $R^*$ -&gt; <strong>(new_start_end) --e--&gt; (start)</strong>, <strong>(end) --e--&gt; (new_start_end)</strong></li>
+</ol>
+<p>无论给你的<strong>正则表达式</strong>多复杂，你都可以先把它像代数表达式一样拆解，然后严格按照这几条规则，一步步地把 NFA 模块拼接起来，最终完成整个模型。你不需要“聪明地”去思考怎么优化，只需要像机器人一样执行规则。</p>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-5">
+    <h2><span class="section-number">5</span>行间公式索引</h2>
+    <p>1.  <strong>双向蕴含关系</strong>：证明构造的正确性需要证明语言成员资格和自动机接受之间的双向充要条件。</p><p><div class="math-block">$$
+    w^{R} \in L^{R} \Longleftrightarrow \text { NFA } B \text { 接受 } w^{R}
+$$</div></p><p>2.  <strong>证明正确性的两个方面</strong>：为了证明新构造的DFA B准确识别min(L)，需要证明B接受所有属于min(L)的字符串，且拒绝所有不属于min(L)的字符串。</p><p><div class="math-block">$$
+    \begin{aligned}
+    &amp; w \in \min (L) \Longrightarrow \text { DFA } B \text { 接受 } w \\
+    &amp; w \notin \min (L) \Longrightarrow \text { DFA } B \text { 拒绝 } w
+    \end{aligned}
+$$</div></p>
+</section>
+
+<section class="content-section" id="section-6">
+    <h2><span class="section-number">6</span>5 讲义总结</h2>
+    <h3>5.1 讲义核心概念总结</h3><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这份讲义的解答集全面地涵盖了<strong>计算理论</strong>中关于<strong>正规语言</strong>的几个核心支柱。通过一系列具体的问题和详尽的解答，它强化了以下关键概念：</p>
+<ol>
+  <li> <strong>NFA 的设计与理解</strong>：我们学习了如何构造 <strong>NFA</strong> 来识别特定的语言。关键在于利用<strong>非确定性</strong>（一个状态在同一输入下可以有多个后续状态）和 <strong>$\epsilon$-转移</strong>（不消耗输入即可切换状态）来简化设计。例如，识别“包含子串 <strong>101</strong>”或满足“条件A或条件B”的语言时，<strong>NFA</strong> 的“猜测”和“并行宇宙”能力使其构造比等价的 <strong>DFA</strong> 更为直观和简洁。</li>
+  <li> <strong>NFA 到 DFA 的转换</strong>：通过<strong>子集构造法</strong>，我们掌握了将任何 <strong>NFA</strong>（包括带 <strong>$\epsilon$-转移</strong>的）机械化地转换为一个等价 <strong>DFA</strong> 的标准算法。这个过程不仅是一个重要的实践技能，更是在理论上证明了 <strong>NFA</strong> 和 <strong>DFA</strong> 的表达能力是完全等价的——它们都只能识别<strong>正规语言</strong>，不多也不少。<strong>DFA</strong> 的每一个状态都对应着 <strong>NFA</strong> 可能处于的一个<strong>状态子集</strong>。</li>
+  <li> <strong>正规语言的封闭性质</strong>：讲义通过构造性证明，生动地展示了<strong>正规语言</strong>在多种运算下是<strong>封闭</strong>的。这意味着对<strong>正规语言</strong>进行这些运算后，结果仍然是<strong>正规语言</strong>。我们实践了以下构造：
+<ul>
+  <li><strong>并集 ($L_1 \cup L_2$)</strong>: 创建一个新<strong>起始状态</strong>，通过 $\epsilon$-<strong>转移</strong>连接到两个旧自动机的<strong>起始状态</strong>。</li>
+  <li><strong>连接 ($L_1 L_2$)</strong>: 将第一个自动机的<strong>接受状态</strong>通过 $\epsilon$-<strong>转移</strong>连接到第二个自动机的<strong>起始状态</strong>。</li>
+  <li><strong>克莱尼星号 ($L^*$)</strong>: 创建一个既是<strong>起始状态</strong>又是<strong>接受状态</strong>的新枢纽状态，通过 $\epsilon$-<strong>转移</strong>实现进入、退出和循环。</li>
+  <li><strong>逆转 ($L^R$)</strong>: 反转所有<strong>转移</strong>箭头，并巧妙地交换<strong>起始状态</strong>和<strong>接受状态</strong>的角色。</li>
+  <li><strong>自定义运算 ($\min(L)$)</strong>: 修改 <strong>DFA</strong>，使任何计算路径在第一次到达<strong>接受状态</strong>后便“锁死”，无法继续匹配更长的字符串。</li>
+</ul></li>
+  <li> <strong>正则表达式的诠释与构造</strong>：我们练习了如何将语言的文字描述翻译成<strong>正则表达式</strong>，以及反向地用自然语言描述一个给定的<strong>正则表达式</strong>。这需要将语言的性质分解为由<strong>连接</strong>、<strong>并集 ($\cup$)</strong> 和<strong>星号 ($*$)</strong> 等基本部分组成的结构。</li>
+  <li> <strong>不同表示模型的等价性与转换</strong>：这是本讲义的核心。它通过两个方向的算法实践，强化了<strong>有限自动机</strong>和<strong>正则表达式</strong>的等价性：
+<ul>
+  <li><strong>NFA 到正则表达式</strong>: 使用“通过 GNFA 消除状态”的方法，通过迭代地移除状态并更新边上的<strong>正则表达式</strong>，最终得到一个单一的表达式。</li>
+  <li><strong>正则表达式到 NFA</strong>: 使用“汤普森构造法”，自底向上地为<strong>正则表达式</strong>的每个部分（原子、并集、连接、星号）构建对应的 <strong>NFA</strong> 模块，然后像搭积木一样将它们拼接起来。</li>
+</ul></li>
+</ol>
+<p>这些算法是<strong>计算理论</strong>的基石，并且在编译器设计、文本搜索工具（如 grep）、网络协议分析等领域有着广泛的实际应用。</p>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>本讲义解答是一份关于<strong>正规语言</strong>核心操作的实践手册。它通过解决一系列精心设计的问题，将抽象的理论知识（如<strong>封闭性</strong>、模型等价性）与具体的、可执行的算法步骤（如<strong>子集构造</strong>、<strong>状态消除</strong>）紧密联系起来。贯穿始终的主线是<strong>正规语言</strong>的三种等价表示形式——<strong>DFA</strong>、<strong>NFA</strong> 和<strong>正则表达式</strong>——以及在它们之间自由转换的能力。通过亲手实践这些转换，学生能够真正内化理论，而不仅仅是停留在背诵定义的层面。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这份文档的存在目的在于弥合理论教学与解决实际问题之间的鸿沟。它为学生提供了一个可以检验自己理解、学习标准解题范式、观察重要算法（如<strong>子集构造</strong>、<strong>状态消除</strong>）的每一个机械化步骤的平台。特别是通过对<strong>克莱尼星号</strong>构造的“失败尝试”的分析，学生可以深刻理解正确构造方法中每个组件的必要性，从而避免常见错误。这不仅仅是答案的罗列，更是一种思维方式的训练。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>您可以将这份讲义解答集看作是一本<strong>正规语言</strong>的“食谱书”。当你面对一个关于<strong>正规语言</strong>的问题时，你不必每次都从零开始冥思苦想。这本“食谱书”为你提供了经过验证的“配方”（即算法和标准构造方法），用于处理和转换不同形式的<strong>正规语言</strong>。</p>
+<ol>
+  <li>需要识别“语言A 或 语言B”？请翻到“<strong>并集</strong>”这一节的食谱。</li>
+  <li>需要将一个复杂的、有多重路径的 <strong>NFA</strong> 转换为一个确定性的 <strong>DFA</strong>？请使用“<strong>子集构造</strong>”的配方。</li>
+  <li>需要从一个状态图得到其对应的<strong>正则表达式</strong>？“<strong>状态消除</strong>”的食谱会告诉你该怎么做。</li>
+</ol>
+<p>这本食谱将你从一个凭直觉的“厨艺爱好者”，培养成一个能系统、稳定地解决问题的“专业厨师”。</p>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你是一位专门研究“正则部落”的语言学家。这个部落的语言有三种书写系统（“方言”）：</p>
+<ol>
+  <li> <strong>图画文字</strong>（<strong>DFA/NFA</strong> 的状态图）：直观、生动，但有时细节繁复。</li>
+  <li> <strong>符号代码</strong>（<strong>正则表达式</strong>）：简洁、强大，但有时难以直接看懂。</li>
+  <li> <strong>形式化描述</strong>（集合论语言定义）：精确、无歧义，但最为抽象。</li>
+</ol>
+<p>这份讲义就是你的高级翻译工作坊手册。它教你如何在这三种书写系统之间进行完美、无损的互译。它向你展示了如何获取一句复杂的“符号代码”（<strong>正则表达式</strong>），并将其含义准确地绘制成“图画文字”（<strong>NFA</strong>）；或者如何观看一幅复杂的“图画”（<strong>NFA</strong>），并将其浓缩成一句精华的“符号代码”（<strong>正则表达式</strong>）。通过掌握这些翻译技巧，你才能真正成为一名精通“正则部落”语言的大师。</p>
+<p>[[END_OF_RESPONSE]]所有解释内容已全部输出完毕。</p>
+    </div>
+</div>
+</section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>1 COMS 3261 讲义 6B: NFA 和正则表达式练习题解答</p>
+    </footer>
+
+
+    <!-- 手机端点击翻页功能 -->
+    <script>
+        (function() {
+            // 点击翻页功能（在所有设备上启用）
+            
+            document.addEventListener('click', function(e) {
+                // 如果 TOC 目录面板处于打开状态，不触发翻页
+                var tocPanel = document.getElementById('tocPanel');
+                if (tocPanel && tocPanel.classList.contains('active')) {
+                    return;
+                }
+                
+                // 排除对链接、按钮、输入框等交互元素的点击
+                var target = e.target;
+                var tagName = target.tagName.toLowerCase();
+                if (tagName === 'a' || tagName === 'button' || tagName === 'input' || 
+                    tagName === 'textarea' || tagName === 'select' || 
+                    target.closest('a') || target.closest('button') ||
+                    target.closest('.toc-panel') || target.closest('.toc-toggle') ||
+                    target.closest('.toc-overlay')) {
+                    return;
+                }
+                
+                var clickY = e.clientY;
+                var windowHeight = window.innerHeight;
+                var scrollAmount = windowHeight * 0.85; // 滚动85%的屏幕高度
+                
+                if (clickY > windowHeight / 2) {
+                    // 点击下半部分：向下翻页
+                    window.scrollBy({
+                        top: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 点击上半部分：向上翻页
+                    window.scrollBy({
+                        top: -scrollAmount,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        })();
+    </script>
+
+    <!-- TOC 目录控制脚本 -->
+    <script>
+        (function() {
+            var tocToggle = document.getElementById('tocToggle');
+            var tocPanel = document.getElementById('tocPanel');
+            var tocOverlay = document.getElementById('tocOverlay');
+            
+            // 切换目录显示/隐藏
+            function toggleTOC() {
+                var isOpen = tocPanel.classList.contains('active');
+                if (isOpen) {
+                    closeTOC();
+                } else {
+                    openTOC();
+                }
+            }
+            
+            // 打开目录
+            function openTOC() {
+                tocPanel.classList.add('active');
+                tocOverlay.classList.add('active');
+                tocToggle.setAttribute('aria-label', '关闭目录');
+            }
+            
+            // 关闭目录
+            function closeTOC() {
+                tocPanel.classList.remove('active');
+                tocOverlay.classList.remove('active');
+                tocToggle.setAttribute('aria-label', '打开目录');
+            }
+            
+            // 点击按钮切换目录
+            tocToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTOC();
+            });
+            
+            // 点击遮罩层关闭目录
+            tocOverlay.addEventListener('click', function() {
+                closeTOC();
+            });
+            
+            // 点击目录项后关闭目录
+            var tocLinks = tocPanel.querySelectorAll('a');
+            tocLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    closeTOC();
+                });
+            });
+            
+            // ESC 键关闭目录
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && tocPanel.classList.contains('active')) {
+                    closeTOC();
+                }
+            });
+            
+            // 高亮当前可见的目录条目
+            function updateActiveItem() {
+                var scrollPos = window.scrollY + 150;  // 偏移量
+                var activeSection = null;
+                var activeOriginal = null;
+                
+                // 查找当前可见的 section
+                var sections = document.querySelectorAll('section[id^="section-"]');
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    if (section.offsetTop <= scrollPos) {
+                        activeSection = section.id;
+                    }
+                }
+                
+                // 查找当前可见的原文区块
+                var originals = document.querySelectorAll('[id^="original-"]');
+                for (var j = 0; j < originals.length; j++) {
+                    var original = originals[j];
+                    if (original.offsetTop <= scrollPos) {
+                        activeOriginal = original.id;
+                    }
+                }
+                
+                // 先移除所有 active 类
+                var allHeadings = tocPanel.querySelectorAll('.toc-heading');
+                for (var h = 0; h < allHeadings.length; h++) {
+                    allHeadings[h].classList.remove('active');
+                }
+                
+                var allOriginals = tocPanel.querySelectorAll('.toc-original');
+                for (var o = 0; o < allOriginals.length; o++) {
+                    allOriginals[o].classList.remove('active');
+                }
+                
+                // 只给当前活动的条目添加 active 类
+                if (activeSection) {
+                    var activeHeadingLink = tocPanel.querySelector('.toc-heading a[href="#' + activeSection + '"]');
+                    if (activeHeadingLink) {
+                        activeHeadingLink.parentElement.classList.add('active');
+                    }
+                }
+                
+                if (activeOriginal) {
+                    var activeOriginalLink = tocPanel.querySelector('.toc-original a[href="#' + activeOriginal + '"]');
+                    if (activeOriginalLink) {
+                        activeOriginalLink.parentElement.classList.add('active');
+                    }
+                }
+            }
+            
+            // 节流函数
+            var scrollTimeout;
+            function throttledUpdate() {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(function() {
+                    updateActiveItem();
+                    scrollTimeout = null;
+                }, 100);
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', throttledUpdate);
+            
+            // 打开目录时立即更新高亮
+            var originalOpenTOC = openTOC;
+            openTOC = function() {
+                originalOpenTOC();
+                updateActiveItem();
+            };
+            
+            // 初始化
+            updateActiveItem();
+        })();
+    </script>
+</body>
+</html>

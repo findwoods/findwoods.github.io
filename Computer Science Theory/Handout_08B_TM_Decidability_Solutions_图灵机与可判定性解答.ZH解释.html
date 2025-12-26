@@ -1,0 +1,1888 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行间公式索引</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <!-- MathJax v4 配置 -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            output: {
+                displayOverflow: 'linebreak',
+                linebreaks: {
+                    inline: true,
+                    width: '100%',
+                    lineleading: 0.2
+                }
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            startup: {
+                pageReady: function() {
+                    return MathJax.startup.defaultPageReady();
+                }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --text-color: #2d3748;
+            --text-light: #4a5568;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --highlight-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            
+            /* 五大区块主题色 */
+            --original-color: #8b5cf6;
+            --explain-color: #0ea5e9;
+            --formula-color: #6366f1;
+            --example-color: #10b981;
+            --warning-color: #f59e0b;
+            /* Q1修复：总结、存在目的、直觉心智模型、直观想象 统一使用 #36828C 青色主题 */
+            --summary-color: #36828C;     /* 青色主题 */
+            --purpose-color: #36828C;     /* 青色主题 */
+            --intuition-color: #36828C;   /* 青色主题 */
+            --imagination-color: #36828C; /* 青色主题 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        /* Hero Header */
+        .hero {
+            background: var(--highlight-bg);
+            color: white;
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .hero h1 .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .authors {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .date {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Content Sections */
+        .content-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .content-section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
+        .content-section h4 {
+            color: var(--secondary-color);
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h5 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 18px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .content-section h6 {
+            color: var(--secondary-color);
+            font-size: 1rem;
+            margin: 15px 0 8px 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--highlight-bg);
+            color: white;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .content-section p {
+            text-align: justify;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        /* ===============================
+           五大内容区块 - 统一风格不同主题色
+           =============================== */
+
+        /* 原文区 - 紫色 */
+        .original-box {
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border-left: 4px solid var(--original-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .original-box .box-label {
+            color: var(--original-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .original-box .box-content {
+            font-style: italic;
+            color: #6b21a8;
+        }
+
+        /* 📜 [原文]区块内容 - 使用统一的黑色 */
+        .original-content {
+            color: #2d3748; /* 统一的深灰黑色 */
+        }
+
+        .original-content * {
+            color: #2d3748; /* 所有子元素 */
+        }
+
+        .original-content .MathJax, .original-content .MathJax * {
+            color: #2d3748 !important; /* 行内公式 */
+        }
+
+        /* 通用 .box-content 换行规则 - 确保长文本（如代码调用）能自动换行 */
+        .box-content {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .box-content strong, .box-content code {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+            display: inline;
+        }
+
+        /* 逐步解释区 - 蓝色 */
+        .explain-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--explain-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .explain-box .box-label {
+            color: var(--explain-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .explain-box .box-content {
+            color: #1a365d; /* Dark Blue */
+        }
+
+        .explain-box .box-content * {
+            color: #1a365d; /* Dark Blue - 所有子元素 */
+        }
+
+        .explain-box .box-content .MathJax, .explain-box .box-content .MathJax * {
+            color: #1a365d !important; /* Dark Blue - 行内公式 */
+        }
+
+        .explain-box ul, .explain-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .explain-box li {
+            margin-bottom: 8px;
+        }
+
+        /* 公式拆解区 - 靛蓝色 */
+        .formula-box {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border-left: 4px solid var(--formula-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .formula-box .box-label {
+            color: var(--formula-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .formula-box .box-content {
+            color: var(--text-color); /* 统一使用默认黑色，与原文区块一致 */
+            overflow-x: auto;
+        }
+
+        .formula-box .box-content * {
+            color: var(--text-color); /* 所有子元素 */
+        }
+
+        .formula-box .box-content .MathJax, .formula-box .box-content .MathJax * {
+            color: var(--text-color) !important; /* 行内公式 */
+        }
+
+        /* 数值示例区 - 绿色 */
+        .example-box {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 4px solid var(--example-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .example-box .box-label {
+            color: var(--example-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .example-box .box-content {
+            color: #166534; /* Dark Green from edstem5 .answer-en */
+        }
+
+        .example-box .box-content * {
+            color: #166534; /* Dark Green - 所有子元素 */
+        }
+
+        .example-box .box-content .MathJax, .example-box .box-content .MathJax * {
+            color: #166534 !important; /* Dark Green - 行内公式 */
+        }
+
+        .example-box ul, .example-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .example-box li {
+            margin-bottom: 6px;
+        }
+
+        .example-box code {
+            background: rgba(16, 185, 129, 0.15);
+            color: #047857;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* 易错点区 - 橙色 */
+        .warning-box {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border-left: 4px solid var(--warning-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .warning-box .box-label {
+            color: var(--warning-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .warning-box .box-content {
+            color: #92400e;
+        }
+
+        .warning-box .box-content * {
+            color: #92400e; /* 所有子元素 */
+        }
+
+        .warning-box .box-content .MathJax, .warning-box .box-content .MathJax * {
+            color: #92400e !important; /* 行内公式 */
+        }
+
+        .warning-box ul, .warning-box ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .warning-box li {
+            margin-bottom: 6px;
+        }
+
+        /* 总结区 - Q1修复：使用#36828C青色主题 */
+        .summary-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--summary-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .summary-box .box-label {
+            color: var(--summary-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .summary-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .summary-box .box-content .MathJax, .summary-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 存在目的区 - Q1修复：使用#36828C青色主题 */
+        .purpose-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--purpose-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .purpose-box .box-label {
+            color: var(--purpose-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .purpose-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .purpose-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .purpose-box .box-content .MathJax, .purpose-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直觉心智模型区 - Q1修复：使用#36828C青色主题 */
+        .intuition-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--intuition-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .intuition-box .box-label {
+            color: var(--intuition-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .intuition-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .intuition-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .intuition-box .box-content .MathJax, .intuition-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 直观想象区 - Q1修复：使用#36828C青色主题 */
+        .imagination-box {
+            background: linear-gradient(135deg, #e8f4f5 0%, #d0e8ea 100%);
+            border-left: 4px solid var(--imagination-color);
+            padding: 20px 25px;
+            border-radius: 0 12px 12px 0;
+            margin: 20px 0;
+        }
+
+        .imagination-box .box-label {
+            color: var(--imagination-color);
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .imagination-box .box-content {
+            color: #245a63; /* 深青色 - #36828C的深色调 */
+        }
+
+        .imagination-box .box-content * {
+            color: #245a63; /* 所有子元素 */
+        }
+
+        .imagination-box .box-content .MathJax, .imagination-box .box-content .MathJax * {
+            color: #245a63 !important; /* 行内公式 */
+        }
+
+        /* 高亮术语 */
+        .term {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* 代码块 */
+        code {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 引用块 */
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 20px;
+            margin: 15px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 表格样式 - 紧凑型，行高列宽适应文字最小值 */
+        table {
+            border-collapse: collapse;
+            width: auto;  /* 列宽适应内容 */
+            margin: 15px 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;  /* 减小padding使行高更紧凑 */
+            text-align: left;
+            white-space: nowrap;  /* 防止不必要的换行，列宽适应文字 */
+            line-height: 1.4;  /* 紧凑的行高 */
+        }
+
+        th {
+            background: #e0f7fa;
+            color: #006064;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #e2e8f0;
+        }
+
+        /* 表格对齐 */
+        .align-left {
+            text-align: left;
+        }
+
+        .align-center {
+            text-align: center;
+        }
+
+        .align-right {
+            text-align: right;
+        }
+
+        /* 图例区域 */
+        .legend-section {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .legend-bar {
+            width: 4px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        .legend-bar.original { background: #8b5cf6; }
+        .legend-bar.explain { background: #0ea5e9; }
+        .legend-bar.formula { background: #6366f1; }
+        .legend-bar.example { background: #10b981; }
+        .legend-bar.warning { background: #f59e0b; }
+        .legend-bar.summary { background: #36828C; }
+        .legend-bar.purpose { background: #36828C; }
+        .legend-bar.intuition { background: #36828C; }
+        .legend-bar.imagination { background: #36828C; }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive - 移动端适配 */
+        @media (max-width: 768px) {
+            /* 容器宽度适配 */
+            .container {
+                max-width: 100%;
+                width: 100%;
+                padding: 20px 12px;
+                box-sizing: border-box;
+            }
+            
+            .hero-content {
+                max-width: 100%;
+                padding: 0 15px;
+            }
+            
+            .hero {
+                padding: 50px 15px;
+            }
+            
+            .hero h1 {
+                font-size: 1.6rem;
+                word-break: break-word;
+            }
+            
+            .authors {
+                font-size: 1rem;
+            }
+            
+            /* 内容区块适配 */
+            .content-section {
+                padding: 20px 15px;
+                margin-left: 5px;
+                margin-right: 5px;
+                border-radius: 12px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.4rem;
+                flex-wrap: wrap;
+            }
+            
+            .content-section h3 {
+                font-size: 1.2rem;
+            }
+            
+            .content-section h4 {
+                font-size: 1.1rem;
+            }
+            
+            .section-number {
+                width: 32px;
+                height: 32px;
+                font-size: 1rem;
+            }
+            
+            /* 各区块box适配 */
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 15px 12px;
+                margin: 15px 0;
+                border-radius: 0 8px 8px 0;
+            }
+            
+            .original-box .box-label,
+            .explain-box .box-label,
+            .formula-box .box-label,
+            .example-box .box-label,
+            .warning-box .box-label,
+            .summary-box .box-label,
+            .purpose-box .box-label,
+            .intuition-box .box-label,
+            .imagination-box .box-label {
+                font-size: 1.1rem;
+            }
+            
+            /* 图例区域移动端适配 */
+            .legend-section {
+                padding: 15px 10px;
+                margin-bottom: 20px;
+            }
+            
+            .legend-row {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+            
+            .legend-item {
+                font-size: 0.8rem;
+                gap: 5px;
+            }
+            
+            .legend-bar {
+                width: 3px;
+                height: 16px;
+            }
+            
+            /* 列表适配 */
+            ul, ol {
+                margin-left: 15px;
+                padding-left: 5px;
+            }
+            
+            /* 表格移动端适配 */
+            table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.9rem;
+                min-width: 80px;
+            }
+            
+            /* 代码块适配 */
+            pre {
+                padding: 12px;
+                font-size: 0.85rem;
+            }
+            
+            /* 数学公式适配 */
+            .math-block {
+                padding: 10px 8px;
+                margin: 15px 0;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* MathJax公式溢出处理 - 只处理块级公式，保持行内公式inline */
+            mjx-container[jax="CHTML"][display="true"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                display: block !important;
+            }
+            
+            /* 行内公式 - 超宽时自动换行 */
+            mjx-container:not([display="true"]) {
+                display: inline-block !important;
+                max-width: 100% !important;
+                overflow-wrap: break-word !important;
+                word-wrap: break-word !important;
+            }
+            
+            /* MathJax内部元素换行支持 */
+            mjx-math {
+                white-space: normal !important;
+            }
+            
+            mjx-mrow {
+                flex-wrap: wrap !important;
+            }
+            
+            /* Footer适配 */
+            .footer {
+                padding: 25px 15px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* 超小屏幕适配 (手机竖屏) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px 8px;
+            }
+            
+            .hero {
+                padding: 40px 10px;
+            }
+            
+            .hero h1 {
+                font-size: 1.4rem;
+            }
+            
+            .content-section {
+                padding: 15px 10px;
+                margin-left: 3px;
+                margin-right: 3px;
+            }
+            
+            .content-section h2 {
+                font-size: 1.25rem;
+            }
+            
+            .original-box,
+            .explain-box,
+            .formula-box,
+            .example-box,
+            .warning-box,
+            .summary-box,
+            .purpose-box,
+            .intuition-box,
+            .imagination-box {
+                padding: 12px 10px;
+            }
+            
+            .legend-section {
+                padding: 12px 8px;
+            }
+            
+            .legend-row {
+                gap: 8px;
+            }
+            
+            .legend-item {
+                font-size: 0.75rem;
+            }
+            
+            ul, ol {
+                margin-left: 12px;
+            }
+        }
+        
+        /* 确保所有内容不溢出 */
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* ========================================
+           TOC 目录样式
+           ======================================== */
+        
+        /* TOC 触发按钮 - 左上角小方块 */
+        .toc-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            background: rgba(54, 130, 140, 0.5);  /* 青色 50% 透明度 */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .toc-toggle:hover {
+            background: rgba(54, 130, 140, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .toc-toggle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        
+        /* TOC 目录面板 */
+        .toc-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 95vw;  /* 手机浏览器宽度的 95% */
+            height: 80vh; /* 手机浏览器高度的 80% */
+            max-width: 450px;  /* 桌面端最大宽度 */
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 0 0 16px 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .toc-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* TOC 头部 - 标题在图标右侧 */
+        .toc-header {
+            padding: 15px 20px 15px 80px;  /* 左侧留出按钮空间 */
+            background: linear-gradient(135deg, #36828C 0%, #2a6a72 100%);
+            color: white;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .toc-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* TOC 内容区 */
+        .toc-content {
+            flex: 1;
+            overflow-y: auto;   /* 允许垂直滚动 */
+            overflow-x: hidden; /* 禁止水平滚动 */
+            padding: 15px 0;
+        }
+        
+        /* TOC 列表 */
+        .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .toc-item {
+            margin: 0;
+        }
+        
+        .toc-item a {
+            display: block;
+            padding: 4px 20px;  /* 更紧凑的行间距 */
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #2d3748;
+            text-decoration: none;
+            word-wrap: break-word;   /* 自动换行 */
+            overflow-wrap: break-word;
+            white-space: normal;     /* 允许换行 */
+            line-height: 1.3;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .toc-item a:hover {
+            background: #e8f4f5;
+            color: #36828C;
+            border-left-color: #36828C;
+        }
+        
+        /* 标题项样式 */
+        .toc-heading a {
+            font-weight: 600;
+            color: #1a365d;
+            background: #f7fafc;
+        }
+        
+        .toc-heading a:hover {
+            background: #e8f4f5;
+        }
+        
+        /* 当前活动的标题项样式 */
+        .toc-heading.active a {
+            background: #d0e8ea;
+            color: #36828C;
+            border-left-color: #36828C;
+            font-weight: 700;
+        }
+        
+        /* 当前活动的原文项样式 */
+        .toc-original.active a {
+            background: #36828C;
+            color: white;
+            box-shadow: 0 3px 8px rgba(54, 130, 140, 0.35);
+        }
+        
+        /* 原文项容器 - 横向排列自动换行 */
+        .toc-originals-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 6px;
+            padding: 8px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        /* 原文项样式 - 浅青色带阴影 */
+        .toc-original {
+            margin: 0;
+        }
+        
+        .toc-original a {
+            display: inline-block;
+            width: 64px;  /* 固定宽度确保每行显示数量一致 */
+            padding: 6px 4px;
+            font-size: 15.5px;  /* 15.5号字体 */
+            color: #36828C;  /* 青色主题色 */
+            text-decoration: none;
+            text-align: center;
+            background: #e8f4f5;
+            border-radius: 6px;
+            border-left: none;
+            box-shadow: 0 2px 4px rgba(54, 130, 140, 0.2);  /* 青色阴影 */
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .toc-original a:hover {
+            background: #e0f2f4;
+            color: #36828C;
+            box-shadow: 0 3px 6px rgba(54, 130, 140, 0.25);
+            transform: translateY(-1px);
+        }
+        
+        /* TOC 遮罩层 */
+        .toc-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .toc-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 移动端 TOC 适配 */
+        @media (max-width: 768px) {
+            .toc-toggle {
+                top: 15px;
+                left: 15px;
+                width: 40px;
+                height: 40px;
+            }
+            
+            .toc-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .toc-panel {
+                width: 90vw;
+                height: 80vh;
+                max-width: none;
+            }
+            
+            .toc-header {
+                padding: 12px 15px 12px 65px;
+            }
+            
+            .toc-header h3 {
+                font-size: 16px;
+            }
+            
+            .toc-item a {
+                padding: 4px 15px;
+                font-size: 15.5px;
+            }
+            
+            .toc-originals-container {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            
+            .toc-original a {
+                padding: 5px 10px;
+                font-size: 15.5px;
+            }
+        }
+
+        /* 特殊术语着色 */
+        .spectral {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .periodicity {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .fourier {
+            color: #3182ce;
+            font-weight: 600;
+        }
+
+        /* 列表样式增强 */
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        /* 表格样式 - 已移除重复定义，使用上方第602-633行的紧凑型样式 */
+
+        /* 分隔线 */
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: 30px 0;
+        }
+
+        /* 数学公式样式 - Q7: 行间公式颜色用黑色 */
+        .math-block {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            color: #000000; /* Q7: 黑色文字 */
+        }
+
+        /* Q7: 确保MathJax渲染的公式为黑色 */
+        .math-block .MathJax {
+            color: #000000 !important;
+        }
+
+        mjx-container {
+            color: #000000 !important;
+        }
+
+
+    </style>
+</head>
+<body>
+
+    <!-- TOC 目录按钮 -->
+    <button class="toc-toggle" id="tocToggle" aria-label="打开目录">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+        </svg>
+    </button>
+    
+    <!-- TOC 遮罩层 -->
+    <div class="toc-overlay" id="tocOverlay"></div>
+    
+    <!-- TOC 目录面板 -->
+    <nav class="toc-panel" id="tocPanel">
+        <div class="toc-header">
+            <h3>📑 目录</h3>
+        </div>
+        <div class="toc-content">
+            <ul class="toc-list">
+                <li class="toc-item toc-heading"><a href="#section-1">1. 行间公式索引</a></li>
+                <li class="toc-originals-container"><span class="toc-original"><a href="#original-13">原文13</a></span><span class="toc-original"><a href="#original-14">原文14</a></span><span class="toc-original"><a href="#original-15">原文15</a></span><span class="toc-original"><a href="#original-16">原文16</a></span></li>
+                <li class="toc-item toc-heading"><a href="#section-2">2. 行间公式索引</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Header -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>行间公式索引</h1>
+            <p class="authors"></p>
+            <p class="date"></p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 图例区域 -->
+        <div class="legend-section">
+            <!-- 第一行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar original"></div>
+                    <span>📜 原文</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar explain"></div>
+                    <span>📖 逐步解释</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar formula"></div>
+                    <span>∑ 公式拆解</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar example"></div>
+                    <span>💡 数值示例</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar warning"></div>
+                    <span>⚠️ 易错点</span>
+                </div>
+            </div>
+            <!-- 第二行 -->
+            <div class="legend-row">
+                <div class="legend-item">
+                    <div class="legend-bar summary"></div>
+                    <span>📝 总结</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar purpose"></div>
+                    <span>🎯 存在目的</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar intuition"></div>
+                    <span>🧠 直觉心智模型</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-bar imagination"></div>
+                    <span>💭 直观想象</span>
+                </div>
+            </div>
+        </div>
+
+        <section class="content-section" id="section-1">
+    <h2><span class="section-number">1</span>行间公式索引</h2>
+    <p>1.  <strong>问题2的核心计算函数</strong></p><p><div class="math-block">$$
+    f(\#\langle x\rangle)=\left\{\begin{array}{cc}
+    \#\langle x / 2\rangle &amp; \text { if } x \text { is even } \\
+    \#\langle 3 x+1\rangle &amp; \text { otherwise }
+    \end{array}\right.
+$$</div></p><p>该公式定义了一个分段函数，它根据输入数字 $x$ 的奇偶性，分别对其执行除以2或乘以3加1的运算。</p><h4>4. 问题 4：证明可识别语言在 9/10 运算下是封闭的</h4><h5>4.1 问题描述与实现级别解答</h5><p id="original-13"><strong style="font-size: 1.3rem;">📜 [原文13]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ol>
+  <li>设 $L$ 是一个可识别语言。</li>
+</ol>
+<p>定义 $9 / 10(\mathrm{~L})=\left\{&lt;x_{1} \# x_{2} \# \ldots \# x_{10}&gt;\mid\right.$ 至少 9 个 $x_{1}, \ldots, x_{10}$ 在 $L$ 中\}。证明可识别语言在 $9 / 10$ 运算下是封闭的。给出高层和实现级别的解决方案。</p>
+<p>实现级别：我们类似于示例问题 AtLeastOne(L) 来解决这个问题。</p>
+<p>设 $M$ 是识别 $L$ 的 <strong>TM</strong>，这是我们的多纸带 <strong>TM</strong> $M^{\prime}$，具有 11 个纸带，用于 $9/10 (\mathrm{L})$：</p>
+<p>在输入 $w=x_{1} \# x_{2} \# \ldots \# x_{10}$ 上，执行以下操作：</p>
+<ol>
+  <li>将每个 $x_{i}$ 写到 10 个单独的纸带上。</li>
+  <li>在每个 10 个纸带上模拟 $M$ 的 1 步。如果 $M$ 在纸带 $i$ 上接受，则将其记录在纸带 11 上。</li>
+  <li>检查是否有 9 个纸带已接受，如果是，则接受 $w$，否则返回步骤 2。</li>
+</ol>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题要求我们证明<strong>可识别语言</strong>类对于一个名为 "9/10" 的运算是<strong>封闭</strong>的。</p>
+<ol>
+  <li> <strong>理解问题</strong>:
+<ul>
+  <li><strong>可识别语言 (Recognizable Language)</strong>: 一个语言 $L$ 是可识别的，如果存在一台<strong>TM</strong> $M$（称为识别器），对于任何输入 $w$：</li>
+  <li>如果 $w \in L$，那么 $M$ 在 $w$ 上运行后会停机并<strong>接受</strong>。</li>
+  <li>如果 $w \notin L$，那么 $M$ 在 $w$ 上运行时<strong>永不停机</strong>或停机并<strong>拒绝</strong>。关键是，对于不属于语言的输入，它不保证停机。</li>
+  <li><strong>封闭性 (Closure)</strong>: 一个语言集合（如所有可识别语言）在某个运算下是封闭的，意味着对集合中的任何语言应用该运算，得到的结果仍然在该集合中。这里，我们要证明如果 $L$ 是可识别的，那么 $9/10(L)$ 也一定是可识别的。</li>
+  <li><strong>9/10 运算</strong>: 这个运算接受一个语言 $L$，生成一个新语言 $9/10(L)$。新语言的成员是形如 $x_1\#x_2\#...\#x_{10}$ 的字符串，其中至少有9个子串 $x_i$ 是属于原始语言 $L$ 的。</li>
+</ul></li>
+  <li> <strong>证明思路</strong>:
+<ul>
+  <li>要证明 $9/10(L)$ 是可识别的，我们需要构造一台<strong>TM</strong> $M'$，它能识别 $9/10(L)$。</li>
+  <li>我们已知存在一台<strong>TM</strong> $M$ 用于识别 $L$。我们的新机器 $M'$ 可以使用 $M$ 作为“子程序”。</li>
+  <li>输入给 $M'$ 的是 $w = x_1\#...\#x_{10}$。$M'$ 的任务是判断这10个子串中，是否至少有9个被 $M$ 接受。</li>
+</ul></li>
+  <li> <strong>分析实现级别描述</strong>:
+<ul>
+  <li>这个描述提出构建一个11纸带的<strong>TM</strong> $M'$。</li>
+  <li><strong>纸带分工</strong>:</li>
+  <li>纸带1到10：每条纸带上放一个子串 $x_i$。这10条纸带将作为模拟 $M$ 的工作区。</li>
+  <li>纸带11：作为“记分牌”或“状态记录器”，用来跟踪哪些子串已经被 $M$ 接受。</li>
+  <li><strong>步骤1：分配任务</strong>: $M'$ 首先解析输入 $w$，将10个子串 $x_1, ..., x_{10}$ 分别复制到纸带1到纸带10上。</li>
+  <li><strong>步骤2：并行模拟 (Dovetailing)</strong>: 这是最关键的一步。我们不能一个接一个地在每个 $x_i$ 上完整地运行 $M$，因为如果某个 $x_i \notin L$，$M$ 可能会在它上面永不停机，导致 $M'$ 卡住，永远无法检查其他的 $x_j$。</li>
+  <li>解决方法是<strong>并行模拟</strong>，也叫<strong>燕尾榫 (dovetailing)</strong>。$M'$ 以一种“轮询”或“分时”的方式在所有10条纸带上模拟 $M$。</li>
+  <li>描述中的 "模拟 $M$ 的 1 步" 正是此意。$M'$ 在纸带1上模拟 $M$ 一步，然后在纸带2上模拟 $M$ 一步，...，直到在纸带10上模拟 $M$ 一步。完成一轮后，再回到纸带1开始下一轮。</li>
+  <li><strong>如果 M 在纸带 i 上接受，则将其记录在纸带 11 上</strong>：在每一轮模拟中，如果任何一个模拟实例（比如在纸带 $i$ 上的）进入了 $M$ 的接受状态，$M'$ 就在它的记分牌（纸带11）上做个标记，比如在第 $i$ 个位置写个'1'。</li>
+  <li><strong>步骤3：检查条件并决定</strong>:</li>
+  <li>每完成一轮模拟后，$M'$ 都会检查记分牌（纸带11）上'1'的数量。</li>
+  <li>如果'1'的数量达到了9个，意味着已经有9个子串被 $M$ 接受了。此时满足了 $9/10(L)$ 的条件，$M'$ 就可以立刻停机并<strong>接受</strong>输入 $w$。</li>
+  <li>如果'1'的数量不足9个，就回到步骤2，继续进行下一轮的并行模拟。</li>
+</ul></li>
+  <li> <strong>正确性分析</strong>:
+<ul>
+  <li>如果 $w \in 9/10(L)$：这意味着至少有9个 $x_i$ 属于 $L$。由于 $M$ 是 $L$ 的识别器，对于这9个（或更多）子串，模拟 $M$ 最终都会停机接受。因此，随着 $M'$ 一轮一轮地模拟下去，记分牌上的'1'的数量迟早会达到9。到那时，$M'$ 就会停机接受 $w$。</li>
+  <li>如果 $w \notin 9/10(L)$：这意味着属于 $L$ 的子串数量少于9个（比如是8个或更少）。$M'$ 会持续地并行模拟。对于那8个属于 $L$ 的子串，模拟会最终接受，并在记分牌上记下8个'1'。但对于剩下的、不属于 $L$ 的子串，模拟 $M$ 可能会永不停机。因此，记分牌上的'1'的数量永远也达不到9。$M'$ 将会无限地执行步骤2和3的循环，永不停机。</li>
+  <li><strong>结论</strong>: $M'$ 对属于 $9/10(L)$ 的输入停机接受，对不属于的输入永不停机。根据定义，$M'$ 是 $9/10(L)$ 的<strong>识别器</strong>。因此，$9/10(L)$ 是可识别的。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li>假设 $L$ 是所有以'a'开头的字符串的语言。$M$ 是其识别器。</li>
+  <li><strong>示例1</strong>: 输入 $w = a\#ab\#abc\#abcd\#... (9个以a开头的串) ...\#b$。</li>
+</ul>
+<ol>
+  <li> $M'$ 将这10个串分配到10条纸带。</li>
+  <li> $M'$ 开始并行模拟。$M$ 在前9个串上的模拟会很快接受（因为它们都以'a'开头）。</li>
+  <li> 每当一个模拟接受时，$M'$ 就在记分牌上做标记。</li>
+  <li> 当记分牌上的标记达到9个时，$M'$ 停机并<strong>接受</strong> $w$。
+<ul>
+  <li><strong>示例2</strong>: 输入 $w = a\#ab\#... (8个以a开头的串) ...\#b\#bc$。</li>
+</ul></li>
+  <li> $M'$ 分配任务并开始并行模拟。</li>
+  <li> 对前8个串的模拟会相继接受，记分牌上会记下8个标记。</li>
+  <li> 对最后两个串 <strong>b</strong> 和 <strong>bc</strong> 的模拟，根据 $M$ 的设计，可能会拒绝或永不停机。</li>
+  <li> 无论如何，记分牌上的标记数永远无法达到9。</li>
+  <li> 因此，$M'$ 将永不停机。</li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>顺序模拟 vs 并行模拟</strong>: 最致命的错误就是顺序模拟。例如，先在 $x_1$ 上完整运行 $M$，再在 $x_2$ 上运行... 如果 $x_1 \notin L$ 并且 $M$ 在其上循环，那么整个 $M'$ 就卡死了，即使 $x_2$ 到 $x_{10}$ 都属于 $L$。<strong>并行模拟 (Dovetailing) 是处理多个可能无限的计算的关键技巧。</strong></li>
+  <li><strong>纸带数量</strong>: 实现中需要 $n+1$（这里是 $10+1=11$）条纸带是这个方法的特点。如果问题改成 $m/n(L)$，其中 $m, n$ 是变量，这种固定纸带数量的<strong>TM</strong>就不适用了，需要更通用的方法（见问题5）。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>通过构造一个多纸带<strong>图灵机</strong> $M'$，该机器使用并行模拟（Dovetailing）技术在多个子串上同时运行已知的识别器 $M$，并统计接受的数量。这种构造方法确保了当且仅当输入满足 $9/10(L)$ 的条件时，$M'$ 才会停机接受。这证明了可识别语言在该运算下是封闭的。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>这个问题旨在考察对<strong>可识别语言</strong>和<strong>封闭性</strong>概念的理解，并测试一个核心的<strong>TM</strong>构造技巧：<strong>并行模拟（Dovetailing）</strong>。这是处理多个可能不会停机的计算过程时的标准方法。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一个老师要检查10个学生的作业（$x_1, ..., x_{10}$），判断其中是否至少有9个是“优秀作业”（属于$L$）。这些作业可能非常难，有些学生（不属于$L$的）可能会写出让老师永远看不完的无限循环答案。</p>
+<ol>
+  <li><strong>错误策略（顺序检查）</strong>: 老师先拿起第一个学生的作业，埋头批改。如果这份作业是个无限循环，老师就永远陷在里面，再也看不到其他9个学生的优秀作业了。</li>
+  <li><strong>正确策略（并行检查）</strong>: 聪明的老师每次只看所有10份作业的一行。他看学生1的第一行，然后学生2的第一行...看完一轮后，再回来看学生1的第二行，以此类推。每当他发现一份作业是“优秀”的，他就在自己的记分板上画个勾。当他看到记分板上已经有9个勾时，他就可以立刻下班，宣布“任务完成”（接受）。如果优秀作业不够9份，他可能会发现自己需要永远地看下去，因为总有那么几份作业是看不完的。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象10个沙漏（$M$在$x_i$上的模拟）并排放在桌上。每个沙漏漏完代表计算接受。有些沙漏可能永远也漏不完（永不停机）。你的任务是判断是否至少有9个沙漏能漏完。你不会等第一个漏完再看第二个。你会同时启动所有沙漏，然后在一旁观察。每当有一个沙漏漏完了，你就在计数器上加一。当计数器显示“9”时，你就可以立刻宣布胜利，不用管剩下的那个沙漏是不是永远也漏不完。</p>
+    </div>
+</div><h5>4.2 高层描述解答</h5><p id="original-14"><strong style="font-size: 1.3rem;">📜 [原文14]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<p>高层：在输入 $w=x_{1} \# x_{2} \# \ldots \# x_{10}$ 上，并行运行 $M$ 在所有十个输入上，如果至少有 9 个接受，则接受。我们通过定义看到，如果 $w \in 9 / 10(\mathrm{~L})$，则我们接受；如果 $w \notin 9 / 10(\mathrm{~L})$，则我们不接受。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p><strong>高层描述 (High-level description)</strong> 是对<strong>TM</strong>算法最抽象的描述。它不关心读写头如何移动、纸带有几条等实现细节，只说明算法的逻辑。</p>
+<ol>
+  <li> <strong>在输入 w=x1#x2#...#x10 上</strong>: 明确算法的输入。</li>
+  <li> <strong>并行运行 M 在所有十个输入上</strong>: 这是描述的核心。"并行运行"是一个高层概念，它直接抓住了Dovetailing的精髓，即同时推进多个计算过程。在实现级别，我们用多纸带<strong>TM</strong>的分时模拟来实现它。在高层描述中，我们直接使用这个强大的概念。</li>
+  <li> <strong>如果至少有 9 个接受，则接受</strong>: 这是算法的终止和接受条件。一旦并行模拟中的9个分支报告了“接受”，整个机器就接受。</li>
+  <li> <strong>我们通过定义看到...</strong>: 这是一个简短的正确性论证。
+<ul>
+  <li>如果 $w \in 9/10(L)$，那么定义就保证了至少有9个 $x_i \in L$。由于 $M$ 识别 $L$，这9个并行分支最终都会接受，从而触发整台机器的接受。</li>
+  <li>如果 $w \notin 9/10(L)$，那么接受的分支数量将永远少于9。因此，接受条件永远不会被满足。由于某些分支可能会永远运行，整台机器也可能永远运行，即“不接受”（这符合识别器的定义，不接受可以是拒绝或循环）。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>高层描述用简洁的语言概括了识别 $9/10(L)$ 的算法思想：并行处理所有子任务，并设置一个关于“成功”子任务数量的接受阈值。它隐藏了实现的复杂性，但清晰地传达了算法的逻辑和正确性。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>高层描述用于快速、清晰地沟通算法思想，而不陷入技术细节的泥潭。在进行更复杂的证明时，通常从高层描述开始，以确保逻辑的正确性，然后再考虑如何用<strong>TM</strong>的具体操作来实现它。</p>
+    </div>
+</div><h4>5. 问题 5：证明可识别语言在 m/n 运算下是封闭的</h4><p id="original-15"><strong style="font-size: 1.3rem;">📜 [原文15]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ol>
+  <li>设 $L$ 是一个可识别语言。</li>
+</ol>
+<p>定义 $\mathrm{m} / \mathrm{n}(\mathrm{L})=\left\{&lt;\left(m, n, x_{1} \# x_{2} \# \ldots \# x_{n}\right)&gt;\mid\right.$ 至少 $m$ 个 $x_{1}, \ldots, x_{n}$ 在 $L$ 中\}。证明可识别语言在 m/n 运算下是封闭的。给出高层实现。</p>
+<p>注意：我们不能像上一个问题那样简单地在 $m$ 个纸带上模拟所有 $n$ 个字符串，因为我们必须提前声明我们的图灵机将使用的纸带数量，而我们在设计图灵机时不知道 $m$ 和 $n$ 是多少。</p>
+<p>考虑图灵机 $M^{\prime}$，它在输入 $w=\left(m, n, x_{1} \# x_{2} \# \ldots \# x_{n}\right)$ 上按如下方式操作：</p>
+<ol>
+  <li>将计数器变量设置为 1。</li>
+  <li>在每个 $x_{i}$ 上模拟 $M$（识别 $L$ 的图灵机）“计数器”步。也就是说，如果计数器是 1，则每个字符串只执行 1 步。</li>
+  <li>如果 $m$ 个 $x_{i}$ 接受，则接受。</li>
+  <li>增加计数器并返回步骤 2。</li>
+</ol>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题是问题4的泛化版本。</p>
+<ol>
+  <li> <strong>理解 m/n 运算</strong>:
+<ul>
+  <li>输入不再是固定的10个子串，而是 $n$ 个子串，其中 $n$ 是输入的一部分。</li>
+  <li>接受条件也不再是固定的9个，而是 $m$ 个，其中 $m$ 也是输入的一部分。</li>
+  <li>输入格式为 <strong><(m, n, x1#...#xn)></strong>，它编码了阈值 $m$、子串总数 $n$ 以及 $n$ 个子串本身。</li>
+</ul></li>
+  <li> <strong>新挑战</strong>:
+<ul>
+  <li>正如“注意”部分指出的，问题4的方法（使用11条纸带）在这里失效了。因为一台<strong>图灵机</strong>的纸带数量是<strong>固定</strong>的，是在设计时就确定好的。我们不能设计一台“有 $n+1$ 条纸带”的<strong>TM</strong>，因为 $n$ 是输入，是可变的。</li>
+  <li>我们需要一个更通用的方法来实现并行模拟，这个方法不能依赖于有足够多的纸带。</li>
+</ul></li>
+  <li> <strong>分析高层实现</strong>:
+<ul>
+  <li>这个实现描述了一种在<strong>单条纸带</strong>上（或固定数量纸带上）模拟任意多个并行计算的方法。</li>
+  <li><strong>核心思想</strong>: 用一个逐步增加的“步数限制”来代替分时轮询。</li>
+  <li><strong>步骤1：初始化计数器</strong>: <strong>将计数器变量设置为 1</strong>。这个计数器（我们称之为 <strong>s</strong>）代表本轮模拟中，每个子任务被允许运行的总步数。</li>
+  <li><strong>步骤2：有限步数的并行模拟</strong>:</li>
+  <li><strong>在每个 xi 上模拟 M ... "计数器" 步</strong>: 这一步是算法的关键。$M'$ 会依次对每个 $x_i$ (从 $i=1$ 到 $n$) 进行模拟。</li>
+  <li>对于 $x_1$，模拟 $M$ 最多 $s$ 步。</li>
+  <li>然后，清空现场，对于 $x_2$，从头开始模拟 $M$ 最多 $s$ 步。</li>
+  <li>...</li>
+  <li>对于 $x_n$，从头开始模拟 $M$ 最多 $s$ 步。</li>
+  <li>在这一大轮中，如果任何一个模拟在 $s$ 步内接受了，就记录下来。</li>
+  <li><strong>步骤3：检查条件</strong>: 在完成对所有 $n$ 个子串的 $s$ 步模拟后，检查记录下来的已接受的子串数量。如果数量达到 $m$，则整台机器<strong>接受</strong>。</li>
+  <li><strong>步骤4：增加资源并重试</strong>: 如果接受数量不足 $m$，说明当前的步数限制 $s$ 可能太小了，那些需要更多步数才能被接受的计算还没有完成。于是，我们将计数器 <strong>s</strong> 加一，然后回到步骤2，用更大的步数限制（$s+1$）重新进行所有模拟。</li>
+</ul></li>
+  <li> <strong>正确性分析</strong>:
+<ul>
+  <li>如果 $w \in m/n(L)$: 意味着至少有 $m$ 个子串 $x_i$ 属于 $L$。对于每个这样的 $x_i$，识别器 $M$ 会在有限步数内接受它。假设这 $m$ 个子串分别需要 $s_1, s_2, ..., s_m$ 步。令 $S_{max} = \max(s_1, ..., s_m)$。当 $M'$ 的计数器 <strong>s</strong> 增长到 $S_{max}$ 时，在第 $S_{max}$ 轮大循环中，对这 $m$ 个子串的模拟都将在给定的 $S_{max}$ 步数限制内完成并接受。此时，$M'$ 在步骤3会发现已有 $m$ 个接受，于是停机并<strong>接受</strong> $w$。</li>
+  <li>如果 $w \notin m/n(L)$: 意味着属于 $L$ 的子串数量少于 $m$ 个。无论计数器 <strong>s</strong> 变得多大，最多也只能有少于 $m$ 个模拟会报告接受。因此，步骤3的接受条件永远不会满足。$M'$ 将无限地增加计数器 <strong>s</strong> 并重复模拟过程，即<strong>永不停机</strong>。</li>
+  <li><strong>结论</strong>: $M'$ 是 $m/n(L)$ 的识别器。因此该语言是可识别的。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li>假设 $L = \{a^k b^k \mid k \ge 0\}$ 是可识别的。</li>
+  <li>输入 $w = &lt;(2, 3, ab\#aabb\#acb)&gt;$。即 $m=2, n=3$。</li>
+  <li><strong>$s=1$ 轮</strong>:</li>
+  <li>模拟 $M$ 在 <strong>ab</strong> 上1步。未接受。</li>
+  <li>模拟 $M$ 在 <strong>aabb</strong> 上1步。未接受。</li>
+  <li>模拟 $M$ 在 <strong>acb</strong> 上1步。未接受。</li>
+  <li>接受计数=0。不足2。计数器 <strong>s</strong> 变2。</li>
+  <li><strong>$s=2, 3, ...$ 轮</strong>: ...</li>
+  <li>假设 $M$ 在 <strong>ab</strong> 上需要 $s_1$ 步接受，在 <strong>aabb</strong> 上需要 $s_2$ 步接受。</li>
+  <li><strong>$s = \max(s_1, s_2)$ 轮</strong>:</li>
+  <li>模拟 $M$ 在 <strong>ab</strong> 上 $s$ 步。接受。接受计数=1。</li>
+  <li>模拟 $M$ 在 <strong>aabb</strong> 上 $s$ 步。接受。接受计数=2。</li>
+  <li>模拟 $M$ 在 <strong>acb</strong> 上 $s$ 步。$M$ 在 <strong>acb</strong> 上永不接受。模拟 $s$ 步后未接受。</li>
+  <li>完成这一轮后，检查接受计数为2。满足条件 $m=2$。</li>
+  <li>$M'$ 停机并<strong>接受</strong>。</li>
+</ul>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>资源消耗</strong>: 这种模拟方法非常低效。每一轮大循环都从头开始所有模拟，浪费了之前的计算。但在理论上，只要能保证正确性和停机行为（对于识别器而言是部分停机），效率不是首要考虑的。</li>
+  <li><strong>与Dovetailing的区别</strong>: 问题4的多纸带方法是“真”并行，每个模拟的状态都被保留。这个问题的方法是“伪”并行，通过不断重置和增加步数限制来达到类似效果。后者更通用，因为它不依赖于纸带数量。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>这个问题展示了如何构造一个通用的并行模拟器，它不依赖于固定数量的纸带，而是通过一个全局的、逐步增加的步数限制来实现对任意多个计算的并行推进。这种方法证明了可识别语言对于更广义的 $m/n$ 运算也是封闭的。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本题旨在深化对并行模拟（Dovetailing）思想的理解，并展示其更通用、不依赖于硬件资源（纸带数）的实现方式。这对于处理输入中包含可变数量子任务的判定/识别问题至关重要。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>回到检查学生作业的老师。现在他面对一个班级，学生人数 $n$ 和需要达到的优秀作业数 $m$ 都是动态的。他只有一张桌子（单纸带）。</p>
+<ol>
+  <li>他不能同时看所有作业。</li>
+  <li>他的策略是：</li>
+</ol>
+<ol>
+  <li> <strong>第一轮</strong>: 他规定“本轮只允许我看每份作业的第1页”。他快速翻阅了所有 $n$ 份作业的第1页。在旁边记下哪些作业在第1页就看出了是“优秀”。</li>
+  <li> 检查记分板，如果优秀数达到 $m$，就下班。</li>
+  <li> <strong>第二轮</strong>: 如果不够，他宣布“本轮允许我看每份作业的前2页”。他再次从头开始，翻阅所有 $n$ 份作业的前2页...</li>
+  <li> 他不断增加允许看的页数，直到凑够 $m$ 份优秀作业，或者永远进行下去。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象一个电影节评委，要从 $n$ 部电影中选出至少 $m$ 部“佳作”。有些电影可能是实验性的，长达数年（永不停机）。</p>
+<ol>
+  <li>评委不能一部一部完整看完。</li>
+  <li>他的策略是：</li>
+</ol>
+<ol>
+  <li> <strong>第一天</strong>: 他宣布，今天所有电影只看前1分钟。他看了所有 $n$ 部电影的前1分钟，并记下哪些已经是佳作。</li>
+  <li> 如果佳作够 $m$ 部，评选结束。</li>
+  <li> <strong>第二天</strong>: 他宣布，今天所有电影都从头看，看前2分钟。</li>
+  <li> 他每天都增加观看时长，并从头看所有电影。只要有一天，他发现凑够了 $m$ 部佳作，他就可以宣布评选结束。如果佳作本来就不够 $m$ 部，这个电影节可能就永远开下去了。</li>
+</ol>
+    </div>
+</div><h4>6. 问题 6：为一个关于图的语言设计非确定性图灵机</h4><p id="original-16"><strong style="font-size: 1.3rem;">📜 [原文16]</strong></p>
+<div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
+<ol>
+  <li>设 CYCLE $=\{\langle G\rangle \mid G$ 是一个包含至少一个循环的图 $\}$。给出一个判定语言 CYCLE 的非确定性图灵机。</li>
+</ol>
+<p>考虑以下 <strong>NTM</strong> $N^{\prime}$：在输入 $w=\langle G\rangle$ 上，其中 $G$ 是一个图，我们非确定性地选择 $G$ 中的一个顶点 $v$，然后运行第 2.2 节中用于 REACHABILITY 的 <strong>NTM</strong> $N$ 在 $\langle G, v, v\rangle$ 上，并输出 $N$ 的输出。</p>
+<p>观察到，如果 $w \in$ CYCLE，那么根据定义，某个顶点可以从自身到达，因此存在一个顶点选择使 $N$ 接受，从而 $N^{\prime}$ 也接受。</p>
+<p>如果 $w \notin$ CYCLE，那么没有顶点可以从自身到达，所以每个选择都使 $N$ 拒绝，从而每个选择都使 $N^{\prime}$ 拒绝。</p>
+</div><div class="explain-box">
+    <div class="box-label">📖 [逐步解释]</div>
+    <div class="box-content">
+<p>这个问题要求我们为语言 CYCLE 设计一个<strong>非确定性图灵机 (Nondeterministic Turing Machine, NTM)</strong>。</p>
+<ol>
+  <li> <strong>理解语言 CYCLE</strong>:
+<ul>
+  <li>语言的成员是图 $G$ 的编码 $\langle G \rangle$。</li>
+  <li>条件是图 $G$ 包含<strong>至少一个循环 (cycle)</strong>。</li>
+  <li>一个循环是一个非空的路径，其起点和终点是同一个顶点。这意味着图中有某个顶点 $v$，存在一条从 $v$ 出发，经过一个或多个其他顶点（或不经过），最终能回到 $v$ 的路径。</li>
+  <li>换句话说，一个图有环，当且仅当<strong>存在一个顶点 $v$ 可以到达它自身</strong>。</li>
+</ul></li>
+  <li> <strong>非确定性图灵机 (NTM)</strong>:
+<ul>
+  <li>与确定性<strong>TM</strong>（<strong>DTM</strong>）不同，<strong>NTM</strong>的转移函数 $\delta(q, a)$ 可以返回一个<strong>状态、写入符号和移动方向的组合的集合</strong>。</li>
+  <li>这意味着在计算的某一步，<strong>NTM</strong>可以有多种选择，可以同时走向多个不同的计算分支。</li>
+  <li><strong>NTM</strong>接受一个输入，如果<strong>至少有一个</strong>计算分支进入接受状态。</li>
+  <li><strong>NTM</strong>的强大之处在于它的“猜测”能力。我们可以把它看作是：<strong>NTM</strong>可以非确定性地（即靠运气或魔法）“猜”一个东西，然后确定性地“验证”这个猜测是否正确。</li>
+</ul></li>
+  <li> <strong>分析所给的 NTM $N'$ 的设计</strong>:
+<ul>
+  <li><strong>输入</strong>: $\langle G \rangle$，一个图的编码。</li>
+  <li><strong>步骤1：非确定性选择 (猜测)</strong>: <strong>非确定性地选择 G 中的一个顶点 v</strong>。</li>
+  <li>这是<strong>NTM</strong>的核心能力。想象<strong>NTM</strong>在这一步分裂成多个并行的宇宙。如果图 $G$ 有 $k$ 个顶点 $\{v_1, ..., v_k\}$，<strong>NTM</strong>就分裂成 $k$ 个计算分支。第一个分支选择了 $v_1$，第二个分支选择了 $v_2$，以此类推。每个分支都“猜”了一个不同的顶点。</li>
+  <li><strong>步骤2：确定性验证</strong>: <strong>运行...用于 REACHABILITY 的 NTM N 在 <G, v, v> 上</strong>。</li>
+  <li>REACHABILITY 是一个语言，定义为 $\{\langle G, s, t \rangle \mid \text{图 } G \text{ 中存在一条从顶点 } s \text{到顶点 } t \text{ 的路径}\}$。</li>
+  <li>我们假设已经有一个<strong>NTM</strong> $N$ 可以判定（或识别）REACHABILITY。（实际上REACHABILITY是可判定的）。</li>
+  <li>在每个计算分支中，我们都调用这个 $N$ 作为子程序，来检查我们猜测的顶点 $v$ 是否能到达它自己。也就是说，我们检查 $\langle G, v, v \rangle$ 是否在 REACHABILITY 语言中。</li>
+  <li><strong>步骤3：输出结果</strong>: <strong>并输出 N 的输出</strong>。</li>
+  <li>如果某个分支（比如猜测了顶点 $v_i$）发现 $v_i$ 可以到达自身，那么这个分支上的 $N$ 就会接受。根据<strong>NTM</strong>的接受定义，整个<strong>NTM</strong> $N'$ 也就<strong>接受</strong>了输入 $\langle G \rangle$。</li>
+</ul></li>
+  <li> <strong>正确性分析</strong>:
+<ul>
+  <li><strong>如果 $G$ 包含一个循环</strong>:</li>
+  <li>根据循环的定义，必然存在某个顶点 $v^*$，它位于一个环上，因此 $v^*$ 可以到达自身。</li>
+  <li>在 $N'$ 的非确定性选择步骤中，必然有一个计算分支会“猜”中这个正确的顶点 $v^*$。</li>
+  <li>在这个分支上，调用 $N$ 来检查 $\langle G, v^*, v^* \rangle$。因为 $v^*$ 确实可以到达自身，所以 $N$ 会接受。</li>
+  <li>由于至少有一个分支接受了，所以 $N'$ 最终会<strong>接受</strong> $\langle G \rangle$。</li>
+  <li><strong>如果 $G$ 不包含循环</strong>:</li>
+  <li>这意味着图中没有任何顶点可以到达自身。</li>
+  <li>无论 $N'$ 在步骤1中非确定性地选择了哪个顶点 $v$，当它调用 $N$ 来检查 $\langle G, v, v \rangle$ 时，由于 $v$ 无法到达自身，$N$ 都将拒绝（或不接受）。</li>
+  <li>因为<strong>所有</strong>的计算分支都最终走向了拒绝，所以 $N'$ 最终会<strong>拒绝</strong> $\langle G \rangle$。</li>
+</ul></li>
+  <li> <strong>结论</strong>:
+<ul>
+  <li>这个<strong>NTM</strong> $N'$ 正确地判定了语言 CYCLE。它在图有环时接受，在图无环时拒绝。</li>
+</ul></li>
+</ol>
+    </div>
+</div><div class="example-box">
+    <div class="box-label">💡 [数值示例]</div>
+    <div class="box-content">
+<ul>
+  <li><strong>示例1</strong>: $G$ 是一个图 $A \to B \to C \to A$。这个图包含一个循环。</li>
+</ul>
+<ol>
+  <li> $N'$ 接收输入 $\langle G \rangle$。</li>
+  <li> $N'$ 非确定性地分裂成3个分支，分别猜测顶点 A, B, C。</li>
+  <li> <strong>分支A</strong>: 猜 A。调用 $N$ 检查 <strong>REACHABILITY(G, A, A)</strong>。因为存在路径 $A \to B \to C \to A$，所以 $N$ 接受。这个分支接受。</li>
+  <li> 由于有一个分支接受了，整个<strong>NTM</strong> $N'$ 立即<strong>接受</strong> $\langle G \rangle$。我们甚至不需要关心分支B和分支C的结果。
+<ul>
+  <li><strong>示例2</strong>: $G$ 是一个图 $A \to B \to C$。这是个有向无环图 (DAG)。</li>
+</ul></li>
+  <li> $N'$ 接收输入 $\langle G \rangle$。</li>
+  <li> $N'$ 分裂成3个分支，猜 A, B, C。</li>
+  <li> <strong>分支A</strong>: 猜 A。调用 $N$ 检查 <strong>REACHABILITY(G, A, A)</strong>。A无法到达A。$N$ 拒绝。</li>
+  <li> <strong>分支B</strong>: 猜 B。调用 $N$ 检查 <strong>REACHABILITY(G, B, B)</strong>。B无法到达B。$N$ 拒绝。</li>
+  <li> <strong>分支C</strong>: 猜 C。调用 $N$ 检查 <strong>REACHABILITY(G, C, C)</strong>。C无法到达C。$N$ 拒绝。</li>
+  <li> 由于所有的分支都拒绝了，整个<strong>NTM</strong> $N'$ <strong>拒绝</strong> $\langle G \rangle$。</li>
+</ol>
+    </div>
+</div><div class="warning-box">
+    <div class="box-label">⚠️ [易错点]</div>
+    <div class="box-content">
+<ol>
+  <li><strong>NTM vs DTM</strong>: 如果用确定性<strong>TM</strong>（<strong>DTM</strong>）来解决这个问题，算法会是：依次<strong>遍历</strong>图中的每一个顶点 $v$，然后对于每一个 $v$，运行一个确定性的算法（如广度优先搜索BFS或深度优先搜索DFS）来检查是否存在从 $v$ 到 $v$ 的路径。<strong>NTM</strong>的“非确定性选择”在概念上等价于这个遍历，但它把“循环/遍历”这个确定性过程转变成了一次性的“猜测”。</li>
+  <li><strong>对REACHABILITY的依赖</strong>: 这个解法假设 REACHABILITY 是可判定的（或至少是可由一个<strong>NTM</strong>解决的），这是一个已知的事实。在证明中，我们可以像调用函数一样使用已知的可判定/可识别语言的<strong>TM</strong>。</li>
+</ol>
+    </div>
+</div><div class="summary-box">
+    <div class="box-label">📝 [总结]</div>
+    <div class="box-content">
+<p>该解法巧妙地利用了<strong>非确定性图灵机</strong>的“猜测并验证”的能力。它将“图中是否存在一个环”的问题，转化为了“猜测一个顶点 $v$，并验证 $v$ 是否能到达它自己”。这充分展示了非确定性在简化算法描述和设计上的威力。</p>
+    </div>
+</div><div class="purpose-box">
+    <div class="box-label">🎯 [存在目的]</div>
+    <div class="box-content">
+<p>本题旨在考察对<strong>非确定性计算</strong>模型的理解和应用。通过一个具体的图论问题，展示如何利用非确定性选择来简化问题的解决思路，将一个需要搜索（遍历所有顶点）的问题转化为一个单一的“猜-证”过程。</p>
+    </div>
+</div><div class="intuition-box">
+    <div class="box-label">🧠 [直觉心智模型]</div>
+    <div class="box-content">
+<p>想象一个迷宫（图$G$），你想知道里面有没有环路。</p>
+<ol>
+  <li><strong>确定性方法</strong>: 你是一个勤劳的机器人。你从第一个入口进去，系统地探索所有路径，看能不能回到这个入口。然后再去第二个入口，重复此过程... 直到检查完所有入口。</li>
+  <li><strong>非确定性方法</strong>: 你是一个有魔法的幽灵。你在一瞬间分裂成无数个分身，每个分身站在迷宫的一个入口（顶点）。然后所有分身同时开始探索，看自己能否回到自己出发的入口。只要有一个分身报告说“我回来了！”，你（作为本体）就可以立刻知道这个迷宫有环路。</li>
+</ol>
+    </div>
+</div><div class="imagination-box">
+    <div class="box-label">💭 [直观想象]</div>
+    <div class="box-content">
+<p>想象你在一个巨大的社交网络上，你想知道是否存在“朋友圈怪圈”（比如A是B的朋友，B是C的朋友，C又是A的朋友）。</p>
+<ol>
+  <li><strong>确定性方法</strong>: 你一个个地检查网络上的所有人。对张三，你检查他所有的朋友关系链，看能不能绕回张三自己。然后再对李四做同样的事...</li>
+  <li><strong>非确定性方法</strong>: 你大喊一声：“你们谁能通过好友关系最终找到自己？！” 由于非确定性的魔力，所有可能存在于环路上的那个人会立刻回应：“我能！” 于是你马上就知道了答案。</li>
+</ol>
+    </div>
+</div>
+</section>
+
+<section class="content-section" id="section-2">
+    <h2><span class="section-number">2</span>行间公式索引</h2>
+    <p>1.  <strong>问题2的核心计算函数</strong></p><p><div class="math-block">$$
+    f(\#\langle x\rangle)=\left\{\begin{array}{cc}
+    \#\langle x / 2\rangle &amp; \text { if } x \text { is even } \\
+    \#\langle 3 x+1\rangle &amp; \text { otherwise }
+    \end{array}\right.
+$$</div></p><p>该公式定义了一个分段函数，它根据输入数字 $x$ 的奇偶性，分别对其执行除以2或乘以3加1的运算。</p><p>[[END_OF_RESPONSE]]所有解释内容已全部输出完毕。</p>
+</section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>行间公式索引</p>
+    </footer>
+
+
+    <!-- 手机端点击翻页功能 -->
+    <script>
+        (function() {
+            // 点击翻页功能（在所有设备上启用）
+            
+            document.addEventListener('click', function(e) {
+                // 如果 TOC 目录面板处于打开状态，不触发翻页
+                var tocPanel = document.getElementById('tocPanel');
+                if (tocPanel && tocPanel.classList.contains('active')) {
+                    return;
+                }
+                
+                // 排除对链接、按钮、输入框等交互元素的点击
+                var target = e.target;
+                var tagName = target.tagName.toLowerCase();
+                if (tagName === 'a' || tagName === 'button' || tagName === 'input' || 
+                    tagName === 'textarea' || tagName === 'select' || 
+                    target.closest('a') || target.closest('button') ||
+                    target.closest('.toc-panel') || target.closest('.toc-toggle') ||
+                    target.closest('.toc-overlay')) {
+                    return;
+                }
+                
+                var clickY = e.clientY;
+                var windowHeight = window.innerHeight;
+                var scrollAmount = windowHeight * 0.85; // 滚动85%的屏幕高度
+                
+                if (clickY > windowHeight / 2) {
+                    // 点击下半部分：向下翻页
+                    window.scrollBy({
+                        top: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // 点击上半部分：向上翻页
+                    window.scrollBy({
+                        top: -scrollAmount,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        })();
+    </script>
+
+    <!-- TOC 目录控制脚本 -->
+    <script>
+        (function() {
+            var tocToggle = document.getElementById('tocToggle');
+            var tocPanel = document.getElementById('tocPanel');
+            var tocOverlay = document.getElementById('tocOverlay');
+            
+            // 切换目录显示/隐藏
+            function toggleTOC() {
+                var isOpen = tocPanel.classList.contains('active');
+                if (isOpen) {
+                    closeTOC();
+                } else {
+                    openTOC();
+                }
+            }
+            
+            // 打开目录
+            function openTOC() {
+                tocPanel.classList.add('active');
+                tocOverlay.classList.add('active');
+                tocToggle.setAttribute('aria-label', '关闭目录');
+            }
+            
+            // 关闭目录
+            function closeTOC() {
+                tocPanel.classList.remove('active');
+                tocOverlay.classList.remove('active');
+                tocToggle.setAttribute('aria-label', '打开目录');
+            }
+            
+            // 点击按钮切换目录
+            tocToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleTOC();
+            });
+            
+            // 点击遮罩层关闭目录
+            tocOverlay.addEventListener('click', function() {
+                closeTOC();
+            });
+            
+            // 点击目录项后关闭目录
+            var tocLinks = tocPanel.querySelectorAll('a');
+            tocLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    closeTOC();
+                });
+            });
+            
+            // ESC 键关闭目录
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && tocPanel.classList.contains('active')) {
+                    closeTOC();
+                }
+            });
+            
+            // 高亮当前可见的目录条目
+            function updateActiveItem() {
+                var scrollPos = window.scrollY + 150;  // 偏移量
+                var activeSection = null;
+                var activeOriginal = null;
+                
+                // 查找当前可见的 section
+                var sections = document.querySelectorAll('section[id^="section-"]');
+                for (var i = 0; i < sections.length; i++) {
+                    var section = sections[i];
+                    if (section.offsetTop <= scrollPos) {
+                        activeSection = section.id;
+                    }
+                }
+                
+                // 查找当前可见的原文区块
+                var originals = document.querySelectorAll('[id^="original-"]');
+                for (var j = 0; j < originals.length; j++) {
+                    var original = originals[j];
+                    if (original.offsetTop <= scrollPos) {
+                        activeOriginal = original.id;
+                    }
+                }
+                
+                // 先移除所有 active 类
+                var allHeadings = tocPanel.querySelectorAll('.toc-heading');
+                for (var h = 0; h < allHeadings.length; h++) {
+                    allHeadings[h].classList.remove('active');
+                }
+                
+                var allOriginals = tocPanel.querySelectorAll('.toc-original');
+                for (var o = 0; o < allOriginals.length; o++) {
+                    allOriginals[o].classList.remove('active');
+                }
+                
+                // 只给当前活动的条目添加 active 类
+                if (activeSection) {
+                    var activeHeadingLink = tocPanel.querySelector('.toc-heading a[href="#' + activeSection + '"]');
+                    if (activeHeadingLink) {
+                        activeHeadingLink.parentElement.classList.add('active');
+                    }
+                }
+                
+                if (activeOriginal) {
+                    var activeOriginalLink = tocPanel.querySelector('.toc-original a[href="#' + activeOriginal + '"]');
+                    if (activeOriginalLink) {
+                        activeOriginalLink.parentElement.classList.add('active');
+                    }
+                }
+            }
+            
+            // 节流函数
+            var scrollTimeout;
+            function throttledUpdate() {
+                if (scrollTimeout) return;
+                scrollTimeout = setTimeout(function() {
+                    updateActiveItem();
+                    scrollTimeout = null;
+                }, 100);
+            }
+            
+            // 监听滚动事件
+            window.addEventListener('scroll', throttledUpdate);
+            
+            // 打开目录时立即更新高亮
+            var originalOpenTOC = openTOC;
+            openTOC = function() {
+                originalOpenTOC();
+                updateActiveItem();
+            };
+            
+            // 初始化
+            updateActiveItem();
+        })();
+    </script>
+</body>
+</html>

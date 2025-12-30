@@ -2813,10 +2813,48 @@ $$</div></strong>格式的行间公式。因此，行间公式索引为空。如
             var exportMdBtn = document.getElementById('exportMdBtn');
             var copyAllBtn = document.getElementById('copyAllBtn');
             var clearAllBtn = document.getElementById('clearAllBtn');
+            // iOS: cache last selection before taps clear it
+            var lastSelectionRange = null;
+            var lastSelectionText = '';
+            var lastSelectionAt = 0;
+            var SELECTION_CACHE_MS = 6000;
             
             // ===== 位置与高亮辅助 =====
             function getRootContainer() {
                 return document.querySelector('.container');
+            }
+            
+            function cacheSelection() {
+                var selection = window.getSelection();
+                if (!selection || selection.rangeCount === 0) {
+                    return false;
+                }
+                var text = selection.toString().trim();
+                if (!text) {
+                    return false;
+                }
+                var range = selection.getRangeAt(0).cloneRange();
+                var root = getRootContainer();
+                if (root && !root.contains(range.commonAncestorContainer)) {
+                    return false;
+                }
+                lastSelectionRange = range;
+                lastSelectionText = text;
+                lastSelectionAt = Date.now();
+                return true;
+            }
+            
+            function getCachedSelection() {
+                if (!lastSelectionRange || !lastSelectionText) {
+                    return null;
+                }
+                if (Date.now() - lastSelectionAt > SELECTION_CACHE_MS) {
+                    return null;
+                }
+                return {
+                    range: lastSelectionRange,
+                    text: lastSelectionText
+                };
             }
             
             function getClosestBlockElement(node, root) {
@@ -3633,18 +3671,29 @@ $$</div></strong>格式的行间公式。因此，行间公式索引为空。如
             }
             
             // ===== 高亮选中文字功能 =====
-            function highlightSelection() {
+            function highlightSelection(rangeOverride, textOverride) {
                 var selection = window.getSelection();
-                if (!selection || selection.rangeCount === 0) {
-                    return false;
+                var range = rangeOverride || null;
+                var text = textOverride || '';
+                if (!range || !text) {
+                    if (!selection || selection.rangeCount === 0) {
+                        return false;
+                    }
+                    text = selection.toString().trim();
+                    if (text.length === 0) {
+                        return false;
+                    }
+                    range = selection.getRangeAt(0).cloneRange();
+                } else {
+                    text = text.trim();
+                    if (text.length === 0) {
+                        return false;
+                    }
+                    if (range.cloneRange) {
+                        range = range.cloneRange();
+                    }
                 }
                 
-                var text = selection.toString().trim();
-                if (text.length === 0) {
-                    return false;
-                }
-                
-                var range = selection.getRangeAt(0).cloneRange();
                 var root = getRootContainer();
                 var startBlock = root ? getClosestBlockElement(range.startContainer, root) : null;
                 var endBlock = root ? getClosestBlockElement(range.endContainer, root) : null;
@@ -3714,25 +3763,41 @@ $$</div></strong>格式的行间公式。因此，行间公式索引为空。如
                 }
                 
                 // 清除选择
-                selection.removeAllRanges();
+                if (selection && selection.removeAllRanges) {
+                    selection.removeAllRanges();
+                }
+                lastSelectionRange = null;
+                lastSelectionText = '';
+                lastSelectionAt = 0;
                 return true;
             }
             
             // 点击按钮：有选中文字则添加笔记，无选中文字则切换笔记面板
+            notesToggle.addEventListener('touchstart', function() {
+                cacheSelection();
+            }, { passive: true });
+
+            document.addEventListener('selectionchange', function() {
+                cacheSelection();
+            });
+
             notesToggle.addEventListener('click', function(e) {
                 e.stopPropagation();
                 
-                // 检查是否有选中的文字
                 var selection = window.getSelection();
-                var hasSelection = selection && selection.toString().trim().length > 0;
-                
-                if (hasSelection) {
-                    // 有选中文字，添加高亮并存入笔记
-                    highlightSelection();
-                } else {
-                    // 无选中文字，切换笔记面板显示
-                    toggleNotes();
+                var text = selection ? selection.toString().trim() : '';
+                if (text.length > 0 && selection && selection.rangeCount > 0) {
+                    highlightSelection(selection.getRangeAt(0).cloneRange(), text);
+                    return;
                 }
+                
+                var cached = getCachedSelection();
+                if (cached) {
+                    highlightSelection(cached.range, cached.text);
+                    return;
+                }
+                
+                toggleNotes();
             });
             
             // 点击遮罩层关闭笔记面板

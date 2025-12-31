@@ -1753,6 +1753,9 @@
         </div>
         <div class="notes-actions">
             <button class="notes-action-btn" id="exportMdBtn">📄 导出 Markdown</button>
+            <button class="notes-action-btn" id="exportBackupBtn">💾 导出备份</button>
+            <button class="notes-action-btn" id="importBackupBtn">📥 导入备份</button>
+            <input type="file" id="importFileInput" accept=".json" style="display:none;">
             <button class="notes-action-btn" id="copyAllBtn">📋 复制全部</button>
             <button class="notes-action-btn danger" id="clearAllBtn">🗑️ 清空</button>
         </div>
@@ -3168,6 +3171,9 @@ $$</div></p>
             var notesEmpty = document.getElementById('notesEmpty');
             var notesList = document.getElementById('notesList');
             var exportMdBtn = document.getElementById('exportMdBtn');
+            var exportBackupBtn = document.getElementById('exportBackupBtn');
+            var importBackupBtn = document.getElementById('importBackupBtn');
+            var importFileInput = document.getElementById('importFileInput');
             var copyAllBtn = document.getElementById('copyAllBtn');
             var clearAllBtn = document.getElementById('clearAllBtn');
             // iOS: cache last selection before taps clear it
@@ -4350,7 +4356,7 @@ $$</div></p>
                 }).join('\n\n');
                 
                 navigator.clipboard.writeText(text).then(function() {
-                    alert('已复制 ' + highlights.length + ' 条笔记到剪贴板');
+                    showToast('已复制 ' + highlights.length + ' 条笔记到剪贴板');
                 }).catch(function(err) {
                     console.error('复制失败:', err);
                     // 回退方案
@@ -4360,8 +4366,143 @@ $$</div></p>
                     textarea.select();
                     document.execCommand('copy');
                     document.body.removeChild(textarea);
-                    alert('已复制 ' + highlights.length + ' 条笔记到剪贴板');
+                    showToast('已复制 ' + highlights.length + ' 条笔记到剪贴板');
                 });
+            });
+            
+            // ===== 导出完整备份（JSON格式含定位信息）=====
+            exportBackupBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var highlights = getHighlights();
+                if (highlights.length === 0) {
+                    alert('暂无笔记可导出');
+                    return;
+                }
+                
+                var backupData = {
+                    version: 1,
+                    exportTime: new Date().toISOString(),
+                    pageTitle: document.title || '',
+                    pathname: window.location.pathname || '',
+                    highlights: highlights
+                };
+                
+                var json = JSON.stringify(backupData, null, 2);
+                var filename = buildExportFileName().replace(/\.md$/i, '') + '_备份.json';
+                
+                var blob = null;
+                try {
+                    blob = new File([json], filename, { type: 'application/json;charset=utf-8' });
+                } catch (e) {
+                    blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+                }
+                var url = URL.createObjectURL(blob);
+                if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+                    window.navigator.msSaveOrOpenBlob(blob, filename);
+                    URL.revokeObjectURL(url);
+                    return;
+                }
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.setAttribute('download', filename);
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(function() {
+                    URL.revokeObjectURL(url);
+                }, 1000);
+                
+                showToast('已导出 ' + highlights.length + ' 条笔记备份');
+            });
+            
+            // ===== 导入备份 =====
+            importBackupBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                importFileInput.click();
+            });
+            
+            importFileInput.addEventListener('change', function(e) {
+                var file = e.target.files[0];
+                if (!file) {
+                    return;
+                }
+                
+                var reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        var data = JSON.parse(event.target.result);
+                        
+                        // 验证数据格式
+                        if (!data.highlights || !Array.isArray(data.highlights)) {
+                            alert('无效的备份文件格式');
+                            return;
+                        }
+                        
+                        var importedCount = data.highlights.length;
+                        if (importedCount === 0) {
+                            alert('备份文件中没有笔记');
+                            return;
+                        }
+                        
+                        var currentHighlights = getHighlights();
+                        
+                        // 增量导入：只添加不存在的新笔记（基于文本内容比较）
+                        var existingTexts = {};
+                        currentHighlights.forEach(function(h) {
+                            existingTexts[h.text] = true;
+                        });
+                        
+                        var newHighlights = currentHighlights.slice();
+                        var addedCount = 0;
+                        var skippedCount = 0;
+                        
+                        data.highlights.forEach(function(h) {
+                            // 检查是否已存在相同内容的笔记
+                            if (existingTexts[h.text]) {
+                                skippedCount++;
+                                return;  // 跳过已存在的
+                            }
+                            // 生成新ID避免冲突
+                            h.id = Date.now().toString() + '_' + Math.random().toString(36).substr(2, 9);
+                            newHighlights.push(h);
+                            existingTexts[h.text] = true;  // 标记为已存在，避免同一备份中的重复
+                            addedCount++;
+                        });
+                        
+                        if (addedCount === 0) {
+                            showToast('备份中的笔记均已存在，无新增');
+                            return;
+                        }
+                        
+                        saveHighlights(newHighlights);
+                        
+                        // 更新UI
+                        updateUI();
+                        
+                        // 恢复高亮显示
+                        waitForMathJaxReady(restoreHighlights);
+                        
+                        var message = '已增量导入 ' + addedCount + ' 条新笔记';
+                        if (skippedCount > 0) {
+                            message += '（跳过 ' + skippedCount + ' 条已存在）';
+                        }
+                        showToast(message);
+                        
+                    } catch (err) {
+                        console.error('导入失败:', err);
+                        alert('导入失败：文件格式错误或已损坏');
+                    }
+                };
+                
+                reader.onerror = function() {
+                    alert('读取文件失败');
+                };
+                
+                reader.readAsText(file);
+                
+                // 重置文件输入，允许重复选择同一文件
+                importFileInput.value = '';
             });
             
             clearAllBtn.addEventListener('click', function(e) {

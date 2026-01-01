@@ -1485,8 +1485,33 @@
             background: #f7fafc;
             border-bottom: 1px solid #e2e8f0;
             display: flex;
+            flex-direction: column;
             gap: 10px;
+        }
+
+        .notes-actions-row {
+            display: flex;
             flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .notes-mode-toggle {
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #2a6a72;
+            background: #e8f4f5;
+            border: 1px solid #b7d1d5;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .notes-mode-toggle:hover {
+            background: #d8ecee;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(54, 130, 140, 0.2);
         }
         
         .notes-action-btn {
@@ -1610,8 +1635,26 @@
             color: #2d3748;
             line-height: 1.6;
             word-break: break-word;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
         }
-        
+
+        .note-item-body {
+            flex: 1;
+            min-width: 0;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .note-item-body a {
+            color: #2a6a72;
+        }
+
+        .note-item-body .note-item-math-block {
+            margin: 6px 0;
+        }
+
         .note-item-index {
             display: inline-block;
             min-width: 2em;
@@ -1713,7 +1756,16 @@
                 padding: 10px 12px;
                 gap: 8px;
             }
-            
+
+            .notes-actions-row {
+                gap: 8px;
+            }
+
+            .notes-mode-toggle {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+
             .notes-action-btn {
                 padding: 6px 10px;
                 font-size: 12px;
@@ -1750,14 +1802,19 @@
     <div class="notes-panel" id="notesPanel">
         <div class="notes-header">
             <h3>📝 我的笔记</h3>
+            <button class="notes-mode-toggle" id="notesModeToggle" type="button">当前模式：纯文本格式</button>
         </div>
-        <div class="notes-actions">
-            <button class="notes-action-btn" id="exportMdBtn">📄 导出 Markdown</button>
-            <button class="notes-action-btn" id="exportBackupBtn">💾 导出备份</button>
-            <button class="notes-action-btn" id="importBackupBtn">📥 导入备份</button>
-            <input type="file" id="importFileInput" accept=".json" style="display:none;">
-            <button class="notes-action-btn" id="copyAllBtn">📋 复制全部</button>
-            <button class="notes-action-btn danger" id="clearAllBtn">🗑️ 清空</button>
+                <div class="notes-actions">
+            <div class="notes-actions-row">
+                <button class="notes-action-btn" id="exportMdBtn">📄 导出 Markdown</button>
+                <button class="notes-action-btn" id="copyAllBtn">📋 复制全部</button>
+                <button class="notes-action-btn danger" id="clearAllBtn">🗑️ 清空</button>
+            </div>
+            <div class="notes-actions-row">
+                <button class="notes-action-btn" id="exportBackupBtn">💾 导出备份</button>
+                <button class="notes-action-btn" id="importBackupBtn">📥 导入备份</button>
+                <input type="file" id="importFileInput" accept=".json" style="display:none;">
+            </div>
         </div>
         <div class="notes-content" id="notesContent">
             <div class="notes-empty" id="notesEmpty">
@@ -1868,7 +1925,7 @@
 </ul>
 <p>第二句：“我们使用一个<strong>趋势项</strong>、多个<strong>周期项</strong>以及一个<strong>特异性噪声项</strong>来表示<strong>日内时间序列</strong>。”</p>
 <ul>
-  <li>这句揭示了他们<strong>建模</strong>的具体形式，即经典的时间序列分解。任何一个<strong>日内时间序列</strong>（比如每秒的交易量 $V(t)$）都可以被拆解成三个部分：</li>
+  <li>这句揭示了他们<strong>建模</strong>的具体形式，即经典的时间序列分解。任何一个<strong>日内时间序列</strong>（比如每秒的交易量 <span class="math-inline" data-tex="V(t)">$V(t)$</span>）都可以被拆解成三个部分：</li>
   <li><strong>趋势项 (Trend Component)</strong>：描述了数据在一个较长时间尺度上的总体走向或平滑变化。例如，一个交易日中，开盘和收盘时段的交易量通常较高，中间时段较低，形成一个“U”形，这就是一种<strong>趋势</strong>。</li>
   <li><strong>周期项 (Periodic Components)</strong>：描述了数据中存在的、有规律的、重复性的波动。这些是本研究的核心关注点。论文指出是“多个”<strong>周期项</strong>，意味着交易活动可能同时叠加了多种不同频率的<strong>周期</strong>，比如一个1分钟的<strong>周期</strong>和一个5分钟的<strong>周期</strong>。</li>
   <li><strong>特异性噪声项 (Idiosyncratic Noise Component)</strong>：也叫随机项或残差项。它代表了除了<strong>趋势</strong>和<strong>周期</strong>之外，所有不可预测的、随机的、一次性的波动。可以理解为市场中的“杂音”。</li>
@@ -1877,7 +1934,7 @@
 <ul>
   <li>这句解释了他们如何<strong>估计</strong>周期项的强度。</li>
   <li><strong>去趋势后的成交量时间序列 (Detrended Volume Time Series)</strong>：这是分析的第一步。为了精确地识别出<strong>周期项</strong>，必须先将<strong>趋势项</strong>从原始数据中剔除。否则，<strong>趋势</strong>本身（如U型<strong>趋势</strong>）可能会被错误地识别为一种非常低频率的<strong>周期</strong>，从而干扰对高频<strong>周期</strong>的分析。</li>
-  <li><strong>自协方差函数 (Autocovariance Function)</strong>：对于一个时间序列，它的<strong>自协方差函数</strong> $C(k)$ 衡量的是序列在 $t$ 时刻的取值与 $t+k$ 时刻的取值之间的协方差。如果一个序列存在<strong>周期</strong> $P$，那么在 $k=P, 2P, 3P, \dots$ 的位置，它的<strong>自协方差函数</strong>值会比较大，因为它和自身在相隔一个或多个<strong>周期</strong>后的状态高度相关。</li>
+  <li><strong>自协方差函数 (Autocovariance Function)</strong>：对于一个时间序列，它的<strong>自协方差函数</strong> <span class="math-inline" data-tex="C(k)">$C(k)$</span> 衡量的是序列在 <span class="math-inline" data-tex="t">$t$</span> 时刻的取值与 <span class="math-inline" data-tex="t+k">$t+k$</span> 时刻的取值之间的协方差。如果一个序列存在<strong>周期</strong> <span class="math-inline" data-tex="P">$P$</span>，那么在 <span class="math-inline" data-tex="k=P, 2P, 3P, \dots">$k=P, 2P, 3P, \dots$</span> 的位置，它的<strong>自协方差函数</strong>值会比较大，因为它和自身在相隔一个或多个<strong>周期</strong>后的状态高度相关。</li>
   <li><strong>应用离散傅里叶变换 (Applying Discrete Fourier Transform)</strong>：这里原文写的是“逆变换”，但根据谱分析的<strong>维纳-辛钦定理 (Wiener-Khinchin Theorem)</strong>，一个时间序列的<strong>功率谱密度</strong>（描述了信号在各个频率上的功率/强度）是其<strong>自协方差函数</strong>的<strong>傅里叶变换</strong>。因此，这里更可能指代的是应用<strong>傅里叶变换</strong>来从<strong>自协方差函数</strong>（时间域）转换到<strong>功率谱</strong>（频率域）。<strong>功率谱</strong>上的峰值就对应着数据中显著的<strong>周期</strong>，峰值的高度就代表了该<strong>周期</strong>的<strong>强度系数</strong>。或许论文采用了某种特殊的估计方法，使得从<strong>逆变换</strong>入手，但核心思想都是利用<strong>傅里叶变换</strong>在时间域和频率域之间转换的对偶关系。</li>
   <li><strong>一致地估计 (Consistently Estimate)</strong>：这是一个统计学术语，意味着当样本量（数据点）趋于无穷大时，这个估计方法得到的结果会收敛到真实的参数值。这是一个衡量估计方法好坏的重要标准，表明该方法是可靠的。</li>
 </ul>
@@ -1886,13 +1943,13 @@
     <div class="box-label">∑ [公式拆解]</div>
     <div class="box-content">
 <p>本段为纯文字描述，不包含数学公式。其描述的时间序列分解模型可以表示为：</p>
-<p>$Y(t) = T(t) + \sum_{j=1}^{K} P_j(t) + \epsilon(t)$</p>
+<p><span class="math-inline" data-tex="Y(t) = T(t) + \sum_{j=1}^{K} P_j(t) + \epsilon(t)">$Y(t) = T(t) + \sum_{j=1}^{K} P_j(t) + \epsilon(t)$</span></p>
 <ul>
-  <li>$Y(t)$：在时间点 $t$ 观测到的<strong>日内时间序列</strong>值，例如交易量。</li>
-  <li>$T(t)$：<strong>趋势项</strong>，代表长期的、平滑的变动。</li>
-  <li>$P_j(t)$：第 $j$ 个<strong>周期项</strong>。通常可以表示为正弦或余弦函数的形式，如 $A_j \cos(2\pi f_j t + \phi_j)$，其中 $A_j$ 是振幅（<strong>强度</strong>），$f_j$ 是频率，$\phi_j$ 是相位。</li>
-  <li>$\sum_{j=1}^{K} P_j(t)$：所有 $K$ 个<strong>周期项</strong>的叠加。</li>
-  <li>$\epsilon(t)$：<strong>特异性噪声项</strong>，代表随机扰动。</li>
+  <li><span class="math-inline" data-tex="Y(t)">$Y(t)$</span>：在时间点 <span class="math-inline" data-tex="t">$t$</span> 观测到的<strong>日内时间序列</strong>值，例如交易量。</li>
+  <li><span class="math-inline" data-tex="T(t)">$T(t)$</span>：<strong>趋势项</strong>，代表长期的、平滑的变动。</li>
+  <li><span class="math-inline" data-tex="P_j(t)">$P_j(t)$</span>：第 <span class="math-inline" data-tex="j">$j$</span> 个<strong>周期项</strong>。通常可以表示为正弦或余弦函数的形式，如 <span class="math-inline" data-tex="A_j \cos(2\pi f_j t + \phi_j)">$A_j \cos(2\pi f_j t + \phi_j)$</span>，其中 <span class="math-inline" data-tex="A_j">$A_j$</span> 是振幅（<strong>强度</strong>），<span class="math-inline" data-tex="f_j">$f_j$</span> 是频率，<span class="math-inline" data-tex="\phi_j">$\phi_j$</span> 是相位。</li>
+  <li><span class="math-inline" data-tex="\sum_{j=1}^{K} P_j(t)">$\sum_{j=1}^{K} P_j(t)$</span>：所有 <span class="math-inline" data-tex="K">$K$</span> 个<strong>周期项</strong>的叠加。</li>
+  <li><span class="math-inline" data-tex="\epsilon(t)">$\epsilon(t)$</span>：<strong>特异性噪声项</strong>，代表随机扰动。</li>
 </ul>
     </div>
 </div><div class="example-box">
@@ -1902,24 +1959,24 @@
 <p>假设我们观察了某股票10秒内的交易量（单位：手）：<strong style="font-size: 1.2rem;">[115, 82, 110, 78, 112, 85, 108, 81, 115, 79]</strong>。</p>
 <p>这个序列看起来在奇数秒（1, 3, 5, 7, 9）交易量高，偶数秒（2, 4, 6, 8, 10）交易量低。</p>
 <ul>
-  <li><strong>原始序列</strong> $Y(t)$: <strong style="font-size: 1.2rem;">[115, 82, 110, 78, 112, 85, 108, 81, 115, 79]</strong></li>
-  <li>我们可以猜测一个<strong>趋势项</strong> $T(t)$：交易量在缓慢下降。比如 $T(t) = 100 - t$。</li>
-  <li>$T(t)$ 序列: <strong style="font-size: 1.2rem;">[99, 98, 97, 96, 95, 94, 93, 92, 91, 90]</strong></li>
-  <li>我们可以猜测一个<strong>周期项</strong> $P(t)$：一个周期为2秒的波动。比如 $P(t)$ 在奇数秒为+15，偶数秒为-15。</li>
-  <li>$P(t)$ 序列: [+15, -15, +15, -15, +15, -15, +15, -15, +15, -15]</li>
-  <li><strong>噪声项</strong> $\epsilon(t) = Y(t) - T(t) - P(t)$。</li>
-  <li>$\epsilon(1) = 115 - 99 - 15 = 1$</li>
-  <li>$\epsilon(2) = 82 - 98 - (-15) = -1$</li>
-  <li>$\epsilon(3) = 110 - 97 - 15 = -2$</li>
+  <li><strong>原始序列</strong> <span class="math-inline" data-tex="Y(t)">$Y(t)$</span>: <strong style="font-size: 1.2rem;">[115, 82, 110, 78, 112, 85, 108, 81, 115, 79]</strong></li>
+  <li>我们可以猜测一个<strong>趋势项</strong> <span class="math-inline" data-tex="T(t)">$T(t)$</span>：交易量在缓慢下降。比如 <span class="math-inline" data-tex="T(t) = 100 - t">$T(t) = 100 - t$</span>。</li>
+  <li><span class="math-inline" data-tex="T(t)">$T(t)$</span> 序列: <strong style="font-size: 1.2rem;">[99, 98, 97, 96, 95, 94, 93, 92, 91, 90]</strong></li>
+  <li>我们可以猜测一个<strong>周期项</strong> <span class="math-inline" data-tex="P(t)">$P(t)$</span>：一个周期为2秒的波动。比如 <span class="math-inline" data-tex="P(t)">$P(t)$</span> 在奇数秒为+15，偶数秒为-15。</li>
+  <li><span class="math-inline" data-tex="P(t)">$P(t)$</span> 序列: [+15, -15, +15, -15, +15, -15, +15, -15, +15, -15]</li>
+  <li><strong>噪声项</strong> <span class="math-inline" data-tex="\epsilon(t) = Y(t) - T(t) - P(t)">$\epsilon(t) = Y(t) - T(t) - P(t)$</span>。</li>
+  <li><span class="math-inline" data-tex="\epsilon(1) = 115 - 99 - 15 = 1">$\epsilon(1) = 115 - 99 - 15 = 1$</span></li>
+  <li><span class="math-inline" data-tex="\epsilon(2) = 82 - 98 - (-15) = -1">$\epsilon(2) = 82 - 98 - (-15) = -1$</span></li>
+  <li><span class="math-inline" data-tex="\epsilon(3) = 110 - 97 - 15 = -2">$\epsilon(3) = 110 - 97 - 15 = -2$</span></li>
   <li>... 以此类推。</li>
-  <li>$\epsilon(t)$ 序列: <strong style="font-size: 1.2rem;">[1, -1, -2, -3, 2, 6, 0, 4, 9, 4]</strong></li>
-  <li>这个$\epsilon(t)$就是随机“杂音”。</li>
+  <li><span class="math-inline" data-tex="\epsilon(t)">$\epsilon(t)$</span> 序列: <strong style="font-size: 1.2rem;">[1, -1, -2, -3, 2, 6, 0, 4, 9, 4]</strong></li>
+  <li>这个<span class="math-inline" data-tex="\epsilon(t)">$\epsilon(t)$</span>就是随机“杂音”。</li>
 </ul>
-<p>所以，原始序列被分解为 $Y(t) = (100-t) + P(t) + \epsilon(t)$。论文的工作就是用系统性的方法去找到这些项，尤其是$P(t)$。</p>
+<p>所以，原始序列被分解为 <span class="math-inline" data-tex="Y(t) = (100-t) + P(t) + \epsilon(t)">$Y(t) = (100-t) + P(t) + \epsilon(t)$</span>。论文的工作就是用系统性的方法去找到这些项，尤其是<span class="math-inline" data-tex="P(t)">$P(t)$</span>。</p>
 <p><strong>示例2：通过自协方差看周期</strong></p>
-<p>继续用上面的 $Y(t)$ 序列。我们计算<strong>去趋势</strong>后的序列 $Y'(t) = Y(t) - T(t) = Y(t) - (100-t)$。</p>
-<p>$Y'(t)$: <strong style="font-size: 1.2rem;">[16, -16, 13, -18, 17, -9, 15, -11, 24, -11]</strong>。</p>
-<p>这个序列仍然有明显的“一正一负”模式。它的<strong>自协方差函数</strong> $C(k)$ 在 $k=2, 4, 6, \dots$ 时会是正的强相关（正的后面隔一位还是正的），而在 $k=1, 3, 5, \dots$ 时会是负的强相关（正的后面紧邻的是负的）。对这个 $C(k)$ 函数做<strong>傅里叶变换</strong>，就会在频率 $f=0.5$（对应周期为 $1/0.5 = 2$ 秒）的地方出现一个高峰，这个峰的高度就反映了该<strong>周期</strong>的强度。</p>
+<p>继续用上面的 <span class="math-inline" data-tex="Y(t)">$Y(t)$</span> 序列。我们计算<strong>去趋势</strong>后的序列 <span class="math-inline" data-tex="Y&#39;(t) = Y(t) - T(t) = Y(t) - (100-t)">$Y'(t) = Y(t) - T(t) = Y(t) - (100-t)$</span>。</p>
+<p><span class="math-inline" data-tex="Y&#39;(t)">$Y'(t)$</span>: <strong style="font-size: 1.2rem;">[16, -16, 13, -18, 17, -9, 15, -11, 24, -11]</strong>。</p>
+<p>这个序列仍然有明显的“一正一负”模式。它的<strong>自协方差函数</strong> <span class="math-inline" data-tex="C(k)">$C(k)$</span> 在 <span class="math-inline" data-tex="k=2, 4, 6, \dots">$k=2, 4, 6, \dots$</span> 时会是正的强相关（正的后面隔一位还是正的），而在 <span class="math-inline" data-tex="k=1, 3, 5, \dots">$k=1, 3, 5, \dots$</span> 时会是负的强相关（正的后面紧邻的是负的）。对这个 <span class="math-inline" data-tex="C(k)">$C(k)$</span> 函数做<strong>傅里叶变换</strong>，就会在频率 <span class="math-inline" data-tex="f=0.5">$f=0.5$</span>（对应周期为 <span class="math-inline" data-tex="1/0.5 = 2">$1/0.5 = 2$</span> 秒）的地方出现一个高峰，这个峰的高度就反映了该<strong>周期</strong>的强度。</p>
     </div>
 </div><div class="warning-box">
     <div class="box-label">⚠️ [易错点]</div>
@@ -1989,12 +2046,12 @@
 </div><div class="formula-box">
     <div class="box-label">∑ [公式拆解]</div>
     <div class="box-content">
-<p>本段为纯文字描述，但其背后的思想是<strong>方差分解 (Variance Decomposition)</strong>。根据<strong>帕塞瓦尔定理 (Parseval's Theorem)</strong> 的精神，时间序列的总方差等于其在频率域上<strong>功率谱</strong>的积分。如果<strong>功率谱</strong>在某些特定频率 $f_j$ 上有尖锐的峰值，那么总方差就可以近似地看作是这些峰值所代表的方差之和。</p>
-<p>$\text{Var}(Y) \approx \sum_{j} \text{Var}(P_j)$</p>
+<p>本段为纯文字描述，但其背后的思想是<strong>方差分解 (Variance Decomposition)</strong>。根据<strong>帕塞瓦尔定理 (Parseval's Theorem)</strong> 的精神，时间序列的总方差等于其在频率域上<strong>功率谱</strong>的积分。如果<strong>功率谱</strong>在某些特定频率 <span class="math-inline" data-tex="f_j">$f_j$</span> 上有尖锐的峰值，那么总方差就可以近似地看作是这些峰值所代表的方差之和。</p>
+<p><span class="math-inline" data-tex="\text{Var}(Y) \approx \sum_{j} \text{Var}(P_j)">$\text{Var}(Y) \approx \sum_{j} \text{Var}(P_j)$</span></p>
 <ul>
-  <li>$\text{Var}(Y)$：<strong>去趋势</strong>后时间序列的总方差。</li>
-  <li>$\text{Var}(P_j)$：由频率为 $f_j$ 的那个<strong>周期项</strong>贡献的方差。</li>
-  <li>“<strong>方差</strong>主要由几个周期成分解释”意味着，少数几个 $\text{Var}(P_j)$ 的和就非常接近总方差 $\text{Var}(Y)$。</li>
+  <li><span class="math-inline" data-tex="\text{Var}(Y)">$\text{Var}(Y)$</span>：<strong>去趋势</strong>后时间序列的总方差。</li>
+  <li><span class="math-inline" data-tex="\text{Var}(P_j)">$\text{Var}(P_j)$</span>：由频率为 <span class="math-inline" data-tex="f_j">$f_j$</span> 的那个<strong>周期项</strong>贡献的方差。</li>
+  <li>“<strong>方差</strong>主要由几个周期成分解释”意味着，少数几个 <span class="math-inline" data-tex="\text{Var}(P_j)">$\text{Var}(P_j)$</span> 的和就非常接近总方差 <span class="math-inline" data-tex="\text{Var}(Y)">$\text{Var}(Y)$</span>。</li>
 </ul>
     </div>
 </div><div class="example-box">
@@ -2010,12 +2067,12 @@
   <li>由5分钟<strong>周期</strong>贡献的方差是 100。</li>
   <li>所有其他<strong>周期</strong>和<strong>噪声</strong>贡献的方差总和是 300。</li>
 </ul>
-<p>那么，这四个主要<strong>周期</strong>（10s, 30s, 1min, 5min）贡献的方差之和为 $250 + 200 + 150 + 100 = 700$。</p>
-<p>我们可以说，这四个<strong>周期</strong>成分解释了总方差的 $700 / 1000 = 70\%$。这就是“<strong>方差</strong>主要由几个周期成分解释”的含义。</p>
+<p>那么，这四个主要<strong>周期</strong>（10s, 30s, 1min, 5min）贡献的方差之和为 <span class="math-inline" data-tex="250 + 200 + 150 + 100 = 700">$250 + 200 + 150 + 100 = 700$</span>。</p>
+<p>我们可以说，这四个<strong>周期</strong>成分解释了总方差的 <span class="math-inline" data-tex="700 / 1000 = 70\%">$700 / 1000 = 70\%$</span>。这就是“<strong>方差</strong>主要由几个周期成分解释”的含义。</p>
 <p><strong>示例2：市场对比</strong></p>
 <ul>
-  <li><strong>股票A（美国市场）</strong>：在它的<strong>功率谱</strong>图上，我们在频率 $1/10 \text{ Hz}$ (10秒周期), $1/30 \text{ Hz}$ (30秒周期), $1/60 \text{ Hz}$ (1分钟周期) 等位置看到了非常高的尖峰。</li>
-  <li><strong>股票B（中国市场）</strong>：在它的<strong>功率谱</strong>图上，我们在频率 $1/30 \text{ Hz}$ (30秒周期), $1/60 \text{ Hz}$ (1分钟周期), $1/150 \text{ Hz}$ (2.5分钟周期) 等位置看到了非常高的尖峰。</li>
+  <li><strong>股票A（美国市场）</strong>：在它的<strong>功率谱</strong>图上，我们在频率 <span class="math-inline" data-tex="1/10 \text{ Hz}">$1/10 \text{ Hz}$</span> (10秒周期), <span class="math-inline" data-tex="1/30 \text{ Hz}">$1/30 \text{ Hz}$</span> (30秒周期), <span class="math-inline" data-tex="1/60 \text{ Hz}">$1/60 \text{ Hz}$</span> (1分钟周期) 等位置看到了非常高的尖峰。</li>
+  <li><strong>股票B（中国市场）</strong>：在它的<strong>功率谱</strong>图上，我们在频率 <span class="math-inline" data-tex="1/30 \text{ Hz}">$1/30 \text{ Hz}$</span> (30秒周期), <span class="math-inline" data-tex="1/60 \text{ Hz}">$1/60 \text{ Hz}$</span> (1分钟周期), <span class="math-inline" data-tex="1/150 \text{ Hz}">$1/150 \text{ Hz}$</span> (2.5分钟周期) 等位置看到了非常高的尖峰。</li>
 </ul>
 <p>通过对比两张图谱，作者得出了两个市场主导频率的异同。</p>
     </div>
@@ -2103,13 +2160,13 @@
     <div class="box-label">∑ [公式拆解]</div>
     <div class="box-content">
 <p>本段为纯文字描述，但其背后的检验可以用一个回归模型来示意：</p>
-<p>$\text{PeriodicityStrength}_i = \beta_0 + \beta_1 \times \text{AlgoTradingLevel}_i + \text{Controls}_i + \epsilon_i$</p>
+<p><span class="math-inline" data-tex="\text{PeriodicityStrength}_i = \beta_0 + \beta_1 \times \text{AlgoTradingLevel}_i + \text{Controls}_i + \epsilon_i">$\text{PeriodicityStrength}_i = \beta_0 + \beta_1 \times \text{AlgoTradingLevel}_i + \text{Controls}_i + \epsilon_i$</span></p>
 <ul>
-  <li>$\text{PeriodicityStrength}_i$：股票 $i$ 的<strong>周期性强度</strong>（例如，主要<strong>周期</strong>解释的方差比例）。</li>
-  <li>$\text{AlgoTradingLevel}_i$：衡量股票 $i$ 的<strong>算法交易</strong>水平的代理变量。</li>
-  <li>$\text{Controls}_i$：其他可能影响<strong>周期性</strong>的控制变量（如市值、流动性等）。</li>
-  <li>$\epsilon_i$：随机误差项。</li>
-  <li>论文的核心证据是发现系数 $\beta_1$ 是显著为正的。</li>
+  <li><span class="math-inline" data-tex="\text{PeriodicityStrength}_i">$\text{PeriodicityStrength}_i$</span>：股票 <span class="math-inline" data-tex="i">$i$</span> 的<strong>周期性强度</strong>（例如，主要<strong>周期</strong>解释的方差比例）。</li>
+  <li><span class="math-inline" data-tex="\text{AlgoTradingLevel}_i">$\text{AlgoTradingLevel}_i$</span>：衡量股票 <span class="math-inline" data-tex="i">$i$</span> 的<strong>算法交易</strong>水平的代理变量。</li>
+  <li><span class="math-inline" data-tex="\text{Controls}_i">$\text{Controls}_i$</span>：其他可能影响<strong>周期性</strong>的控制变量（如市值、流动性等）。</li>
+  <li><span class="math-inline" data-tex="\epsilon_i">$\epsilon_i$</span>：随机误差项。</li>
+  <li>论文的核心证据是发现系数 <span class="math-inline" data-tex="\beta_1">$\beta_1$</span> 是显著为正的。</li>
 </ul>
     </div>
 </div><div class="example-box">
@@ -2177,7 +2234,7 @@
     </div>
 </div><h3>1.4 结论第四段</h3><p id="original-4"><strong style="font-size: 1.3rem;">📜 [原文4]</strong></p>
 <div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
-<p>为了证明在实际应用中纳入这些<strong>高频周期性</strong>的实用价值，我们将<strong>谱模型</strong>揭示的<strong>周期项</strong>添加到一个使用 <strong>U 型日内趋势</strong>进行<strong>成交量预测</strong>的基准模型中。我们的新模型在样本外 $R^{2}$ 方面[^22]在样本中的大多数月份都优于基准模型，从而在<strong>成交量加权平均价格</strong> (<strong>VWAP</strong>) <strong>执行策略</strong>中带来了可观的经济收益。</p>
+<p>为了证明在实际应用中纳入这些<strong>高频周期性</strong>的实用价值，我们将<strong>谱模型</strong>揭示的<strong>周期项</strong>添加到一个使用 <strong>U 型日内趋势</strong>进行<strong>成交量预测</strong>的基准模型中。我们的新模型在样本外 <span class="math-inline" data-tex="R^{2}">$R^{2}$</span> 方面[^22]在样本中的大多数月份都优于基准模型，从而在<strong>成交量加权平均价格</strong> (<strong>VWAP</strong>) <strong>执行策略</strong>中带来了可观的经济收益。</p>
 </div><div class="explain-box">
     <div class="box-label">📖 [逐步解释]</div>
     <div class="box-content">
@@ -2189,10 +2246,10 @@
   <li><strong>U 型日内趋势 (U-shaped intraday trend)</strong>：这是金融市场中一个广为人知的现象，即<strong>成交量</strong>在开盘时段（上午）和收盘时段（下午）非常活跃，而在午间时段相对清淡，整体形态像一个字母“U”。这是对<strong>成交量</strong>动态最基础的建模。</li>
   <li><strong>将周期项添加到基准模型中</strong>：作者做了一个非常直观的改进。他们的“新模型”包含了两个部分：原有的“U型<strong>趋势</strong>”部分，以及他们通过<strong>谱分析</strong>发现的“<strong>周期项</strong>”部分。模型形式上就是：新模型 = 基准模型 + <strong>周期项</strong>。</li>
 </ul>
-<p>第二句：“我们的新模型在样本外 $R^{2}$ 方面[^22]在样本中的大多数月份都优于基准模型，从而在<strong>成交量加权平均价格</strong> (<strong>VWAP</strong>) <strong>执行策略</strong>中带来了可观的经济收益。”</p>
+<p>第二句：“我们的新模型在样本外 <span class="math-inline" data-tex="R^{2}">$R^{2}$</span> 方面[^22]在样本中的大多数月份都优于基准模型，从而在<strong>成交量加权平均价格</strong> (<strong>VWAP</strong>) <strong>执行策略</strong>中带来了可观的经济收益。”</p>
 <ul>
   <li><strong>样本外 (Out-of-Sample)</strong>：这是一个至关重要的概念。在“样本内”表现好，可能只是因为模型对历史数据“死记硬背”（过拟合）。只有在“样本外”——即模型从未见过的新数据上——表现依然出色，才能证明模型真正学到了规律，具有预测能力。</li>
-  <li>$R^{2}$ <strong>(R-squared)</strong>：<strong>决定系数</strong>，是衡量预测模型好坏的常用指标。它表示模型能够解释因变量（这里是<strong>成交量</strong>）变异的百分比。样本外 $R^{2}$ 为正，意味着新模型的预测误差比一个最简单的预测（比如用历史均值来预测）要小。新模型的 $R^{2}$ 高于基准模型，意味着新模型的预测更准。</li>
+  <li><span class="math-inline" data-tex="R^{2}">$R^{2}$</span> <strong>(R-squared)</strong>：<strong>决定系数</strong>，是衡量预测模型好坏的常用指标。它表示模型能够解释因变量（这里是<strong>成交量</strong>）变异的百分比。样本外 <span class="math-inline" data-tex="R^{2}">$R^{2}$</span> 为正，意味着新模型的预测误差比一个最简单的预测（比如用历史均值来预测）要小。新模型的 <span class="math-inline" data-tex="R^{2}">$R^{2}$</span> 高于基准模型，意味着新模型的预测更准。</li>
   <li><strong>优于基准模型</strong>：这是核心的比较结果。加入了<strong>周期项</strong>后，对未来<strong>成交量</strong>的预测变得更加精确了。</li>
   <li><strong>成交量加权平均价格 (Volume Weighted Average Price, VWAP)</strong>：这是一个非常重要的交易基准。<strong>VWAP</strong> 是一天内总成交额除以总成交量得到的价格。许多机构投资者在执行大额订单时，目标就是让自己的平均成交价格尽可能地接近或优于当天的<strong>VWAP</strong>。</li>
   <li><strong>VWAP 执行策略</strong>：要实现<strong>VWAP</strong>目标，交易算法的核心就是让自己的交易节奏与整个市场的交易节奏保持一致。如果市场的<strong>成交量</strong>在某分钟很高，你的算法也应该在这分钟多交易一些；反之亦然。</li>
@@ -2204,20 +2261,20 @@
     <div class="box-content">
 <p>本段文字描述了两个模型的比较：</p>
 <ul>
-  <li><strong>基准模型 (Benchmark Model)</strong>：$\hat{V}_{\text{base}}(t) = T_U(t)$</li>
-  <li>$\hat{V}_{\text{base}}(t)$ 是基准模型在 $t$ 时刻对<strong>成交量</strong>的预测。</li>
-  <li>$T_U(t)$ 是拟合出的标准U型<strong>趋势函数</strong>。</li>
-  <li><strong>新模型 (New Model)</strong>：$\hat{V}_{\text{new}}(t) = T_U(t) + \sum_{j} \hat{P}_j(t)$</li>
-  <li>$\hat{V}_{\text{new}}(t)$ 是新模型在 $t$ 时刻对<strong>成交量</strong>的预测。</li>
-  <li>$\sum_{j} \hat{P}_j(t)$ 是通过<strong>谱分析</strong>估计出的所有重要<strong>周期项</strong>的和。</li>
+  <li><strong>基准模型 (Benchmark Model)</strong>：<span class="math-inline" data-tex="\hat{V}_{\text{base}}(t) = T_U(t)">$\hat{V}_{\text{base}}(t) = T_U(t)$</span></li>
+  <li><span class="math-inline" data-tex="\hat{V}_{\text{base}}(t)">$\hat{V}_{\text{base}}(t)$</span> 是基准模型在 <span class="math-inline" data-tex="t">$t$</span> 时刻对<strong>成交量</strong>的预测。</li>
+  <li><span class="math-inline" data-tex="T_U(t)">$T_U(t)$</span> 是拟合出的标准U型<strong>趋势函数</strong>。</li>
+  <li><strong>新模型 (New Model)</strong>：<span class="math-inline" data-tex="\hat{V}_{\text{new}}(t) = T_U(t) + \sum_{j} \hat{P}_j(t)">$\hat{V}_{\text{new}}(t) = T_U(t) + \sum_{j} \hat{P}_j(t)$</span></li>
+  <li><span class="math-inline" data-tex="\hat{V}_{\text{new}}(t)">$\hat{V}_{\text{new}}(t)$</span> 是新模型在 <span class="math-inline" data-tex="t">$t$</span> 时刻对<strong>成交量</strong>的预测。</li>
+  <li><span class="math-inline" data-tex="\sum_{j} \hat{P}_j(t)">$\sum_{j} \hat{P}_j(t)$</span> 是通过<strong>谱分析</strong>估计出的所有重要<strong>周期项</strong>的和。</li>
 </ul>
-<p>评估标准是样本外 $R^{2}$：</p>
-<p>$R^2_{\text{out-of-sample}} = 1 - \frac{\sum_{t \in \text{TestSet}} (V(t) - \hat{V}(t))^2}{\sum_{t \in \text{TestSet}} (V(t) - \bar{V})^2}$</p>
+<p>评估标准是样本外 <span class="math-inline" data-tex="R^{2}">$R^{2}$</span>：</p>
+<p><span class="math-inline" data-tex="R^2_{\text{out-of-sample}} = 1 - \frac{\sum_{t \in \text{TestSet}} (V(t) - \hat{V}(t))^2}{\sum_{t \in \text{TestSet}} (V(t) - \bar{V})^2}">$R^2_{\text{out-of-sample}} = 1 - \frac{\sum_{t \in \text{TestSet}} (V(t) - \hat{V}(t))^2}{\sum_{t \in \text{TestSet}} (V(t) - \bar{V})^2}$</span></p>
 <ul>
-  <li>$V(t)$ 是真实的<strong>成交量</strong>。</li>
-  <li>$\hat{V}(t)$ 是模型的预测<strong>成交量</strong>。</li>
-  <li>$\bar{V}$ 是测试集中<strong>成交量</strong>的平均值。</li>
-  <li>作者发现 $R^2_{\text{new}} &gt; R^2_{\text{base}}$。</li>
+  <li><span class="math-inline" data-tex="V(t)">$V(t)$</span> 是真实的<strong>成交量</strong>。</li>
+  <li><span class="math-inline" data-tex="\hat{V}(t)">$\hat{V}(t)$</span> 是模型的预测<strong>成交量</strong>。</li>
+  <li><span class="math-inline" data-tex="\bar{V}">$\bar{V}$</span> 是测试集中<strong>成交量</strong>的平均值。</li>
+  <li>作者发现 <span class="math-inline" data-tex="R^2_{\text{new}} &gt; R^2_{\text{base}}">$R^2_{\text{new}} &gt; R^2_{\text{base}}$</span>。</li>
 </ul>
     </div>
 </div><div class="example-box">
@@ -2236,7 +2293,7 @@
 <ul>
   <li><strong>使用基准模型</strong>：算法认为<strong>成交量</strong>是均匀的，于是在每10秒都下单买入1000股。但在第10-20秒时，市场真实<strong>成交量</strong>很低（只有550股），算法的1000股买单成了市场上的“大单”，推高了价格，导致成交价恶化。</li>
   <li><strong>使用新模型</strong>：算法预测到第0-10秒、20-30秒、40-50秒<strong>成交量</strong>大，于是它在这三个时间段各买入1500股，在另外三个<strong>成交量</strong>小的时段各买入500股。这样，算法的订单被很好地隐藏在市场的自然流动性中，对价格的冲击很小，最终的平均买入价更低。</li>
-  <li><strong>经济收益</strong>：假设使用基准模型的平均买入价是 $10.05，而使用新模型的平均买入价是$10.04。对于一个百万股的大订单，这个$0.01的差价就能节省 $1,000,000 \times 0.01 = 10,000$ 美元。这就是“可观的经济收益”。</li>
+  <li><strong>经济收益</strong>：假设使用基准模型的平均买入价是 <span class="math-inline" data-tex="10.05，而使用新模型的平均买入价是">$10.05，而使用新模型的平均买入价是$</span>10.04。对于一个百万股的大订单，这个<span class="math-inline" data-tex="0.01的差价就能节省 ">$0.01的差价就能节省 $</span>1,000,000 \times 0.01 = 10,000$ 美元。这就是“可观的经济收益”。</li>
 </ul>
     </div>
 </div><div class="warning-box">
@@ -2291,7 +2348,7 @@
 <p>第一句：“接下来，我们利用 <strong>IPT 度量</strong>和<strong>价格非同步性度量</strong>表明，具有更强<strong>周期性</strong>的股票与较低的<strong>价格信息化程度</strong>相关。”</p>
 <ul>
   <li><strong>IPT 度量 (IPT Metric)</strong>：IPT 可能指代 “Information Processing Time” (信息处理时间) 或类似的衡量信息反映到价格中速度的指标。一个高的 IPT 意味着信息需要更长的时间才能被市场价格完全吸收。</li>
-  <li><strong>价格非同步性度量 (Price Nonsynchronicity Metric)</strong>：这个度量通常用来衡量一只股票的价格变动有多大程度上是由其自身特有的信息（公司基本面新闻）驱动的，而不是由整个市场的普涨普跌（市场情绪、宏观新闻）驱动的。一个高<strong>非同步性</strong>（低同步性）的股票，其价格更多地反映了自身的信息，通常被认为<strong>信息化程度</strong>更高。这个指标的经典代表是 $R^2$，即用市场和行业指数收益率来回归个股收益率得到的 $R^2$。低的 $R^2$ 意味着高的<strong>非同步性</strong>。</li>
+  <li><strong>价格非同步性度量 (Price Nonsynchronicity Metric)</strong>：这个度量通常用来衡量一只股票的价格变动有多大程度上是由其自身特有的信息（公司基本面新闻）驱动的，而不是由整个市场的普涨普跌（市场情绪、宏观新闻）驱动的。一个高<strong>非同步性</strong>（低同步性）的股票，其价格更多地反映了自身的信息，通常被认为<strong>信息化程度</strong>更高。这个指标的经典代表是 <span class="math-inline" data-tex="R^2">$R^2$</span>，即用市场和行业指数收益率来回归个股收益率得到的 <span class="math-inline" data-tex="R^2">$R^2$</span>。低的 <span class="math-inline" data-tex="R^2">$R^2$</span> 意味着高的<strong>非同步性</strong>。</li>
   <li><strong>更强周期性...与较低的价格信息化程度相关</strong>：这是本段的核心发现，也是一个非常有趣甚至有些反直觉的结论。它表明，那些交易行为看起来非常有“规律”、非常“程序化”（<strong>强周期性</strong>）的股票，其价格变动反而更少地反映了关于公司基本面的新信息。换句话说，机器的“嗡嗡声”（<strong>周期性交易</strong>）盖过了来自真实世界的新闻的“声音”。</li>
 </ul>
 <p>第二句：“这些结果补充了近期关于获取信息（<strong>价格信息化程度</strong>）与将其整合到资产价格中（<strong>价格效率</strong>）之间张力的文献，并从<strong>周期性交易行为</strong>的不同角度证实了 Weller (2018) 以及 Gider, Schmickler 和 Westheide (2019) 的结果。”</p>
@@ -2304,23 +2361,23 @@
     <div class="box-label">∑ [公式拆解]</div>
     <div class="box-content">
 <p>本段文字描述的关系可以用一个回归模型来示意：</p>
-<p>$\text{PriceInformativeness}_i = \gamma_0 + \gamma_1 \times \text{PeriodicityStrength}_i + \text{Controls}_i + \eta_i$</p>
+<p><span class="math-inline" data-tex="\text{PriceInformativeness}_i = \gamma_0 + \gamma_1 \times \text{PeriodicityStrength}_i + \text{Controls}_i + \eta_i">$\text{PriceInformativeness}_i = \gamma_0 + \gamma_1 \times \text{PeriodicityStrength}_i + \text{Controls}_i + \eta_i$</span></p>
 <ul>
-  <li>$\text{PriceInformativeness}_i$：股票 $i$ 的<strong>价格信息化程度</strong>的度量。这可以是一个负向指标，比如用市场模型回归的 $R^2$（越低越好），或者是一个正向指标，比如<strong>价格非同步性</strong> $(1-R^2)$（越高越好）。</li>
-  <li>$\text{PeriodicityStrength}_i$：股票 $i$ 的<strong>周期性强度</strong>。</li>
-  <li>$\text{Controls}_i$：其他控制变量。</li>
-  <li>$\eta_i$：随机误差项。</li>
-  <li>作者的核心发现是，如果<strong>价格信息化程度</strong>用 $(1-R^2)$ 度量，那么系数 $\gamma_1$ 是显著为负的。也就是说，<strong>周期性</strong>越强，<strong>价格非同步性</strong>越低，即<strong>价格信息化程度</strong>越低。</li>
+  <li><span class="math-inline" data-tex="\text{PriceInformativeness}_i">$\text{PriceInformativeness}_i$</span>：股票 <span class="math-inline" data-tex="i">$i$</span> 的<strong>价格信息化程度</strong>的度量。这可以是一个负向指标，比如用市场模型回归的 <span class="math-inline" data-tex="R^2">$R^2$</span>（越低越好），或者是一个正向指标，比如<strong>价格非同步性</strong> <span class="math-inline" data-tex="(1-R^2)">$(1-R^2)$</span>（越高越好）。</li>
+  <li><span class="math-inline" data-tex="\text{PeriodicityStrength}_i">$\text{PeriodicityStrength}_i$</span>：股票 <span class="math-inline" data-tex="i">$i$</span> 的<strong>周期性强度</strong>。</li>
+  <li><span class="math-inline" data-tex="\text{Controls}_i">$\text{Controls}_i$</span>：其他控制变量。</li>
+  <li><span class="math-inline" data-tex="\eta_i">$\eta_i$</span>：随机误差项。</li>
+  <li>作者的核心发现是，如果<strong>价格信息化程度</strong>用 <span class="math-inline" data-tex="(1-R^2)">$(1-R^2)$</span> 度量，那么系数 <span class="math-inline" data-tex="\gamma_1">$\gamma_1$</span> 是显著为负的。也就是说，<strong>周期性</strong>越强，<strong>价格非同步性</strong>越低，即<strong>价格信息化程度</strong>越低。</li>
 </ul>
     </div>
 </div><div class="example-box">
     <div class="box-label">💡 [数值示例]</div>
     <div class="box-content">
 <p><strong>示例1：周期性与价格信息化程度的关系</strong></p>
-<p>研究者将1000只股票按<strong>周期性强度</strong>从低到高分为10组。然后计算每组股票的平均“<strong>价格非同步性</strong>” $(1-R^2)$。</p>
+<p>研究者将1000只股票按<strong>周期性强度</strong>从低到高分为10组。然后计算每组股票的平均“<strong>价格非同步性</strong>” <span class="math-inline" data-tex="(1-R^2)">$(1-R^2)$</span>。</p>
 <ul>
-  <li><strong>第1组（周期性最弱）</strong>：平均 $(1-R^2) = 0.85$。这意味着这些股票价格变动的85%都无法被市场整体走势解释，而是由其自身信息驱动。<strong>信息化程度</strong>高。</li>
-  <li><strong>第10组（周期性最强）</strong>：平均 $(1-R^2) = 0.50$。这意味着这些股票价格变动的50%都能被市场整体走势解释，只有50%是由自身信息驱动的。<strong>信息化程度</strong>低。</li>
+  <li><strong>第1组（周期性最弱）</strong>：平均 <span class="math-inline" data-tex="(1-R^2) = 0.85">$(1-R^2) = 0.85$</span>。这意味着这些股票价格变动的85%都无法被市场整体走势解释，而是由其自身信息驱动。<strong>信息化程度</strong>高。</li>
+  <li><strong>第10组（周期性最强）</strong>：平均 <span class="math-inline" data-tex="(1-R^2) = 0.50">$(1-R^2) = 0.50$</span>。这意味着这些股票价格变动的50%都能被市场整体走势解释，只有50%是由自身信息驱动的。<strong>信息化程度</strong>低。</li>
 </ul>
 <p>这个清晰的下降趋势表明，<strong>周期性</strong>越强，<strong>价格</strong>包含的“个性化”信息就越少。</p>
 <p><strong>示例2：直观理解</strong></p>
@@ -2334,7 +2391,7 @@
     <div class="box-content">
 <ol>
   <li><strong>因果关系的方向</strong>：是<strong>周期性交易</strong>导致了<strong>价格信息化程度</strong>下降，还是<strong>价格信息化程度</strong>低的股票（比如信息不透明、没什么新闻的大盘股）更容易成为<strong>算法交易</strong>的目标，从而表现出强<strong>周期性</strong>？这个问题同样存在内生性，需要小心论证。</li>
-  <li><strong>“价格信息化程度”的度量</strong>：如何准确度量<strong>价格信息化程度</strong>本身就是一个巨大的学术难题。$1-R^2$ 只是一个代理变量，它有自身的局限性。例如，一个全球化经营的公司，其股价对全球宏观经济（市场因子）敏感，可能天然 $R^2$ 就高，但这不代表其<strong>价格</strong>没有反映信息。研究需要证明其结论在多种不同的<strong>信息化程度</strong>度量下都是稳健的。</li>
+  <li><strong>“价格信息化程度”的度量</strong>：如何准确度量<strong>价格信息化程度</strong>本身就是一个巨大的学术难题。<span class="math-inline" data-tex="1-R^2">$1-R^2$</span> 只是一个代理变量，它有自身的局限性。例如，一个全球化经营的公司，其股价对全球宏观经济（市场因子）敏感，可能天然 <span class="math-inline" data-tex="R^2">$R^2$</span> 就高，但这不代表其<strong>价格</strong>没有反映信息。研究需要证明其结论在多种不同的<strong>信息化程度</strong>度量下都是稳健的。</li>
 </ol>
     </div>
 </div><div class="summary-box">
@@ -2396,12 +2453,12 @@
     <div class="box-label">∑ [公式拆解]</div>
     <div class="box-content">
 <p>本段描述的<strong>资产定价</strong>检验可以用一个回归模型表示：</p>
-<p>$R_{pms,t} = \alpha_{pms} + \beta_1 \text{MKT}_t + \beta_2 \text{SMB}_t + \beta_3 \text{HML}_t + \dots + \epsilon_t$</p>
+<p><span class="math-inline" data-tex="R_{pms,t} = \alpha_{pms} + \beta_1 \text{MKT}_t + \beta_2 \text{SMB}_t + \beta_3 \text{HML}_t + \dots + \epsilon_t">$R_{pms,t} = \alpha_{pms} + \beta_1 \text{MKT}_t + \beta_2 \text{SMB}_t + \beta_3 \text{HML}_t + \dots + \epsilon_t$</span></p>
 <ul>
-  <li>$R_{pms,t}$：在 $t$ 时刻，PmS（强周期性-弱周期性）投资组合的收益率。</li>
-  <li>$\text{MKT}_t, \text{SMB}_t, \text{HML}_t, \dots$：在 $t$ 时刻，各种已知<strong>资产定价因子</strong>的取值。</li>
-  <li>$\alpha_{pms}$：回归的截距项，即<strong>超额收益</strong>或<strong>阿尔法</strong>。</li>
-  <li>作者的核心发现是，$\alpha_{pms}$ 是一个显著大于零的数。</li>
+  <li><span class="math-inline" data-tex="R_{pms,t}">$R_{pms,t}$</span>：在 <span class="math-inline" data-tex="t">$t$</span> 时刻，PmS（强周期性-弱周期性）投资组合的收益率。</li>
+  <li><span class="math-inline" data-tex="\text{MKT}_t, \text{SMB}_t, \text{HML}_t, \dots">$\text{MKT}_t, \text{SMB}_t, \text{HML}_t, \dots$</span>：在 <span class="math-inline" data-tex="t">$t$</span> 时刻，各种已知<strong>资产定价因子</strong>的取值。</li>
+  <li><span class="math-inline" data-tex="\alpha_{pms}">$\alpha_{pms}$</span>：回归的截距项，即<strong>超额收益</strong>或<strong>阿尔法</strong>。</li>
+  <li>作者的核心发现是，<span class="math-inline" data-tex="\alpha_{pms}">$\alpha_{pms}$</span> 是一个显著大于零的数。</li>
 </ul>
     </div>
 </div><div class="example-box">
@@ -2416,7 +2473,7 @@
 </ul>
 <p><strong>示例2：风险因子特征</strong></p>
 <ul>
-  <li><strong>收益集中在开盘</strong>：分析 PmS 组合一天的收益，发现如果一天总共赚了 $0.1，其中$0.08 都是在开盘后第一个小时内赚到的。这说明其盈利模式与开盘时段的特定市场动态高度相关。</li>
+  <li><strong>收益集中在开盘</strong>：分析 PmS 组合一天的收益，发现如果一天总共赚了 <span class="math-inline" data-tex="0.1，其中">$0.1，其中$</span>0.08 都是在开盘后第一个小时内赚到的。这说明其盈利模式与开盘时段的特定市场动态高度相关。</li>
   <li><strong>成分股频繁变化</strong>：</li>
   <li>1月份，强<strong>周期性</strong>股票组里有：<strong style="font-size: 1.2rem;">[股票A, 股票B, 股票C]</strong>。</li>
   <li>2月份，强<strong>周期性</strong>股票组里变成了：<strong style="font-size: 1.2rem;">[股票D, 股票B, 股票F]</strong>。</li>
@@ -2664,9 +2721,9 @@
 
 <section class="content-section" id="section-3">
     <h2><span class="section-number">3</span>行间公式索引</h2>
-    <p>在您提供的“7 结论”和“参考文献”这两部分原文中，没有包含任何使用双美元符号 <strong><div class="math-block">$$
+    <p>在您提供的“7 结论”和“参考文献”这两部分原文中，没有包含任何使用双美元符号 <strong><div class="math-block" data-tex="...">$$
 ...
-$$</div></strong> 包裹的行间公式。文中出现的 <strong>$R^{2}$</strong> 是一个行内公式。</p>
+$$</div></strong> 包裹的行间公式。文中出现的 <strong><span class="math-inline" data-tex="R^{2}">$R^{2}$</span></strong> 是一个行内公式。</p>
 </section>
 
 <section class="content-section" id="section-4">
@@ -2939,6 +2996,7 @@ $$</div></strong> 包裹的行间公式。文中出现的 <strong>$R^{2}$</stron
         (function() {
             // ===== 常量和DOM元素 =====
             var STORAGE_KEY = "user_highlights_Spectral Volume Models Universal High-Frequency Periodicities in Intraday Trading Activities Part7.ZH\u89e3\u91ca.html_1c194ad9b018";
+            var NOTES_MODE_KEY = STORAGE_KEY + '_notes_mode';
             var notesToggle = document.getElementById('notesToggle');
             var notesPanel = document.getElementById('notesPanel');
             var notesOverlay = document.getElementById('notesOverlay');
@@ -2952,6 +3010,8 @@ $$</div></strong> 包裹的行间公式。文中出现的 <strong>$R^{2}$</stron
             var importFileInput = document.getElementById('importFileInput');
             var copyAllBtn = document.getElementById('copyAllBtn');
             var clearAllBtn = document.getElementById('clearAllBtn');
+            var notesModeToggle = document.getElementById('notesModeToggle');
+            var currentNotesMode = null;
             // iOS: cache last selection before taps clear it
             var lastSelectionRange = null;
             var lastSelectionText = '';
@@ -3133,7 +3193,7 @@ $$</div></strong> 包裹的行间公式。文中出现的 <strong>$R^{2}$</stron
                 if (!element || !element.closest) {
                     return false;
                 }
-                return Boolean(element.closest('.math-block') || element.closest('mjx-container'));
+                return Boolean(element.closest('.math-block') || element.closest('.math-inline') || element.closest('mjx-container'));
             }
             
             function getIntersectingElements(range, root, selector) {
@@ -3547,13 +3607,16 @@ $$</div></strong> 包裹的行间公式。文中出现的 <strong>$R^{2}$</stron
                 }
             }
             
-            function addHighlight(text, meta) {
+            function addHighlight(text, meta, markdownText) {
                 var highlights = getHighlights();
                 var newItem = {
                     id: Date.now().toString(),
                     text: text,
                     timestamp: new Date().toLocaleString('zh-CN')
                 };
+                if (typeof markdownText === 'string' && markdownText.length > 0) {
+                    newItem.markdown = markdownText;
+                }
                 if (meta) {
                     if (meta.segments && meta.segments.length) {
                         newItem.segments = meta.segments;
@@ -3678,6 +3741,7 @@ $$</div></strong> 包裹的行间公式。文中出现的 <strong>$R^{2}$</stron
             function updateUI() {
                 var highlights = getHighlights();
                 var count = highlights.length;
+                var notesMode = getNotesMode();
                 
                 // 更新徽章
                 notesBadge.textContent = count;
@@ -3694,11 +3758,13 @@ $$</div></strong> 包裹的行间公式。文中出现的 <strong>$R^{2}$</stron
                 } else {
                     notesEmpty.style.display = 'none';
                     notesList.innerHTML = highlights.map(function(h, index) {
+                        var noteText = getNoteTextForMode(h, notesMode);
+                        var noteHtml = notesMode === 'markdown' ? markdownToHtml(noteText) : escapeHtml(noteText);
                         return '<div class="note-item-wrapper">' +
                             '<div class="note-item-bg note-item-bg-copy"><span>→ 复制</span><span></span></div>' +
                             '<div class="note-item-bg note-item-bg-delete" style="display:none;"><span></span><span>删除 ←</span></div>' +
                             '<div class="note-item" data-id="' + h.id + '">' +
-                                '<div class="note-item-text"><span class="note-item-index">' + (index + 1) + '.</span>' + escapeHtml(h.text) + '</div>' +
+                                '<div class="note-item-text"><span class="note-item-index">' + (index + 1) + '.</span><div class="note-item-body">' + noteHtml + '</div></div>' +
                             '</div>' +
                         '</div>';
                     }).join('');
@@ -3822,6 +3888,7 @@ $$</div></strong> 包裹的行间公式。文中出现的 <strong>$R^{2}$</stron
                             if (isDragging) onEnd(e);
                         });
                     });
+                    queueNotesTypeset();
                 }
             }
             
@@ -3880,7 +3947,7 @@ $$</div></strong> 包裹的行间公式。文中出现的 <strong>$R^{2}$</stron
                 if (!item) {
                     return;
                 }
-                var text = item.text;
+                var text = getNoteTextForMode(item, getNotesMode());
                 navigator.clipboard.writeText(text).then(function() {
                     // 使用临时提示而不是alert
                     showToast('已复制到剪贴板');
@@ -3914,6 +3981,270 @@ $$</div></strong> 包裹的行间公式。文中出现的 <strong>$R^{2}$</stron
                 var div = document.createElement('div');
                 div.textContent = text;
                 return div.innerHTML;
+            }
+
+            function normalizeNoteText(value) {
+                if (value === null || value === undefined) {
+                    return '';
+                }
+                return String(value);
+            }
+
+            function getNotesMode() {
+                if (currentNotesMode) {
+                    return currentNotesMode;
+                }
+                var mode = 'text';
+                try {
+                    mode = localStorage.getItem(NOTES_MODE_KEY) || 'text';
+                } catch (e) {}
+                if (mode !== 'markdown' && mode !== 'text') {
+                    mode = 'text';
+                }
+                currentNotesMode = mode;
+                return mode;
+            }
+
+            function getNotesModeLabel(mode) {
+                return mode === 'markdown' ? '当前模式：markdown格式' : '当前模式：纯文本格式';
+            }
+
+            function updateNotesModeToggle(mode) {
+                if (!notesModeToggle) {
+                    return;
+                }
+                notesModeToggle.textContent = getNotesModeLabel(mode);
+            }
+
+            function setNotesMode(mode, skipUpdate) {
+                var normalized = mode === 'markdown' ? 'markdown' : 'text';
+                currentNotesMode = normalized;
+                updateNotesModeToggle(normalized);
+                try {
+                    localStorage.setItem(NOTES_MODE_KEY, normalized);
+                } catch (e) {}
+                if (!skipUpdate) {
+                    updateUI();
+                }
+            }
+
+            function initNotesMode() {
+                var mode = getNotesMode();
+                updateNotesModeToggle(mode);
+                if (notesModeToggle) {
+                    notesModeToggle.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        var nextMode = getNotesMode() === 'markdown' ? 'text' : 'markdown';
+                        setNotesMode(nextMode);
+                    });
+                }
+            }
+
+            function getNoteTextForMode(item, mode) {
+                var text = normalizeNoteText(item && item.text);
+                var markdown = normalizeNoteText(item && item.markdown);
+                if (mode === 'markdown') {
+                    return markdown || text;
+                }
+                return text || markdown;
+            }
+
+            function formatMarkdownForExport(text) {
+                var raw = normalizeNoteText(text);
+                if (!raw) {
+                    return raw;
+                }
+                var normalized = raw.replace(/\r\n?/g, '\n');
+                if (normalized.indexOf('$$') === -1) {
+                    return normalized;
+                }
+                var output = '';
+                var count = 0;
+                var index = 0;
+                while (index < normalized.length) {
+                    var next = normalized.indexOf('$$', index);
+                    if (next === -1) {
+                        output += normalized.slice(index);
+                        break;
+                    }
+                    output += normalized.slice(index, next);
+                    count += 1;
+                    var isOdd = count % 2 === 1;
+                    if (output.length > 0 && output[output.length - 1] !== '\n') {
+                        output += '\n';
+                    }
+                    if (isOdd) {
+                        if (output.length >= 2) {
+                            if (!(output[output.length - 1] === '\n' && output[output.length - 2] === '\n')) {
+                                output += '\n';
+                            }
+                        } else {
+                            output += '\n';
+                        }
+                    }
+                    output += '$$';
+                    index = next + 2;
+                    if (index < normalized.length && normalized[index] !== '\n') {
+                        output += '\n';
+                    }
+                    if (!isOdd) {
+                        if (output.length >= 2) {
+                            if (!(output[output.length - 1] === '\n' && output[output.length - 2] === '\n')) {
+                                output += '\n';
+                            }
+                        } else {
+                            output += '\n';
+                        }
+                    }
+                }
+                return output;
+            }
+
+            function getNoteMarkdownText(item) {
+                var markdown = normalizeNoteText(item && item.markdown);
+                if (markdown) {
+                    return markdown;
+                }
+                return normalizeNoteText(item && item.text);
+            }
+
+            function extractMathPlaceholders(text) {
+                var blocks = [];
+                var inlines = [];
+                var result = text.replace(/\$\$([\s\S]+?)\$\$/g, function(match, content) {
+                    var token = '%%MATH_BLOCK_' + blocks.length + '%%';
+                    blocks.push(content);
+                    return token;
+                });
+                result = result.replace(/(^|[^$])\$(?!\$)([^$]+?)\$(?!\$)/g, function(match, prefix, content) {
+                    var token = '%%MATH_INLINE_' + inlines.length + '%%';
+                    inlines.push(content);
+                    return prefix + token;
+                });
+                return { text: result, blocks: blocks, inlines: inlines };
+            }
+
+            function restoreMathPlaceholders(html, placeholders) {
+                var restored = html.replace(/%%MATH_BLOCK_(\d+)%%/g, function(match, index) {
+                    var formula = placeholders.blocks[Number(index)] || '';
+                    return '<div class="note-item-math-block">$$\n' + formula + '\n$$</div>';
+                });
+                restored = restored.replace(/%%MATH_INLINE_(\d+)%%/g, function(match, index) {
+                    var formula = placeholders.inlines[Number(index)] || '';
+                    return '$' + formula + '$';
+                });
+                return restored;
+            }
+
+            function markdownToHtml(markdown) {
+                var safe = escapeHtml(normalizeNoteText(markdown));
+                var placeholders = extractMathPlaceholders(safe);
+                var html = placeholders.text;
+
+                html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                html = html.replace(/(^|[^*])\*([^*]+?)\*(?!\*)/g, '$1<em>$2</em>');
+                html = html.replace(/`([^`]+?)`/g, '<strong>$1</strong>');
+                html = html.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; height: auto;">');
+                html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+                html = html.replace(/\n/g, '<br>');
+                return restoreMathPlaceholders(html, placeholders);
+            }
+
+            function normalizeMathText(value) {
+                return normalizeNoteText(value).replace(/\u00a0/g, ' ').trim();
+            }
+
+            function replaceMathElements(container, selector, formatter) {
+                var nodes = container.querySelectorAll(selector);
+                nodes.forEach(function(node) {
+                    var tex = node.getAttribute('data-tex');
+                    if (!tex) {
+                        tex = node.textContent || '';
+                    }
+                    var normalized = normalizeMathText(tex);
+                    var text = formatter(normalized);
+                    node.parentNode.replaceChild(document.createTextNode(text), node);
+                });
+            }
+
+            function extractMarkdownFromRange(range, fallbackText) {
+                if (!range) {
+                    return normalizeNoteText(fallbackText);
+                }
+                var fragment = null;
+                try {
+                    fragment = range.cloneContents();
+                } catch (e) {
+                    return normalizeNoteText(fallbackText);
+                }
+                var container = document.createElement('div');
+                container.appendChild(fragment);
+
+                replaceMathElements(container, '.math-block', function(tex) {
+                    return tex ? '$$\n' + tex + '\n$$' : '';
+                });
+                replaceMathElements(container, '.math-inline', function(tex) {
+                    return tex ? '$' + tex + '$' : '';
+                });
+
+                var mjxNodes = container.querySelectorAll('mjx-container');
+                mjxNodes.forEach(function(node) {
+                    if (node.closest('.math-block, .math-inline')) {
+                        return;
+                    }
+                    var tex = node.getAttribute('data-tex');
+                    if (!tex) {
+                        return;
+                    }
+                    var normalized = normalizeMathText(tex);
+                    if (!normalized) {
+                        return;
+                    }
+                    var isBlock = node.getAttribute('display') === 'true';
+                    var text = isBlock ? '$$\n' + normalized + '\n$$' : '$' + normalized + '$';
+                    node.parentNode.replaceChild(document.createTextNode(text), node);
+                });
+
+                var text = container.innerText || container.textContent || '';
+                text = text.replace(/\r\n?/g, '\n').replace(/\u00a0/g, ' ');
+                text = text.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+                return text || normalizeNoteText(fallbackText);
+            }
+
+            function syncMathTexAttrs(scope) {
+                var root = scope || document;
+                var wrappers = root.querySelectorAll('.math-block[data-tex], .math-inline[data-tex]');
+                wrappers.forEach(function(wrapper) {
+                    var tex = wrapper.getAttribute('data-tex');
+                    if (!tex) {
+                        return;
+                    }
+                    var mjx = wrapper.querySelector('mjx-container');
+                    if (mjx && !mjx.getAttribute('data-tex')) {
+                        mjx.setAttribute('data-tex', tex);
+                    }
+                });
+            }
+
+            function queueNotesTypeset() {
+                if (getNotesMode() !== 'markdown') {
+                    return;
+                }
+                if (!notesList) {
+                    return;
+                }
+                waitForMathJaxReady(function() {
+                    if (window.MathJax && typeof MathJax.typesetPromise === 'function') {
+                        MathJax.typesetPromise([notesList]).then(function() {
+                            syncMathTexAttrs();
+                        }).catch(function() {
+                            syncMathTexAttrs();
+                        });
+                    } else if (window.MathJax && typeof MathJax.typeset === 'function') {
+                        MathJax.typeset([notesList]);
+                        syncMathTexAttrs();
+                    }
+                });
             }
             
             // ===== 笔记面板控制 =====
@@ -3997,7 +4328,11 @@ $$</div></strong> 包裹的行间公式。文中出现的 <strong>$R^{2}$</stron
                     (meta && meta.inlineMathPaths && meta.inlineMathPaths.length);
                 
                 // 添加到笔记存储
-                var newItem = addHighlight(text, meta);
+                var markdownText = '';
+                if (getNotesMode() === 'markdown') {
+                    markdownText = extractMarkdownFromRange(range, text);
+                }
+                var newItem = addHighlight(text, meta, markdownText);
                 var highlightId = newItem.id;
                 
                 // 在页面上高亮该文字
@@ -4086,15 +4421,19 @@ $$</div></strong> 包裹的行间公式。文中出现的 <strong>$R^{2}$</stron
                     return;
                 }
                 
+                var notesMode = getNotesMode();
                 var title = document.title || '笔记';
                 var md = '# ' + title + ' - 笔记\n\n';
-                md += '> 导出时间: ' + new Date().toLocaleString('zh-CN') + '\n\n';
+                md += '导出时间: ' + new Date().toLocaleString('zh-CN') + '\n\n';
                 md += '---\n\n';
                 
                 highlights.forEach(function(h, index) {
                     md += '## 笔记 ' + (index + 1) + '\n\n';
-                    md += '> ' + (index + 1) + '. ' + h.text.replace(/\n/g, '\n> ') + '\n\n';
-                    md += '*记录时间: ' + h.timestamp + '*\n\n';
+                    var noteText = getNoteTextForMode(h, notesMode);
+                    if (notesMode === 'markdown') {
+                        noteText = formatMarkdownForExport(noteText);
+                    }
+                    md += noteText + '\n\n';
                     md += '---\n\n';
                 });
                 
@@ -4135,8 +4474,9 @@ $$</div></strong> 包裹的行间公式。文中出现的 <strong>$R^{2}$</stron
                     return;
                 }
                 
+                var notesMode = getNotesMode();
                 var text = highlights.map(function(h, index) {
-                    return (index + 1) + '. ' + h.text;
+                    return (index + 1) + '. ' + getNoteTextForMode(h, notesMode);
                 }).join('\n\n');
                 
                 navigator.clipboard.writeText(text).then(function() {
@@ -4268,7 +4608,10 @@ $$</div></strong> 包裹的行间公式。文中出现的 <strong>$R^{2}$</stron
                         updateUI();
                         
                         // 恢复高亮显示
-                        waitForMathJaxReady(restoreHighlights);
+                        waitForMathJaxReady(function() {
+                            syncMathTexAttrs();
+                            restoreHighlights();
+                        });
                         
                         var message = '已增量导入 ' + addedCount + ' 条新笔记';
                         if (skippedCount > 0) {
@@ -4337,8 +4680,12 @@ $$</div></strong> 包裹的行间公式。文中出现的 <strong>$R^{2}$</stron
             }
 
             // ===== 初始化 =====
+            initNotesMode();
             updateUI();
-            waitForMathJaxReady(restoreHighlights);
+            waitForMathJaxReady(function() {
+                syncMathTexAttrs();
+                restoreHighlights();
+            });
         })();
     </script>
 </body>

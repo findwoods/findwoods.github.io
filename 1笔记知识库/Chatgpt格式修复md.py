@@ -7,13 +7,21 @@ This script:
 - Converts inline math written as "(...)" into $ ... $ when it looks like TeX.
 - Converts inline math written as "\\( ... \\)" into $ ... $.
 - Collapses separator lines like "====" inside display math into "=".
-- Fixes common TeX typos such as "\sum*{", "\bar{y}*i", and "$...$^2".
+- Fixes common TeX typos such as "\\sum*{", "\\bar{y}*i", and "$...$^2".
+- Removes semicolons inside inline and display math.
+- Rewrites Markdown headings into symbol prefixes per configured levels.
 - Strips stray leading "#" markers inside display math blocks.
 #
 # Comment:
 # - Double-click runs against raw.md in the same folder.
 # - For all .md files in the folder (PowerShell):
 #   Get-ChildItem -Filter *.md | ForEach-Object { python md_math_fix.py $_.FullName }
+# - Heading rewrite output:
+#   H1 keeps "# Q<digits>".
+#   Invalid H1 is downgraded to H2 and all following sub-headings are demoted
+#   by one level until the next valid H1.
+#   H2: "⬤ ", H3: "⦿ ", H4: "⊚ ", H5: "〇 ",
+#   H6: "1. 2. 3.".
 # - Batch mode (Python example, uncomment to use):
 #   # for md_path in Path(".").glob("*.md"):
 #   #     fixed, _, _ = fix_markdown(md_path.read_text(encoding="utf-8", errors="replace"))
@@ -48,6 +56,8 @@ PAREN_DOLLAR_EXP_RE = re.compile(r"\(\$([^$]+)\$(\^\{?[^{}\s]+\}?)\)")
 INLINE_DOLLAR_EXP_RE = re.compile(r"\$([^$]+?)\$(\^\{?[^{}\s]+\}?)")
 SUM_ONLY_LINE_RE = re.compile(r"^\s*\\sum_\^\s*$")
 FRAC_ONLY_LINE_RE = re.compile(r"^\s*\\frac\s*$")
+HEADING_RE = re.compile(r"^(#{1,6})\s+(.*)$")
+H1_Q_RE = re.compile(r"^#\s*Q\d+\b")
 
 
 def split_blockquote(line: str) -> Tuple[str, str]:
@@ -243,7 +253,7 @@ def fix_common_math_tokens(line: str) -> Tuple[str, dict]:
     }
 
     spans = collect_code_link_spans(line)
-    line, count = replace_outside_spans(line, spans, SUM_STAR_RE, r"\\sum_{")
+    line, count = replace_outside_spans(line, spans, SUM_STAR_RE, lambda _: r"\sum_{")
     stats["sum_star_fixed"] += count
 
     spans = collect_code_link_spans(line)
@@ -256,14 +266,97 @@ def fix_common_math_tokens(line: str) -> Tuple[str, dict]:
     stats["bar_star_fixed"] += count
 
     spans = collect_code_link_spans(line)
-    line, count = replace_outside_spans(line, spans, HAT_I_RE, r"\\hat{y}_i")
+    line, count = replace_outside_spans(line, spans, HAT_I_RE, lambda _: r"\hat{y}_i")
     stats["hat_i_fixed"] += count
 
     spans = collect_code_link_spans(line)
-    line, count = replace_outside_spans(line, spans, SUM_EMPTY_RE, r"\\sum_{i=1}^{N}")
+    line, count = replace_outside_spans(
+        line, spans, SUM_EMPTY_RE, lambda _: r"\sum_{i=1}^{N}"
+    )
     stats["sum_empty_fixed"] += count
 
     return line, stats
+
+
+def remove_semicolons(text: str) -> Tuple[str, int, int]:
+    cmd_count = text.count(r"\;")
+    text = text.replace(r"\;", "")
+    plain_count = text.count(";")
+    text = text.replace(";", "")
+    return text, cmd_count, plain_count
+
+
+def remove_semicolons_in_math_spans(line: str) -> Tuple[str, int, int]:
+    spans = find_dollar_spans(line)
+    if not spans:
+        return line, 0, 0
+
+    out: List[str] = []
+    last = 0
+    cmd_total = 0
+    plain_total = 0
+    for start, end in spans:
+        out.append(line[last:start])
+        segment = line[start:end]
+        if segment.startswith("$$"):
+            inner = segment[2:-2]
+            inner, cmd_count, plain_count = remove_semicolons(inner)
+            cmd_total += cmd_count
+            plain_total += plain_count
+            out.append("$$" + inner + "$$")
+        else:
+            inner = segment[1:-1]
+            inner, cmd_count, plain_count = remove_semicolons(inner)
+            cmd_total += cmd_count
+            plain_total += plain_count
+            out.append("$" + inner + "$")
+        last = end
+    out.append(line[last:])
+    return "".join(out), cmd_total, plain_total
+
+
+def rewrite_heading(
+    line: str, h6_counter: int, demote_active: bool
+) -> Tuple[str, int, bool, int, int, int, int, int]:
+    prefix, rest = split_blockquote(line)
+    match = HEADING_RE.match(rest)
+    if not match:
+        return line, h6_counter, demote_active, 0, 0, 0, 0, 0
+
+    hashes = match.group(1)
+    title = match.group(2).strip()
+    level = len(hashes)
+    if level == 1:
+        if H1_Q_RE.match(rest):
+            demote_active = False
+            return line, h6_counter, demote_active, 0, 0, 0, 0, 0
+        demote_active = True
+        level = 2
+    elif demote_active:
+        level = min(level + 1, 6)
+
+    if level == 2:
+        return f"{prefix}⬤ {title}", h6_counter, demote_active, 1, 0, 0, 0, 0
+    if level == 3:
+        return f"{prefix}⦿ {title}", h6_counter, demote_active, 0, 1, 0, 0, 0
+    if level == 4:
+        return f"{prefix}⊚ {title}", h6_counter, demote_active, 0, 0, 1, 0, 0
+    if level == 5:
+        return f"{prefix}〇 {title}", h6_counter, demote_active, 0, 0, 0, 1, 0
+    if level == 6:
+        h6_counter += 1
+        return (
+            f"{prefix}{h6_counter}. {title}",
+            h6_counter,
+            demote_active,
+            0,
+            0,
+            0,
+            0,
+            1,
+        )
+
+    return line, h6_counter, demote_active, 0, 0, 0, 0, 0
 
 
 def is_equals_line(line: str) -> bool:
@@ -315,9 +408,19 @@ def fix_markdown(text: str) -> Tuple[str, dict, list]:
         "boxed2_fixed": 0,
         "placeholder_sum_removed": 0,
         "placeholder_frac_removed": 0,
+        "semicolon_cmd_removed": 0,
+        "semicolon_removed": 0,
+        "heading_h2": 0,
+        "heading_h3": 0,
+        "heading_h4": 0,
+        "heading_h5": 0,
+        "heading_h6": 0,
     }
     warnings: List[str] = []
     skip_next_equals = False
+
+    h6_counter = 0
+    demote_active = False
 
     for line in lines:
         stripped = line.strip()
@@ -370,6 +473,27 @@ def fix_markdown(text: str) -> Tuple[str, dict, list]:
                 stats["math_hash_stripped"] += 1
             line = cleaned
 
+            line, cmd_count, plain_count = remove_semicolons(line)
+            stats["semicolon_cmd_removed"] += cmd_count
+            stats["semicolon_removed"] += plain_count
+
+        if not in_code_block and not in_display_math:
+            (
+                line,
+                h6_counter,
+                demote_active,
+                h2_count,
+                h3_count,
+                h4_count,
+                h5_count,
+                h6_count,
+            ) = rewrite_heading(line, h6_counter, demote_active)
+            stats["heading_h2"] += h2_count
+            stats["heading_h3"] += h3_count
+            stats["heading_h4"] += h4_count
+            stats["heading_h5"] += h5_count
+            stats["heading_h6"] += h6_count
+
         if not in_code_block:
             line, token_stats = fix_common_math_tokens(line)
             stats["sum_star_fixed"] += token_stats["sum_star_fixed"]
@@ -385,6 +509,9 @@ def fix_markdown(text: str) -> Tuple[str, dict, list]:
             line, paren_count, inline_count = fix_inline_dollar_exponent(line)
             stats["inline_paren_exponent_fixed"] += paren_count
             stats["inline_exponent_fixed"] += inline_count
+            line, cmd_count, plain_count = remove_semicolons_in_math_spans(line)
+            stats["semicolon_cmd_removed"] += cmd_count
+            stats["semicolon_removed"] += plain_count
 
         out_lines.append(line)
 
@@ -450,6 +577,20 @@ def main() -> int:
         print(f"- placeholder \\sum_^ removed: {stats['placeholder_sum_removed']}")
     if stats["placeholder_frac_removed"]:
         print(f"- placeholder \\frac removed: {stats['placeholder_frac_removed']}")
+    if stats["semicolon_cmd_removed"]:
+        print(f"- semicolon commands removed: {stats['semicolon_cmd_removed']}")
+    if stats["semicolon_removed"]:
+        print(f"- semicolons removed: {stats['semicolon_removed']}")
+    if stats["heading_h2"]:
+        print(f"- H2 headings rewritten: {stats['heading_h2']}")
+    if stats["heading_h3"]:
+        print(f"- H3 headings rewritten: {stats['heading_h3']}")
+    if stats["heading_h4"]:
+        print(f"- H4 headings rewritten: {stats['heading_h4']}")
+    if stats["heading_h5"]:
+        print(f"- H5 headings rewritten: {stats['heading_h5']}")
+    if stats["heading_h6"]:
+        print(f"- H6 headings rewritten: {stats['heading_h6']}")
     print(f"- math lines with leading '#': {stats['math_hash_stripped']}")
     if stats["display_math_closed"]:
         print(f"- display math blocks auto-closed: {stats['display_math_closed']}")

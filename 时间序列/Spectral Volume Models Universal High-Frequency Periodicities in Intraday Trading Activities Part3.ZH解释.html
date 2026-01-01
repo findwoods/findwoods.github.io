@@ -5074,40 +5074,49 @@ $$</div></p><p><strong>解释</strong>: 这是通过对<strong>样本自协方�
                 if (!notesList) {
                     return;
                 }
-                waitForMathJaxReady(function() {
-                    if (window.MathJax && typeof MathJax.typesetPromise === 'function') {
-                        if (typeof MathJax.typesetClear === 'function') {
-                            MathJax.typesetClear([notesList]);
-                        }
+                waitForMathJaxCore(function() {
+                    if (!window.MathJax) {
+                        return;
+                    }
+                    if (typeof MathJax.tex2chtmlPromise === 'function' || typeof MathJax.tex2chtml === 'function') {
+                        renderNotesMathFallback();
+                        return;
+                    }
+                    if (typeof MathJax.typesetPromise === 'function') {
                         MathJax.typesetPromise([notesList]).then(function() {
-                            if (!notesList.querySelector('mjx-container') &&
-                                notesList.textContent && notesList.textContent.indexOf('$$') !== -1) {
-                                return MathJax.typesetPromise();
-                            }
-                            return null;
-                        }).then(function() {
-                            if (shouldFallbackRenderNotesMath()) {
-                                return renderNotesMathFallback();
-                            }
                             syncMathTexAttrs();
                         }).catch(function() {
                             syncMathTexAttrs();
                         });
-                    } else if (window.MathJax && typeof MathJax.typeset === 'function') {
-                        if (typeof MathJax.typesetClear === 'function') {
-                            MathJax.typesetClear([notesList]);
-                        }
+                        return;
+                    }
+                    if (typeof MathJax.typeset === 'function') {
                         MathJax.typeset([notesList]);
-                        if (!notesList.querySelector('mjx-container') &&
-                            notesList.textContent && notesList.textContent.indexOf('$$') !== -1) {
-                            MathJax.typeset();
-                        }
-                        if (shouldFallbackRenderNotesMath()) {
-                            renderNotesMathFallback();
-                        }
                         syncMathTexAttrs();
                     }
                 });
+            }
+
+            function waitForMathJaxCore(callback) {
+                var startTime = Date.now();
+                var maxWaitMs = 3000;
+                function check() {
+                    if (window.MathJax) {
+                        if (typeof MathJax.tex2chtmlPromise === 'function' ||
+                            typeof MathJax.tex2chtml === 'function' ||
+                            typeof MathJax.typesetPromise === 'function' ||
+                            typeof MathJax.typeset === 'function') {
+                            callback();
+                            return;
+                        }
+                    }
+                    if (Date.now() - startTime > maxWaitMs) {
+                        callback();
+                        return;
+                    }
+                    setTimeout(check, 50);
+                }
+                check();
             }
 
             function shouldFallbackRenderNotesMath() {
@@ -5180,7 +5189,23 @@ $$</div></p><p><strong>解释</strong>: 这是通过对<strong>样本自协方�
                     if (!tex) {
                         continue;
                     }
-                    if (typeof MathJax.tex2chtmlPromise === 'function') {
+                    if (typeof MathJax.tex2chtml === 'function') {
+                        try {
+                            var rendered = MathJax.tex2chtml(tex, { display: true });
+                            block.innerHTML = '';
+                            block.appendChild(rendered);
+                        } catch (e) {
+                            if (typeof MathJax.tex2chtmlPromise === 'function') {
+                                var promise = MathJax.tex2chtmlPromise(tex, { display: true }).then(function(node) {
+                                    block.innerHTML = '';
+                                    block.appendChild(node);
+                                }).catch(function() {
+                                    // 保留原始文本作为回退
+                                });
+                                promises.push(promise);
+                            }
+                        }
+                    } else if (typeof MathJax.tex2chtmlPromise === 'function') {
                         var promise = MathJax.tex2chtmlPromise(tex, { display: true }).then(function(node) {
                             block.innerHTML = '';
                             block.appendChild(node);
@@ -5188,10 +5213,6 @@ $$</div></p><p><strong>解释</strong>: 这是通过对<strong>样本自协方�
                             // 保留原始文本作为回退
                         });
                         promises.push(promise);
-                    } else if (typeof MathJax.tex2chtml === 'function') {
-                        var rendered = MathJax.tex2chtml(tex, { display: true });
-                        block.innerHTML = '';
-                        block.appendChild(rendered);
                     }
                 }
 
@@ -5228,7 +5249,23 @@ $$</div></p><p><strong>解释</strong>: 这是通过对<strong>样本自协方�
                         placeholder.className = 'note-item-inline-math';
                         placeholder.textContent = '$' + part.value + '$';
                         frag.appendChild(placeholder);
-                        if (typeof MathJax.tex2chtmlPromise === 'function') {
+                        if (typeof MathJax.tex2chtml === 'function') {
+                            try {
+                                placeholder.textContent = '';
+                                placeholder.appendChild(MathJax.tex2chtml(part.value, { display: false }));
+                            } catch (e) {
+                                if (typeof MathJax.tex2chtmlPromise === 'function') {
+                                    var inlinePromise = MathJax.tex2chtmlPromise(part.value, { display: false }).then(function(node) {
+                                        placeholder.textContent = '';
+                                        placeholder.appendChild(node);
+                                    }).catch(function() {
+                                        // 保留原始文本作为回退
+                                        placeholder.textContent = '$' + part.value + '$';
+                                    });
+                                    promises.push(inlinePromise);
+                                }
+                            }
+                        } else if (typeof MathJax.tex2chtmlPromise === 'function') {
                             var inlinePromise = MathJax.tex2chtmlPromise(part.value, { display: false }).then(function(node) {
                                 placeholder.textContent = '';
                                 placeholder.appendChild(node);
@@ -5237,9 +5274,6 @@ $$</div></p><p><strong>解释</strong>: 这是通过对<strong>样本自协方�
                                 placeholder.textContent = '$' + part.value + '$';
                             });
                             promises.push(inlinePromise);
-                        } else if (typeof MathJax.tex2chtml === 'function') {
-                            placeholder.textContent = '';
-                            placeholder.appendChild(MathJax.tex2chtml(part.value, { display: false }));
                         }
                     });
                     if (textNode.parentNode) {

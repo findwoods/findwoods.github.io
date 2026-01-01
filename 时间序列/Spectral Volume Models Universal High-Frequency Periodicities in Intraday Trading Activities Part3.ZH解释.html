@@ -3557,7 +3557,7 @@ $$</div></p><p><strong>解释</strong>: 这是通过对<strong>样本自协方�
     <script>
         (function() {
             // ===== 常量和DOM元素 =====
-            var STORAGE_KEY = 'user_highlights_' + window.location.pathname;
+            var STORAGE_KEY = "user_highlights_Spectral Volume Models Universal High-Frequency Periodicities in Intraday Trading Activities Part3.ZH\u89e3\u91ca.html_5970cf45c355";
             var notesToggle = document.getElementById('notesToggle');
             var notesPanel = document.getElementById('notesPanel');
             var notesOverlay = document.getElementById('notesOverlay');
@@ -4225,14 +4225,22 @@ $$</div></p><p><strong>解释</strong>: 这是通过对<strong>样本自协方�
                 });
             }
             
-            function clearAllHighlights() {
+            function clearAllHighlights(forceSkipConfirm) {
+                // forceSkipConfirm: 跳过确认对话框直接清空
                 var confirmed = true;
-                if (typeof window.confirm === 'function') {
+                if (!forceSkipConfirm && typeof window.confirm === 'function') {
                     try {
-                        confirmed = window.confirm('确定要清空所有笔记吗？此操作不可恢复。');
+                        var result = window.confirm('确定要清空所有笔记吗？此操作不可恢复。');
+                        // 只有明确返回 false 才阻止清空，其他情况（undefined、null等）都允许
+                        confirmed = (result !== false);
                     } catch (e) {
+                        // confirm异常时默认允许清空
                         confirmed = true;
                     }
+                }
+                // 额外检查：某些环境下confirm可能返回undefined或异常值
+                if (confirmed !== true && confirmed !== false) {
+                    confirmed = true;
                 }
                 if (confirmed === false) {
                     return;
@@ -4842,10 +4850,12 @@ $$</div></p><p><strong>解释</strong>: 这是通过对<strong>样本自协方�
                         
                         var currentHighlights = getHighlights();
                         
-                        // 增量导入：只添加不存在的新笔记（基于文本内容比较）
-                        var existingTexts = {};
+                        // 增量导入：只添加不存在的新笔记（基于文本内容+位置信息比较）
+                        // 文本和位置都相同才认为是同一条笔记
+                        var existingKeys = {};
                         currentHighlights.forEach(function(h) {
-                            existingTexts[h.text] = true;
+                            var key = (h.text || '') + '||' + (h.anchorPath || '') + '|' + (h.startOffset || 0) + '|' + (h.endOffset || 0);
+                            existingKeys[key] = true;
                         });
                         
                         var newHighlights = currentHighlights.slice();
@@ -4853,15 +4863,16 @@ $$</div></p><p><strong>解释</strong>: 这是通过对<strong>样本自协方�
                         var skippedCount = 0;
                         
                         data.highlights.forEach(function(h) {
-                            // 检查是否已存在相同内容的笔记
-                            if (existingTexts[h.text]) {
+                            // 检查是否已存在相同文本+位置的笔记
+                            var key = (h.text || '') + '||' + (h.anchorPath || '') + '|' + (h.startOffset || 0) + '|' + (h.endOffset || 0);
+                            if (existingKeys[key]) {
                                 skippedCount++;
                                 return;  // 跳过已存在的
                             }
                             // 生成新ID避免冲突
                             h.id = Date.now().toString() + '_' + Math.random().toString(36).substr(2, 9);
                             newHighlights.push(h);
-                            existingTexts[h.text] = true;  // 标记为已存在，避免同一备份中的重复
+                            existingKeys[key] = true;  // 标记为已存在，避免同一备份中的重复
                             addedCount++;
                         });
                         

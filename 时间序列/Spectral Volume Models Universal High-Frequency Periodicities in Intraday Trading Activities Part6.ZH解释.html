@@ -5320,6 +5320,10 @@ $$</div></p>
                         applyHighlightByText(container, item.text, item.id);
                     }
                 });
+                if (restoreMarkdownForHighlights(highlights)) {
+                    saveHighlights(highlights);
+                    updateUI();
+                }
             }
             
             function buildExportFileName() {
@@ -5649,6 +5653,14 @@ $$</div></p>
                         });
                     });
                     queueNotesTypeset();
+                    if (notesMode === 'markdown') {
+                        setTimeout(function() {
+                            renderNotesMathFallback();
+                        }, 0);
+                        setTimeout(function() {
+                            renderNotesMathFallback();
+                        }, 200);
+                    }
                 }
             }
             
@@ -5785,6 +5797,11 @@ $$</div></p>
                 } catch (e) {}
                 if (!skipUpdate) {
                     updateUI();
+                    if (normalized === 'markdown') {
+                        setTimeout(function() {
+                            queueNotesTypeset(true);
+                        }, 0);
+                    }
                 }
             }
 
@@ -5860,6 +5877,23 @@ $$</div></p>
                 return output;
             }
 
+            function formatNoteForCopyAll(noteText, index, mode) {
+                var raw = normalizeNoteText(noteText);
+                var prefix = (index + 1) + '.';
+                if (!raw) {
+                    return prefix;
+                }
+                if (mode !== 'markdown') {
+                    return prefix + ' ' + raw;
+                }
+                var formatted = formatMarkdownForExport(raw);
+                var trimmed = formatted.replace(/^\s+/, '');
+                if (trimmed.indexOf('$$') === 0) {
+                    return prefix + '\n\n' + formatted;
+                }
+                return prefix + ' ' + formatted;
+            }
+
             function getNoteMarkdownText(item) {
                 var markdown = normalizeNoteText(item && item.markdown);
                 if (markdown) {
@@ -5932,8 +5966,34 @@ $$</div></p>
                     return normalizeNoteText(fallbackText);
                 }
                 var fragment = null;
+                var extractionRange = range;
+                var root = getRootContainer();
+                if (root) {
+                    var mathBlocks = getIntersectingElements(range, root, '.math-block');
+                    var mathInlines = getIntersectingElements(range, root, '.math-inline');
+                    var mathElements = mathBlocks.concat(mathInlines);
+                    if (mathElements.length) {
+                        try {
+                            extractionRange = range.cloneRange();
+                            mathElements.forEach(function(node) {
+                                try {
+                                    var nodeRange = document.createRange();
+                                    nodeRange.selectNode(node);
+                                    if (extractionRange.compareBoundaryPoints(Range.START_TO_START, nodeRange) > 0) {
+                                        extractionRange.setStartBefore(node);
+                                    }
+                                    if (extractionRange.compareBoundaryPoints(Range.END_TO_END, nodeRange) < 0) {
+                                        extractionRange.setEndAfter(node);
+                                    }
+                                } catch (e) {}
+                            });
+                        } catch (e) {
+                            extractionRange = range;
+                        }
+                    }
+                }
                 try {
-                    fragment = range.cloneContents();
+                    fragment = extractionRange.cloneContents();
                 } catch (e) {
                     return normalizeNoteText(fallbackText);
                 }
@@ -5971,6 +6031,168 @@ $$</div></p>
                 return text || normalizeNoteText(fallbackText);
             }
 
+            function sortNodesInDocumentOrder(nodes) {
+                if (!nodes || !nodes.length) {
+                    return [];
+                }
+                return nodes.sort(function(a, b) {
+                    if (a === b) {
+                        return 0;
+                    }
+                    var position = a.compareDocumentPosition(b);
+                    if (position & Node.DOCUMENT_POSITION_PRECEDING) {
+                        return 1;
+                    }
+                    if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
+                        return -1;
+                    }
+                    return 0;
+                });
+            }
+
+            function getHighlightElementsById(id) {
+                if (!id) {
+                    return [];
+                }
+                var selector = '.user-highlight[data-highlight-id="' + id + '"], ' +
+                    '.user-highlight-block[data-highlight-id="' + id + '"], ' +
+                    '.user-highlight-inline-math[data-highlight-id="' + id + '"]';
+                var nodes = Array.prototype.slice.call(document.querySelectorAll(selector));
+                return sortNodesInDocumentOrder(nodes);
+            }
+
+            function extractMarkdownFromElement(element) {
+                if (!element) {
+                    return '';
+                }
+                try {
+                    var range = document.createRange();
+                    range.selectNodeContents(element);
+                    return extractMarkdownFromRange(range, element.innerText || element.textContent || '');
+                } catch (e) {
+                    return normalizeNoteText(element.innerText || element.textContent || '');
+                }
+            }
+
+            function getMathTexFromElement(element) {
+                if (!element) {
+                    return '';
+                }
+                var tex = element.getAttribute('data-tex');
+                if (!tex) {
+                    var wrapper = element.closest('.math-block, .math-inline');
+                    if (wrapper) {
+                        tex = wrapper.getAttribute('data-tex');
+                    }
+                }
+                if (!tex) {
+                    var mjx = element.querySelector && element.querySelector('mjx-container');
+                    if (mjx) {
+                        tex = mjx.getAttribute('data-tex');
+                    }
+                }
+                return normalizeMathText(tex);
+            }
+
+            function buildMarkdownFromHighlight(item) {
+                if (!item || !item.id) {
+                    return '';
+                }
+                var nodes = getHighlightElementsById(item.id);
+                if (!nodes.length) {
+                    return '';
+                }
+                var parts = [];
+                nodes.forEach(function(node) {
+                    if (!node || !node.classList) {
+                        return;
+                    }
+                    var insideTextHighlight = node.closest('.user-highlight[data-highlight-id="' + item.id + '"]');
+                    if (node.classList.contains('user-highlight-inline-math')) {
+                        if (insideTextHighlight) {
+                            return;
+                        }
+                        var inlineTex = getMathTexFromElement(node);
+                        if (inlineTex) {
+                            parts.push('$' + inlineTex + '$');
+                        }
+                        return;
+                    }
+                    if (node.classList.contains('user-highlight-block')) {
+                        if (insideTextHighlight) {
+                            return;
+                        }
+                        var blockTex = getMathTexFromElement(node);
+                        if (blockTex) {
+                            parts.push('$$\n' + blockTex + '\n$$');
+                        }
+                        return;
+                    }
+                    if (node.classList.contains('user-highlight')) {
+                        var text = extractMarkdownFromElement(node);
+                        if (text) {
+                            parts.push(text);
+                        }
+                    }
+                });
+                return parts.join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
+            }
+
+            function countMarkdownMathTokens(text) {
+                var normalized = normalizeNoteText(text);
+                if (!normalized) {
+                    return 0;
+                }
+                var placeholders = extractMathPlaceholders(normalized);
+                return (placeholders.blocks.length + placeholders.inlines.length);
+            }
+
+            function stripMarkdownMath(text) {
+                var normalized = normalizeNoteText(text);
+                if (!normalized) {
+                    return '';
+                }
+                var placeholders = extractMathPlaceholders(normalized);
+                var stripped = placeholders.text.replace(/%%MATH_(BLOCK|INLINE)_\d+%%/g, '');
+                return stripped.replace(/\s+/g, ' ').trim();
+            }
+
+            function getPlainTextScore(text) {
+                var stripped = stripMarkdownMath(text);
+                if (!stripped) {
+                    return 0;
+                }
+                return stripped.replace(/\s/g, '').length;
+            }
+
+            function restoreMarkdownForHighlights(highlights) {
+                if (!highlights || !highlights.length) {
+                    return false;
+                }
+                var updated = false;
+                highlights.forEach(function(item) {
+                    if (!item || !item.id) {
+                        return;
+                    }
+                    var rebuilt = buildMarkdownFromHighlight(item);
+                    if (!rebuilt) {
+                        return;
+                    }
+                    var current = normalizeNoteText(item.markdown);
+                    var rebuiltCount = countMarkdownMathTokens(rebuilt);
+                    var currentCount = countMarkdownMathTokens(current);
+                    var rebuiltPlain = getPlainTextScore(rebuilt);
+                    var currentPlain = getPlainTextScore(current);
+                    if (!current || rebuiltCount > currentCount || rebuiltPlain > currentPlain) {
+                        if (normalizeNoteText(rebuilt) !== current) {
+                            item.markdown = rebuilt;
+                            updated = true;
+                        }
+                    }
+                });
+                return updated;
+            }
+
             function syncMathTexAttrs(scope) {
                 var root = scope || document;
                 var wrappers = root.querySelectorAll('.math-block[data-tex], .math-inline[data-tex]');
@@ -5986,7 +6208,7 @@ $$</div></p>
                 });
             }
 
-            function queueNotesTypeset() {
+            function queueNotesTypeset(forceAll) {
                 if (getNotesMode() !== 'markdown') {
                     return;
                 }
@@ -5995,16 +6217,184 @@ $$</div></p>
                 }
                 waitForMathJaxReady(function() {
                     if (window.MathJax && typeof MathJax.typesetPromise === 'function') {
+                        if (typeof MathJax.typesetClear === 'function') {
+                            MathJax.typesetClear([notesList]);
+                        }
                         MathJax.typesetPromise([notesList]).then(function() {
+                            if (!notesList.querySelector('mjx-container') &&
+                                notesList.textContent && notesList.textContent.indexOf('$$') !== -1) {
+                                return MathJax.typesetPromise();
+                            }
+                            return null;
+                        }).then(function() {
+                            if (shouldFallbackRenderNotesMath()) {
+                                return renderNotesMathFallback();
+                            }
                             syncMathTexAttrs();
                         }).catch(function() {
                             syncMathTexAttrs();
                         });
                     } else if (window.MathJax && typeof MathJax.typeset === 'function') {
+                        if (typeof MathJax.typesetClear === 'function') {
+                            MathJax.typesetClear([notesList]);
+                        }
                         MathJax.typeset([notesList]);
+                        if (!notesList.querySelector('mjx-container') &&
+                            notesList.textContent && notesList.textContent.indexOf('$$') !== -1) {
+                            MathJax.typeset();
+                        }
+                        if (shouldFallbackRenderNotesMath()) {
+                            renderNotesMathFallback();
+                        }
                         syncMathTexAttrs();
                     }
                 });
+            }
+
+            function shouldFallbackRenderNotesMath() {
+                if (!notesList) {
+                    return false;
+                }
+                var blocks = notesList.querySelectorAll('.note-item-math-block');
+                if (blocks.length) {
+                    for (var i = 0; i < blocks.length; i++) {
+                        if (!blocks[i].querySelector('mjx-container')) {
+                            return true;
+                        }
+                    }
+                }
+                var text = notesList.textContent || '';
+                return text.indexOf('$$') !== -1 || text.indexOf('$') !== -1;
+            }
+
+            function splitInlineMath(text) {
+                var parts = [];
+                if (!text || text.indexOf('$') === -1) {
+                    return parts;
+                }
+                var i = 0;
+                while (i < text.length) {
+                    var start = text.indexOf('$', i);
+                    if (start === -1) {
+                        parts.push({ type: 'text', value: text.slice(i) });
+                        break;
+                    }
+                    if (start > 0 && text[start - 1] === '\\') {
+                        i = start + 1;
+                        continue;
+                    }
+                    if (start + 1 < text.length && text[start + 1] === '$') {
+                        parts.push({ type: 'text', value: text.slice(i, start + 2) });
+                        i = start + 2;
+                        continue;
+                    }
+                    var end = text.indexOf('$', start + 1);
+                    if (end === -1) {
+                        parts.push({ type: 'text', value: text.slice(i) });
+                        break;
+                    }
+                    if (end + 1 < text.length && text[end + 1] === '$') {
+                        parts.push({ type: 'text', value: text.slice(i, end + 2) });
+                        i = end + 2;
+                        continue;
+                    }
+                    parts.push({ type: 'text', value: text.slice(i, start) });
+                    parts.push({ type: 'math', value: text.slice(start + 1, end) });
+                    i = end + 1;
+                }
+                return parts;
+            }
+
+            function renderNotesMathFallback() {
+                if (!notesList || !window.MathJax) {
+                    return null;
+                }
+                var promises = [];
+                var blocks = notesList.querySelectorAll('.note-item-math-block');
+                for (var i = 0; i < blocks.length; i++) {
+                    var block = blocks[i];
+                    if (block.querySelector('mjx-container')) {
+                        continue;
+                    }
+                    var raw = block.textContent || '';
+                    var tex = raw.replace(/^\s*\$\$\s*/, '').replace(/\s*\$\$\s*$/, '').trim();
+                    if (!tex) {
+                        continue;
+                    }
+                    if (typeof MathJax.tex2chtmlPromise === 'function') {
+                        var promise = MathJax.tex2chtmlPromise(tex, { display: true }).then(function(node) {
+                            block.innerHTML = '';
+                            block.appendChild(node);
+                        }).catch(function() {
+                            // 保留原始文本作为回退
+                        });
+                        promises.push(promise);
+                    } else if (typeof MathJax.tex2chtml === 'function') {
+                        var rendered = MathJax.tex2chtml(tex, { display: true });
+                        block.innerHTML = '';
+                        block.appendChild(rendered);
+                    }
+                }
+
+                var walker = document.createTreeWalker(notesList, NodeFilter.SHOW_TEXT, null, false);
+                var textNodes = [];
+                var node;
+                while (node = walker.nextNode()) {
+                    if (!node.nodeValue || node.nodeValue.indexOf('$') === -1) {
+                        continue;
+                    }
+                    if (node.parentElement && (node.parentElement.closest('.note-item-math-block') ||
+                        node.parentElement.closest('.note-item-inline-math') ||
+                        node.parentElement.closest('mjx-container'))) {
+                        continue;
+                    }
+                    textNodes.push(node);
+                }
+
+                for (var t = 0; t < textNodes.length; t++) {
+                    var textNode = textNodes[t];
+                    var parts = splitInlineMath(textNode.nodeValue);
+                    if (!parts.length || parts.every(function(p) { return p.type === 'text'; })) {
+                        continue;
+                    }
+                    var frag = document.createDocumentFragment();
+                    parts.forEach(function(part) {
+                        if (part.type === 'text') {
+                            if (part.value) {
+                                frag.appendChild(document.createTextNode(part.value));
+                            }
+                            return;
+                        }
+                        var placeholder = document.createElement('span');
+                        placeholder.className = 'note-item-inline-math';
+                        placeholder.textContent = '$' + part.value + '$';
+                        frag.appendChild(placeholder);
+                        if (typeof MathJax.tex2chtmlPromise === 'function') {
+                            var inlinePromise = MathJax.tex2chtmlPromise(part.value, { display: false }).then(function(node) {
+                                placeholder.textContent = '';
+                                placeholder.appendChild(node);
+                            }).catch(function() {
+                                // 保留原始文本作为回退
+                                placeholder.textContent = '$' + part.value + '$';
+                            });
+                            promises.push(inlinePromise);
+                        } else if (typeof MathJax.tex2chtml === 'function') {
+                            placeholder.textContent = '';
+                            placeholder.appendChild(MathJax.tex2chtml(part.value, { display: false }));
+                        }
+                    });
+                    if (textNode.parentNode) {
+                        textNode.parentNode.replaceChild(frag, textNode);
+                    }
+                }
+
+                if (promises.length && typeof Promise !== 'undefined') {
+                    return Promise.all(promises).then(function() {
+                        syncMathTexAttrs();
+                    });
+                }
+                syncMathTexAttrs();
+                return null;
             }
             
             // ===== 笔记面板控制 =====
@@ -6012,6 +6402,7 @@ $$</div></p>
                 notesPanel.classList.add('active');
                 notesOverlay.classList.add('active');
                 notesToggle.setAttribute('aria-label', '关闭笔记');
+                queueNotesTypeset(true);
             }
             
             function closeNotes() {
@@ -6180,6 +6571,10 @@ $$</div></p>
                     alert('暂无笔记可导出');
                     return;
                 }
+                if (restoreMarkdownForHighlights(highlights)) {
+                    saveHighlights(highlights);
+                    updateUI();
+                }
                 
                 var notesMode = getNotesMode();
                 var title = document.title || '笔记';
@@ -6233,10 +6628,15 @@ $$</div></p>
                     alert('暂无笔记可复制');
                     return;
                 }
+                if (restoreMarkdownForHighlights(highlights)) {
+                    saveHighlights(highlights);
+                    updateUI();
+                }
                 
                 var notesMode = getNotesMode();
                 var text = highlights.map(function(h, index) {
-                    return (index + 1) + '. ' + getNoteTextForMode(h, notesMode);
+                    var noteText = getNoteTextForMode(h, notesMode);
+                    return formatNoteForCopyAll(noteText, index, notesMode);
                 }).join('\n\n');
                 
                 navigator.clipboard.writeText(text).then(function() {

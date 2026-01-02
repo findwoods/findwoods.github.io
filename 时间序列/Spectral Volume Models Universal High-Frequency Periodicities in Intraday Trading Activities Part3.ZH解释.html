@@ -5711,6 +5711,192 @@ $$</div></p><p><strong>解释</strong>: 这是通过对<strong>样本自协方�
             style.textContent = '@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }';
             document.head.appendChild(style);
             
+            // ===== 块级公式长按复制功能 =====
+            (function() {
+                var longPressTimer = null;
+                var longPressDuration = 600; // 长按600毫秒触发
+                var touchStartX = 0;
+                var touchStartY = 0;
+                var touchMoved = false;
+                
+                // 获取公式的TeX内容
+                function getMathBlockTex(element) {
+                    if (!element) return '';
+                    var tex = element.getAttribute('data-tex');
+                    if (tex) {
+                        // 反转义HTML实体
+                        tex = tex.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+                        tex = tex.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#10;/g, '\n');
+                        return tex;
+                    }
+                    // 尝试从mjx-container获取
+                    var mjx = element.querySelector('mjx-container');
+                    if (mjx && mjx.getAttribute('data-tex')) {
+                        tex = mjx.getAttribute('data-tex');
+                        tex = tex.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+                        tex = tex.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#10;/g, '\n');
+                        return tex;
+                    }
+                    // 尝试获取原始文本内容
+                    var textContent = element.textContent || '';
+                    // 移除$$标记
+                    textContent = textContent.replace(/^\s*\$\$\s*/, '').replace(/\s*\$\$\s*$/, '').trim();
+                    return textContent;
+                }
+                
+                // 根据当前笔记模式直接复制公式
+                function copyMathBlockByMode(mathBlock) {
+                    if (!mathBlock) return;
+                    
+                    var tex = getMathBlockTex(mathBlock);
+                    if (!tex) {
+                        showToast('无法获取公式内容');
+                        return;
+                    }
+                    
+                    // 读取当前笔记模式
+                    var mode = getNotesMode();
+                    var copyText = '';
+                    var modeLabel = '';
+                    
+                    if (mode === 'markdown') {
+                        copyText = '$$\n' + tex + '\n$$';
+                        modeLabel = 'Markdown格式';
+                    } else {
+                        copyText = tex;
+                        modeLabel = '纯文本格式';
+                    }
+                    
+                    // 添加临时高亮效果
+                    mathBlock.style.outline = '3px solid #6366f1';
+                    mathBlock.style.outlineOffset = '4px';
+                    mathBlock.style.transition = 'outline 0.2s ease';
+                    setTimeout(function() {
+                        mathBlock.style.outline = '';
+                        mathBlock.style.outlineOffset = '';
+                    }, 500);
+                    
+                    navigator.clipboard.writeText(copyText).then(function() {
+                        showToast('已复制公式（' + modeLabel + '）');
+                    }).catch(function(err) {
+                        console.error('复制失败:', err);
+                        // 回退方案
+                        var textarea = document.createElement('textarea');
+                        textarea.value = copyText;
+                        textarea.style.position = 'fixed';
+                        textarea.style.left = '-9999px';
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        try {
+                            document.execCommand('copy');
+                            showToast('已复制公式（' + modeLabel + '）');
+                        } catch (e) {
+                            showToast('复制失败');
+                        }
+                        document.body.removeChild(textarea);
+                    });
+                }
+                
+                // 清除长按定时器
+                function clearLongPress() {
+                    if (longPressTimer) {
+                        clearTimeout(longPressTimer);
+                        longPressTimer = null;
+                    }
+                }
+                
+                // 检测是否是math-block元素
+                function findMathBlock(target) {
+                    if (!target) return null;
+                    var el = target.closest('.math-block');
+                    return el;
+                }
+                
+                // 触摸开始 - 用于移动端长按检测
+                document.addEventListener('touchstart', function(e) {
+                    var mathBlock = findMathBlock(e.target);
+                    if (!mathBlock) return;
+                    
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                    touchMoved = false;
+                    
+                    clearLongPress();
+                    longPressTimer = setTimeout(function() {
+                        if (!touchMoved) {
+                            e.preventDefault();
+                            copyMathBlockByMode(mathBlock);
+                        }
+                    }, longPressDuration);
+                }, { passive: false });
+                
+                // 触摸移动 - 取消长按
+                document.addEventListener('touchmove', function(e) {
+                    if (longPressTimer) {
+                        var dx = Math.abs(e.touches[0].clientX - touchStartX);
+                        var dy = Math.abs(e.touches[0].clientY - touchStartY);
+                        if (dx > 10 || dy > 10) {
+                            touchMoved = true;
+                            clearLongPress();
+                        }
+                    }
+                }, { passive: true });
+                
+                // 触摸结束 - 清除定时器
+                document.addEventListener('touchend', function(e) {
+                    clearLongPress();
+                }, { passive: true });
+                
+                document.addEventListener('touchcancel', function(e) {
+                    clearLongPress();
+                }, { passive: true });
+                
+                // 鼠标长按检测（桌面端）
+                var mouseDownTimer = null;
+                var mouseStartX = 0;
+                var mouseStartY = 0;
+                var mouseMoved = false;
+                
+                document.addEventListener('mousedown', function(e) {
+                    var mathBlock = findMathBlock(e.target);
+                    if (!mathBlock) return;
+                    if (e.button !== 0) return; // 只响应左键
+                    
+                    mouseStartX = e.clientX;
+                    mouseStartY = e.clientY;
+                    mouseMoved = false;
+                    
+                    if (mouseDownTimer) clearTimeout(mouseDownTimer);
+                    mouseDownTimer = setTimeout(function() {
+                        if (!mouseMoved) {
+                            e.preventDefault();
+                            copyMathBlockByMode(mathBlock);
+                        }
+                    }, longPressDuration);
+                });
+                
+                document.addEventListener('mousemove', function(e) {
+                    if (mouseDownTimer) {
+                        var dx = Math.abs(e.clientX - mouseStartX);
+                        var dy = Math.abs(e.clientY - mouseStartY);
+                        if (dx > 10 || dy > 10) {
+                            mouseMoved = true;
+                            if (mouseDownTimer) {
+                                clearTimeout(mouseDownTimer);
+                                mouseDownTimer = null;
+                            }
+                        }
+                    }
+                });
+                
+                document.addEventListener('mouseup', function(e) {
+                    if (mouseDownTimer) {
+                        clearTimeout(mouseDownTimer);
+                        mouseDownTimer = null;
+                    }
+                });
+            })();
+            
             function waitForMathJaxReady(callback) {
                 var startTime = Date.now();
                 var maxWaitMs = 6000;

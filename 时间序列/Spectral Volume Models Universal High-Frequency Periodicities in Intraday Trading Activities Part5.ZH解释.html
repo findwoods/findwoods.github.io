@@ -922,6 +922,57 @@
             background: var(--accent-color);
             color: white;
         }
+        
+        /* ========================================
+           公式交互样式（参考AI Timeline）
+           ======================================== */
+        
+        /* 公式交互基础样式 */
+        .math-block.formula-interactive,
+        .math-inline.formula-interactive {
+            transition: background-color 0.2s ease;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        /* hover/长按时的灰暗背景 */
+        .math-block.formula-hover,
+        .math-inline.formula-hover {
+            background-color: rgba(0, 0, 0, 0.12) !important;
+        }
+        
+        /* 公式复制反馈 toast */
+        .formula-copy-toast {
+            position: fixed;
+            background: #ffffff;
+            color: #1f2937;
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            transform: translateY(-10px);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .formula-copy-toast.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .formula-copy-toast.error {
+            background: #ef4444;
+            color: #ffffff;
+            border-color: #ef4444;
+        }
 
         /* ========================================
            TOC 目录样式
@@ -1546,6 +1597,8 @@
         .notes-content {
             flex: 1;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
             padding: 15px;
         }
         
@@ -7375,11 +7428,8 @@ $$</div></p><p>[[END_OF_RESPONSE]]所有解释内容已全部输出完毕。</p>
                     (meta && meta.blockPaths && meta.blockPaths.length) ||
                     (meta && meta.inlineMathPaths && meta.inlineMathPaths.length);
                 
-                // 添加到笔记存储
-                var markdownText = '';
-                if (getNotesMode() === 'markdown') {
-                    markdownText = extractMarkdownFromRange(range, text);
-                }
+                // 添加到笔记存储 - 始终保存markdown格式以支持跨模式切换
+                var markdownText = extractMarkdownFromRange(range, text);
                 var newItem = addHighlight(text, meta, markdownText);
                 var highlightId = newItem.id;
                 
@@ -7712,193 +7762,283 @@ $$</div></p><p>[[END_OF_RESPONSE]]所有解释内容已全部输出完毕。</p>
             
             // ===== 高亮动画 =====
             var style = document.createElement('style');
-            style.textContent = '@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }';
+            style.textContent = '@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } } @keyframes fadeInOut { 0% { opacity: 0; transform: translateX(-50%) translateY(20px); } 15% { opacity: 1; transform: translateX(-50%) translateY(0); } 85% { opacity: 1; transform: translateX(-50%) translateY(0); } 100% { opacity: 0; transform: translateX(-50%) translateY(-20px); } }';
             document.head.appendChild(style);
             
-            // ===== 块级公式长按复制功能 =====
+            // ===== 公式复制功能（参考AI Timeline实现）=====
             (function() {
-                var longPressTimer = null;
-                var longPressDuration = 600; // 长按600毫秒触发
-                var touchStartX = 0;
-                var touchStartY = 0;
-                var touchMoved = false;
-                
-                // 获取公式的TeX内容
-                function getMathBlockTex(element) {
-                    if (!element) return '';
-                    var tex = element.getAttribute('data-tex');
-                    if (tex) {
-                        // 反转义HTML实体
-                        tex = tex.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
-                        tex = tex.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#10;/g, '\n');
-                        return tex;
-                    }
-                    // 尝试从mjx-container获取
-                    var mjx = element.querySelector('mjx-container');
-                    if (mjx && mjx.getAttribute('data-tex')) {
-                        tex = mjx.getAttribute('data-tex');
-                        tex = tex.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
-                        tex = tex.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#10;/g, '\n');
-                        return tex;
-                    }
-                    // 尝试获取原始文本内容
-                    var textContent = element.textContent || '';
-                    // 移除$$标记
-                    textContent = textContent.replace(/^\s*\$\$\s*/, '').replace(/\s*\$\$\s*$/, '').trim();
-                    return textContent;
-                }
-                
-                // 根据当前笔记模式直接复制公式
-                function copyMathBlockByMode(mathBlock) {
-                    if (!mathBlock) return;
+                // 公式复制管理器
+                var formulaCopyManager = {
+                    copyFeedback: null,
+                    feedbackTimer: null,
+                    longPressDuration: 600,
                     
-                    var tex = getMathBlockTex(mathBlock);
-                    if (!tex) {
-                        showToast('无法获取公式内容');
-                        return;
-                    }
+                    // 初始化
+                    init: function() {
+                        this.createCopyFeedback();
+                        this.scanAndAttachFormulas();
+                    },
                     
-                    // 读取当前笔记模式
-                    var mode = getNotesMode();
-                    var copyText = '';
-                    var modeLabel = '';
+                    // 创建反馈 toast 元素
+                    createCopyFeedback: function() {
+                        if (this.copyFeedback) return;
+                        this.copyFeedback = document.createElement('div');
+                        this.copyFeedback.className = 'formula-copy-toast';
+                        this.copyFeedback.innerHTML = '<span style="font-size:16px;">✓</span> <span>已复制</span>';
+                        document.body.appendChild(this.copyFeedback);
+                    },
                     
-                    if (mode === 'markdown') {
-                        copyText = '$$\n' + tex + '\n$$';
-                        modeLabel = 'Markdown格式';
-                    } else {
-                        copyText = tex;
-                        modeLabel = '纯文本格式';
-                    }
+                    // 扫描并为公式添加事件
+                    scanAndAttachFormulas: function() {
+                        var self = this;
+                        var formulas = document.querySelectorAll('.math-block, .math-inline');
+                        formulas.forEach(function(el) {
+                            if (el.classList.contains('formula-interactive')) return;
+                            el.classList.add('formula-interactive');
+                            
+                            // 提取并存储 LaTeX
+                            var tex = self.getLatex(el);
+                            if (tex) {
+                                el.setAttribute('data-latex-source', tex);
+                            }
+                            
+                            // 桌面端事件
+                            el.addEventListener('mouseenter', function() { 
+                                el.classList.add('formula-hover'); 
+                            });
+                            el.addEventListener('mouseleave', function() { 
+                                el.classList.remove('formula-hover'); 
+                            });
+                            el.addEventListener('click', function(e) { 
+                                e.preventDefault();
+                                e.stopPropagation();
+                                self.handleCopy(el); 
+                            });
+                            
+                            // 移动端长按事件
+                            var longPressTimer = null;
+                            var touchMoved = false;
+                            var touchStartX = 0;
+                            var touchStartY = 0;
+                            
+                            el.addEventListener('touchstart', function(e) {
+                                touchStartX = e.touches[0].clientX;
+                                touchStartY = e.touches[0].clientY;
+                                touchMoved = false;
+                                el.classList.add('formula-hover');
+                                longPressTimer = setTimeout(function() {
+                                    if (!touchMoved) {
+                                        self.handleCopy(el);
+                                    }
+                                }, self.longPressDuration);
+                            }, { passive: true });
+                            
+                            el.addEventListener('touchmove', function(e) {
+                                var dx = Math.abs(e.touches[0].clientX - touchStartX);
+                                var dy = Math.abs(e.touches[0].clientY - touchStartY);
+                                if (dx > 10 || dy > 10) {
+                                    touchMoved = true;
+                                    clearTimeout(longPressTimer);
+                                    el.classList.remove('formula-hover');
+                                }
+                            }, { passive: true });
+                            
+                            el.addEventListener('touchend', function() {
+                                clearTimeout(longPressTimer);
+                                el.classList.remove('formula-hover');
+                            }, { passive: true });
+                            
+                            el.addEventListener('touchcancel', function() {
+                                clearTimeout(longPressTimer);
+                                el.classList.remove('formula-hover');
+                            }, { passive: true });
+                        });
+                    },
                     
-                    // 添加临时高亮效果
-                    mathBlock.style.outline = '3px solid #6366f1';
-                    mathBlock.style.outlineOffset = '4px';
-                    mathBlock.style.transition = 'outline 0.2s ease';
-                    setTimeout(function() {
-                        mathBlock.style.outline = '';
-                        mathBlock.style.outlineOffset = '';
-                    }, 500);
-                    
-                    navigator.clipboard.writeText(copyText).then(function() {
-                        showToast('已复制公式（' + modeLabel + '）');
-                    }).catch(function(err) {
-                        console.error('复制失败:', err);
-                        // 回退方案
-                        var textarea = document.createElement('textarea');
-                        textarea.value = copyText;
-                        textarea.style.position = 'fixed';
-                        textarea.style.left = '-9999px';
-                        document.body.appendChild(textarea);
-                        textarea.select();
-                        try {
-                            document.execCommand('copy');
-                            showToast('已复制公式（' + modeLabel + '）');
-                        } catch (e) {
-                            showToast('复制失败');
-                        }
-                        document.body.removeChild(textarea);
-                    });
-                }
-                
-                // 清除长按定时器
-                function clearLongPress() {
-                    if (longPressTimer) {
-                        clearTimeout(longPressTimer);
-                        longPressTimer = null;
-                    }
-                }
-                
-                // 检测是否是math-block元素
-                function findMathBlock(target) {
-                    if (!target) return null;
-                    var el = target.closest('.math-block');
-                    return el;
-                }
-                
-                // 触摸开始 - 用于移动端长按检测
-                document.addEventListener('touchstart', function(e) {
-                    var mathBlock = findMathBlock(e.target);
-                    if (!mathBlock) return;
-                    
-                    touchStartX = e.touches[0].clientX;
-                    touchStartY = e.touches[0].clientY;
-                    touchMoved = false;
-                    
-                    clearLongPress();
-                    longPressTimer = setTimeout(function() {
-                        if (!touchMoved) {
-                            e.preventDefault();
-                            copyMathBlockByMode(mathBlock);
-                        }
-                    }, longPressDuration);
-                }, { passive: false });
-                
-                // 触摸移动 - 取消长按
-                document.addEventListener('touchmove', function(e) {
-                    if (longPressTimer) {
-                        var dx = Math.abs(e.touches[0].clientX - touchStartX);
-                        var dy = Math.abs(e.touches[0].clientY - touchStartY);
-                        if (dx > 10 || dy > 10) {
-                            touchMoved = true;
-                            clearLongPress();
-                        }
-                    }
-                }, { passive: true });
-                
-                // 触摸结束 - 清除定时器
-                document.addEventListener('touchend', function(e) {
-                    clearLongPress();
-                }, { passive: true });
-                
-                document.addEventListener('touchcancel', function(e) {
-                    clearLongPress();
-                }, { passive: true });
-                
-                // 鼠标长按检测（桌面端）
-                var mouseDownTimer = null;
-                var mouseStartX = 0;
-                var mouseStartY = 0;
-                var mouseMoved = false;
-                
-                document.addEventListener('mousedown', function(e) {
-                    var mathBlock = findMathBlock(e.target);
-                    if (!mathBlock) return;
-                    if (e.button !== 0) return; // 只响应左键
-                    
-                    mouseStartX = e.clientX;
-                    mouseStartY = e.clientY;
-                    mouseMoved = false;
-                    
-                    if (mouseDownTimer) clearTimeout(mouseDownTimer);
-                    mouseDownTimer = setTimeout(function() {
-                        if (!mouseMoved) {
-                            e.preventDefault();
-                            copyMathBlockByMode(mathBlock);
-                        }
-                    }, longPressDuration);
-                });
-                
-                document.addEventListener('mousemove', function(e) {
-                    if (mouseDownTimer) {
-                        var dx = Math.abs(e.clientX - mouseStartX);
-                        var dy = Math.abs(e.clientY - mouseStartY);
-                        if (dx > 10 || dy > 10) {
-                            mouseMoved = true;
-                            if (mouseDownTimer) {
-                                clearTimeout(mouseDownTimer);
-                                mouseDownTimer = null;
+                    // 处理复制
+                    handleCopy: function(formulaEl) {
+                        var mode = getNotesMode();
+                        var copyText = '';
+                        
+                        if (mode === 'markdown') {
+                            // Markdown模式：复制LaTeX源码包裹在$$中
+                            var tex = formulaEl.getAttribute('data-latex-source') || this.getLatex(formulaEl);
+                            if (!tex) {
+                                this.showFeedback('⚠ 无法获取公式', formulaEl, true);
+                                return;
+                            }
+                            copyText = '$$\n' + tex + '\n$$';
+                        } else {
+                            // 纯文本模式：获取MathJax渲染后的可读文本（Unicode数学符号）
+                            var mjxContainer = formulaEl.querySelector('mjx-container');
+                            if (mjxContainer) {
+                                copyText = mjxContainer.textContent || '';
+                            } else {
+                                copyText = formulaEl.textContent || '';
+                            }
+                            // 清理多余空白
+                            copyText = copyText.replace(/\s+/g, ' ').trim();
+                            // 移除可能残留的$$标记
+                            copyText = copyText.replace(/^\$\$\s*/, '').replace(/\s*\$\$$/, '').trim();
+                            
+                            if (!copyText) {
+                                this.showFeedback('⚠ 无法获取公式', formulaEl, true);
+                                return;
                             }
                         }
+                        
+                        var self = this;
+                        
+                        // 尝试复制
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(copyText).then(function() {
+                                self.showFeedback('公式复制成功', formulaEl, false);
+                            }).catch(function() {
+                                self.fallbackCopy(copyText, formulaEl);
+                            });
+                        } else {
+                            self.fallbackCopy(copyText, formulaEl);
+                        }
+                    },
+                    
+                    // 回退复制
+                    fallbackCopy: function(text, formulaEl) {
+                        var textarea = document.createElement('textarea');
+                        textarea.value = text;
+                        textarea.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;';
+                        textarea.setAttribute('readonly', '');
+                        document.body.appendChild(textarea);
+                        textarea.focus();
+                        textarea.select();
+                        textarea.setSelectionRange(0, text.length);
+                        
+                        var success = false;
+                        try {
+                            success = document.execCommand('copy');
+                        } catch (e) {
+                            console.error('execCommand failed:', e);
+                        }
+                        
+                        document.body.removeChild(textarea);
+                        
+                        if (success) {
+                            this.showFeedback('公式复制成功', formulaEl, false);
+                        } else {
+                            this.showFeedback('⚠ 复制失败', formulaEl, true);
+                        }
+                    },
+                    
+                    // 显示反馈（在公式附近）
+                    showFeedback: function(message, formulaEl, isError) {
+                        var toast = this.copyFeedback;
+                        if (!toast) return;
+                        
+                        // 更新内容
+                        var icon = isError ? '⚠' : '✓';
+                        toast.innerHTML = '<span style="font-size:16px;">' + icon + '</span> <span>' + message.replace(/^[✓⚠]\s*/, '') + '</span>';
+                        
+                        // 更新样式
+                        if (isError) {
+                            toast.classList.add('error');
+                        } else {
+                            toast.classList.remove('error');
+                        }
+                        
+                        // 先显示以获取尺寸
+                        toast.style.visibility = 'hidden';
+                        toast.classList.add('visible');
+                        
+                        // 计算位置（公式上方居中）
+                        var rect = formulaEl.getBoundingClientRect();
+                        var toastRect = toast.getBoundingClientRect();
+                        
+                        var top = rect.top - toastRect.height - 10;
+                        var left = rect.left + (rect.width - toastRect.width) / 2;
+                        
+                        // 边界检查：如果上方空间不足，显示在下方
+                        if (top < 10) {
+                            top = rect.bottom + 10;
+                        }
+                        
+                        // 左右边界检查
+                        if (left < 10) {
+                            left = 10;
+                        } else if (left + toastRect.width > window.innerWidth - 10) {
+                            left = window.innerWidth - toastRect.width - 10;
+                        }
+                        
+                        toast.style.left = left + 'px';
+                        toast.style.top = top + 'px';
+                        toast.style.visibility = 'visible';
+                        
+                        // 自动隐藏
+                        var self = this;
+                        clearTimeout(this.feedbackTimer);
+                        this.feedbackTimer = setTimeout(function() {
+                            toast.classList.remove('visible');
+                        }, 1500);
+                    },
+                    
+                    // 获取 LaTeX（参考AI Timeline的LatexExtractor）
+                    getLatex: function(el) {
+                        if (!el) return '';
+                        
+                        // 方法1: data-tex 属性
+                        var tex = el.getAttribute('data-tex');
+                        if (tex) {
+                            tex = tex.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+                            tex = tex.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#10;/g, '\n');
+                            return tex.trim();
+                        }
+                        
+                        // 方法2: mjx-container 的 data-tex
+                        var mjx = el.querySelector('mjx-container');
+                        if (mjx && mjx.getAttribute('data-tex')) {
+                            tex = mjx.getAttribute('data-tex');
+                            tex = tex.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+                            tex = tex.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#10;/g, '\n');
+                            return tex.trim();
+                        }
+                        
+                        // 方法3: annotation 标签
+                        var annotation = el.querySelector('annotation[encoding="application/x-tex"]');
+                        if (annotation) {
+                            return annotation.textContent.trim();
+                        }
+                        
+                        // 方法4: script[type="math/tex"]
+                        var script = el.querySelector('script[type^="math/tex"]');
+                        if (script) {
+                            return script.textContent.trim();
+                        }
+                        
+                        // 方法5: 从文本内容提取
+                        var textContent = el.textContent || '';
+                        textContent = textContent.replace(/^\s*\$\$\s*/, '').replace(/\s*\$\$\s*$/, '').trim();
+                        return textContent;
                     }
-                });
+                };
                 
-                document.addEventListener('mouseup', function(e) {
-                    if (mouseDownTimer) {
-                        clearTimeout(mouseDownTimer);
-                        mouseDownTimer = null;
+                // 页面加载后初始化
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', function() {
+                        formulaCopyManager.init();
+                    });
+                } else {
+                    formulaCopyManager.init();
+                }
+                
+                // MathJax 渲染完成后重新扫描
+                if (window.MathJax) {
+                    var originalReady = MathJax.startup.promise;
+                    if (originalReady) {
+                        originalReady.then(function() {
+                            setTimeout(function() {
+                                formulaCopyManager.scanAndAttachFormulas();
+                            }, 500);
+                        });
                     }
-                });
+                }
             })();
             
             function waitForMathJaxReady(callback) {

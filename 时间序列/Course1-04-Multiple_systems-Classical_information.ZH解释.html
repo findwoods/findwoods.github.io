@@ -54,6 +54,12 @@
         .math-inline {
             position: relative;
             cursor: pointer;
+            /* 禁用长按时的文本选择光标 */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
         }
         
         /* 悬停时的黑色气泡提示 */
@@ -11530,9 +11536,11 @@ $$</div></p><p>演示了如何通过与单位矩阵进行张量积，来表示�
             wrapper: null,
             startX: 0,
             startY: 0,
-            triggered: false
+            triggered: false,
+            cursorRestoreTimer: null
         };
         var LONG_PRESS_MS = 500;  // 长按500ms触发
+        var CURSOR_RESTORE_MS = 1000;  // 松开后1秒恢复光标
 
         function addShadow(el) {
             if (el.classList.contains('math-block')) {
@@ -11549,6 +11557,20 @@ $$</div></p><p>演示了如何通过与单位矩阵进行张量积，来表示�
             el.style.boxShadow = '';
         }
 
+        // 禁用整个文档的文本选择
+        function disableSelection() {
+            document.body.style.webkitUserSelect = 'none';
+            document.body.style.userSelect = 'none';
+            document.body.style.webkitTouchCallout = 'none';
+        }
+
+        // 恢复文本选择
+        function enableSelection() {
+            document.body.style.webkitUserSelect = '';
+            document.body.style.userSelect = '';
+            document.body.style.webkitTouchCallout = '';
+        }
+
         document.addEventListener('touchstart', function (e) {
             var target = e.target;
             if (!target || !target.closest) return;
@@ -11559,18 +11581,29 @@ $$</div></p><p>演示了如何通过与单位矩阵进行张量积，来表示�
             var container = wrapper.closest('.container');
             if (!container) return;
 
+            // 清除之前的恢复光标计时器
+            if (touchState.cursorRestoreTimer) {
+                clearTimeout(touchState.cursorRestoreTimer);
+                touchState.cursorRestoreTimer = null;
+            }
+
+            // 立即禁用光标
+            disableSelection();
+
             var touch = e.touches[0];
             touchState.startX = touch.clientX;
             touchState.startY = touch.clientY;
             touchState.wrapper = wrapper;
             touchState.triggered = false;
 
+            // 立即显示阴影
+            addShadow(wrapper);
+
             // 长按计时
             touchState.timer = setTimeout(function () {
                 touchState.triggered = true;
-                addShadow(wrapper);
 
-                // 长按触发后直接复制
+                // 长按触发后直接复制，不显示黑色气泡
                 var tex = getTexFromWrapper(wrapper);
                 // 根据公式类型添加美元符号包裹
                 if (wrapper.classList.contains('math-block')) {
@@ -11588,7 +11621,7 @@ $$</div></p><p>演示了如何通过与单位矩阵进行张量积，来表示�
         }, { passive: true });
 
         document.addEventListener('touchmove', function (e) {
-            if (!touchState.timer) return;
+            if (!touchState.wrapper) return;
 
             var touch = e.touches[0];
             var dx = Math.abs(touch.clientX - touchState.startX);
@@ -11596,11 +11629,16 @@ $$</div></p><p>演示了如何通过与单位矩阵进行张量积，来表示�
 
             // 移动超过10px取消长按
             if (dx > 10 || dy > 10) {
-                clearTimeout(touchState.timer);
-                touchState.timer = null;
+                if (touchState.timer) {
+                    clearTimeout(touchState.timer);
+                    touchState.timer = null;
+                }
                 if (touchState.wrapper) {
                     removeShadow(touchState.wrapper);
                 }
+                // 移动时恢复光标
+                enableSelection();
+                touchState.wrapper = null;
             }
         }, { passive: true });
 
@@ -11618,6 +11656,13 @@ $$</div></p><p>演示了如何通过与单位矩阵进行张量积，来表示�
                 e.preventDefault();
                 touchState.triggered = false;
             }
+
+            // 松开后1秒恢复光标
+            touchState.cursorRestoreTimer = setTimeout(function () {
+                enableSelection();
+            }, CURSOR_RESTORE_MS);
+
+            touchState.wrapper = null;
         }, { passive: false });
 
         document.addEventListener('touchcancel', function () {
@@ -11629,6 +11674,13 @@ $$</div></p><p>演示了如何通过与单位矩阵进行张量积，来表示�
                 removeShadow(touchState.wrapper);
             }
             touchState.triggered = false;
+
+            // 取消时也延迟恢复光标
+            touchState.cursorRestoreTimer = setTimeout(function () {
+                enableSelection();
+            }, CURSOR_RESTORE_MS);
+
+            touchState.wrapper = null;
         }, { passive: true });
     })();
     </script>

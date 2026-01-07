@@ -54,6 +54,12 @@
         .math-inline {
             position: relative;
             cursor: pointer;
+            /* 禁用长按时的文本选择光标 */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
         }
         
         /* 悬停时的黑色气泡提示 */
@@ -104,36 +110,46 @@
             visibility: visible;
         }
         
-        /* 复制成功状态 - 绿色气泡 */
+        /* 复制成功状态 - 白色气泡 (使用!important确保覆盖hover状态) */
         .math-block.copy-success::before,
         .math-inline.copy-success::before {
-            content: '✓ 复制成功';
-            background: rgba(16, 185, 129, 0.95);
-            opacity: 1;
-            visibility: visible;
+            content: '✓ 复制成功' !important;
+            background: #ffffff !important;
+            color: #1f2937 !important;
+            font-size: 13px !important;
+            font-weight: bold !important;
+            border: 1px solid #e5e7eb !important;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.15) !important;
+            opacity: 1 !important;
+            visibility: visible !important;
         }
         
         .math-block.copy-success::after,
         .math-inline.copy-success::after {
-            border-top-color: rgba(16, 185, 129, 0.95);
-            opacity: 1;
-            visibility: visible;
+            border-top-color: #ffffff !important;
+            opacity: 1 !important;
+            visibility: visible !important;
         }
         
-        /* 复制失败状态 - 红色气泡 */
+        /* 复制失败状态 - 白色气泡 */
         .math-block.copy-failed::before,
         .math-inline.copy-failed::before {
-            content: '✗ 复制失败';
-            background: rgba(239, 68, 68, 0.95);
-            opacity: 1;
-            visibility: visible;
+            content: '✗ 复制失败' !important;
+            background: #ffffff !important;
+            color: #1f2937 !important;
+            font-size: 13px !important;
+            font-weight: bold !important;
+            border: 1px solid #e5e7eb !important;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.15) !important;
+            opacity: 1 !important;
+            visibility: visible !important;
         }
         
         .math-block.copy-failed::after,
         .math-inline.copy-failed::after {
-            border-top-color: rgba(239, 68, 68, 0.95);
-            opacity: 1;
-            visibility: visible;
+            border-top-color: #ffffff !important;
+            opacity: 1 !important;
+            visibility: visible !important;
         }
         
         /* 冷却状态 - 禁止悬停触发（鼠标仍在公式上时不显示提示） */
@@ -1074,38 +1090,17 @@
             background-color: rgba(0, 0, 0, 0.12) !important;
         }
         
-        /* 公式复制反馈 toast */
-        .formula-copy-toast {
-            position: fixed;
-            background: #ffffff;
-            color: #1f2937;
-            padding: 8px 14px;
-            border-radius: 10px;
-            border: 1px solid #e5e7eb;
-            font-size: 13px;
-            font-weight: 500;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.15);
-            z-index: 9999;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.15s ease, transform 0.15s ease;
-            transform: translateY(-10px);
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+        /* 桌面端悬停样式 - 块级公式带轮廓阴影，行内公式只有阴影 */
+        .math-block:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(54, 130, 140, 0.5);
+            transition: box-shadow 0.2s ease;
         }
         
-        .formula-copy-toast.visible {
-            opacity: 1;
-            transform: translateY(0);
+        .math-inline:hover {
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+            transition: box-shadow 0.2s ease;
         }
         
-        .formula-copy-toast.error {
-            background: #ef4444;
-            color: #ffffff;
-            border-color: #ef4444;
-        }
 
         /* ========================================
            TOC 目录样式
@@ -5685,95 +5680,6 @@ $$</div></strong> 包裹的行间公式。文中出现的 <strong><span class="m
                 }
             };
 
-            // ===== 公式点击复制功能 =====
-            var formulaCopyHandler = {
-                init: function() {
-                    var self = this;
-                    // 使用事件委托监听点击
-                    document.addEventListener('click', function(e) {
-                        var mathEl = e.target.closest('.math-block, .math-inline');
-                        if (mathEl) {
-                            self.handleClick(mathEl);
-                        }
-                    });
-                    
-                    // 监听鼠标离开以重置冷却状态
-                    document.addEventListener('mouseleave', function(e) {
-                        var mathEl = e.target.closest('.math-block, .math-inline');
-                        if (mathEl && mathEl.classList.contains('copy-cooldown')) {
-                            mathEl.classList.remove('copy-cooldown');
-                        }
-                    }, true);
-                },
-                
-                handleClick: function(el) {
-                    var latex = this.getLatex(el);
-                    if (!latex) {
-                        this.showFeedback(el, false);
-                        return;
-                    }
-                    
-                    var self = this;
-                    
-                    // 复制到剪贴板
-                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                        navigator.clipboard.writeText(latex).then(function() {
-                            self.showFeedback(el, true);
-                        }).catch(function() {
-                            self.fallbackCopy(el, latex);
-                        });
-                    } else {
-                        this.fallbackCopy(el, latex);
-                    }
-                },
-                
-                fallbackCopy: function(el, text) {
-                    var textarea = document.createElement('textarea');
-                    textarea.value = text;
-                    textarea.style.cssText = 'position:fixed;left:-9999px;opacity:0;';
-                    document.body.appendChild(textarea);
-                    textarea.select();
-                    var success = false;
-                    try {
-                        success = document.execCommand('copy');
-                    } catch (e) {}
-                    document.body.removeChild(textarea);
-                    this.showFeedback(el, success);
-                },
-                
-                showFeedback: function(el, success) {
-                    // 移除之前的状态
-                    el.classList.remove('copy-success', 'copy-failed', 'copy-cooldown');
-                    
-                    // 添加成功/失败状态
-                    el.classList.add(success ? 'copy-success' : 'copy-failed');
-                    
-                    // 2秒后移除反馈状态，进入冷却状态
-                    setTimeout(function() {
-                        el.classList.remove('copy-success', 'copy-failed');
-                        el.classList.add('copy-cooldown');
-                    }, 2000);
-                },
-                
-                getLatex: function(el) {
-                    if (!el) return '';
-                    
-                    // 方法1: data-tex 属性
-                    var tex = el.getAttribute('data-tex');
-                    if (tex) {
-                        // 解码 HTML 实体
-                        tex = tex.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
-                        tex = tex.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#10;/g, '\n');
-                        return tex.trim();
-                    }
-                    
-                    // 方法2: 从文本内容提取（去除$$或$包裹）
-                    var textContent = el.textContent || '';
-                    textContent = textContent.replace(/^\s*\$\$\s*/, '').replace(/\s*\$\$\s*$/, '');
-                    textContent = textContent.replace(/^\s*\$\s*/, '').replace(/\s*\$\s*$/, '');
-                    return textContent.trim();
-                }
-            };
 
             // ===== 初始化 =====
             initNotesMode();
@@ -5782,14 +5688,321 @@ $$</div></strong> 包裹的行间公式。文中出现的 <strong><span class="m
             // 初始化 MathJax 懒加载
             mathLazyLoader.init();
             
-            // 初始化公式点击复制
-            formulaCopyHandler.init();
             
             waitForMathJaxReady(function() {
                 syncMathTexAttrs();
                 restoreHighlights();
             });
         })();
+    </script>
+    <!-- 公式复制：黑色气泡 -> 消失 -> 原地绿色成功气泡2秒 -> 消失；冷却直到鼠标离开后才解除 -->
+    <script>
+    (function () {
+        var FADE_OUT_MS = 160;     // 黑色气泡消失动画时间（与你CSS里0.15s匹配）
+        var FEEDBACK_MS = 1000;    // 成功/失败提示显示1秒
+
+        // 每个公式元素的状态（hover + 定时器）
+        var stateMap = new WeakMap();
+
+        function getState(el) {
+            var st = stateMap.get(el);
+            if (!st) {
+                st = { hover: false, fadeTimer: null, doneTimer: null };
+                stateMap.set(el, st);
+
+                // hover 状态跟踪（用于“2秒结束时如果鼠标仍在上面，就继续冷却”）
+                el.addEventListener('pointerenter', function () { st.hover = true; });
+                el.addEventListener('pointerleave', function () {
+                    st.hover = false;
+                    // 只有当反馈结束（没有success/failed）时，离开才解除冷却
+                    if (el.classList.contains('copy-cooldown') &&
+                        !el.classList.contains('copy-success') &&
+                        !el.classList.contains('copy-failed')) {
+                        el.classList.remove('copy-cooldown');
+                    }
+                });
+
+                // 兼容不支持 pointer 的环境
+                el.addEventListener('mouseenter', function () { st.hover = true; });
+                el.addEventListener('mouseleave', function () {
+                    st.hover = false;
+                    if (el.classList.contains('copy-cooldown') &&
+                        !el.classList.contains('copy-success') &&
+                        !el.classList.contains('copy-failed')) {
+                        el.classList.remove('copy-cooldown');
+                    }
+                });
+            }
+            return st;
+        }
+
+        function clearTimers(st) {
+            if (st.fadeTimer) { clearTimeout(st.fadeTimer); st.fadeTimer = null; }
+            if (st.doneTimer) { clearTimeout(st.doneTimer); st.doneTimer = null; }
+        }
+
+        function normalizeTex(tex) {
+            return String(tex || '').replace(/\u00a0/g, ' ').trim();
+        }
+
+        function getTexFromWrapper(wrapper) {
+            // 优先 data-tex（你整套高亮/笔记逻辑也依赖它）
+            // 注意：因为这是Pyf-string，需unescape
+            var tex = wrapper.getAttribute('data-tex') || '';
+            if (!tex) {
+                var mjx = wrapper.querySelector && wrapper.querySelector('mjx-container[data-tex]');
+                if (mjx) tex = mjx.getAttribute('data-tex') || '';
+            }
+            // 这里简单处理HTML实体解码
+            if (tex) {
+                tex = tex.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+                tex = tex.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#10;/g, '\n');
+            } else {
+                // fallback到textContent，类似旧逻辑
+                var textContent = wrapper.textContent || '';
+                textContent = textContent.replace(/^\s*\$\$\s*/, '').replace(/\s*\$\$\s*$/, '');
+                textContent = textContent.replace(/^\s*\$\s*/, '').replace(/\s*\$\s*$/, '');
+                return textContent.trim();
+            }
+            return normalizeTex(tex);
+        }
+
+        function copyText(text) {
+            if (!text) return Promise.reject(new Error('empty'));
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                return navigator.clipboard.writeText(text);
+            }
+            // execCommand fallback
+            return new Promise(function (resolve, reject) {
+                try {
+                    var ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.position = 'fixed';
+                    ta.style.left = '-9999px';
+                    ta.style.top = '0';
+                    document.body.appendChild(ta);
+                    ta.focus();
+                    ta.select();
+                    var ok = document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    ok ? resolve() : reject(new Error('execCommand failed'));
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        }
+
+        function showFeedback(wrapper, ok) {
+            var st = getState(wrapper);
+            clearTimers(st);
+
+            // ① 立刻进入冷却：让“复制LaTeX公式”的黑色气泡迅速消失
+            wrapper.classList.add('copy-cooldown');
+            wrapper.classList.remove('copy-success');
+            wrapper.classList.remove('copy-failed');
+
+            // ② 等黑色气泡淡出完成后，再在原位置显示成功/失败气泡
+            st.fadeTimer = setTimeout(function () {
+                wrapper.classList.add(ok ? 'copy-success' : 'copy-failed');
+
+                // ③ 2秒后移除成功/失败气泡
+                st.doneTimer = setTimeout(function () {
+                    wrapper.classList.remove('copy-success');
+                    wrapper.classList.remove('copy-failed');
+
+                    // 关键：如果鼠标已经不在公式上了，可以立刻解除冷却；
+                    // 如果鼠标仍在公式上，继续保持 copy-cooldown，直到下一次离开才解除。
+                    if (!st.hover) {
+                        wrapper.classList.remove('copy-cooldown');
+                    }
+                }, FEEDBACK_MS);
+
+            }, FADE_OUT_MS);
+        }
+
+        // 用 capture 拦截点击，避免被“点击翻页”脚本当成翻页
+        document.addEventListener('click', function (e) {
+            var target = e.target;
+            if (!target || !target.closest) return;
+
+            var wrapper = target.closest('.math-block, .math-inline');
+            if (!wrapper) return;
+
+            // 只处理正文 container 内的公式（避免误伤笔记面板等区域）
+            var container = wrapper.closest('.container');
+            if (!container) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            var tex = getTexFromWrapper(wrapper);
+            // 根据公式类型添加美元符号包裹
+            if (wrapper.classList.contains('math-block')) {
+                tex = '$$' + tex + '$$';
+            } else {
+                tex = '$' + tex + '$';
+            }
+            copyText(tex).then(function () {
+                showFeedback(wrapper, true);
+            }).catch(function () {
+                showFeedback(wrapper, false);
+            });
+
+        }, true);
+
+        // ===== 手机长按复制功能 =====
+        var touchState = {
+            timer: null,
+            wrapper: null,
+            startX: 0,
+            startY: 0,
+            triggered: false,
+            cursorRestoreTimer: null
+        };
+        var LONG_PRESS_MS = 500;  // 长按500ms触发
+        var CURSOR_RESTORE_MS = 1000;  // 松开后1秒恢复光标
+
+        function addShadow(el) {
+            if (el.classList.contains('math-block')) {
+                // 块级公式：阴影+轮廓
+                el.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(54, 130, 140, 0.5)';
+            } else {
+                // 行内公式：只有阴影
+                el.style.boxShadow = '0 2px 12px rgba(0, 0, 0, 0.2)';
+            }
+            el.style.transition = 'box-shadow 0.2s ease';
+        }
+
+        function removeShadow(el) {
+            el.style.boxShadow = '';
+        }
+
+        // 禁用整个文档的文本选择
+        function disableSelection() {
+            document.body.style.webkitUserSelect = 'none';
+            document.body.style.userSelect = 'none';
+            document.body.style.webkitTouchCallout = 'none';
+        }
+
+        // 恢复文本选择
+        function enableSelection() {
+            document.body.style.webkitUserSelect = '';
+            document.body.style.userSelect = '';
+            document.body.style.webkitTouchCallout = '';
+        }
+
+        document.addEventListener('touchstart', function (e) {
+            var target = e.target;
+            if (!target || !target.closest) return;
+
+            var wrapper = target.closest('.math-block, .math-inline');
+            if (!wrapper) return;
+
+            var container = wrapper.closest('.container');
+            if (!container) return;
+
+            // 清除之前的恢复光标计时器
+            if (touchState.cursorRestoreTimer) {
+                clearTimeout(touchState.cursorRestoreTimer);
+                touchState.cursorRestoreTimer = null;
+            }
+
+            // 立即禁用光标
+            disableSelection();
+
+            var touch = e.touches[0];
+            touchState.startX = touch.clientX;
+            touchState.startY = touch.clientY;
+            touchState.wrapper = wrapper;
+            touchState.triggered = false;
+
+            // 立即显示阴影
+            addShadow(wrapper);
+
+            // 长按计时
+            touchState.timer = setTimeout(function () {
+                touchState.triggered = true;
+
+                // 长按触发后直接复制，不显示黑色气泡
+                var tex = getTexFromWrapper(wrapper);
+                // 根据公式类型添加美元符号包裹
+                if (wrapper.classList.contains('math-block')) {
+                    tex = '$$' + tex + '$$';
+                } else {
+                    tex = '$' + tex + '$';
+                }
+                copyText(tex).then(function () {
+                    showFeedback(wrapper, true);
+                }).catch(function () {
+                    showFeedback(wrapper, false);
+                });
+            }, LONG_PRESS_MS);
+
+        }, { passive: true });
+
+        document.addEventListener('touchmove', function (e) {
+            if (!touchState.wrapper) return;
+
+            var touch = e.touches[0];
+            var dx = Math.abs(touch.clientX - touchState.startX);
+            var dy = Math.abs(touch.clientY - touchState.startY);
+
+            // 移动超过10px取消长按
+            if (dx > 10 || dy > 10) {
+                if (touchState.timer) {
+                    clearTimeout(touchState.timer);
+                    touchState.timer = null;
+                }
+                if (touchState.wrapper) {
+                    removeShadow(touchState.wrapper);
+                }
+                // 移动时恢复光标
+                enableSelection();
+                touchState.wrapper = null;
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchend', function (e) {
+            if (touchState.timer) {
+                clearTimeout(touchState.timer);
+                touchState.timer = null;
+            }
+            if (touchState.wrapper) {
+                removeShadow(touchState.wrapper);
+            }
+
+            // 如果长按已触发，阻止后续click事件
+            if (touchState.triggered) {
+                e.preventDefault();
+                touchState.triggered = false;
+            }
+
+            // 松开后1秒恢复光标
+            touchState.cursorRestoreTimer = setTimeout(function () {
+                enableSelection();
+            }, CURSOR_RESTORE_MS);
+
+            touchState.wrapper = null;
+        }, { passive: false });
+
+        document.addEventListener('touchcancel', function () {
+            if (touchState.timer) {
+                clearTimeout(touchState.timer);
+                touchState.timer = null;
+            }
+            if (touchState.wrapper) {
+                removeShadow(touchState.wrapper);
+            }
+            touchState.triggered = false;
+
+            // 取消时也延迟恢复光标
+            touchState.cursorRestoreTimer = setTimeout(function () {
+                enableSelection();
+            }, CURSOR_RESTORE_MS);
+
+            touchState.wrapper = null;
+        }, { passive: true });
+    })();
     </script>
 </body>
 </html>

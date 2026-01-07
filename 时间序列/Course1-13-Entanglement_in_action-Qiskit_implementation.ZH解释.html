@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>1. Qiskit 实现</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
-    <!-- MathJax v4 配置 -->
+    <!-- MathJax v4 懒加载配置 - 彻底禁用无障碍功能 -->
     <script>
         window.MathJax = {
             tex: {
@@ -22,16 +22,149 @@
                 }
             },
             options: {
-                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+                enableMenu: false,           // 禁用右键菜单
+                enableExplorer: false,       // 禁用公式探索器
+                enableEnrichment: false,     // 禁用语义增强
+                enableComplexity: false,     // 禁用复杂度计算
+                enableAssistiveMml: false,   // 禁用辅助MathML
+                renderActions: {
+                    // 禁用所有无障碍渲染动作
+                    enrich: [],
+                    complexity: [],
+                    assistiveMml: []
+                },
+                menuOptions: {
+                    settings: {
+                        explorer: false,
+                        assistiveMml: false,
+                        texHints: false
+                    }
+                }
             },
             startup: {
-                pageReady: function() {
-                    return MathJax.startup.defaultPageReady();
-                }
+                typeset: false  // 禁用页面加载时自动渲染，改为懒加载
             }
         };
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        /* 公式容器样式 - 支持悬停显示提示 */
+        .math-block,
+        .math-inline {
+            position: relative;
+            cursor: pointer;
+        }
+        
+        /* 悬停时的黑色气泡提示 */
+        .math-block::before,
+        .math-inline::before {
+            content: '复制LaTeX公式';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.15s ease, visibility 0.15s ease;
+            z-index: 1000;
+            pointer-events: none;
+            margin-bottom: 6px;
+        }
+        
+        /* 气泡小三角 */
+        .math-block::after,
+        .math-inline::after {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.85);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.15s ease, visibility 0.15s ease;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        
+        /* 悬停时显示气泡（仅在非冷却、非反馈状态） */
+        .math-block:not(.copy-cooldown):not(.copy-success):not(.copy-failed):hover::before,
+        .math-inline:not(.copy-cooldown):not(.copy-success):not(.copy-failed):hover::before,
+        .math-block:not(.copy-cooldown):not(.copy-success):not(.copy-failed):hover::after,
+        .math-inline:not(.copy-cooldown):not(.copy-success):not(.copy-failed):hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 复制成功状态 - 绿色气泡 */
+        .math-block.copy-success::before,
+        .math-inline.copy-success::before {
+            content: '✓ 复制成功';
+            background: rgba(16, 185, 129, 0.95);
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .math-block.copy-success::after,
+        .math-inline.copy-success::after {
+            border-top-color: rgba(16, 185, 129, 0.95);
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 复制失败状态 - 红色气泡 */
+        .math-block.copy-failed::before,
+        .math-inline.copy-failed::before {
+            content: '✗ 复制失败';
+            background: rgba(239, 68, 68, 0.95);
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .math-block.copy-failed::after,
+        .math-inline.copy-failed::after {
+            border-top-color: rgba(239, 68, 68, 0.95);
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* 冷却状态 - 禁止悬停触发（鼠标仍在公式上时不显示提示） */
+        .math-block.copy-cooldown::before,
+        .math-inline.copy-cooldown::before,
+        .math-block.copy-cooldown::after,
+        .math-inline.copy-cooldown::after {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        /* 禁用 MathJax 内部元素的焦点效果但允许点击穿透到父容器 */
+        mjx-container {
+            outline: none !important;
+            pointer-events: none !important;
+        }
+        mjx-container:focus,
+        mjx-container:focus-visible,
+        mjx-container *:focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+        
+        /* 隐藏 MathJax 菜单和帮助按钮 */
+        #MathJax_MenuFrame,
+        .MJX_Assistive_MathML,
+        mjx-assistive-mml,
+        [data-semantic-type] {
+            display: none !important;
+        }
+    </style>
     <style>
         :root {
             --primary-color: #1a365d;
@@ -5619,7 +5752,7 @@ $$</div></p>
 </div><hr><h3>4.3 量子策略</h3><p id="original-41"><strong style="font-size: 1.3rem;">📜 [原文41]</strong></p>
 <div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
 
-</div><h3>CHSH 博弈策略</h3><p>此时一个自然的问题是，Alice 和 Bob 使用<strong>量子策略</strong>是否能做得更好。</p><p>特别是，如果他们像下图所示的那样共享一个<strong>纠缠量子态</strong>（他们可以在玩博弈之前准备好），他们能否增加获胜概率？</p><p><img src="/learning/images/courses/basics-of-quantum-information/entanglement-in-action/qiskit-implementation/nonlocal-game-entanglement.avif" alt="Nonlocal game with entanglement" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p><p>答案是肯定的，这正是这个例子的核心要点，也是它如此有趣的原因。</p><p>那么让我们看看 Alice 和 Bob 如何利用<strong>纠缠</strong>在这个博弈中做得更好。</p><div class="explain-box">
+</div><h3 style="font-size: 1.4rem;">CHSH 博弈策略</h3><p>此时一个自然的问题是，Alice 和 Bob 使用<strong>量子策略</strong>是否能做得更好。</p><p>特别是，如果他们像下图所示的那样共享一个<strong>纠缠量子态</strong>（他们可以在玩博弈之前准备好），他们能否增加获胜概率？</p><p><img src="/learning/images/courses/basics-of-quantum-information/entanglement-in-action/qiskit-implementation/nonlocal-game-entanglement.avif" alt="Nonlocal game with entanglement" style="max-width: 100%; height: auto; display: block; margin: 10px auto;"></p><p>答案是肯定的，这正是这个例子的核心要点，也是它如此有趣的原因。</p><p>那么让我们看看 Alice 和 Bob 如何利用<strong>纠缠</strong>在这个博弈中做得更好。</p><div class="explain-box">
     <div class="box-label">📖 [逐步解释]</div>
     <div class="box-content">
 <p>这段话是<strong>经典策略</strong>和<strong>量子策略</strong>之间的分水岭。它提出了核心问题，并预告了答案，从而开启了本课程最精彩的部分。</p>
@@ -7768,7 +7901,7 @@ $$</div></p>
 </div><hr><h3>4.4 Qiskit 实现</h3><p id="original-64"><strong style="font-size: 1.3rem;">📜 [原文64]</strong></p>
 <div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
 
-</div><h3>Qiskit 实现</h3><p>我们可以使用 Qiskit 实现 <strong>CHSH 博弈</strong>以及上面定义的<strong>量子策略</strong>，如下所示。</p><p>首先，这是博弈本身的定义，它允许将任意策略作为参数插入。</p><p>```python</p><p>def chsh_game(strategy):</p>
+</div><h3 style="font-size: 1.4rem;">Qiskit 实现</h3><p>我们可以使用 Qiskit 实现 <strong>CHSH 博弈</strong>以及上面定义的<strong>量子策略</strong>，如下所示。</p><p>首先，这是博弈本身的定义，它允许将任意策略作为参数插入。</p><p>```python</p><p>def chsh_game(strategy):</p>
 </section>
 
 <section class="content-section" id="section-46">
@@ -10348,6 +10481,7 @@ $$</div></p><p>[[END_OF_RESPONSE]]</p>
                         break;
                     }
                     if (start > 0 && text[start - 1] === '\\') {
+                        parts.push({ type: 'text', value: text.slice(i, start + 1) });
                         i = start + 1;
                         continue;
                     }
@@ -11205,9 +11339,218 @@ $$</div></p><p>[[END_OF_RESPONSE]]</p>
                 check();
             }
 
+            // ===== MathJax 懒加载实现 =====
+            var mathLazyLoader = {
+                observer: null,
+                renderedElements: new WeakSet(),
+                pendingElements: [],
+                isRendering: false,
+                
+                init: function() {
+                    var self = this;
+                    // 确保 MathJax 已加载
+                    if (!window.MathJax || !MathJax.typesetPromise) {
+                        // MathJax 尚未加载完成，延迟初始化
+                        setTimeout(function() { self.init(); }, 100);
+                        return;
+                    }
+                    
+                    // 创建 IntersectionObserver
+                    this.observer = new IntersectionObserver(
+                        function(entries) {
+                            entries.forEach(function(entry) {
+                                if (entry.isIntersecting && !self.renderedElements.has(entry.target)) {
+                                    self.queueForRender(entry.target);
+                                }
+                            });
+                        },
+                        {
+                            root: null,
+                            rootMargin: '200px 0px',  // 提前200px开始渲染
+                            threshold: 0
+                        }
+                    );
+                    
+                    // 观察所有数学公式容器
+                    this.observeAllMath();
+                    console.log('[MathJax懒加载] 已初始化，监控中...');
+                },
+                
+                observeAllMath: function() {
+                    var self = this;
+                    // 观察块级公式
+                    document.querySelectorAll('.math-block').forEach(function(el) {
+                        if (!self.renderedElements.has(el)) {
+                            self.observer.observe(el);
+                        }
+                    });
+                    // 观察行内公式
+                    document.querySelectorAll('.math-inline').forEach(function(el) {
+                        if (!self.renderedElements.has(el)) {
+                            self.observer.observe(el);
+                        }
+                    });
+                },
+                
+                queueForRender: function(element) {
+                    if (this.renderedElements.has(element)) return;
+                    this.pendingElements.push(element);
+                    this.processQueue();
+                },
+                
+                processQueue: function() {
+                    if (this.isRendering || this.pendingElements.length === 0) return;
+                    
+                    var self = this;
+                    this.isRendering = true;
+                    
+                    // 批量处理，每次最多处理10个
+                    var batch = this.pendingElements.splice(0, 10);
+                    
+                    // 标记为已渲染（防止重复处理）
+                    batch.forEach(function(el) {
+                        self.renderedElements.add(el);
+                        self.observer.unobserve(el);
+                    });
+                    
+                    // 渲染这一批
+                    MathJax.typesetPromise(batch).then(function() {
+                        self.isRendering = false;
+                        // 继续处理队列
+                        if (self.pendingElements.length > 0) {
+                            requestAnimationFrame(function() {
+                                self.processQueue();
+                            });
+                        } else {
+                            // 触发公式复制管理器重新扫描
+                            if (window.formulaCopyManager) {
+                                formulaCopyManager.scanAndAttachFormulas();
+                            }
+                        }
+                    }).catch(function(err) {
+                        console.error('[MathJax懒加载] 渲染错误:', err);
+                        self.isRendering = false;
+                        self.processQueue();
+                    });
+                },
+                
+                // 强制渲染所有剩余公式（用于打印或导出场景）
+                renderAll: function() {
+                    var self = this;
+                    var remaining = [];
+                    document.querySelectorAll('.math-block, .math-inline').forEach(function(el) {
+                        if (!self.renderedElements.has(el)) {
+                            remaining.push(el);
+                            self.renderedElements.add(el);
+                        }
+                    });
+                    if (remaining.length > 0) {
+                        return MathJax.typesetPromise(remaining);
+                    }
+                    return Promise.resolve();
+                }
+            };
+
+            // ===== 公式点击复制功能 =====
+            var formulaCopyHandler = {
+                init: function() {
+                    var self = this;
+                    // 使用事件委托监听点击
+                    document.addEventListener('click', function(e) {
+                        var mathEl = e.target.closest('.math-block, .math-inline');
+                        if (mathEl) {
+                            self.handleClick(mathEl);
+                        }
+                    });
+                    
+                    // 监听鼠标离开以重置冷却状态
+                    document.addEventListener('mouseleave', function(e) {
+                        var mathEl = e.target.closest('.math-block, .math-inline');
+                        if (mathEl && mathEl.classList.contains('copy-cooldown')) {
+                            mathEl.classList.remove('copy-cooldown');
+                        }
+                    }, true);
+                },
+                
+                handleClick: function(el) {
+                    var latex = this.getLatex(el);
+                    if (!latex) {
+                        this.showFeedback(el, false);
+                        return;
+                    }
+                    
+                    var self = this;
+                    
+                    // 复制到剪贴板
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(latex).then(function() {
+                            self.showFeedback(el, true);
+                        }).catch(function() {
+                            self.fallbackCopy(el, latex);
+                        });
+                    } else {
+                        this.fallbackCopy(el, latex);
+                    }
+                },
+                
+                fallbackCopy: function(el, text) {
+                    var textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    textarea.style.cssText = 'position:fixed;left:-9999px;opacity:0;';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    var success = false;
+                    try {
+                        success = document.execCommand('copy');
+                    } catch (e) {}
+                    document.body.removeChild(textarea);
+                    this.showFeedback(el, success);
+                },
+                
+                showFeedback: function(el, success) {
+                    // 移除之前的状态
+                    el.classList.remove('copy-success', 'copy-failed', 'copy-cooldown');
+                    
+                    // 添加成功/失败状态
+                    el.classList.add(success ? 'copy-success' : 'copy-failed');
+                    
+                    // 2秒后移除反馈状态，进入冷却状态
+                    setTimeout(function() {
+                        el.classList.remove('copy-success', 'copy-failed');
+                        el.classList.add('copy-cooldown');
+                    }, 2000);
+                },
+                
+                getLatex: function(el) {
+                    if (!el) return '';
+                    
+                    // 方法1: data-tex 属性
+                    var tex = el.getAttribute('data-tex');
+                    if (tex) {
+                        // 解码 HTML 实体
+                        tex = tex.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+                        tex = tex.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#10;/g, '\n');
+                        return tex.trim();
+                    }
+                    
+                    // 方法2: 从文本内容提取（去除$$或$包裹）
+                    var textContent = el.textContent || '';
+                    textContent = textContent.replace(/^\s*\$\$\s*/, '').replace(/\s*\$\$\s*$/, '');
+                    textContent = textContent.replace(/^\s*\$\s*/, '').replace(/\s*\$\s*$/, '');
+                    return textContent.trim();
+                }
+            };
+
             // ===== 初始化 =====
             initNotesMode();
             updateUI();
+            
+            // 初始化 MathJax 懒加载
+            mathLazyLoader.init();
+            
+            // 初始化公式点击复制
+            formulaCopyHandler.init();
+            
             waitForMathJaxReady(function() {
                 syncMathTexAttrs();
                 restoreHighlights();

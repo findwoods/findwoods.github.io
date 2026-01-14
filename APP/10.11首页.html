@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=428, initial-scale=1.0">
+    <title>首页 - Daily Sprout 星运小清新</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        html {
+            background-color: #e5e7eb;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #F9F9F7;
+            margin: 0;
+            padding: 0;
+            width: 428px;
+            min-height: 926px;
+            overflow-x: hidden;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.1);
+        }
+
+        :root {
+            --primary-mint: #AED9B2;
+            --secondary-peach: #F7C5C2;
+            --accent-yellow: #FBE7A1;
+            --bg-offwhite: #F9F9F7;
+            --text-dark: #555555;
+            --text-light: #999999;
+            --debug-border-color: black;
+            /* --debug-border-color: transparent; */
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .bouncy {
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .bouncy:active {
+            transform: scale(0.95);
+        }
+
+        .soft-shadow {
+            box-shadow: 0 10px 25px -5px rgba(174, 217, 178, 0.3), 0 8px 10px -6px rgba(174, 217, 178, 0.1);
+        }
+
+        .nav-shadow {
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.03);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-grid {
+            gap: 14px;
+        }
+
+        .entry-card {
+            height: 130px;
+            padding: 14px;
+            border: 2px solid var(--debug-border-color);
+        }
+
+        .tool-chip.active {
+            background-color: #AED9B2;
+            color: white;
+            border-color: #AED9B2;
+            font-weight: 700;
+        }
+
+        /* Persona chip styles */
+        .persona-chip {
+            transition: all 0.2s ease;
+        }
+
+        .persona-chip.active {
+            border-color: #F7C5C2;
+            background-color: rgba(247, 197, 194, 0.1);
+            color: #F7C5C2;
+            font-weight: 700;
+        }
+
+        /* Dropdown Animation */
+        .dropdown-enter {
+            animation: dropdownEnter 0.2s ease-out forwards;
+        }
+
+        @keyframes dropdownEnter {
+            from {
+                opacity: 0;
+                transform: translateY(-5px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Modal Animation */
+        .modal-enter {
+            animation: modalFadeIn 0.3s ease-out forwards;
+        }
+
+        .modal-content-enter {
+            animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes modalSlideUp {
+            from {
+                transform: translateY(100%);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .profile-item.selected {
+            border-color: #AED9B2;
+            background-color: #F0FDF4;
+        }
+
+        /* New Styles for Image Upload Grid */
+        .upload-grid-item {
+            border-radius: 12px;
+            /* 尺寸由JS动态计算 */
+        }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        mint: '#AED9B2',
+                        mintdark: '#8BC490',
+                        peach: '#F7C5C2',
+                        cream: '#FBE7A1',
+                        lavender: '#E9D5FF',
+                        sky: '#BFDBFE',
+                        offwhite: '#F9F9F7',
+                        darkgray: '#555555',
+                        lightgray: '#999999',
+                        codebg: '#334155',
+                    },
+                    borderRadius: { 'xl2': '28px', 'xl3': '36px' },
+                    fontFamily: {
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                        poster: ['"Playfair Display"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="hide-scrollbar" onclick="handleBodyClick(event)">
+
+    <!-- Debug Toggle Button -->
+    <button onclick="toggleDebugBorder()"
+        class="fixed top-4 right-4 z-50 bg-gray-800/80 text-white p-2 rounded-full shadow-lg hover:bg-gray-700 transition-colors"
+        title="Toggle Debug Borders">
+        <i data-lucide="bug" class="w-5 h-5"></i>
+    </button>
+    <script>
+        function toggleDebugBorder() {
+            const root = document.documentElement;
+            const current = getComputedStyle(root).getPropertyValue('--debug-border-color').trim();
+            if (current === 'black') {
+                root.style.setProperty('--debug-border-color', 'transparent');
+            } else {
+                root.style.setProperty('--debug-border-color', 'black');
+            }
+        }
+    </script>
+
+    <!-- 主要内容滚动区 -->
+    <div class="h-full overflow-y-auto hide-scrollbar pb-24 pt-8 px-7 relative z-10 bg-[#F9F9F7]" id="main-content">
+
+        <!-- Tab 1: 首页 (Home) -->
+        <div id="tab-home" class="page-view fade-in">
+
+            <!-- Hero Card: 今日能量 -->
+            <div
+                class="bg-gradient-to-br from-[#D8B4FE] to-[#C084FC] w-full rounded-xl2 p-5 text-white mb-5 soft-shadow relative overflow-hidden group cursor-pointer bouncy shadow-purple-200 border-2 border-[var(--debug-border-color)]">
+                <div class="absolute -right-6 -top-6 w-36 h-36 bg-white opacity-20 rounded-full blur-xl"></div>
+                <div class="absolute -bottom-8 left-4 w-28 h-28 bg-yellow-200 opacity-20 rounded-full blur-lg"></div>
+
+                <div class="relative z-10 flex justify-between items-center">
+                    <div>
+                        <span
+                            class="bg-white/30 px-3 py-1 rounded-full text-[11px] font-semibold backdrop-blur-sm">每日指引</span>
+                        <h2 class="text-xl font-bold mt-3 leading-tight">宇宙今日信号 💌</h2>
+                        <p class="text-sm opacity-90 mt-1">点击签收你的好运</p>
+                    </div>
+                    <div
+                        class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/30">
+                        <i data-lucide="moon" class="w-7 h-7 text-white"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 增强版：用户问题输入框 & 工具选择 -->
+            <!-- Modified: Changed p-4 to pt-[21px] px-[21px] pb-4 to meet the 21px top/left/right requirement -->
+            <div id="question-box-wrapper"
+                class="bg-white w-full rounded-xl2 pt-[21px] px-[11px] pb-4 mb-6 shadow-sm border border-[var(--debug-border-color)] flex flex-col gap-[5px] relative">
+                <!-- 左侧星型图标 (绝对定位在左上角，不占据空间) -->
+                <div id="input-left-icon" class="absolute top-3 left-3 z-10">
+                    <div class="w-8 h-8 rounded-full bg-mint/10 flex items-center justify-center text-mint">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    </div>
+                </div>
+
+                <!-- 内部输入框容器: 增加 relative 用于定位子元素, overflow-hidden 使滑动条被虚线截断 -->
+                <div id="input-box-container"
+                    class="relative h-[136px] border-2 border-[var(--debug-border-color)] flex items-center justify-center overflow-hidden">
+                    <!-- 文本输入框 (默认显示) -->
+                    <textarea id="main-input-text" placeholder="写下当下的困惑，选择工具获得指引..."
+                        class="w-full bg-transparent text-[13.5px] text-darkgray placeholder-lightgray outline-none h-full resize-none pt-[38px] leading-relaxed border-2 border-transparent rounded-lg px-3 antialiased text-center"></textarea>
+
+                    <!-- 上传图片框 (默认隐藏，聊天解码/回复军师模式下显示) -->
+                    <!-- Updated: Removed pb-10 to allow centering logic in flex container -->
+                    <div id="main-input-file"
+                        class="hidden w-full h-full border-2 border-transparent rounded-lg relative">
+                        <input type="file" id="file-upload" class="hidden" accept="image/*" multiple
+                            onchange="handleImageUpload(event)">
+
+                        <!-- 上传按钮区域（无图片时显示） -->
+                        <div id="upload-prompt"
+                            class="flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors group w-full h-full absolute inset-0 z-10 pb-10"
+                            onclick="document.getElementById('file-upload').click()">
+                            <div
+                                class="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-200">
+                                <i data-lucide="image-plus"
+                                    class="w-6 h-6 text-gray-300 group-hover:text-mint transition-colors"></i>
+                            </div>
+                            <span
+                                class="text-[12px] text-gray-400 group-hover:text-mint transition-colors font-medium">上传聊天截图
+                                (最多3张)</span>
+                        </div>
+
+                        <!-- 缩略图预览区域（有图片时显示） -->
+                        <!-- 核心修改：使用Flex布局居中，gap-3控制间距 -->
+                        <div id="image-preview-container"
+                            class="hidden flex gap-1 items-start justify-center w-full pt-2 z-20 relative">
+                            <!-- JS 会在这里动态插入图片块和添加按钮 -->
+                            <div id="image-thumbnails" class="flex gap-1 items-center justify-center"></div>
+
+                            <!-- 添加更多图片按钮 (会动态移动到 thumbnails 容器内或保持在旁，这里我们在JS中控制显示逻辑更佳) -->
+                            <div id="add-more-btn"
+                                class="hidden upload-grid-item border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-mint hover:bg-mint/5 transition-all flex-shrink-0 bg-white"
+                                onclick="document.getElementById('file-upload').click()">
+                                <i data-lucide="plus" class="w-6 h-6 text-gray-300 mb-1"></i>
+                                <span class="text-[10px] text-gray-400">上传聊天截图</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Persona Slider for 回复军师 mode (moved inside, absolute positioned at bottom) -->
+                    <div id="persona-slider"
+                        class="hidden absolute bottom-1 left-0 w-full px-2 z-20 overflow-x-auto hide-scrollbar">
+                        <div class="flex gap-1 py-0 mt-1 items-center">
+                            <span class="flex-shrink-0 text-[10px] text-gray-400 whitespace-nowrap">你想呈现什么形象:</span>
+                            <button onclick="selectPersona(this)"
+                                class="persona-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">💫
+                                印象深刻</button>
+                            <button onclick="selectPersona(this)"
+                                class="persona-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">😊
+                                友善</button>
+                            <button onclick="selectPersona(this)"
+                                class="persona-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">🙏
+                                礼貌</button>
+                            <button onclick="selectPersona(this)"
+                                class="persona-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">🤝
+                                专业</button>
+                            <button onclick="selectPersona(this)"
+                                class="persona-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">🤝
+                                可靠</button>
+                            <button onclick="selectPersona(this)"
+                                class="persona-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">⏳
+                                耐心</button>
+
+                        </div>
+                    </div>
+
+                    <!-- Question Slider for 聊天解码 mode (moved inside, absolute positioned at bottom) -->
+                    <div id="question-slider"
+                        class="hidden absolute bottom-1 left-0 w-full px-2 z-20 overflow-x-auto hide-scrollbar">
+                        <div class="flex gap-1 py-0 items-center">
+                            <span class="flex-shrink-0 text-[10px] text-gray-400 whitespace-nowrap">示例问题：</span>
+                            <button onclick="selectQuestion(this)"
+                                class="question-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">🤔
+                                ta是怎么想的</button>
+                            <button onclick="selectQuestion(this)"
+                                class="question-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">💭
+                                ta的情绪是怎样的</button>
+                            <button onclick="selectQuestion(this)"
+                                class="question-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">💕
+                                我们现在是什么关系</button>
+                            <button onclick="selectQuestion(this)"
+                                class="question-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">🔮
+                                我们未来会怎么发展</button>
+                        </div>
+                    </div>
+
+                    <!-- Question Slider for 星盘 mode (absolute positioned at bottom) -->
+                    <div id="astrolabe-question-slider"
+                        class="absolute bottom-1 left-0 w-full px-2 z-20 overflow-x-auto hide-scrollbar">
+                        <div class="flex gap-1 py-0 items-center">
+                            <span class="flex-shrink-0 text-[10px] text-gray-400 whitespace-nowrap">示例问题：</span>
+                            <button onclick="selectAstrolabeQuestion(this)"
+                                class="astrolabe-question-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">💰
+                                今年的财富状况如何</button>
+                            <button onclick="selectAstrolabeQuestion(this)"
+                                class="astrolabe-question-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">💍
+                                我什么时候会结婚</button>
+                            <button onclick="selectAstrolabeQuestion(this)"
+                                class="astrolabe-question-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">💼
+                                事业上我会有哪些成就</button>
+                            <button onclick="selectAstrolabeQuestion(this)"
+                                class="astrolabe-question-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">💍
+                                我的结婚对象是怎样的</button>
+                            <button onclick="selectAstrolabeQuestion(this)"
+                                class="astrolabe-question-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">💼
+                                我最近应该提离职吗</button>
+                        </div>
+                    </div>
+
+                    <!-- Question Slider for 合盘 mode (absolute positioned at bottom) -->
+                    <div id="synastry-question-slider"
+                        class="hidden absolute bottom-1 left-0 w-full px-2 z-20 overflow-x-auto hide-scrollbar">
+                        <div class="flex gap-1 py-0 items-center">
+                            <span class="flex-shrink-0 text-[10px] text-gray-400 whitespace-nowrap">示例问题：</span>
+                            <button onclick="selectSynastryQuestion(this)"
+                                class="synastry-question-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">💕
+                                我们会在一起吗</button>
+                            <button onclick="selectSynastryQuestion(this)"
+                                class="synastry-question-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">🔄
+                                我们会复合吗</button>
+                            <button onclick="selectSynastryQuestion(this)"
+                                class="synastry-question-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">💫
+                                我们合适吗</button>
+                            <button onclick="selectSynastryQuestion(this)"
+                                class="synastry-question-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">💞
+                                我们会在一起很久吗</button>
+                        </div>
+                    </div>
+
+                    <!-- Question Slider for 塔罗 mode (absolute positioned at bottom) -->
+                    <div id="tarot-question-slider"
+                        class="hidden absolute bottom-1 left-0 w-full px-2 z-20 overflow-x-auto hide-scrollbar">
+                        <div class="flex gap-1 py-0 items-center">
+                            <span class="flex-shrink-0 text-[10px] text-gray-400 whitespace-nowrap">示例问题：</span>
+                            <button onclick="selectTarotQuestion(this)"
+                                class="tarot-question-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">💭
+                                此时此刻TA在想我吗</button>
+                            <button onclick="selectTarotQuestion(this)"
+                                class="tarot-question-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">💼
+                                最近面试能成功吗</button>
+                            <button onclick="selectTarotQuestion(this)"
+                                class="tarot-question-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">🤔
+                                Ta为什么不主动找我</button>
+                            <button onclick="selectTarotQuestion(this)"
+                                class="tarot-question-chip flex-shrink-0 px-0.5 py-1.5 rounded-lg text-[10px] border border-gray-200 bg-white text-gray-500 font-medium whitespace-nowrap">👀
+                                前任此时在干嘛</button>
+                        </div>
+                    </div>
+
+                    <!-- 虚线边框 overlay 层，z-index 高于滑动条，让虚线显示在滑动条上方 -->
+                    <div
+                        class="absolute inset-0 border-2 border-dashed border-gray-200 rounded-lg pointer-events-none z-30 hover-parent-trigger">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div class="flex gap-2 mr-2 py-1 items-center flex-1 relative z-20">
+                        <!-- 星盘 -->
+                        <button id="btn-astrolabe" onclick="openToolModal('astrolabe', this)"
+                            class="tool-chip active flex-shrink-0 px-2 py-1.5 rounded-full text-[11px] border border-transparent transition-all duration-200 flex items-center gap-1">
+                            <i data-lucide="orbit" class="w-3 h-3 hidden" id="icon-astrolabe"></i>
+                            <span id="text-astrolabe">星盘</span>
+                        </button>
+
+                        <!-- 合盘 (原星象) -->
+                        <button id="btn-synastry" onclick="openToolModal('synastry', this)"
+                            class="tool-chip flex-shrink-0 px-2 py-1.5 rounded-full text-[11px] border border-transparent bg-gray-50 text-gray-400 transition-all duration-200 flex items-center gap-1">
+                            <i data-lucide="users" class="w-3 h-3 hidden" id="icon-synastry"></i>
+                            <span id="text-synastry">合盘</span>
+                        </button>
+
+                        <!-- Tarot Button Wrapper with Dropdown -->
+                        <div class="relative group flex-shrink-0">
+                            <button id="btn-tarot" onclick="handleTarotClick(event, this)"
+                                class="tool-chip flex-shrink-0 px-2 py-1.5 rounded-full text-[11px] border border-transparent bg-gray-50 text-gray-400 transition-all duration-200 flex items-center gap-1">
+                                <span id="tarot-text">塔罗</span>
+                                <i data-lucide="chevron-down" id="tarot-arrow" class="w-3 h-3 hidden"></i>
+                            </button>
+                            <!-- Dropdown Menu -->
+                            <div id="tarot-dropdown"
+                                class="hidden absolute top-full left-0 mt-1 w-24 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-50 dropdown-enter overflow-hidden">
+                                <div id="opt-single" onclick="selectTarotOption(event, '单张塔罗')"
+                                    class="px-3 py-2 text-[11px] text-darkgray hover:bg-gray-50 cursor-pointer font-medium hover:text-mint transition-colors">
+                                    单张塔罗</div>
+                                <div id="opt-three" onclick="selectTarotOption(event, '三张塔罗')"
+                                    class="px-3 py-2 text-[11px] text-darkgray hover:bg-gray-50 cursor-pointer font-medium hover:text-mint transition-colors">
+                                    三张塔罗</div>
+                            </div>
+                        </div>
+
+                        <!-- 聊天解码 Button (独立按钮) -->
+                        <button id="btn-chat-decode" onclick="handleChatDecodeClick(event, this)"
+                            class="tool-chip flex-shrink-0 px-2 py-1.5 rounded-full text-[11px] border border-transparent bg-gray-50 text-gray-400 transition-all duration-200 flex items-center gap-1">
+                            <span id="chat-decode-text">聊天解码</span>
+                        </button>
+
+                        <!-- 回复军师 Button (独立按钮) -->
+                        <button id="btn-reply-advisor" onclick="handleReplyAdvisorClick(event, this)"
+                            class="tool-chip flex-shrink-0 px-2 py-1.5 rounded-full text-[11px] border border-transparent bg-gray-50 text-gray-400 transition-all duration-200 flex items-center gap-1">
+                            <span id="reply-advisor-text">回复军师</span>
+                        </button>
+                    </div>
+                    <button onclick="submitQuery()"
+                        class="w-8 h-8 rounded-full bg-mint text-white flex items-center justify-center shadow-lg shadow-mint/30 bouncy flex-shrink-0 hover:bg-mintdark transition-colors ml-2 relative z-50">
+                        <i data-lucide="arrow-up" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 入口网格 -->
+            <div>
+
+
+                <div class="grid grid-cols-2 card-grid">
+                    <!-- 1. 本命星座 (位置：左上 / 配色：Cream/Yellow) -->
+                    <div
+                        class="entry-card bg-cream/40 rounded-xl2 flex flex-col justify-between relative overflow-hidden group hover:bg-cream/60 transition-colors cursor-pointer bouncy">
+                        <div
+                            class="w-9 h-9 rounded-full bg-white text-yellow-500 flex items-center justify-center shadow-sm mb-1">
+                            <i data-lucide="star" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-darkgray font-bold text-base">本命星座</h4>
+                            <p class="text-[11px] text-lightgray mt-0.5">探索你的太阳星座</p>
+                        </div>
+                        <i data-lucide="sparkles"
+                            class="absolute -right-2 -bottom-2 w-14 h-14 text-yellow-500/10 rotate-12"></i>
+                    </div>
+
+                    <!-- 2. 每日塔罗 (位置：右上 / 配色：Peach/Pink) -->
+                    <div
+                        class="entry-card bg-peach/30 rounded-xl2 flex flex-col justify-between relative overflow-hidden group hover:bg-peach/50 transition-colors cursor-pointer bouncy">
+                        <div
+                            class="w-9 h-9 rounded-full bg-white text-pink-400 flex items-center justify-center shadow-sm mb-1">
+                            <i data-lucide="gallery-vertical-end" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-darkgray font-bold text-base">每日塔罗</h4>
+                            <p class="text-[11px] text-lightgray mt-0.5">抽一张牌</p>
+                        </div>
+                        <i data-lucide="flower-2"
+                            class="absolute -right-2 -bottom-2 w-14 h-14 text-pink-500/10 rotate-45"></i>
+                    </div>
+
+                    <!-- 3. 星运报告 (位置：左中 / 配色：Mint/Green) -->
+                    <div
+                        class="entry-card bg-mint/30 rounded-xl2 flex flex-col justify-between relative overflow-hidden group hover:bg-mint/50 transition-colors cursor-pointer bouncy">
+                        <div
+                            class="w-9 h-9 rounded-full bg-white text-green-500 flex items-center justify-center shadow-sm mb-1">
+                            <i data-lucide="file-text" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-darkgray font-bold text-base">星运报告</h4>
+                            <p class="text-[11px] text-lightgray mt-0.5">你的专属运势书</p>
+                        </div>
+                        <i data-lucide="scroll"
+                            class="absolute -right-2 -bottom-2 w-14 h-14 text-green-500/10 -rotate-12"></i>
+                    </div>
+
+                    <!-- 4. MBTI (位置：右中 / 配色：Sky/Blue) -->
+                    <div
+                        class="entry-card bg-sky/30 rounded-xl2 flex flex-col justify-between relative overflow-hidden group hover:bg-sky/50 transition-colors cursor-pointer bouncy">
+                        <div
+                            class="w-9 h-9 rounded-full bg-white text-blue-400 flex items-center justify-center shadow-sm mb-1">
+                            <i data-lucide="brain-circuit" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-darkgray font-bold text-base">MBTI 测试</h4>
+                            <p class="text-[11px] text-lightgray mt-0.5">你的灵魂人格</p>
+                        </div>
+                        <i data-lucide="puzzle"
+                            class="absolute -right-2 -bottom-2 w-14 h-14 text-blue-500/10 rotate-12"></i>
+                    </div>
+
+                    <!-- 5. 星盘 (位置：左下 / 配色：Lavender/Purple) -->
+                    <div
+                        class="entry-card bg-lavender/40 rounded-xl2 flex flex-col justify-between relative overflow-hidden group hover:bg-lavender/60 transition-colors cursor-pointer bouncy">
+                        <div
+                            class="w-9 h-9 rounded-full bg-white text-purple-500 flex items-center justify-center shadow-sm mb-1">
+                            <i data-lucide="orbit" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-darkgray font-bold text-base">星盘</h4>
+                            <p class="text-[11px] text-lightgray mt-0.5">解读宇宙与你</p>
+                        </div>
+                        <i data-lucide="globe-2"
+                            class="absolute -right-2 -bottom-2 w-14 h-14 text-purple-500/10 rotate-12"></i>
+                    </div>
+
+                    <!-- 6. 星象 (位置：右下 / 配色：Indigo) -->
+                    <div
+                        class="entry-card bg-indigo-100 rounded-xl2 flex flex-col justify-between relative overflow-hidden group hover:bg-indigo-200 transition-colors cursor-pointer bouncy">
+                        <div
+                            class="w-9 h-9 rounded-full bg-white text-indigo-500 flex items-center justify-center shadow-sm mb-1">
+                            <i data-lucide="cloud-moon" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-darkgray font-bold text-base">星象</h4>
+                            <p class="text-[11px] text-lightgray mt-0.5">近期天象解读</p>
+                        </div>
+                        <i data-lucide="layout-grid"
+                            class="absolute -right-2 -bottom-2 w-14 h-14 text-indigo-500/10"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 档案选择 Modal -->
+        <div id="profile-modal"
+            class="fixed inset-0 bg-black/50 z-50 hidden flex items-end sm:items-center justify-center modal-enter"
+            onclick="closeProfileModal(event)">
+            <div class="bg-white w-full sm:w-[400px] rounded-t-xl3 sm:rounded-xl3 p-6 pb-10 sm:pb-6 modal-content-enter shadow-2xl"
+                onclick="event.stopPropagation()">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg text-darkgray" id="modal-title">选择档案</h3>
+                    <div onclick="closeProfileModal()"
+                        class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-100">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </div>
+                </div>
+
+                <p class="text-xs text-lightgray mb-4" id="modal-desc">请选择档案进行解读</p>
+
+                <div class="space-y-3 mb-6 max-h-[300px] overflow-y-auto hide-scrollbar" id="profile-list">
+                    <!-- Javascript will populate this -->
+                </div>
+
+                <button onclick="confirmProfileSelection()"
+                    class="w-full bg-mint text-white font-bold py-3.5 rounded-xl2 shadow-lg shadow-mint/20 active:scale-95 transition-transform">
+                    确认选择
+                </button>
+            </div>
+        </div>
+
+        <!-- 提示 Toast -->
+        <div id="toast-msg"
+            class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-darkgray/90 text-white px-6 py-3 rounded-xl shadow-xl z-[60] hidden text-sm font-medium text-center transition-opacity duration-300 opacity-0">
+            提示信息
+        </div>
+
+        <!-- SUB VIEW: QA Result (保留提问结果页) -->
+        <div id="view-qa" class="page-view hidden fade-in">
+            <div class="flex items-center gap-4 mb-6 cursor-pointer" onclick="navigateTo('tab-home')">
+                <div
+                    class="w-11 h-11 rounded-full bg-white flex items-center justify-center shadow-sm text-darkgray bouncy">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-darkgray">提问解答</h2>
+            </div>
+
+            <div class="bg-white rounded-xl3 p-6 shadow-sm mb-6">
+                <div class="flex items-start gap-4 mb-4">
+                    <div
+                        class="w-10 h-10 rounded-full bg-mint/20 flex items-center justify-center text-mint flex-shrink-0">
+                        <i data-lucide="sparkles" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-darkgray text-lg">AI 解读中...</h4>
+                        <p class="text-sm text-lightgray mt-1">正在连接宇宙能量场，分析星盘数据...</p>
+                    </div>
+                </div>
+                <div class="h-2 w-full bg-gray-50 rounded-full overflow-hidden">
+                    <div class="h-full bg-mint w-2/3 rounded-full"></div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-white/60 p-4 rounded-xl2 border border-white">
+                    <div class="h-4 bg-gray-200 rounded w-3/4 mb-2 animate-pulse"></div>
+                    <div class="h-4 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                </div>
+                <div class="bg-white/60 p-4 rounded-xl2 border border-white">
+                    <div class="h-4 bg-gray-200 rounded w-full mb-2 animate-pulse"></div>
+                    <div class="h-4 bg-gray-200 rounded w-5/6 mb-2 animate-pulse"></div>
+                    <div class="h-4 bg-gray-200 rounded w-4/5 animate-pulse"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 底部导航栏 -->
+    <div id="bottom-nav"
+        class="fixed bottom-0 w-[428px] bg-white/90 backdrop-blur-md border-t border-gray-100 flex justify-between items-center px-12 pb-4 pt-2 z-30 nav-shadow">
+        <div class="nav-item flex flex-col items-center gap-1 text-mint cursor-pointer w-14"
+            onclick="navigateTo('tab-home', this)">
+            <i data-lucide="sparkle" class="w-7 h-7"></i>
+            <span class="text-[11px] font-bold">首页</span>
+        </div>
+        <div class="relative -top-6">
+            <button
+                class="w-16 h-16 bg-gradient-to-tr from-peach to-purple-300 rounded-full flex items-center justify-center text-white shadow-lg shadow-peach/40 bouncy border-4 border-white"
+                onclick="navigateTo('view-relationship')">
+                <i data-lucide="heart-handshake" class="w-8 h-8"></i>
+            </button>
+        </div>
+        <div class="nav-item flex flex-col items-center gap-1 text-gray-300 hover:text-gray-400 transition-colors cursor-pointer w-14"
+            onclick="navigateTo('tab-profile', this)">
+            <i data-lucide="smile" class="w-7 h-7"></i>
+            <span class="text-[11px] font-medium">我的</span>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // 模拟档案数据
+        const profiles = [
+            { id: 1, name: "我的档案", icon: "user" },
+            { id: 2, name: "Crush", icon: "heart" },
+            { id: 3, name: "前任", icon: "ghost" },
+            { id: 4, name: "闺蜜", icon: "users" }
+        ];
+
+        let currentToolType = '';
+        let selectedProfileIds = [];
+        let uploadedImages = []; // 存储已上传的图片文件（最多3张）
+
+        function resetAstrolabeState() {
+            const text = document.getElementById('text-astrolabe');
+            const icon = document.getElementById('icon-astrolabe');
+            text.textContent = '星盘';
+            icon.classList.add('hidden');
+        }
+
+        function resetSynastryState() {
+            const text = document.getElementById('text-synastry');
+            const icon = document.getElementById('icon-synastry');
+            text.textContent = '合盘';
+            icon.classList.add('hidden');
+        }
+
+        // 切换输入模式 (text 或 file)
+        function toggleInputMode(mode) {
+            const textArea = document.getElementById('main-input-text');
+            const fileArea = document.getElementById('main-input-file');
+
+            if (mode === 'file') {
+                textArea.classList.add('hidden');
+                fileArea.classList.remove('hidden');
+            } else {
+                fileArea.classList.add('hidden');
+                textArea.classList.remove('hidden');
+            }
+        }
+
+        // 处理图片上传
+        function handleImageUpload(event) {
+            const files = Array.from(event.target.files);
+            const remainingSlots = 3 - uploadedImages.length;
+
+            if (remainingSlots <= 0) {
+                showToast('最多只能上传3张图片');
+                event.target.value = ''; // 清空input
+                return;
+            }
+
+            const filesToAdd = files.slice(0, remainingSlots);
+
+            // 使用 Promise 处理异步文件读取，确保按顺序添加
+            const fileReaders = filesToAdd.map(file => {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve({ file, result: e.target.result });
+                    reader.readAsDataURL(file);
+                });
+            });
+
+            Promise.all(fileReaders).then(results => {
+                results.forEach(item => {
+                    uploadedImages.push(item);
+                });
+
+                if (files.length > remainingSlots) {
+                    showToast(`只能再上传${remainingSlots}张图片`);
+                }
+
+                renderImagePreviews();
+                event.target.value = ''; // 清空input以允许重复选择相同文件
+            });
+        }
+
+        // 渲染图片缩略图预览
+        function renderImagePreviews() {
+            const uploadPrompt = document.getElementById('upload-prompt');
+            const previewContainer = document.getElementById('image-preview-container');
+            const thumbnailsContainer = document.getElementById('image-thumbnails');
+            const inputBoxContainer = document.getElementById('input-box-container');
+
+            // 常量定义
+            const SLIDER_HEIGHT = 40; // 滑动条高度(含边距，需要足够空间)
+            // 左右边距由剩余宽度自动分配，不再固定
+            const THUMBNAIL_GAP = 4; // gap-1 = 4px
+            const TOP_PADDING = 8; // pt-2 = 8px
+            const BOTTOM_PADDING = 4; // 底部留给滑动条的空间
+            const DEFAULT_HEIGHT = 136; // 默认输入框高度
+
+            if (uploadedImages.length === 0) {
+                // 无图片：显示上传提示，隐藏预览区域，恢复默认高度
+                uploadPrompt.classList.remove('hidden');
+                previewContainer.classList.add('hidden');
+                inputBoxContainer.style.height = DEFAULT_HEIGHT + 'px';
+                return;
+            }
+
+            // 有图片：隐藏上传提示，显示预览区域
+            uploadPrompt.classList.add('hidden');
+            previewContainer.classList.remove('hidden');
+
+            // 计算容器宽度 (左右边距由 justify-center 自动分配)
+            const containerWidth = inputBoxContainer.offsetWidth;
+
+            // 计算单张缩略图尺寸 (固定为 100px)
+            const thumbnailSize = 100;
+
+            // 计算预览区域高度 = 缩略图高度 + 上边距
+            const previewAreaHeight = thumbnailSize + TOP_PADDING;
+
+            // 计算新的容器高度 = 预览区域高度 + 滑动条高度 + 底部边距
+            const newHeight = previewAreaHeight + SLIDER_HEIGHT + BOTTOM_PADDING;
+            inputBoxContainer.style.height = newHeight + 'px';
+
+            // 设置预览容器的明确高度，防止与滑动条重叠
+            previewContainer.style.height = previewAreaHeight + 'px';
+
+            // 清空并重新渲染缩略图
+            thumbnailsContainer.innerHTML = '';
+
+            uploadedImages.forEach((item, index) => {
+                const thumbnailWrapper = document.createElement('div');
+                thumbnailWrapper.id = `image-slot-${index}`;
+                thumbnailWrapper.className = 'relative group upload-grid-item shadow-sm overflow-visible';
+                thumbnailWrapper.style.width = thumbnailSize + 'px';
+                thumbnailWrapper.style.height = thumbnailSize + 'px';
+                thumbnailWrapper.innerHTML = `
+                    <div class="w-full h-full rounded-xl overflow-hidden border border-[var(--debug-border-color)]">
+                        <img src="${item.result}" alt="预览图${index + 1}" class="h-full w-full object-cover object-center">
+                    </div>
+                    <div class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-gray-400/80 rounded-full flex items-center justify-center cursor-pointer shadow-sm z-10 hover:bg-gray-500" onclick="removeImage(${index})">
+                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </div>
+                `;
+                thumbnailsContainer.appendChild(thumbnailWrapper);
+            });
+
+            // 显示添加更多按钮（动态创建，确保不会被 innerHTML 清空影响）
+            if (uploadedImages.length < 3) {
+                const addBtn = document.createElement('div');
+                addBtn.className = 'upload-grid-item border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-mint hover:bg-mint/5 transition-all flex-shrink-0 bg-white';
+                addBtn.style.width = thumbnailSize + 'px';
+                addBtn.style.height = thumbnailSize + 'px';
+                addBtn.onclick = () => document.getElementById('file-upload').click();
+                addBtn.innerHTML = `
+                    <i data-lucide="plus" class="w-6 h-6 text-gray-300 mb-0.5"></i>
+                    <span class="text-[10px] text-gray-400 font-medium">上传聊天截图</span>
+                    <span class="text-[10px] text-gray-400">(最多3张)</span>
+                `;
+                thumbnailsContainer.appendChild(addBtn);
+            }
+
+            lucide.createIcons();
+        }
+
+        // 删除指定图片
+        function removeImage(index) {
+            uploadedImages.splice(index, 1);
+            renderImagePreviews();
+        }
+
+        // 清空所有已上传图片
+        function clearUploadedImages() {
+            uploadedImages = [];
+            renderImagePreviews();
+        }
+
+        // 聊天解码 点击逻辑 (独立按钮)
+        function handleChatDecodeClick(event, btn) {
+            event.stopPropagation();
+
+            // Reset all other tool buttons
+            document.querySelectorAll('.tool-chip').forEach(chip => {
+                if (chip.id !== 'btn-chat-decode') {
+                    chip.classList.remove('active');
+                    chip.classList.add('bg-gray-50', 'text-gray-400', 'border-transparent');
+                }
+            });
+
+            // Explicit Tarot Reset
+            const tarotBtn = document.getElementById('btn-tarot');
+            tarotBtn.classList.remove('active');
+            tarotBtn.classList.add('bg-gray-50', 'text-gray-400', 'border-transparent');
+            document.getElementById('tarot-text').textContent = '塔罗';
+            document.getElementById('tarot-arrow').classList.add('hidden');
+            document.getElementById('tarot-dropdown').classList.add('hidden');
+
+            resetAstrolabeState();
+            resetSynastryState();
+
+            // Set Chat Decode Active
+            btn.classList.remove('bg-gray-50', 'text-gray-400', 'border-transparent');
+            btn.classList.add('active');
+
+            // Show Upload Input
+            toggleInputMode('file');
+
+            // Show question slider, hide persona slider and others
+            toggleQuestionSlider(true);
+            togglePersonaSlider(false);
+            toggleAstrolabeQuestionSlider(false);
+            toggleSynastryQuestionSlider(false);
+            toggleTarotQuestionSlider(false);
+        }
+
+        // 回复军师 点击逻辑 (独立按钮)
+        function handleReplyAdvisorClick(event, btn) {
+            event.stopPropagation();
+
+            // Reset all other tool buttons
+            document.querySelectorAll('.tool-chip').forEach(chip => {
+                if (chip.id !== 'btn-reply-advisor') {
+                    chip.classList.remove('active');
+                    chip.classList.add('bg-gray-50', 'text-gray-400', 'border-transparent');
+                }
+            });
+
+            // Explicit Tarot Reset
+            const tarotBtn = document.getElementById('btn-tarot');
+            tarotBtn.classList.remove('active');
+            tarotBtn.classList.add('bg-gray-50', 'text-gray-400', 'border-transparent');
+            document.getElementById('tarot-text').textContent = '塔罗';
+            document.getElementById('tarot-arrow').classList.add('hidden');
+            document.getElementById('tarot-dropdown').classList.add('hidden');
+
+            resetAstrolabeState();
+            resetSynastryState();
+
+            // Set Reply Advisor Active
+            btn.classList.remove('bg-gray-50', 'text-gray-400', 'border-transparent');
+            btn.classList.add('active');
+
+            // Show Upload Input
+            toggleInputMode('file');
+
+            // Show persona slider, hide question slider and others
+            togglePersonaSlider(true);
+            toggleQuestionSlider(false);
+            toggleAstrolabeQuestionSlider(false);
+            toggleSynastryQuestionSlider(false);
+            toggleTarotQuestionSlider(false);
+        }
+
+        // Persona slider toggle function
+        function togglePersonaSlider(show) {
+            const slider = document.getElementById('persona-slider');
+            if (show) {
+                slider.classList.remove('hidden');
+            } else {
+                slider.classList.add('hidden');
+            }
+        }
+
+        // Question slider toggle function
+        function toggleQuestionSlider(show) {
+            const slider = document.getElementById('question-slider');
+            if (show) {
+                slider.classList.remove('hidden');
+            } else {
+                slider.classList.add('hidden');
+            }
+        }
+
+        // Astrolabe question slider toggle function
+        function toggleAstrolabeQuestionSlider(show) {
+            const slider = document.getElementById('astrolabe-question-slider');
+            if (show) {
+                slider.classList.remove('hidden');
+            } else {
+                slider.classList.add('hidden');
+            }
+        }
+
+        // Synastry question slider toggle function
+        function toggleSynastryQuestionSlider(show) {
+            const slider = document.getElementById('synastry-question-slider');
+            if (show) {
+                slider.classList.remove('hidden');
+            } else {
+                slider.classList.add('hidden');
+            }
+        }
+
+        // Synastry question selection function
+        function selectSynastryQuestion(btn) {
+            document.querySelectorAll('.synastry-question-chip').forEach(chip => {
+                chip.classList.remove('active', 'border-peach', 'bg-peach/10', 'text-peach', 'font-bold');
+                chip.classList.add('border-gray-200', 'bg-white', 'text-gray-500', 'font-medium');
+            });
+            btn.classList.remove('border-gray-200', 'bg-white', 'text-gray-500', 'font-medium');
+            btn.classList.add('active', 'border-peach', 'bg-peach/10', 'text-peach', 'font-bold');
+        }
+
+        // Tarot question slider toggle function
+        function toggleTarotQuestionSlider(show) {
+            const slider = document.getElementById('tarot-question-slider');
+            if (show) {
+                slider.classList.remove('hidden');
+            } else {
+                slider.classList.add('hidden');
+            }
+        }
+
+        // Tarot question selection function
+        function selectTarotQuestion(btn) {
+            document.querySelectorAll('.tarot-question-chip').forEach(chip => {
+                chip.classList.remove('active', 'border-peach', 'bg-peach/10', 'text-peach', 'font-bold');
+                chip.classList.add('border-gray-200', 'bg-white', 'text-gray-500', 'font-medium');
+            });
+            btn.classList.remove('border-gray-200', 'bg-white', 'text-gray-500', 'font-medium');
+            btn.classList.add('active', 'border-peach', 'bg-peach/10', 'text-peach', 'font-bold');
+        }
+
+        // Astrolabe question selection function
+        function selectAstrolabeQuestion(btn) {
+            document.querySelectorAll('.astrolabe-question-chip').forEach(chip => {
+                chip.classList.remove('active', 'border-peach', 'bg-peach/10', 'text-peach', 'font-bold');
+                chip.classList.add('border-gray-200', 'bg-white', 'text-gray-500', 'font-medium');
+            });
+            btn.classList.remove('border-gray-200', 'bg-white', 'text-gray-500', 'font-medium');
+            btn.classList.add('active', 'border-peach', 'bg-peach/10', 'text-peach', 'font-bold');
+        }
+
+        // Persona selection function
+        function selectPersona(btn) {
+            document.querySelectorAll('.persona-chip').forEach(chip => {
+                chip.classList.remove('active', 'border-peach', 'bg-peach/10', 'text-peach', 'font-bold');
+                chip.classList.add('border-gray-200', 'bg-white', 'text-gray-500', 'font-medium');
+            });
+            btn.classList.remove('border-gray-200', 'bg-white', 'text-gray-500', 'font-medium');
+            btn.classList.add('active', 'border-peach', 'bg-peach/10', 'text-peach', 'font-bold');
+        }
+
+        // Question selection function
+        function selectQuestion(btn) {
+            document.querySelectorAll('.question-chip').forEach(chip => {
+                chip.classList.remove('active', 'border-peach', 'bg-peach/10', 'text-peach', 'font-bold');
+                chip.classList.add('border-gray-200', 'bg-white', 'text-gray-500', 'font-medium');
+            });
+            btn.classList.remove('border-gray-200', 'bg-white', 'text-gray-500', 'font-medium');
+            btn.classList.add('active', 'border-peach', 'bg-peach/10', 'text-peach', 'font-bold');
+        }
+
+
+        function openToolModal(type, btn) {
+            // UI Reset for all tool buttons
+            document.querySelectorAll('.tool-chip').forEach(chip => {
+                if (chip.id !== 'btn-tarot' && chip.id !== 'btn-chat-decode' && chip.id !== 'btn-reply-advisor') {
+                    chip.classList.remove('active');
+                    chip.classList.add('bg-gray-50', 'text-gray-400', 'border-transparent');
+                }
+            });
+
+            // Reset Tarot
+            const tarotBtn = document.getElementById('btn-tarot');
+            tarotBtn.classList.remove('active');
+            tarotBtn.classList.add('bg-gray-50', 'text-gray-400', 'border-transparent');
+            document.getElementById('tarot-text').textContent = '塔罗';
+            document.getElementById('tarot-arrow').classList.add('hidden');
+            document.getElementById('tarot-dropdown').classList.add('hidden');
+
+            // Reset Chat Decode
+            const chatBtn = document.getElementById('btn-chat-decode');
+            chatBtn.classList.remove('active');
+            chatBtn.classList.add('bg-gray-50', 'text-gray-400', 'border-transparent');
+
+            // Reset Reply Advisor
+            const advisorBtn = document.getElementById('btn-reply-advisor');
+            advisorBtn.classList.remove('active');
+            advisorBtn.classList.add('bg-gray-50', 'text-gray-400', 'border-transparent');
+
+            // Hide persona slider
+            togglePersonaSlider(false);
+            // Hide question slider
+            toggleQuestionSlider(false);
+            // Hide astrolabe question slider (will show later if astrolabe)
+            toggleAstrolabeQuestionSlider(false);
+            // Hide synastry question slider (will show later if synastry)
+            toggleSynastryQuestionSlider(false);
+            // Hide tarot question slider
+            toggleTarotQuestionSlider(false);
+
+            // Switch back to text input for Astrolabe/Synastry
+            toggleInputMode('text');
+            // Clear uploaded images when switching away from file mode
+            clearUploadedImages();
+
+            // Add dashed border to textarea (keep default placeholder style + center placeholder)
+            const textArea = document.getElementById('main-input-text');
+            textArea.classList.add('border-2', 'border-dashed', 'border-gray-200', 'rounded-lg', 'px-3');
+            // 恢复默认placeholder样式，并添加居中
+            textArea.classList.remove('placeholder:text-[10px]', 'placeholder:text-gray-400', 'py-1');
+            textArea.classList.add('placeholder-lightgray', 'text-center', 'pt-[38px]');
+
+            // Reset Astrolabe if not current
+            if (type !== 'astrolabe') {
+                resetAstrolabeState();
+            } else {
+                // Show astrolabe question slider for astrolabe mode
+                toggleAstrolabeQuestionSlider(true);
+            }
+            // Reset Synastry if not current
+            if (type !== 'synastry') {
+                resetSynastryState();
+            } else {
+                // Show synastry question slider for synastry mode
+                toggleSynastryQuestionSlider(true);
+            }
+
+            // Set clicked active
+            btn.classList.remove('bg-gray-50', 'text-gray-400', 'border-transparent');
+            btn.classList.add('active');
+
+            // Logic
+            currentToolType = type;
+            selectedProfileIds = [];
+
+            // Render Modal List
+            const list = document.getElementById('profile-list');
+            list.innerHTML = '';
+            profiles.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'profile-item flex items-center gap-3 p-3 rounded-xl border border-gray-100 cursor-pointer transition-all hover:bg-gray-50';
+                div.onclick = () => toggleProfileSelection(div, p.id);
+                div.innerHTML = `
+                    <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-darkgray">
+                        <i data-lucide="${p.icon}" class="w-5 h-5"></i>
+                    </div>
+                    <span class="font-bold text-darkgray text-sm">${p.name}</span>
+                    <div class="ml-auto w-5 h-5 rounded-full border-2 border-gray-200 flex items-center justify-center check-circle">
+                        <div class="w-2.5 h-2.5 rounded-full bg-mint hidden check-dot"></div>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+            lucide.createIcons();
+
+            // Show Modal
+            const title = document.getElementById('modal-title');
+            const desc = document.getElementById('modal-desc');
+            if (type === 'astrolabe') {
+                title.textContent = '选择星盘档案';
+                desc.textContent = '请选择 1 个档案进行解读';
+            } else {
+                title.textContent = '选择合盘档案';
+                desc.textContent = '请选择 2 个档案进行合盘';
+            }
+
+            document.getElementById('profile-modal').classList.remove('hidden');
+        }
+
+        function toggleProfileSelection(el, id) {
+            const index = selectedProfileIds.indexOf(id);
+
+            if (currentToolType === 'astrolabe') {
+                // Single select logic
+                document.querySelectorAll('.profile-item').forEach(item => {
+                    item.classList.remove('selected');
+                    item.querySelector('.check-circle').classList.remove('border-mint');
+                    item.querySelector('.check-dot').classList.add('hidden');
+                });
+                selectedProfileIds = [id];
+                el.classList.add('selected');
+                el.querySelector('.check-circle').classList.add('border-mint');
+                el.querySelector('.check-dot').classList.remove('hidden');
+            } else {
+                // Multi select logic (max 2)
+                if (index > -1) {
+                    selectedProfileIds.splice(index, 1);
+                    el.classList.remove('selected');
+                    el.querySelector('.check-circle').classList.remove('border-mint');
+                    el.querySelector('.check-dot').classList.add('hidden');
+                } else {
+                    if (selectedProfileIds.length < 2) {
+                        selectedProfileIds.push(id);
+                        el.classList.add('selected');
+                        el.querySelector('.check-circle').classList.add('border-mint');
+                        el.querySelector('.check-dot').classList.remove('hidden');
+                    } else {
+                        // Optional: Hint max 2
+                    }
+                }
+            }
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profile-modal').classList.add('hidden');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast-msg');
+            toast.textContent = msg;
+            toast.classList.remove('hidden');
+            // Trigger reflow
+            void toast.offsetWidth;
+            toast.classList.remove('opacity-0');
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 300);
+            }, 2000);
+        }
+
+        function confirmProfileSelection() {
+            if (currentToolType === 'astrolabe') {
+                if (selectedProfileIds.length !== 1) {
+                    showToast('请选择 1 个档案');
+                    return;
+                }
+                const p = profiles.find(x => x.id === selectedProfileIds[0]);
+                const btn = document.getElementById('btn-astrolabe');
+                const text = document.getElementById('text-astrolabe');
+                const icon = document.getElementById('icon-astrolabe');
+
+                text.textContent = p.name.substring(0, 4) + (p.name.length > 4 ? '...' : '');
+                icon.classList.remove('hidden');
+            } else {
+                if (selectedProfileIds.length !== 2) {
+                    showToast('请选择 2 个档案');
+                    return;
+                }
+                const p1 = profiles.find(x => x.id === selectedProfileIds[0]);
+                const p2 = profiles.find(x => x.id === selectedProfileIds[1]);
+                const btn = document.getElementById('btn-synastry');
+                const text = document.getElementById('text-synastry');
+                const icon = document.getElementById('icon-synastry');
+
+                text.textContent = `${p1.name.substring(0, 3)}...&${p2.name.substring(0, 3)}...`;
+                icon.classList.remove('hidden');
+            }
+            closeProfileModal();
+        }
+
+        function submitQuery() {
+            navigateTo('view-qa');
+        }
+
+        function handleTarotClick(event, btn) {
+            event.stopPropagation(); // Prevent body click from closing immediately
+
+            const isAlreadyActive = btn.classList.contains('active');
+            const dropdown = document.getElementById('tarot-dropdown');
+            const arrow = document.getElementById('tarot-arrow');
+            const textSpan = document.getElementById('tarot-text');
+            const optSingle = document.getElementById('opt-single');
+            const optThree = document.getElementById('opt-three');
+
+            // Reset other buttons (Astrolabe, Synastry, ChatDecode, ReplyAdvisor)
+            document.querySelectorAll('.tool-chip').forEach(chip => {
+                if (chip.id !== 'btn-tarot') {
+                    chip.classList.remove('active');
+                    chip.classList.add('bg-gray-50', 'text-gray-400', 'border-transparent');
+                }
+            });
+
+            // Reset Chat Decode
+            const chatBtn = document.getElementById('btn-chat-decode');
+            chatBtn.classList.remove('active');
+            chatBtn.classList.add('bg-gray-50', 'text-gray-400', 'border-transparent');
+
+            // Reset Reply Advisor
+            const advisorBtn = document.getElementById('btn-reply-advisor');
+            advisorBtn.classList.remove('active');
+            advisorBtn.classList.add('bg-gray-50', 'text-gray-400', 'border-transparent');
+
+            // Hide persona slider
+            togglePersonaSlider(false);
+            // Hide question slider
+            toggleQuestionSlider(false);
+            // Hide astrolabe question slider
+            toggleAstrolabeQuestionSlider(false);
+            // Hide synastry question slider
+            toggleSynastryQuestionSlider(false);
+
+            // Switch input back to text
+            toggleInputMode('text');
+            // Clear uploaded images when switching away from file mode
+            clearUploadedImages();
+
+            // Add dashed border to textarea (keep default placeholder style + center placeholder)
+            const textArea = document.getElementById('main-input-text');
+            textArea.classList.add('border-2', 'border-dashed', 'border-gray-200', 'rounded-lg', 'px-3');
+            // 恢复默认placeholder样式，并添加居中
+            textArea.classList.remove('placeholder:text-[10px]', 'placeholder:text-gray-400', 'py-1');
+            textArea.classList.add('placeholder-lightgray', 'text-center', 'pt-[38px]');
+
+            // Reset Astrolabe & Synastry
+            resetAstrolabeState();
+            resetSynastryState();
+
+            // Activate Tarot Button
+            btn.classList.remove('bg-gray-50', 'text-gray-400', 'border-transparent');
+            btn.classList.add('active');
+
+            // Show tarot question slider
+            toggleTarotQuestionSlider(true);
+
+            if (!isAlreadyActive) {
+                // First click: Set default to Single Tarot and show arrow
+                textSpan.textContent = '单张塔罗';
+                arrow.classList.remove('hidden');
+                lucide.createIcons(); // Re-render icons to show the arrow
+            } else {
+                // Toggle Dropdown logic
+                if (dropdown.classList.contains('hidden')) {
+                    // Show dropdown logic based on current text
+                    const currentText = textSpan.textContent;
+
+                    if (currentText === '单张塔罗') {
+                        optSingle.classList.add('hidden');
+                        optThree.classList.remove('hidden');
+                    } else if (currentText === '三张塔罗') {
+                        optSingle.classList.remove('hidden');
+                        optThree.classList.add('hidden');
+                    } else {
+                        // Should not happen normally if flow is followed, but fallback
+                        optSingle.classList.remove('hidden');
+                        optThree.classList.remove('hidden');
+                    }
+
+                    dropdown.classList.remove('hidden');
+                } else {
+                    dropdown.classList.add('hidden');
+                }
+            }
+        }
+
+        function selectTarotOption(event, text) {
+            event.stopPropagation();
+            document.getElementById('tarot-text').textContent = text;
+            document.getElementById('tarot-dropdown').classList.add('hidden');
+        }
+
+        function handleBodyClick(event) {
+            const dropdown = document.getElementById('tarot-dropdown');
+            if (dropdown && !dropdown.classList.contains('hidden')) {
+                dropdown.classList.add('hidden');
+            }
+        }
+
+        function navigateTo(targetId, navElement = null) {
+            document.querySelectorAll('.page-view').forEach(view => view.classList.add('hidden'));
+            const targetView = document.getElementById(targetId);
+            if (targetView) {
+                targetView.classList.remove('hidden');
+                document.getElementById('main-content').scrollTop = 0;
+            }
+
+            if (targetId === 'tab-profile') {
+                window.location.href = '31.2账户.html';
+            } else if (targetId === 'view-relationship') {
+                window.location.href = '8星运小输入框大小3关系星运报告我的.html';
+            }
+
+            if (navElement) {
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('text-mint');
+                    item.classList.add('text-gray-300');
+                    item.querySelector('span').classList.remove('font-bold');
+                    item.querySelector('span').classList.add('font-medium');
+                });
+                navElement.classList.remove('text-gray-300');
+                navElement.classList.add('text-mint');
+                navElement.querySelector('span').classList.remove('font-medium');
+                navElement.querySelector('span').classList.add('font-bold');
+            } else if (targetId === 'tab-home') {
+                const homeTab = document.querySelector('.nav-item');
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('text-mint');
+                    item.classList.add('text-gray-300');
+                    item.querySelector('span').classList.remove('font-bold');
+                    item.querySelector('span').classList.add('font-medium');
+                });
+                homeTab.classList.remove('text-gray-300');
+                homeTab.classList.add('text-mint');
+                homeTab.querySelector('span').classList.remove('font-medium');
+                homeTab.querySelector('span').classList.add('font-bold');
+            }
+        }
+    </script>
+</body>
+
+</html>

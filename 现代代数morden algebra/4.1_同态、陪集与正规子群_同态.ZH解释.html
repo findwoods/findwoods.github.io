@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1. 第 4 章：同态、陪集和正规子群</title>
+    <title>4.1_同态、陪集与正规子群_同态.ZH解释</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
     <!-- MathJax v4 懒加载配置 - 彻底禁用无障碍功能 -->
     <script>
@@ -57,12 +57,30 @@
         .math-inline {
             position: relative;
             cursor: pointer;
-            /* 禁用长按时的文本选择光标 */
+        }
+
+        /* 桌面端：允许鼠标拖拽选中（Obsidian-like） */
+        @media (hover: hover) and (pointer: fine) {
+          .math-block,
+          .math-inline {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+          }
+          .math-inline { display: inline-block; } /* 让行内公式更像"一个字" */
+        }
+
+        /* 移动端：保持你现有"长按复制"体验（继续禁用系统选区/气泡） */
+        @media (hover: none) and (pointer: coarse) {
+          .math-block,
+          .math-inline {
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
             -webkit-touch-callout: none;
+          }
         }
         
         /* 悬停时的黑色气泡提示 */
@@ -167,7 +185,7 @@
         /* 禁用 MathJax 内部元素的焦点效果但允许点击穿透到父容器 */
         mjx-container {
             outline: none !important;
-            pointer-events: none !important;
+            pointer-events: auto !important;
         }
         mjx-container:focus,
         mjx-container:focus-visible,
@@ -176,12 +194,50 @@
             box-shadow: none !important;
         }
         
-        /* 隐藏 MathJax 菜单和帮助按钮 */
+        /* 隐藏 MathJax 菜单、帮助按钮及右上角info图标 */
         #MathJax_MenuFrame,
         .MJX_Assistive_MathML,
         mjx-assistive-mml,
-        [data-semantic-type] {
+        [data-semantic-type],
+        mjx-maction,
+        mjx-container mjx-maction,
+        mjx-container [data-toggle],
+        mjx-container .mjx-maction,
+        .mjx-maction-toggle,
+        mjx-container::after,
+        mjx-container circle,
+        mjx-container svg circle,
+        mjx-container .MJX-accessibility,
+        mjx-container [role="note"],
+        .mjx-svg-href,
+        mjx-container a,
+        mjx-container .mjx-color,
+        mjx-math circle,
+        svg.mjx-container-mml circle {
             display: none !important;
+        }
+        
+        /* 隐藏MathJax探索器info图标（viewBox 18x18的SVG） */
+        mjx-container svg[viewBox="0 0 18 18"],
+        .math-block svg[viewBox="0 0 18 18"],
+        .math-inline svg[viewBox="0 0 18 18"],
+        svg[viewBox="0 0 18 18"][aria-hidden="true"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
+            position: absolute !important;
+            left: -9999px !important;
+        }
+        
+        /* 额外确保隐藏任何SVG圆形图标 */
+        mjx-container svg {
+            overflow: hidden !important;
+        }
+        mjx-container svg circle {
+            visibility: hidden !important;
+            opacity: 0 !important;
         }
     </style>
     <style>
@@ -220,7 +276,7 @@
             background: var(--bg-color);
             color: var(--text-color);
             line-height: 1.8;
-            font-size: 16px;
+            font-size: 18px;
         }
 
         /* Hero Header */
@@ -289,7 +345,9 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         }
 
-        .content-section h2 {
+        .content-section h2,
+        .content-section h3,
+        .content-section h4 {
             color: var(--primary-color);
             font-size: 1.8rem;
             margin-bottom: 25px;
@@ -298,23 +356,6 @@
             display: flex;
             align-items: center;
             gap: 12px;
-        }
-
-        .content-section h3 {
-            color: var(--secondary-color);
-            font-size: 1.4rem;
-            margin: 25px 0 15px 0;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--accent-color);
-        }
-
-        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
-        .content-section h4 {
-            color: var(--secondary-color);
-            font-size: 1.2rem;
-            margin: 20px 0 12px 0;
-            padding-bottom: 8px;
-            border-bottom: 2px solid var(--accent-color);
         }
 
         .content-section h5 {
@@ -1836,7 +1877,19 @@
         }
 
         .note-item-body .note-item-math-block {
-            margin: 6px 0;
+            margin: 4px 0;
+            padding: 0;
+        }
+        
+        /* 笔记面板中块级公式mjx-container的间距控制 */
+        .note-item-body .note-item-math-block mjx-container {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        .note-item-body mjx-container[display="true"] {
+            margin: 4px 0 !important;
+            padding: 0 !important;
         }
 
         .note-item-index {
@@ -2019,34 +2072,37 @@
         </div>
         <div class="toc-content">
             <ul class="toc-list">
-                <li class="toc-item toc-heading"><a href="#section-1">1. 1. 第 4 章：同态、陪集和正规子群</a></li>
-                <li class="toc-item toc-heading"><a href="#section-2">1. 1.1. 定义和例子</a></li>
+                <li class="toc-item toc-heading toc-level-1"><a href="#section-1">1. 第 4 章：同态、陪集和正规子群</a></li>
+                <li class="toc-item toc-heading toc-level-2" style="padding-left: 1em;"><a href="#section-2">1.1. 同态</a></li>
+                <li class="toc-item toc-heading toc-level-3" style="padding-left: 2em;"><a href="#section-3">1. 1.1. 定义和例子</a></li>
                 <li class="toc-originals-container"><span class="toc-original"><a href="#original-2">原文2</a></span></li>
-                <li class="toc-item toc-heading"><a href="#section-3">1. 1.2. 同态的定义</a></li>
+                <li class="toc-item toc-heading toc-level-3" style="padding-left: 2em;"><a href="#section-4">1. 1.2. 同态的定义</a></li>
                 <li class="toc-originals-container"><span class="toc-original"><a href="#original-3">原文3</a></span></li>
-                <li class="toc-item toc-heading"><a href="#section-4">1. 1.3. 同态的例子</a></li>
+                <li class="toc-item toc-heading toc-level-3" style="padding-left: 2em;"><a href="#section-5">1. 1.3. 同态的例子</a></li>
                 <li class="toc-originals-container"><span class="toc-original"><a href="#original-4">原文4</a></span><span class="toc-original"><a href="#original-5">原文5</a></span><span class="toc-original"><a href="#original-6">原文6</a></span><span class="toc-original"><a href="#original-7">原文7</a></span><span class="toc-original"><a href="#original-8">原文8</a></span><span class="toc-original"><a href="#original-9">原文9</a></span><span class="toc-original"><a href="#original-10">原文10</a></span><span class="toc-original"><a href="#original-11">原文11</a></span><span class="toc-original"><a href="#original-12">原文12</a></span><span class="toc-original"><a href="#original-13">原文13</a></span><span class="toc-original"><a href="#original-14">原文14</a></span><span class="toc-original"><a href="#original-15">原文15</a></span><span class="toc-original"><a href="#original-16">原文16</a></span></li>
-                <li class="toc-item toc-heading"><a href="#section-5">1. 1.4. 非同态的例子</a></li>
+                <li class="toc-item toc-heading toc-level-3" style="padding-left: 2em;"><a href="#section-6">1. 1.4. 非同态的例子</a></li>
                 <li class="toc-originals-container"><span class="toc-original"><a href="#original-17">原文17</a></span><span class="toc-original"><a href="#original-18">原文18</a></span><span class="toc-original"><a href="#original-19">原文19</a></span><span class="toc-original"><a href="#original-20">原文20</a></span></li>
-                <li class="toc-item toc-heading"><a href="#section-6">1. 1.5. 同态的性质</a></li>
+                <li class="toc-item toc-heading toc-level-3" style="padding-left: 2em;"><a href="#section-7">1. 1.5. 同态的性质</a></li>
                 <li class="toc-originals-container"><span class="toc-original"><a href="#original-21">原文21</a></span><span class="toc-original"><a href="#original-22">原文22</a></span><span class="toc-original"><a href="#original-23">原文23</a></span><span class="toc-original"><a href="#original-24">原文24</a></span></li>
-                <li class="toc-item toc-heading"><a href="#section-7">1. 2.1. 子群的像和原像</a></li>
+                <li class="toc-item toc-heading toc-level-2" style="padding-left: 1em;"><a href="#section-8">1.2. 核和像</a></li>
+                <li class="toc-item toc-heading toc-level-3" style="padding-left: 2em;"><a href="#section-9">1. 2.1. 子群的像和原像</a></li>
                 <li class="toc-originals-container"><span class="toc-original"><a href="#original-25">原文25</a></span></li>
-                <li class="toc-item toc-heading"><a href="#section-8">1. 2.2. 核与像的定义</a></li>
+                <li class="toc-item toc-heading toc-level-3" style="padding-left: 2em;"><a href="#section-10">1. 2.2. 核与像的定义</a></li>
                 <li class="toc-originals-container"><span class="toc-original"><a href="#original-26">原文26</a></span><span class="toc-original"><a href="#original-27">原文27</a></span></li>
-                <li class="toc-item toc-heading"><a href="#section-9">1. 2.3. 核与像的例子</a></li>
+                <li class="toc-item toc-heading toc-level-3" style="padding-left: 2em;"><a href="#section-11">1. 2.3. 核与像的例子</a></li>
                 <li class="toc-originals-container"><span class="toc-original"><a href="#original-28">原文28</a></span><span class="toc-original"><a href="#original-29">原文29</a></span><span class="toc-original"><a href="#original-30">原文30</a></span><span class="toc-original"><a href="#original-31">原文31</a></span><span class="toc-original"><a href="#original-32">原文32</a></span><span class="toc-original"><a href="#original-33">原文33</a></span><span class="toc-original"><a href="#original-34">原文34</a></span><span class="toc-original"><a href="#original-35">原文35</a></span><span class="toc-original"><a href="#original-36">原文36</a></span><span class="toc-original"><a href="#original-37">原文37</a></span><span class="toc-original"><a href="#original-38">原文38</a></span><span class="toc-original"><a href="#original-39">原文39</a></span><span class="toc-original"><a href="#original-40">原文40</a></span><span class="toc-original"><a href="#original-41">原文41</a></span></li>
-                <li class="toc-item toc-heading"><a href="#section-10">1. 2.4. 核与单射性</a></li>
+                <li class="toc-item toc-heading toc-level-3" style="padding-left: 2em;"><a href="#section-12">1. 2.4. 核与单射性</a></li>
                 <li class="toc-originals-container"><span class="toc-original"><a href="#original-42">原文42</a></span><span class="toc-original"><a href="#original-43">原文43</a></span></li>
-                <li class="toc-item toc-heading"><a href="#section-11">1. 3.1. 单射同态与子群同构</a></li>
+                <li class="toc-item toc-heading toc-level-2" style="padding-left: 1em;"><a href="#section-13">1.3. 凯莱定理</a></li>
+                <li class="toc-item toc-heading toc-level-3" style="padding-left: 2em;"><a href="#section-14">1. 3.1. 单射同态与子群同构</a></li>
                 <li class="toc-originals-container"><span class="toc-original"><a href="#original-44">原文44</a></span></li>
-                <li class="toc-item toc-heading"><a href="#section-12">1. 3.2. 凯莱定理的陈述与证明</a></li>
+                <li class="toc-item toc-heading toc-level-3" style="padding-left: 2em;"><a href="#section-15">1. 3.2. 凯莱定理的陈述与证明</a></li>
                 <li class="toc-originals-container"><span class="toc-original"><a href="#original-45">原文45</a></span><span class="toc-original"><a href="#original-46">原文46</a></span><span class="toc-original"><a href="#original-47">原文47</a></span><span class="toc-original"><a href="#original-48">原文48</a></span><span class="toc-original"><a href="#original-49">原文49</a></span></li>
-                <li class="toc-item toc-heading"><a href="#section-13">1. 3.3. 关于右乘的注记</a></li>
+                <li class="toc-item toc-heading toc-level-3" style="padding-left: 2em;"><a href="#section-16">1. 3.3. 关于右乘的注记</a></li>
                 <li class="toc-originals-container"><span class="toc-original"><a href="#original-50">原文50</a></span></li>
-                <li class="toc-item toc-heading"><a href="#section-14">1. 3.4. 凯莱定理的推论</a></li>
+                <li class="toc-item toc-heading toc-level-3" style="padding-left: 2em;"><a href="#section-17">1. 3.4. 凯莱定理的推论</a></li>
                 <li class="toc-originals-container"><span class="toc-original"><a href="#original-51">原文51</a></span><span class="toc-original"><a href="#original-52">原文52</a></span></li>
-                <li class="toc-item toc-heading"><a href="#section-15">2. 行间公式索引</a></li>
+                <li class="toc-item toc-heading toc-level-1"><a href="#section-18">行间公式索引</a></li>
             </ul>
         </div>
     </nav>
@@ -2054,7 +2110,7 @@
     <!-- Hero Header -->
     <header class="hero">
         <div class="hero-content">
-            <h1>1. 第 4 章：同态、陪集和正规子群</h1>
+            <h1>4.1_同态、陪集与正规子群_同态.ZH解释</h1>
             <p class="authors"></p>
             <p class="date"></p>
         </div>
@@ -2109,11 +2165,16 @@
 
         <section class="content-section" id="section-1">
     <h2><span class="section-number">1</span>1. 第 4 章：同态、陪集和正规子群</h2>
-    <h3>1.1. 同态</h3>
+    
 </section>
 
 <section class="content-section" id="section-2">
-    <h2><span class="section-number">1</span>1.1. 定义和例子</h2>
+    <h3><span class="section-number">1</span>1.1. 同态</h3>
+    
+</section>
+
+<section class="content-section" id="section-3">
+    <h4>1. 1.1. 定义和例子</h4>
     <p id="original-2"><strong style="font-size: 1.3rem;">📜 [原文2]</strong></p>
 <div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
 <p>回顾一下，如果 <span class="math-inline" data-tex="G">$G$</span> 和 <span class="math-inline" data-tex="H">$H$</span> 是群，那么同构 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span> 是一个双射 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span>，使得对于所有 <span class="math-inline" data-tex="g_{1}, g_{2} \in G">$g_{1}, g_{2} \in G$</span>，</p>
@@ -2229,8 +2290,8 @@ $$</div></p>
 </div>
 </section>
 
-<section class="content-section" id="section-3">
-    <h2><span class="section-number">1</span>1.2. 同态的定义</h2>
+<section class="content-section" id="section-4">
+    <h4>1. 1.2. 同态的定义</h4>
     <p id="original-3"><strong style="font-size: 1.3rem;">📜 [原文3]</strong></p>
 <div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
 <p>定义 1.1.1。设 <span class="math-inline" data-tex="G">$G$</span> 和 <span class="math-inline" data-tex="H">$H$</span> 是群。同态 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span> 是一个函数 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span>，使得对于所有 <span class="math-inline" data-tex="g_{1}, g_{2} \in G">$g_{1}, g_{2} \in G$</span>，</p>
@@ -2345,8 +2406,8 @@ $$</div>: 这个等式是同态定义的全部精髓。它断言了“先在源�
 </div>
 </section>
 
-<section class="content-section" id="section-4">
-    <h2><span class="section-number">1</span>1.3. 同态的例子</h2>
+<section class="content-section" id="section-5">
+    <h4>1. 1.3. 同态的例子</h4>
     <p id="original-4"><strong style="font-size: 1.3rem;">📜 [原文4]</strong></p>
 <div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
 <p>例 1.1.2。同态有许多众所周知的例子：</p>
@@ -3723,8 +3784,8 @@ $$</div></p>
 </div>
 </section>
 
-<section class="content-section" id="section-5">
-    <h2><span class="section-number">1</span>1.4. 非同态的例子</h2>
+<section class="content-section" id="section-6">
+    <h4>1. 1.4. 非同态的例子</h4>
     <p id="original-17"><strong style="font-size: 1.3rem;">📜 [原文17]</strong></p>
 <div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
 <p>例 1.1.3。以下不是同态：</p>
@@ -4111,8 +4172,8 @@ $$</div></p>
 </div>
 </section>
 
-<section class="content-section" id="section-6">
-    <h2><span class="section-number">1</span>1.5. 同态的性质</h2>
+<section class="content-section" id="section-7">
+    <h4>1. 1.5. 同态的性质</h4>
     <p id="original-21"><strong style="font-size: 1.3rem;">📜 [原文21]</strong></p>
 <div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
 <p>以下是同态的一个直接性质：</p>
@@ -4474,11 +4535,16 @@ $$</div></p>
   <li><strong>限制定义域</strong>：有一个函数 <span class="math-inline" data-tex="f">$f$</span> 对所有实数都满足 <span class="math-inline" data-tex="f(x+y)=f(x)+f(y)">$f(x+y)=f(x)+f(y)$</span>（比如 <span class="math-inline" data-tex="f(x)=2x">$f(x)=2x$</span>）。现在我们只关心它在整数上的表现。对于任意两个整数 <span class="math-inline" data-tex="n,m">$n,m$</span>，因为它们也是实数，所以 <span class="math-inline" data-tex="f(n+m)=f(n)+f(m)">$f(n+m)=f(n)+f(m)$</span> 当然也成立。所以 <span class="math-inline" data-tex="f">$f$</span> 在整数上的限制也是同态。</li>
 </ol>
     </div>
-</div><h3>1.2. 核和像</h3>
+</div>
 </section>
 
-<section class="content-section" id="section-7">
-    <h2><span class="section-number">1</span>2.1. 子群的像和原像</h2>
+<section class="content-section" id="section-8">
+    <h3><span class="section-number">2</span>1.2. 核和像</h3>
+    
+</section>
+
+<section class="content-section" id="section-9">
+    <h4>1. 2.1. 子群的像和原像</h4>
     <p id="original-25"><strong style="font-size: 1.3rem;">📜 [原文25]</strong></p>
 <div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
 <p>我们从以下内容开始：</p>
@@ -4615,8 +4681,8 @@ $$</div></p>
 </div>
 </section>
 
-<section class="content-section" id="section-8">
-    <h2><span class="section-number">1</span>2.2. 核与像的定义</h2>
+<section class="content-section" id="section-10">
+    <h4>1. 2.2. 核与像的定义</h4>
     <p id="original-26"><strong style="font-size: 1.3rem;">📜 [原文26]</strong></p>
 <div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
 <p>证明。(i) 我们需要检查封闭性、单位元和逆元。封闭性：假设给出 <span class="math-inline" data-tex="f\left(H_{1}\right)">$f\left(H_{1}\right)$</span> 的两个元素，它们必然是形如 <span class="math-inline" data-tex="f(h)">$f(h)$</span> 和 <span class="math-inline" data-tex="f\left(h^{\prime}\right)">$f\left(h^{\prime}\right)$</span>，其中 <span class="math-inline" data-tex="h, h^{\prime} \in H_{1}">$h, h^{\prime} \in H_{1}$</span>。那么 <span class="math-inline" data-tex="f(h) f\left(h^{\prime}\right)= f\left(h h^{\prime}\right)">$f(h) f\left(h^{\prime}\right)= f\left(h h^{\prime}\right)$</span>。由于 <span class="math-inline" data-tex="H_{1}">$H_{1}$</span> 是 <span class="math-inline" data-tex="G_{1}">$G_{1}$</span> 的子群，<span class="math-inline" data-tex="h h^{\prime} \in H_{1}">$h h^{\prime} \in H_{1}$</span>。根据定义，<span class="math-inline" data-tex="f\left(h h^{\prime}\right) \in f\left(H_{1}\right)">$f\left(h h^{\prime}\right) \in f\left(H_{1}\right)$</span>。因此，乘积 <span class="math-inline" data-tex="f(h) f\left(h^{\prime}\right) \in f\left(H_{1}\right)">$f(h) f\left(h^{\prime}\right) \in f\left(H_{1}\right)$</span>，所以 <span class="math-inline" data-tex="f\left(H_{1}\right)">$f\left(H_{1}\right)$</span> 在乘法下是封闭的。单位元：由于 <span class="math-inline" data-tex="H_{1}">$H_{1}$</span> 是 <span class="math-inline" data-tex="G_{1}">$G_{1}$</span> 的子群，<span class="math-inline" data-tex="1 \in H_{1}">$1 \in H_{1}$</span>。那么 <span class="math-inline" data-tex="f(1) \in f\left(H_{1}\right)">$f(1) \in f\left(H_{1}\right)$</span>。根据命题 1.1.4 的 (i)，<span class="math-inline" data-tex="f(1)=1">$f(1)=1$</span>。因此 <span class="math-inline" data-tex="1 \in f\left(H_{1}\right)">$1 \in f\left(H_{1}\right)$</span>。逆元：给定 <span class="math-inline" data-tex="f\left(H_{1}\right)">$f\left(H_{1}\right)$</span> 的一个元素，必然是形如 <span class="math-inline" data-tex="f(h)">$f(h)$</span>，其中 <span class="math-inline" data-tex="h \in H_{1}">$h \in H_{1}$</span>，根据命题 1.1.4 的 (ii)，我们有 <span class="math-inline" data-tex="(f(h))^{-1}=f\left(h^{-1}\right)">$(f(h))^{-1}=f\left(h^{-1}\right)$</span>。由于 <span class="math-inline" data-tex="H_{1}">$H_{1}$</span> 是 <span class="math-inline" data-tex="G_{1}">$G_{1}$</span> 的子群，<span class="math-inline" data-tex="h^{-1} \in H_{1}">$h^{-1} \in H_{1}$</span>。因此 <span class="math-inline" data-tex="f\left(h^{-1}\right)=(f(h))^{-1} \in f\left(H_{1}\right)">$f\left(h^{-1}\right)=(f(h))^{-1} \in f\left(H_{1}\right)$</span>。因此 <span class="math-inline" data-tex="f\left(H_{1}\right)">$f\left(H_{1}\right)$</span> 在取逆元下是封闭的，所以是 <span class="math-inline" data-tex="G_{2}">$G_{2}$</span> 的一个子群。</p>
@@ -4818,8 +4884,8 @@ $$</div></strong>: 这是核的集合构建范式写法，非常清晰。</li>
 </div>
 </section>
 
-<section class="content-section" id="section-9">
-    <h2><span class="section-number">1</span>2.3. 核与像的例子</h2>
+<section class="content-section" id="section-11">
+    <h4>1. 2.3. 核与像的例子</h4>
     <p id="original-28"><strong style="font-size: 1.3rem;">📜 [原文28]</strong></p>
 <div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
 <p>例 1.2.3。我们现在回顾例 1.1.2 的例子，并描述核和像。</p>
@@ -5095,8 +5161,8 @@ $$</div></strong>: 这是核的集合构建范式写法，非常清晰。</li>
 </div>
 </section>
 
-<section class="content-section" id="section-10">
-    <h2><span class="section-number">1</span>2.4. 核与单射性</h2>
+<section class="content-section" id="section-12">
+    <h4>1. 2.4. 核与单射性</h4>
     <p id="original-42"><strong style="font-size: 1.3rem;">📜 [原文42]</strong></p>
 <div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
 <p>关于同态的一个重要事实如下（你可能在线性代数中见过线性映射的相应表述）：</p>
@@ -5284,11 +5350,16 @@ $$</div></strong>: 这是核的集合构建范式写法，非常清晰。</li>
   <li>这精确地验证了：所有被投影到同一点 <span class="math-inline" data-tex="(1,2)">$(1,2)$</span> 的三维空间中的点，构成了一条垂线，而这条垂线正是核（z轴）的一个陪集（平移）。</li>
 </ol>
     </div>
-</div><h3>1.3. 凯莱定理</h3>
+</div>
 </section>
 
-<section class="content-section" id="section-11">
-    <h2><span class="section-number">1</span>3.1. 单射同态与子群同构</h2>
+<section class="content-section" id="section-13">
+    <h3><span class="section-number">3</span>1.3. 凯莱定理</h3>
+    
+</section>
+
+<section class="content-section" id="section-14">
+    <h4>1. 3.1. 单射同态与子群同构</h4>
     <p id="original-44"><strong style="font-size: 1.3rem;">📜 [原文44]</strong></p>
 <div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
 <p>1.3. 凯莱定理。一般而言，设 <span class="math-inline" data-tex="f: G \rightarrow G^{\prime}">$f: G \rightarrow G^{\prime}$</span> 是一个单射同态。那么 <span class="math-inline" data-tex="\operatorname{Im} f=H \leq G^{\prime}">$\operatorname{Im} f=H \leq G^{\prime}$</span> 是 <span class="math-inline" data-tex="G^{\prime}">$G^{\prime}$</span> 的一个子群，并且存在一个诱导同态（我们仍然粗心地用 <span class="math-inline" data-tex="f">$f$</span> 表示）从 <span class="math-inline" data-tex="G">$G$</span> 到 <span class="math-inline" data-tex="H">$H$</span>。这个诱导同态仍然是单射，并且根据定义它现在是满射，因此是一个同构。因此，一个单射同态 <span class="math-inline" data-tex="f: G \rightarrow G^{\prime}">$f: G \rightarrow G^{\prime}$</span> 定义了从 <span class="math-inline" data-tex="G">$G$</span> 到 <span class="math-inline" data-tex="G^{\prime}">$G^{\prime}$</span> 的一个子群的同构。反之，如果 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span> 是从 <span class="math-inline" data-tex="G">$G$</span> 到 <span class="math-inline" data-tex="G^{\prime}">$G^{\prime}$</span> 的一个子群 <span class="math-inline" data-tex="H">$H$</span> 的同构，且 <span class="math-inline" data-tex="i: H \rightarrow G^{\prime}">$i: H \rightarrow G^{\prime}$</span> 是内射同态，那么 <span class="math-inline" data-tex="i \circ f: G \rightarrow G^{\prime}">$i \circ f: G \rightarrow G^{\prime}$</span> 是一个单射同态。总而言之，一个单射同态 <span class="math-inline" data-tex="f: G \rightarrow G^{\prime}">$f: G \rightarrow G^{\prime}$</span> 等价于从 <span class="math-inline" data-tex="G">$G$</span> 到 <span class="math-inline" data-tex="G^{\prime}">$G^{\prime}$</span> 的一个子群的同构。</p>
@@ -5376,8 +5447,8 @@ $$</div></strong>: 这是核的集合构建范式写法，非常清晰。</li>
 </div>
 </section>
 
-<section class="content-section" id="section-12">
-    <h2><span class="section-number">1</span>3.2. 凯莱定理的陈述与证明</h2>
+<section class="content-section" id="section-15">
+    <h4>1. 3.2. 凯莱定理的陈述与证明</h4>
     <p id="original-45"><strong style="font-size: 1.3rem;">📜 [原文45]</strong></p>
 <div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
 <p>定理 1.3.1 (凯莱定理)。设 <span class="math-inline" data-tex="G">$G$</span> 是一个有限群。那么存在一个 <span class="math-inline" data-tex="n \in \mathbb{N}">$n \in \mathbb{N}$</span> 使得 <span class="math-inline" data-tex="G">$G$</span> 同构于 <span class="math-inline" data-tex="S_{n}">$S_{n}$</span> 的一个子群。</p>
@@ -5521,8 +5592,8 @@ $$</div></p>
 </div>
 </section>
 
-<section class="content-section" id="section-13">
-    <h2><span class="section-number">1</span>3.3. 关于右乘的注记</h2>
+<section class="content-section" id="section-16">
+    <h4>1. 3.3. 关于右乘的注记</h4>
     <p id="original-50"><strong style="font-size: 1.3rem;">📜 [原文50]</strong></p>
 <div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
 <p>注 1.3.3。我们不必使用左乘，也可以尝试使用右乘 <span class="math-inline" data-tex="r_{g}: G \rightarrow G">$r_{g}: G \rightarrow G$</span>，定义为 <span class="math-inline" data-tex="r_{g}(x)=x g">$r_{g}(x)=x g$</span>。那么 <span class="math-inline" data-tex="r_{g}">$r_{g}$</span> 仍然是 <span class="math-inline" data-tex="S_{G}">$S_{G}$</span> 的一个元素。然而，由 <span class="math-inline" data-tex="F(g)=r_{g}">$F(g)=r_{g}$</span> 定义的函数 <span class="math-inline" data-tex="F: G \rightarrow S_{G}">$F: G \rightarrow S_{G}$</span> 通常不是同态！不过，很容易看出 <span class="math-inline" data-tex="F">$F$</span> 为什么不是同态，并修正 <span class="math-inline" data-tex="F">$F$</span> 的定义使其成为从 <span class="math-inline" data-tex="G">$G$</span> 到 <span class="math-inline" data-tex="S_{G}">$S_{G}$</span> 的同态。具体细节留作练习 4.9。</p>
@@ -5579,8 +5650,8 @@ $$</div></p>
 </div>
 </section>
 
-<section class="content-section" id="section-14">
-    <h2><span class="section-number">1</span>3.4. 凯莱定理的推论</h2>
+<section class="content-section" id="section-17">
+    <h4>1. 3.4. 凯莱定理的推论</h4>
     <p id="original-51"><strong style="font-size: 1.3rem;">📜 [原文51]</strong></p>
 <div class="original-content" style="margin-left: 20px; margin-bottom: 20px;">
 <p>凯莱定理的证明可能看起来像是使用了障眼法。然而，我们将在后面看到这种证明方法的有趣变体。</p>
@@ -5669,90 +5740,144 @@ $$</div></p>
 </div>
 </section>
 
-<section class="content-section" id="section-15">
+<section class="content-section" id="section-18">
     <h2><span class="section-number">2</span>行间公式索引</h2>
     <ol>
   <li> <strong>同构的结构保持条件</strong>:</li>
-</ol><p><div class="math-block" data-tex="    f\left(g_{1} g_{2}\right)=f\left(g_{1}\right) f\left(g_{2}\right)">$$
+</ol>
+<p><div class="math-block" data-tex="    f\left(g_{1} g_{2}\right)=f\left(g_{1}\right) f\left(g_{2}\right)">$$
     f\left(g_{1} g_{2}\right)=f\left(g_{1}\right) f\left(g_{2}\right)
-$$</div></p><p>这个公式定义了映射 <span class="math-inline" data-tex="f">$f$</span> 如何保持源群和目标群的运算结构。</p><ol>
+$$</div></p>
+<p>这个公式定义了映射 <span class="math-inline" data-tex="f">$f$</span> 如何保持源群和目标群的运算结构。</p>
+<ol>
   <li> <strong>同态的定义</strong>:</li>
-</ol><p><div class="math-block" data-tex="    f\left(g_{1} g_{2}\right)=f\left(g_{1}\right) f\left(g_{2}\right)">$$
+</ol>
+<p><div class="math-block" data-tex="    f\left(g_{1} g_{2}\right)=f\left(g_{1}\right) f\left(g_{2}\right)">$$
     f\left(g_{1} g_{2}\right)=f\left(g_{1}\right) f\left(g_{2}\right)
-$$</div></p><p>这个公式是同态的唯一核心定义，要求“先运算再映射”等于“先映射再运算”。</p><ol>
+$$</div></p>
+<p>这个公式是同态的唯一核心定义，要求“先运算再映射”等于“先映射再运算”。</p>
+<ol>
   <li> <strong>复指数的级数定义</strong>:</li>
-</ol><p><div class="math-block" data-tex="    f(z)=e^{z}=\sum_{n=0}^{\infty} \frac{z^{n}}{n!}">$$
+</ol>
+<p><div class="math-block" data-tex="    f(z)=e^{z}=\sum_{n=0}^{\infty} \frac{z^{n}}{n!}">$$
     f(z)=e^{z}=\sum_{n=0}^{\infty} \frac{z^{n}}{n!}
-$$</div></p><p>这给出了复指数函数 <span class="math-inline" data-tex="e^z">$e^z$</span> 的标准幂级数定义。</p><ol>
+$$</div></p>
+<p>这给出了复指数函数 <span class="math-inline" data-tex="e^z">$e^z$</span> 的标准幂级数定义。</p>
+<ol>
   <li> <strong>复指数的欧拉形式</strong>:</li>
-</ol><p><div class="math-block" data-tex="    e^{z}=e^{x} e^{i y}=e^{x}(\cos y+i \sin y)">$$
+</ol>
+<p><div class="math-block" data-tex="    e^{z}=e^{x} e^{i y}=e^{x}(\cos y+i \sin y)">$$
     e^{z}=e^{x} e^{i y}=e^{x}(\cos y+i \sin y)
-$$</div></p><p>这给出了计算复指数 <span class="math-inline" data-tex="e^z">$e^z$</span> 的实用方法，将其分解为模长和幅角。</p><ol>
+$$</div></p>
+<p>这给出了计算复指数 <span class="math-inline" data-tex="e^z">$e^z$</span> 的实用方法，将其分解为模长和幅角。</p>
+<ol>
   <li> <strong>复指数的同态性质</strong>:</li>
-</ol><p><div class="math-block" data-tex="    e^{z_{1}+z_{2}}=e^{z_{1}} e^{z_{2}}">$$
+</ol>
+<p><div class="math-block" data-tex="    e^{z_{1}+z_{2}}=e^{z_{1}} e^{z_{2}}">$$
     e^{z_{1}+z_{2}}=e^{z_{1}} e^{z_{2}}
-$$</div></p><p>这个指数函数的关键性质，正是复指数函数构成一个从加法群到乘法群的同态的直接原因。</p><ol>
+$$</div></p>
+<p>这个指数函数的关键性质，正是复指数函数构成一个从加法群到乘法群的同态的直接原因。</p>
+<ol>
   <li> <strong>绝对值函数的同态性质</strong>:</li>
-</ol><p><div class="math-block" data-tex="    \left|z_{1} z_{2}\right|=\left|z_{1}\right|\left|z_{2}\right|">$$
+</ol>
+<p><div class="math-block" data-tex="    \left|z_{1} z_{2}\right|=\left|z_{1}\right|\left|z_{2}\right|">$$
     \left|z_{1} z_{2}\right|=\left|z_{1}\right|\left|z_{2}\right|
-$$</div></p><p>这个复数模的性质，说明了绝对值函数是一个从复数乘法群到实数乘法群的同态。</p><ol>
+$$</div></p>
+<p>这个复数模的性质，说明了绝对值函数是一个从复数乘法群到实数乘法群的同态。</p>
+<ol>
   <li> <strong>符号函数的定义</strong>:</li>
-</ol><p><div class="math-block" data-tex="    \operatorname{sign}(x)=\frac{x}{|x|}= \begin{cases}+1, &amp; \text { 如果 } x&gt;0 ; \\ -1, &amp; \text { 如果 } x&lt;0 .\end{cases}">$$
+</ol>
+<p><div class="math-block" data-tex="    \operatorname{sign}(x)=\frac{x}{|x|}= \begin{cases}+1, &amp; \text { 如果 } x&gt;0 ; \\ -1, &amp; \text { 如果 } x&lt;0 .\end{cases}">$$
     \operatorname{sign}(x)=\frac{x}{|x|}= \begin{cases}+1, &amp; \text { 如果 } x&gt;0 ; \\ -1, &amp; \text { 如果 } x&lt;0 .\end{cases}
-$$</div></p><p>这定义了实数上的符号函数，它提取一个数的正负号。</p><ol>
+$$</div></p>
+<p>这定义了实数上的符号函数，它提取一个数的正负号。</p>
+<ol>
   <li> <strong>阿贝尔群上幂函数的同态性质</strong>:</li>
-</ol><p><div class="math-block" data-tex="    f(g h)=(g h)^{n}=g^{n} h^{n}=f(g) f(h) .">$$
+</ol>
+<p><div class="math-block" data-tex="    f(g h)=(g h)^{n}=g^{n} h^{n}=f(g) f(h) .">$$
     f(g h)=(g h)^{n}=g^{n} h^{n}=f(g) f(h) .
-$$</div></p><p>这个推导展示了在阿贝尔（交换）群中，幂函数 <span class="math-inline" data-tex="f(g)=g^n">$f(g)=g^n$</span> 满足同态定义。</p><ol>
+$$</div></p>
+<p>这个推导展示了在阿贝尔（交换）群中，幂函数 <span class="math-inline" data-tex="f(g)=g^n">$f(g)=g^n$</span> 满足同态定义。</p>
+<ol>
   <li> <strong>非同态的反例：平移函数</strong>:</li>
-</ol><p><div class="math-block" data-tex="    f(n+m)=n+m+1 \neq f(n)+f(m)=n+m+2 .">$$
+</ol>
+<p><div class="math-block" data-tex="    f(n+m)=n+m+1 \neq f(n)+f(m)=n+m+2 .">$$
     f(n+m)=n+m+1 \neq f(n)+f(m)=n+m+2 .
-$$</div></p><p>这个不等式清晰地显示了函数 <span class="math-inline" data-tex="f(n)=n+1">$f(n)=n+1$</span> 不保持整数加法群的结构。</p><ol>
+$$</div></p>
+<p>这个不等式清晰地显示了函数 <span class="math-inline" data-tex="f(n)=n+1">$f(n)=n+1$</span> 不保持整数加法群的结构。</p>
+<ol>
   <li><strong>非同态的反例：平方函数</strong>:</li>
-</ol><p><div class="math-block" data-tex="    f(n+m)=(n+m)^{2}=n^{2}+2 n m+m^{2} \neq n^{2}+m^{2},">$$
+</ol>
+<p><div class="math-block" data-tex="    f(n+m)=(n+m)^{2}=n^{2}+2 n m+m^{2} \neq n^{2}+m^{2},">$$
     f(n+m)=(n+m)^{2}=n^{2}+2 n m+m^{2} \neq n^{2}+m^{2},
-$$</div></p><p>这个不等式显示了平方函数不保持加法结构，因为它产生了交叉项。</p><ol>
+$$</div></p>
+<p>这个不等式显示了平方函数不保持加法结构，因为它产生了交叉项。</p>
+<ol>
   <li><strong>非阿贝尔群上平方函数的展开</strong>:</li>
-</ol><p><div class="math-block" data-tex="    f(g h)=(g h)^{2}=g h g h,">$$
+</ol>
+<p><div class="math-block" data-tex="    f(g h)=(g h)^{2}=g h g h,">$$
     f(g h)=(g h)^{2}=g h g h,
-$$</div></p><p>这显示了在非交换群中，<span class="math-inline" data-tex="(gh)^2">$(gh)^2$</span> 不能随意写成 <span class="math-inline" data-tex="g^2h^2">$g^2h^2$</span>。</p><ol>
+$$</div></p>
+<p>这显示了在非交换群中，<span class="math-inline" data-tex="(gh)^2">$(gh)^2$</span> 不能随意写成 <span class="math-inline" data-tex="g^2h^2">$g^2h^2$</span>。</p>
+<ol>
   <li><strong>子群原像的封闭性验证</strong>:</li>
-</ol><p><div class="math-block" data-tex="    f\left(g g^{\prime}\right)=f(g) f\left(g^{\prime}\right) \in H_{2}">$$
+</ol>
+<p><div class="math-block" data-tex="    f\left(g g^{\prime}\right)=f(g) f\left(g^{\prime}\right) \in H_{2}">$$
     f\left(g g^{\prime}\right)=f(g) f\left(g^{\prime}\right) \in H_{2}
-$$</div></p><p>这个推导步骤证明了子群 <span class="math-inline" data-tex="H_2">$H_2$</span> 的原像集在群运算下是封闭的。</p><ol>
+$$</div></p>
+<p>这个推导步骤证明了子群 <span class="math-inline" data-tex="H_2">$H_2$</span> 的原像集在群运算下是封闭的。</p>
+<ol>
   <li><strong>核的定义</strong>:</li>
-</ol><p><div class="math-block" data-tex="    \operatorname{Ker} f=\left\{g \in G_{1}: f(g)=1\right\} .">$$
+</ol>
+<p><div class="math-block" data-tex="    \operatorname{Ker} f=\left\{g \in G_{1}: f(g)=1\right\} .">$$
     \operatorname{Ker} f=\left\{g \in G_{1}: f(g)=1\right\} .
-$$</div></p><p>这给出了同态的核 (Kernel) 的正式集合论定义。</p><ol>
+$$</div></p>
+<p>这给出了同态的核 (Kernel) 的正式集合论定义。</p>
+<ol>
   <li><strong>单射性与核的关系证明</strong>:</li>
-</ol><p><div class="math-block" data-tex="    1=\left(f\left(g_{1}\right)\right)^{-1} f\left(g_{2}\right)=f\left(g_{1}^{-1}\right) f\left(g_{2}\right)=f\left(g_{1}^{-1} g_{2}\right)">$$
+</ol>
+<p><div class="math-block" data-tex="    1=\left(f\left(g_{1}\right)\right)^{-1} f\left(g_{2}\right)=f\left(g_{1}^{-1}\right) f\left(g_{2}\right)=f\left(g_{1}^{-1} g_{2}\right)">$$
     1=\left(f\left(g_{1}\right)\right)^{-1} f\left(g_{2}\right)=f\left(g_{1}^{-1}\right) f\left(g_{2}\right)=f\left(g_{1}^{-1} g_{2}\right)
-$$</div></p><p>这是证明“如果核是平凡的，则同态是单射”这一命题中的关键计算步骤。</p><ol>
+$$</div></p>
+<p>这是证明“如果核是平凡的，则同态是单射”这一命题中的关键计算步骤。</p>
+<ol>
   <li><strong>投影同态的验证</strong>:</li>
-</ol><p><div class="math-block" data-tex="    \pi_{1}\left(\left(g_{1}, g_{2}\right)\left(h_{1}, h_{2}\right)\right)=\pi_{1}\left(g_{1} h_{1}, g_{2} h_{2}\right)=g_{1} h_{1}=\pi_{1}\left(g_{1}, g_{2}\right) \pi_{1}\left(h_{1}, h_{2}\right)">$$
+</ol>
+<p><div class="math-block" data-tex="    \pi_{1}\left(\left(g_{1}, g_{2}\right)\left(h_{1}, h_{2}\right)\right)=\pi_{1}\left(g_{1} h_{1}, g_{2} h_{2}\right)=g_{1} h_{1}=\pi_{1}\left(g_{1}, g_{2}\right) \pi_{1}\left(h_{1}, h_{2}\right)">$$
     \pi_{1}\left(\left(g_{1}, g_{2}\right)\left(h_{1}, h_{2}\right)\right)=\pi_{1}\left(g_{1} h_{1}, g_{2} h_{2}\right)=g_{1} h_{1}=\pi_{1}\left(g_{1}, g_{2}\right) \pi_{1}\left(h_{1}, h_{2}\right)
-$$</div></p><p>这个链式等式完整地展示了为什么投影到第一分量的映射是一个同态。</p><ol>
+$$</div></p>
+<p>这个链式等式完整地展示了为什么投影到第一分量的映射是一个同态。</p>
+<ol>
   <li><strong>置换矩阵表示的定义</strong>:</li>
-</ol><p><div class="math-block" data-tex="    P(\sigma)\left(\mathbf{e}_{i}\right)=\mathbf{e}_{\sigma(i)}">$$
+</ol>
+<p><div class="math-block" data-tex="    P(\sigma)\left(\mathbf{e}_{i}\right)=\mathbf{e}_{\sigma(i)}">$$
     P(\sigma)\left(\mathbf{e}_{i}\right)=\mathbf{e}_{\sigma(i)}
-$$</div></p><p>这个公式定义了如何将一个置换 <span class="math-inline" data-tex="\sigma">$\sigma$</span> 映射到一个具体的置换矩阵 <span class="math-inline" data-tex="P(\sigma)">$P(\sigma)$</span>。</p><ol>
+$$</div></p>
+<p>这个公式定义了如何将一个置换 <span class="math-inline" data-tex="\sigma">$\sigma$</span> 映射到一个具体的置换矩阵 <span class="math-inline" data-tex="P(\sigma)">$P(\sigma)$</span>。</p>
+<ol>
   <li><strong>凯莱定理中左乘映射的定义</strong>:</li>
-</ol><p><div class="math-block" data-tex="    f(g)=\ell_{g}">$$
+</ol>
+<p><div class="math-block" data-tex="    f(g)=\ell_{g}">$$
     f(g)=\ell_{g}
-$$</div></p><p>这定义了凯莱定理证明中的核心映射 <span class="math-inline" data-tex="f">$f$</span>，它将群元素 <span class="math-inline" data-tex="g">$g$</span> 映射到“左乘g”这个操作（置换） <span class="math-inline" data-tex="\ell_g">$\ell_g$</span> 上。</p><ol>
+$$</div></p>
+<p>这定义了凯莱定理证明中的核心映射 <span class="math-inline" data-tex="f">$f$</span>，它将群元素 <span class="math-inline" data-tex="g">$g$</span> 映射到“左乘g”这个操作（置换） <span class="math-inline" data-tex="\ell_g">$\ell_g$</span> 上。</p>
+<ol>
   <li><strong>凯莱定理同态性验证</strong>:</li>
-</ol><p><div class="math-block" data-tex="    \begin{aligned}&#10;    \ell_{g h}(x) &amp; =(g h) x \\&#10;    \left(\ell_{g} \circ \ell_{h}\right)(x) &amp; =\ell_{g}\left(\ell_{h}(x)\right)=\ell_{g}(h x)=g(h x)=(g h) x .&#10;    \end{aligned}">$$
+</ol>
+<p><div class="math-block" data-tex="    \begin{aligned}&#10;    \ell_{g h}(x) &amp; =(g h) x \\&#10;    \left(\ell_{g} \circ \ell_{h}\right)(x) &amp; =\ell_{g}\left(\ell_{h}(x)\right)=\ell_{g}(h x)=g(h x)=(g h) x .&#10;    \end{aligned}">$$
     \begin{aligned}
     \ell_{g h}(x) &amp; =(g h) x \\
     \left(\ell_{g} \circ \ell_{h}\right)(x) &amp; =\ell_{g}\left(\ell_{h}(x)\right)=\ell_{g}(h x)=g(h x)=(g h) x .
     \end{aligned}
-$$</div></p><p>这个计算展示了 <span class="math-inline" data-tex="\ell_{gh} = \ell_g \circ \ell_h">$\ell_{gh} = \ell_g \circ \ell_h$</span>，从而证明了 <span class="math-inline" data-tex="f(g)=\ell_g">$f(g)=\ell_g$</span> 是同态，其关键是群的结合律。</p><p>[[END_OF_RESPONSE]]所有解释内容已全部输出完毕。</p>
+$$</div></p>
+<p>这个计算展示了 <span class="math-inline" data-tex="\ell_{gh} = \ell_g \circ \ell_h">$\ell_{gh} = \ell_g \circ \ell_h$</span>，从而证明了 <span class="math-inline" data-tex="f(g)=\ell_g">$f(g)=\ell_g$</span> 是同态，其关键是群的结合律。</p>
+<p>[[END_OF_RESPONSE]]所有解释内容已全部输出完毕。</p>
 </section>
     </div>
 
     <!-- Footer -->
     <footer class="footer">
-        <p>1. 第 4 章：同态、陪集和正规子群</p>
+        <p>4.1_同态、陪集与正规子群_同态.ZH解释</p>
     </footer>
 
 
@@ -5953,7 +6078,7 @@ $$</div></p><p>这个计算展示了 <span class="math-inline" data-tex="\ell_{g
     <script>
         (function() {
             // ===== 常量和DOM元素 =====
-            var STORAGE_KEY = "user_highlights_4.1_\u540c\u6001\u3001\u966a\u96c6\u4e0e\u6b63\u89c4\u5b50\u7fa4_\u540c\u6001.ZH\u89e3\u91ca.html_5e32263e1d28";
+            var STORAGE_KEY = "user_highlights_4.1_\u540c\u6001\u3001\u966a\u96c6\u4e0e\u6b63\u89c4\u5b50\u7fa4_\u540c\u6001.ZH\u89e3\u91ca.html_a653240bf360";
             var NOTES_MODE_KEY = STORAGE_KEY + '_notes_mode';
             var notesToggle = document.getElementById('notesToggle');
             var notesPanel = document.getElementById('notesPanel');
@@ -7021,6 +7146,18 @@ $$</div></p><p>这个计算展示了 <span class="math-inline" data-tex="\ell_{g
                 if (mode === 'markdown') {
                     return markdown || text;
                 }
+                // 纯文本模式：检查text是否缺少公式内容
+                // 如果markdown包含$符号（公式）而text不包含或长度明显更短，说明公式内容丢失
+                var hasMarkdownMath = markdown && (markdown.indexOf('$') !== -1);
+                var hasTextMath = text && (text.indexOf('$') !== -1);
+                if (hasMarkdownMath && !hasTextMath) {
+                    // text中公式内容丢失，使用markdown
+                    return markdown;
+                }
+                // 如果text比markdown短太多（超过50%），可能公式内容丢失
+                if (markdown && text && markdown.length > text.length * 1.5 && hasMarkdownMath) {
+                    return markdown;
+                }
                 return text || markdown;
             }
 
@@ -7139,7 +7276,11 @@ $$</div></p><p>这个计算展示了 <span class="math-inline" data-tex="\ell_{g
                 html = html.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; height: auto;">');
                 html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
                 html = html.replace(/\n/g, '<br>');
-                return restoreMathPlaceholders(html, placeholders);
+                html = restoreMathPlaceholders(html, placeholders);
+                // 移除块级公式前后多余的<br>标签
+                html = html.replace(/<br>\s*(<div class="note-item-math-block">)/g, '$1');
+                html = html.replace(/(<\/div>)\s*<br>/g, '$1');
+                return html;
             }
 
             function normalizeMathText(value) {
@@ -7760,7 +7901,40 @@ $$</div></p><p>这个计算展示了 <span class="math-inline" data-tex="\ell_{g
                 cacheSelection();
             }, { passive: true });
 
+            var __snapSelLock = false;
+
+            function snapSelectionToWholeMath() {
+              if (__snapSelLock) return;
+
+              var sel = window.getSelection();
+              if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
+
+              var r = sel.getRangeAt(0);
+              var changed = false;
+
+              var formulas = document.querySelectorAll('.math-inline, .math-block');
+              formulas.forEach(function(el) {
+                // 只在"选区起点/终点落在公式内部"时吸附
+                if (el.contains(r.startContainer)) {
+                  r.setStartBefore(el);
+                  changed = true;
+                }
+                if (el.contains(r.endContainer)) {
+                  r.setEndAfter(el);
+                  changed = true;
+                }
+              });
+
+              if (changed) {
+                __snapSelLock = true;
+                sel.removeAllRanges();
+                sel.addRange(r);
+                __snapSelLock = false;
+              }
+            }
+
             document.addEventListener('selectionchange', function() {
+                snapSelectionToWholeMath();
                 cacheSelection();
             });
 

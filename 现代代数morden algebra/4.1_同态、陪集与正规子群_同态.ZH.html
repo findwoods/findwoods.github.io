@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>第 4 章</title>
+    <title>4.1_同态、陪集与正规子群_同态.ZH</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
     <!-- MathJax v4 懒加载配置 - 彻底禁用无障碍功能 -->
     <script>
@@ -57,12 +57,30 @@
         .math-inline {
             position: relative;
             cursor: pointer;
-            /* 禁用长按时的文本选择光标 */
+        }
+
+        /* 桌面端：允许鼠标拖拽选中（Obsidian-like） */
+        @media (hover: hover) and (pointer: fine) {
+          .math-block,
+          .math-inline {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+          }
+          .math-inline { display: inline-block; } /* 让行内公式更像"一个字" */
+        }
+
+        /* 移动端：保持你现有"长按复制"体验（继续禁用系统选区/气泡） */
+        @media (hover: none) and (pointer: coarse) {
+          .math-block,
+          .math-inline {
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
             -webkit-touch-callout: none;
+          }
         }
         
         /* 悬停时的黑色气泡提示 */
@@ -167,7 +185,7 @@
         /* 禁用 MathJax 内部元素的焦点效果但允许点击穿透到父容器 */
         mjx-container {
             outline: none !important;
-            pointer-events: none !important;
+            pointer-events: auto !important;
         }
         mjx-container:focus,
         mjx-container:focus-visible,
@@ -176,12 +194,50 @@
             box-shadow: none !important;
         }
         
-        /* 隐藏 MathJax 菜单和帮助按钮 */
+        /* 隐藏 MathJax 菜单、帮助按钮及右上角info图标 */
         #MathJax_MenuFrame,
         .MJX_Assistive_MathML,
         mjx-assistive-mml,
-        [data-semantic-type] {
+        [data-semantic-type],
+        mjx-maction,
+        mjx-container mjx-maction,
+        mjx-container [data-toggle],
+        mjx-container .mjx-maction,
+        .mjx-maction-toggle,
+        mjx-container::after,
+        mjx-container circle,
+        mjx-container svg circle,
+        mjx-container .MJX-accessibility,
+        mjx-container [role="note"],
+        .mjx-svg-href,
+        mjx-container a,
+        mjx-container .mjx-color,
+        mjx-math circle,
+        svg.mjx-container-mml circle {
             display: none !important;
+        }
+        
+        /* 隐藏MathJax探索器info图标（viewBox 18x18的SVG） */
+        mjx-container svg[viewBox="0 0 18 18"],
+        .math-block svg[viewBox="0 0 18 18"],
+        .math-inline svg[viewBox="0 0 18 18"],
+        svg[viewBox="0 0 18 18"][aria-hidden="true"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
+            position: absolute !important;
+            left: -9999px !important;
+        }
+        
+        /* 额外确保隐藏任何SVG圆形图标 */
+        mjx-container svg {
+            overflow: hidden !important;
+        }
+        mjx-container svg circle {
+            visibility: hidden !important;
+            opacity: 0 !important;
         }
     </style>
     <style>
@@ -220,7 +276,7 @@
             background: var(--bg-color);
             color: var(--text-color);
             line-height: 1.8;
-            font-size: 16px;
+            font-size: 18px;
         }
 
         /* Hero Header */
@@ -289,7 +345,9 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         }
 
-        .content-section h2 {
+        .content-section h2,
+        .content-section h3,
+        .content-section h4 {
             color: var(--primary-color);
             font-size: 1.8rem;
             margin-bottom: 25px;
@@ -298,23 +356,6 @@
             display: flex;
             align-items: center;
             gap: 12px;
-        }
-
-        .content-section h3 {
-            color: var(--secondary-color);
-            font-size: 1.4rem;
-            margin: 25px 0 15px 0;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--accent-color);
-        }
-
-        /* 为所有级别的标题添加蓝色底线（h4, h5, h6） */
-        .content-section h4 {
-            color: var(--secondary-color);
-            font-size: 1.2rem;
-            margin: 20px 0 12px 0;
-            padding-bottom: 8px;
-            border-bottom: 2px solid var(--accent-color);
         }
 
         .content-section h5 {
@@ -1836,7 +1877,19 @@
         }
 
         .note-item-body .note-item-math-block {
-            margin: 6px 0;
+            margin: 4px 0;
+            padding: 0;
+        }
+        
+        /* 笔记面板中块级公式mjx-container的间距控制 */
+        .note-item-body .note-item-math-block mjx-container {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        .note-item-body mjx-container[display="true"] {
+            margin: 4px 0 !important;
+            padding: 0 !important;
         }
 
         .note-item-index {
@@ -2019,8 +2072,12 @@
         </div>
         <div class="toc-content">
             <ul class="toc-list">
-                <li class="toc-item toc-heading"><a href="#section-1">1. 2. 核和像</a></li>
-                <li class="toc-item toc-heading"><a href="#section-2">1. 3. 凯莱定理</a></li>
+                <li class="toc-item toc-heading toc-level-2" style="padding-left: 1em;"><a href="#section-1">第 4 章</a></li>
+                <li class="toc-item toc-heading toc-level-2" style="padding-left: 1em;"><a href="#section-2">同态、陪集和正规子群</a></li>
+                <li class="toc-item toc-heading toc-level-2" style="padding-left: 1em;"><a href="#section-3">1. 同态</a></li>
+                <li class="toc-item toc-heading toc-level-3" style="padding-left: 2em;"><a href="#section-4">1. 2. 核和像</a></li>
+                <li class="toc-item toc-heading toc-level-3" style="padding-left: 2em;"><a href="#section-5">1. 3. 凯莱定理</a></li>
+                <li class="toc-item toc-heading toc-level-2" style="padding-left: 1em;"><a href="#section-6">2. 陪集</a></li>
             </ul>
         </div>
     </nav>
@@ -2028,7 +2085,7 @@
     <!-- Hero Header -->
     <header class="hero">
         <div class="hero-content">
-            <h1>第 4 章</h1>
+            <h1>4.1_同态、陪集与正规子群_同态.ZH</h1>
             <p class="authors"></p>
             <p class="date"></p>
         </div>
@@ -2082,32 +2139,175 @@
         </div>
 
         <section class="content-section" id="section-1">
-    <h2><span class="section-number">1</span>2. 核和像</h2>
-    <p>命题 1.2.1。设 <span class="math-inline" data-tex="G_{1}">$G_{1}$</span> 和 <span class="math-inline" data-tex="G_{2}">$G_{2}$</span> 是群，且 <span class="math-inline" data-tex="f: G_{1} \rightarrow G_{2}">$f: G_{1} \rightarrow G_{2}$</span> 是一个同态。</p><p>(i) 如果 <span class="math-inline" data-tex="H_{1} \leq G_{1}">$H_{1} \leq G_{1}$</span>，那么 <span class="math-inline" data-tex="f\left(H_{1}\right) \leq G_{2}">$f\left(H_{1}\right) \leq G_{2}$</span>。换句话说，子群的像是一个子群。</p><p>(ii) 如果 <span class="math-inline" data-tex="H_{2} \leq G_{2}">$H_{2} \leq G_{2}$</span>，那么 <span class="math-inline" data-tex="f^{-1}\left(H_{2}\right) \leq G_{1}">$f^{-1}\left(H_{2}\right) \leq G_{1}$</span>。换句话说，子群的原像是一个子群。</p><p>证明。(i) 我们需要检查封闭性、单位元和逆元。封闭性：假设给出 <span class="math-inline" data-tex="f\left(H_{1}\right)">$f\left(H_{1}\right)$</span> 的两个元素，它们必然是形如 <span class="math-inline" data-tex="f(h)">$f(h)$</span> 和 <span class="math-inline" data-tex="f\left(h^{\prime}\right)">$f\left(h^{\prime}\right)$</span>，其中 <span class="math-inline" data-tex="h, h^{\prime} \in H_{1}">$h, h^{\prime} \in H_{1}$</span>。那么 <span class="math-inline" data-tex="f(h) f\left(h^{\prime}\right)= f\left(h h^{\prime}\right)">$f(h) f\left(h^{\prime}\right)= f\left(h h^{\prime}\right)$</span>。由于 <span class="math-inline" data-tex="H_{1}">$H_{1}$</span> 是 <span class="math-inline" data-tex="G_{1}">$G_{1}$</span> 的子群，<span class="math-inline" data-tex="h h^{\prime} \in H_{1}">$h h^{\prime} \in H_{1}$</span>。根据定义，<span class="math-inline" data-tex="f\left(h h^{\prime}\right) \in f\left(H_{1}\right)">$f\left(h h^{\prime}\right) \in f\left(H_{1}\right)$</span>。因此，乘积 <span class="math-inline" data-tex="f(h) f\left(h^{\prime}\right) \in f\left(H_{1}\right)">$f(h) f\left(h^{\prime}\right) \in f\left(H_{1}\right)$</span>，所以 <span class="math-inline" data-tex="f\left(H_{1}\right)">$f\left(H_{1}\right)$</span> 在乘法下是封闭的。单位元：由于 <span class="math-inline" data-tex="H_{1}">$H_{1}$</span> 是 <span class="math-inline" data-tex="G_{1}">$G_{1}$</span> 的子群，<span class="math-inline" data-tex="1 \in H_{1}">$1 \in H_{1}$</span>。那么 <span class="math-inline" data-tex="f(1) \in f\left(H_{1}\right)">$f(1) \in f\left(H_{1}\right)$</span>。根据命题 1.1.4 的 (i)，<span class="math-inline" data-tex="f(1)=1">$f(1)=1$</span>。因此 <span class="math-inline" data-tex="1 \in f\left(H_{1}\right)">$1 \in f\left(H_{1}\right)$</span>。逆元：给定 <span class="math-inline" data-tex="f\left(H_{1}\right)">$f\left(H_{1}\right)$</span> 的一个元素，必然是形如 <span class="math-inline" data-tex="f(h)">$f(h)$</span>，其中 <span class="math-inline" data-tex="h \in H_{1}">$h \in H_{1}$</span>，根据命题 1.1.4 的 (ii)，我们有 <span class="math-inline" data-tex="(f(h))^{-1}=f\left(h^{-1}\right)">$(f(h))^{-1}=f\left(h^{-1}\right)$</span>。由于 <span class="math-inline" data-tex="H_{1}">$H_{1}$</span> 是 <span class="math-inline" data-tex="G_{1}">$G_{1}$</span> 的子群，<span class="math-inline" data-tex="h^{-1} \in H_{1}">$h^{-1} \in H_{1}$</span>。因此 <span class="math-inline" data-tex="f\left(h^{-1}\right)=(f(h))^{-1} \in f\left(H_{1}\right)">$f\left(h^{-1}\right)=(f(h))^{-1} \in f\left(H_{1}\right)$</span>。因此 <span class="math-inline" data-tex="f\left(H_{1}\right)">$f\left(H_{1}\right)$</span> 在取逆元下是封闭的，所以是 <span class="math-inline" data-tex="G_{2}">$G_{2}$</span> 的一个子群。</p><p>(ii) 回顾一下，根据定义，<span class="math-inline" data-tex="f^{-1}\left(H_{2}\right)=\left\{g \in G_{1}: f(g) \in H_{2}\right\}">$f^{-1}\left(H_{2}\right)=\left\{g \in G_{1}: f(g) \in H_{2}\right\}$</span>。同样我们必须检查封闭性、单位元和逆元。封闭性：假设给出 <span class="math-inline" data-tex="f^{-1}\left(H_{2}\right)">$f^{-1}\left(H_{2}\right)$</span> 的两个元素 <span class="math-inline" data-tex="g, g^{\prime}">$g, g^{\prime}$</span>。我们必须证明 <span class="math-inline" data-tex="g g^{\prime} \in f^{-1}\left(H_{2}\right)">$g g^{\prime} \in f^{-1}\left(H_{2}\right)$</span>。根据定义，<span class="math-inline" data-tex="f(g), f\left(g^{\prime}\right) \in H_{2}">$f(g), f\left(g^{\prime}\right) \in H_{2}$</span>，并且我们必须检查 <span class="math-inline" data-tex="f\left(g g^{\prime}\right) \in H_{2}">$f\left(g g^{\prime}\right) \in H_{2}$</span>。但是</p><p><div class="math-block" data-tex="f\left(g g^{\prime}\right)=f(g) f\left(g^{\prime}\right) \in H_{2}">$$
-f\left(g g^{\prime}\right)=f(g) f\left(g^{\prime}\right) \in H_{2}
-$$</div></p><p>因为 <span class="math-inline" data-tex="H_{2} \leq G_{2}">$H_{2} \leq G_{2}$</span> 且 <span class="math-inline" data-tex="f(g), f\left(g^{\prime}\right) \in H_{2}">$f(g), f\left(g^{\prime}\right) \in H_{2}$</span>。因此 <span class="math-inline" data-tex="g g^{\prime} \in f^{-1}\left(H_{2}\right)">$g g^{\prime} \in f^{-1}\left(H_{2}\right)$</span>。单位元：我们必须检查 <span class="math-inline" data-tex="1 \in f^{-1}\left(H_{2}\right)">$1 \in f^{-1}\left(H_{2}\right)$</span>，即 <span class="math-inline" data-tex="f(1) \in H_{2}">$f(1) \in H_{2}$</span>。但根据命题 1.1.4 的 (i)，<span class="math-inline" data-tex="f(1)=1">$f(1)=1$</span>，并且由于 <span class="math-inline" data-tex="H_{2} \leq G_{2}">$H_{2} \leq G_{2}$</span>，<span class="math-inline" data-tex="1 \in H_{2}">$1 \in H_{2}$</span>。因此 <span class="math-inline" data-tex="1 \in f^{-1}\left(H_{2}\right)">$1 \in f^{-1}\left(H_{2}\right)$</span>。逆元：假设 <span class="math-inline" data-tex="g \in f^{-1}\left(H_{2}\right)">$g \in f^{-1}\left(H_{2}\right)$</span>，即 <span class="math-inline" data-tex="f(g) \in H_{2}">$f(g) \in H_{2}$</span>。那么根据命题 1.1.4 的 (ii)，<span class="math-inline" data-tex="f\left(g^{-1}\right)=f(g)^{-1}">$f\left(g^{-1}\right)=f(g)^{-1}$</span>，并且由于 <span class="math-inline" data-tex="f(g) \in H_{2}">$f(g) \in H_{2}$</span> 且 <span class="math-inline" data-tex="H_{2} \leq G_{2}">$H_{2} \leq G_{2}$</span>，<span class="math-inline" data-tex="f(g)^{-1} \in H_{2}">$f(g)^{-1} \in H_{2}$</span>。因此 <span class="math-inline" data-tex="g^{-1} \in f^{-1}\left(H_{2}\right)">$g^{-1} \in f^{-1}\left(H_{2}\right)$</span>。由此可知 <span class="math-inline" data-tex="f^{-1}\left(H_{2}\right) \leq G_{1}">$f^{-1}\left(H_{2}\right) \leq G_{1}$</span>。</p><p>定义 1.2.2。设 <span class="math-inline" data-tex="G_{1}">$G_{1}$</span> 和 <span class="math-inline" data-tex="G_{2}">$G_{2}$</span> 是群，且 <span class="math-inline" data-tex="f: G_{1} \rightarrow G_{2}">$f: G_{1} \rightarrow G_{2}$</span> 是一个同态。<span class="math-inline" data-tex="f">$f$</span> 的像集是子群 <span class="math-inline" data-tex="f\left(G_{1}\right) \leq G_{2}">$f\left(G_{1}\right) \leq G_{2}$</span>；根据命题 1.2.1 的 (i)，它是 <span class="math-inline" data-tex="G_{2}">$G_{2}$</span> 的一个子群。<span class="math-inline" data-tex="f">$f$</span> 的核是子群 <span class="math-inline" data-tex="f^{-1}(1) \leq G_{1}">$f^{-1}(1) \leq G_{1}$</span>，即 1 的原像（或等价地 <span class="math-inline" data-tex="\{1\}">$\{1\}$</span>）。根据命题 1.2.1 的 (ii)，它是 <span class="math-inline" data-tex="G_{1}">$G_{1}$</span> 的一个子群，因为 <span class="math-inline" data-tex="\{1\} \leq G_{2}">$\{1\} \leq G_{2}$</span>。我们分别用 <span class="math-inline" data-tex="\operatorname{Im} f">$\operatorname{Im} f$</span> 和 <span class="math-inline" data-tex="\operatorname{Ker} f">$\operatorname{Ker} f$</span> 表示 <span class="math-inline" data-tex="G_{2}">$G_{2}$</span> 的子群 <span class="math-inline" data-tex="\operatorname{Im} f">$\operatorname{Im} f$</span> 和 <span class="math-inline" data-tex="G_{1}">$G_{1}$</span> 的子群 <span class="math-inline" data-tex="\operatorname{Ker} f">$\operatorname{Ker} f$</span>。为了强调，我们回顾一下</p><p><div class="math-block" data-tex="\operatorname{Ker} f=\left\{g \in G_{1}: f(g)=1\right\} .">$$
-\operatorname{Ker} f=\left\{g \in G_{1}: f(g)=1\right\} .
-$$</div></p><p>如果 <span class="math-inline" data-tex="G_{2}">$G_{2}$</span> 是加法表示，我们将条件 <span class="math-inline" data-tex="f(g)=1">$f(g)=1$</span> 替换为 <span class="math-inline" data-tex="f(g)=0">$f(g)=0$</span>。</p><p>例 1.2.3。我们现在回顾例 1.1.2 的例子，并描述核和像。</p><p>(1) 如果 <span class="math-inline" data-tex="f: G_{1} \rightarrow G_{2}">$f: G_{1} \rightarrow G_{2}$</span> 是一个同构，那么 <span class="math-inline" data-tex="\operatorname{Ker} f=\{1\}">$\operatorname{Ker} f=\{1\}$</span> 且 <span class="math-inline" data-tex="\operatorname{Im} f=G_{2}">$\operatorname{Im} f=G_{2}$</span>。</p><p>(2) 如果 <span class="math-inline" data-tex="i: H \rightarrow G">$i: H \rightarrow G$</span> 是子群的内射，那么 <span class="math-inline" data-tex="\operatorname{Ker} i=\{1\}">$\operatorname{Ker} i=\{1\}$</span> 且 <span class="math-inline" data-tex="\operatorname{Im} i=H">$\operatorname{Im} i=H$</span>。</p><p>(3) 如果 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span> 是平凡同态，那么 <span class="math-inline" data-tex="\operatorname{Ker} f=G">$\operatorname{Ker} f=G$</span> 且 <span class="math-inline" data-tex="\operatorname{Im} f=\{1\}">$\operatorname{Im} f=\{1\}$</span>。显然，同态 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span> 是平凡同态 <span class="math-inline" data-tex="\Longleftrightarrow \operatorname{Ker} f=G">$\Longleftrightarrow \operatorname{Ker} f=G$</span>。</p><p>(4) <span class="math-inline" data-tex="\operatorname{det}: G L_{n}(\mathbb{R}) \rightarrow \mathbb{R}^{*}">$\operatorname{det}: G L_{n}(\mathbb{R}) \rightarrow \mathbb{R}^{*}$</span> 的核按定义是 <span class="math-inline" data-tex="S L_{n}(\mathbb{R})">$S L_{n}(\mathbb{R})$</span>。det 的像集是 <span class="math-inline" data-tex="\mathbb{R}^{*}">$\mathbb{R}^{*}$</span>，因为 det 是满射。</p><p>(5) 如果 <span class="math-inline" data-tex="f: \mathbb{C} \rightarrow \mathbb{C}^{*}">$f: \mathbb{C} \rightarrow \mathbb{C}^{*}$</span> 是复指数，<span class="math-inline" data-tex="f(z)=e^{z}">$f(z)=e^{z}$</span>，那么 <span class="math-inline" data-tex="\operatorname{Ker} f=\{2 n \pi i: n \in \mathbb{Z}\}=\langle 2 \pi i\rangle">$\operatorname{Ker} f=\{2 n \pi i: n \in \mathbb{Z}\}=\langle 2 \pi i\rangle$</span>，且 <span class="math-inline" data-tex="\operatorname{Im} f=\mathbb{C}^{*}">$\operatorname{Im} f=\mathbb{C}^{*}$</span> 因为复指数是满射。对于实指数 <span class="math-inline" data-tex="e^{x}: \mathbb{R} \rightarrow \mathbb{R}^{*}">$e^{x}: \mathbb{R} \rightarrow \mathbb{R}^{*}$</span>，<span class="math-inline" data-tex="\operatorname{Ker} e^{x}=\{0\}">$\operatorname{Ker} e^{x}=\{0\}$</span> 且 <span class="math-inline" data-tex="\operatorname{Im} e^{x}=\mathbb{R}^{&gt;0}">$\operatorname{Im} e^{x}=\mathbb{R}^{&gt;0}$</span>，即正实数子群。</p><p>(6) 对于由 <span class="math-inline" data-tex="f(z)=|z|">$f(z)=|z|$</span> 定义的绝对值函数 <span class="math-inline" data-tex="f: \mathbb{C}^{*} \rightarrow \mathbb{R}^{*}">$f: \mathbb{C}^{*} \rightarrow \mathbb{R}^{*}$</span>，<span class="math-inline" data-tex="\operatorname{Ker} f=U(1)">$\operatorname{Ker} f=U(1)$</span> (按定义)，且 <span class="math-inline" data-tex="\operatorname{Im} f=\mathbb{R}^{&gt;0}">$\operatorname{Im} f=\mathbb{R}^{&gt;0}$</span>。</p><p>(7) 对于符号函数 <span class="math-inline" data-tex="\operatorname{sign}: \mathbb{R}^{*} \rightarrow\{ \pm 1\}">$\operatorname{sign}: \mathbb{R}^{*} \rightarrow\{ \pm 1\}$</span>，<span class="math-inline" data-tex="\operatorname{Ker} \operatorname{sign}=\mathbb{R}^{&gt;0}">$\operatorname{Ker} \operatorname{sign}=\mathbb{R}^{&gt;0}$</span>，且 <span class="math-inline" data-tex="\operatorname{Im} \operatorname{sign}=\{ \pm 1\}">$\operatorname{Im} \operatorname{sign}=\{ \pm 1\}$</span>。</p><p>(8) 如果 <span class="math-inline" data-tex="F: \mathbb{R}^{n} \rightarrow \mathbb{R}^{m}">$F: \mathbb{R}^{n} \rightarrow \mathbb{R}^{m}$</span> 是一个线性映射，对应于矩阵 <span class="math-inline" data-tex="A">$A$</span>，那么 <span class="math-inline" data-tex="\operatorname{Ker} F">$\operatorname{Ker} F$</span> 通常被称为 <span class="math-inline" data-tex="F">$F$</span> 的核或零空间。</p><p>(9) 对于由 <span class="math-inline" data-tex="f(t)=t^{n}">$f(t)=t^{n}$</span> 定义的函数 <span class="math-inline" data-tex="f: \mathbb{Q}^{*} \rightarrow \mathbb{Q}^{*}">$f: \mathbb{Q}^{*} \rightarrow \mathbb{Q}^{*}$</span>，当 <span class="math-inline" data-tex="n">$n$</span> 为奇数时 <span class="math-inline" data-tex="\operatorname{Ker} f=\{1\}">$\operatorname{Ker} f=\{1\}$</span>，当 <span class="math-inline" data-tex="n">$n$</span> 为偶数时是 <span class="math-inline" data-tex="\{ \pm 1\}">$\{ \pm 1\}$</span>。<span class="math-inline" data-tex="f">$f$</span> 的像集较难描述；它是 <span class="math-inline" data-tex="n">$n$</span> 次幂的全体有理数集合。对于类似的函数 <span class="math-inline" data-tex="f: \mathbb{R}^{*} \rightarrow \mathbb{R}^{*}">$f: \mathbb{R}^{*} \rightarrow \mathbb{R}^{*}$</span> (我们粗心地也用 <span class="math-inline" data-tex="f">$f$</span> 表示)，仍然是当 <span class="math-inline" data-tex="n">$n$</span> 为奇数时 <span class="math-inline" data-tex="\operatorname{Ker} f=\{1\}">$\operatorname{Ker} f=\{1\}$</span>，当 <span class="math-inline" data-tex="n">$n$</span> 为偶数时是 <span class="math-inline" data-tex="\{ \pm 1\}">$\{ \pm 1\}$</span>。在这种情况下，当 <span class="math-inline" data-tex="n">$n$</span> 为奇数时 <span class="math-inline" data-tex="\operatorname{Im} f=\mathbb{R}^{*}">$\operatorname{Im} f=\mathbb{R}^{*}$</span>，当 <span class="math-inline" data-tex="n">$n$</span> 为偶数时 <span class="math-inline" data-tex="\operatorname{Im} f=\mathbb{R}^{&gt;0}">$\operatorname{Im} f=\mathbb{R}^{&gt;0}$</span>。最后，对于由 <span class="math-inline" data-tex="f(z)=z^{n}">$f(z)=z^{n}$</span> 定义的 <span class="math-inline" data-tex="f: \mathbb{C}^{*} \rightarrow \mathbb{C}^{*}">$f: \mathbb{C}^{*} \rightarrow \mathbb{C}^{*}$</span>，且 <span class="math-inline" data-tex="n&gt;0">$n&gt;0$</span>，<span class="math-inline" data-tex="\operatorname{Ker} f=\mu_{n}">$\operatorname{Ker} f=\mu_{n}$</span> (按定义)，其中 <span class="math-inline" data-tex="\#\left(\mu_{n}\right)=n">$\#\left(\mu_{n}\right)=n$</span>，且 <span class="math-inline" data-tex="\operatorname{Im} f=\mathbb{C}^{*}">$\operatorname{Im} f=\mathbb{C}^{*}$</span> (每个复数都是一个 <span class="math-inline" data-tex="n">$n$</span> 次幂)。如果 <span class="math-inline" data-tex="n&lt;0">$n&lt;0$</span> 会怎样？如果 <span class="math-inline" data-tex="n=0">$n=0$</span> 会怎样？对于任意阿贝尔群 <span class="math-inline" data-tex="G">$G$</span>，为简单起见取 <span class="math-inline" data-tex="n \in \mathbb{N}">$n \in \mathbb{N}$</span>，对于由 <span class="math-inline" data-tex="f(g)=g^{n}">$f(g)=g^{n}$</span> 定义的函数 <span class="math-inline" data-tex="f: G \rightarrow G">$f: G \rightarrow G$</span>，<span class="math-inline" data-tex="\operatorname{Ker} f">$\operatorname{Ker} f$</span> 是 <span class="math-inline" data-tex="G">$G$</span> 的 <span class="math-inline" data-tex="n">$n$</span>-挠点子群（这在练习 2.21 中定义），<span class="math-inline" data-tex="\operatorname{Im} f">$\operatorname{Im} f$</span> 是 <span class="math-inline" data-tex="n">$n$</span> 次幂的子群。</p><p>(10) 给定一个群 <span class="math-inline" data-tex="G">$G$</span>（乘法表示）和一个元素 <span class="math-inline" data-tex="g \in G">$g \in G$</span>，对于由 <span class="math-inline" data-tex="f(n)=g^{n}">$f(n)=g^{n}$</span> 定义的函数 <span class="math-inline" data-tex="f: \mathbb{Z} \rightarrow G">$f: \mathbb{Z} \rightarrow G$</span>，如果 <span class="math-inline" data-tex="g">$g$</span> 有无限阶，则 <span class="math-inline" data-tex="\operatorname{Ker} f=\{0\}">$\operatorname{Ker} f=\{0\}$</span>；如果 <span class="math-inline" data-tex="g">$g$</span> 有有限阶 <span class="math-inline" data-tex="n">$n$</span>，则 <span class="math-inline" data-tex="\operatorname{Ker} f=\langle n\rangle">$\operatorname{Ker} f=\langle n\rangle$</span>。根据定义，<span class="math-inline" data-tex="\operatorname{Im} f=\langle g\rangle">$\operatorname{Im} f=\langle g\rangle$</span>。对于由 <span class="math-inline" data-tex="f(a)=[a]">$f(a)=[a]$</span> 定义的特殊情况 <span class="math-inline" data-tex="\mathbb{Z} \rightarrow \mathbb{Z} / n \mathbb{Z}">$\mathbb{Z} \rightarrow \mathbb{Z} / n \mathbb{Z}$</span>，<span class="math-inline" data-tex="\operatorname{Ker} f=\langle n\rangle">$\operatorname{Ker} f=\langle n\rangle$</span> 且 <span class="math-inline" data-tex="\operatorname{Im} f=\mathbb{Z} / n \mathbb{Z}">$\operatorname{Im} f=\mathbb{Z} / n \mathbb{Z}$</span>。</p><p>(11) 对于由 <span class="math-inline" data-tex="\pi_{1}\left(g_{1}, g_{2}\right)=g_{1}">$\pi_{1}\left(g_{1}, g_{2}\right)=g_{1}$</span> 定义的 <span class="math-inline" data-tex="\pi_{1}: G_{1} \times G_{2} \rightarrow G_{1}">$\pi_{1}: G_{1} \times G_{2} \rightarrow G_{1}$</span>，<span class="math-inline" data-tex="\operatorname{Ker} \pi_{1}=\{1\} \times G_{2}">$\operatorname{Ker} \pi_{1}=\{1\} \times G_{2}$</span> 且 <span class="math-inline" data-tex="\operatorname{Im} \pi_{1}=G_{1}">$\operatorname{Im} \pi_{1}=G_{1}$</span>。类似地，<span class="math-inline" data-tex="\operatorname{Ker} \pi_{2}=G_{1} \times\{1\}">$\operatorname{Ker} \pi_{2}=G_{1} \times\{1\}$</span> 且 <span class="math-inline" data-tex="\operatorname{Im} \pi_{2}=G_{2}">$\operatorname{Im} \pi_{2}=G_{2}$</span>。</p><p>(12) 对于由 <span class="math-inline" data-tex="P(\sigma)\left(\mathbf{e}_{i}\right)=\mathbf{e}_{\sigma(i)}">$P(\sigma)\left(\mathbf{e}_{i}\right)=\mathbf{e}_{\sigma(i)}$</span> 定义的同态 <span class="math-inline" data-tex="P: S_{n} \rightarrow G L_{n}(\mathbb{R})">$P: S_{n} \rightarrow G L_{n}(\mathbb{R})$</span>，很容易看出 <span class="math-inline" data-tex="P">$P$</span> 是单射。根据定义，<span class="math-inline" data-tex="\operatorname{Im} P">$\operatorname{Im} P$</span> 是 <span class="math-inline" data-tex="G L_{n}(\mathbb{R})">$G L_{n}(\mathbb{R})$</span> 中置换矩阵的子群。</p><p>(13) 对于群 <span class="math-inline" data-tex="S_{n}">$S_{n}$</span> 和同态 <span class="math-inline" data-tex="\varepsilon: S_{n} \rightarrow\{ \pm 1\}">$\varepsilon: S_{n} \rightarrow\{ \pm 1\}$</span>，<span class="math-inline" data-tex="\operatorname{Ker} \varepsilon=A_{n}">$\operatorname{Ker} \varepsilon=A_{n}$</span> (按定义)，且只要 <span class="math-inline" data-tex="n \geq 2">$n \geq 2$</span>，<span class="math-inline" data-tex="\operatorname{Im} \varepsilon=\{ \pm 1\}">$\operatorname{Im} \varepsilon=\{ \pm 1\}$</span>。</p><p>关于同态的一个重要事实如下（你可能在线性代数中见过线性映射的相应表述）：</p><p>命题 1.2.4。设 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span> 是一个同态。那么 <span class="math-inline" data-tex="f">$f$</span> 是单射 <span class="math-inline" data-tex="\Longleftrightarrow \operatorname{Ker} f=\{1\}">$\Longleftrightarrow \operatorname{Ker} f=\{1\}$</span>。</p><p>证明。<span class="math-inline" data-tex="\implies">$\implies$</span>: 假设 <span class="math-inline" data-tex="f">$f$</span> 是单射。我们必须证明 <span class="math-inline" data-tex="h \in \operatorname{Ker} f \Longleftrightarrow h=1">$h \in \operatorname{Ker} f \Longleftrightarrow h=1$</span>。注意 <span class="math-inline" data-tex="1 \in \operatorname{Ker} f">$1 \in \operatorname{Ker} f$</span>。反之，如果 <span class="math-inline" data-tex="h \in \operatorname{Ker} f">$h \in \operatorname{Ker} f$</span>，那么根据定义 <span class="math-inline" data-tex="f(h)=1=f(1)">$f(h)=1=f(1)$</span>。由于 <span class="math-inline" data-tex="f">$f$</span> 是单射，<span class="math-inline" data-tex="h=1">$h=1$</span>。</p><p><span class="math-inline" data-tex="\Longleftarrow">$\Longleftarrow$</span>: 假设 <span class="math-inline" data-tex="\operatorname{Ker} f=\{1\}">$\operatorname{Ker} f=\{1\}$</span>。如果 <span class="math-inline" data-tex="f\left(g_{1}\right)=f\left(g_{2}\right)">$f\left(g_{1}\right)=f\left(g_{2}\right)$</span>，那么 <span class="math-inline" data-tex="\left(f\left(g_{1}\right)\right)^{-1} f\left(g_{2}\right)=1">$\left(f\left(g_{1}\right)\right)^{-1} f\left(g_{2}\right)=1$</span>。根据命题 1.1.4 的 (ii)，<span class="math-inline" data-tex="\left(f\left(g_{1}\right)\right)^{-1}=f\left(g_{1}^{-1}\right)">$\left(f\left(g_{1}\right)\right)^{-1}=f\left(g_{1}^{-1}\right)$</span>。因此</p><p><div class="math-block" data-tex="1=\left(f\left(g_{1}\right)\right)^{-1} f\left(g_{2}\right)=f\left(g_{1}^{-1}\right) f\left(g_{2}\right)=f\left(g_{1}^{-1} g_{2}\right)">$$
-1=\left(f\left(g_{1}\right)\right)^{-1} f\left(g_{2}\right)=f\left(g_{1}^{-1}\right) f\left(g_{2}\right)=f\left(g_{1}^{-1} g_{2}\right)
-$$</div></p><p>由此可知 <span class="math-inline" data-tex="g_{1}^{-1} g_{2} \in \operatorname{Ker} f">$g_{1}^{-1} g_{2} \in \operatorname{Ker} f$</span>，因此根据假设 <span class="math-inline" data-tex="g_{1}^{-1} g_{2}=1">$g_{1}^{-1} g_{2}=1$</span>。因此 <span class="math-inline" data-tex="g_{1}=g_{2}">$g_{1}=g_{2}$</span>，<span class="math-inline" data-tex="f">$f$</span> 是单射。</p><p>注 1.2.5。上述证明更一般地表明，如果 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span> 是任意同态，且 <span class="math-inline" data-tex="g_{1}, g_{2} \in G">$g_{1}, g_{2} \in G$</span>，那么 <span class="math-inline" data-tex="f\left(g_{1}\right)=f\left(g_{2}\right) \Longleftrightarrow">$f\left(g_{1}\right)=f\left(g_{2}\right) \Longleftrightarrow$</span> 存在一个元素 <span class="math-inline" data-tex="k \in \operatorname{Ker} f">$k \in \operatorname{Ker} f$</span> 使得 <span class="math-inline" data-tex="g_{2}=g_{1} k">$g_{2}=g_{1} k$</span>。</p>
+    <h3><span class="section-number">1</span>第 4 章</h3>
+    
 </section>
 
 <section class="content-section" id="section-2">
-    <h2><span class="section-number">1</span>3. 凯莱定理</h2>
-    <p>一般而言，设 <span class="math-inline" data-tex="f: G \rightarrow G^{\prime}">$f: G \rightarrow G^{\prime}$</span> 是一个单射同态。那么 <span class="math-inline" data-tex="\operatorname{Im} f=H \leq G^{\prime}">$\operatorname{Im} f=H \leq G^{\prime}$</span> 是 <span class="math-inline" data-tex="G^{\prime}">$G^{\prime}$</span> 的一个子群，并且存在一个诱导同态（我们仍然粗心地用 <span class="math-inline" data-tex="f">$f$</span> 表示）从 <span class="math-inline" data-tex="G">$G$</span> 到 <span class="math-inline" data-tex="H">$H$</span>。这个诱导同态仍然是单射，并且根据定义它现在是满射，因此是一个同构。因此，一个单射同态 <span class="math-inline" data-tex="f: G \rightarrow G^{\prime}">$f: G \rightarrow G^{\prime}$</span> 定义了从 <span class="math-inline" data-tex="G">$G$</span> 到 <span class="math-inline" data-tex="G^{\prime}">$G^{\prime}$</span> 的一个子群的同构。反之，如果 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span> 是从 <span class="math-inline" data-tex="G">$G$</span> 到 <span class="math-inline" data-tex="G^{\prime}">$G^{\prime}$</span> 的一个子群 <span class="math-inline" data-tex="H">$H$</span> 的同构，且 <span class="math-inline" data-tex="i: H \rightarrow G^{\prime}">$i: H \rightarrow G^{\prime}$</span> 是内射同态，那么 <span class="math-inline" data-tex="i \circ f: G \rightarrow G^{\prime}">$i \circ f: G \rightarrow G^{\prime}$</span> 是一个单射同态。总而言之，一个单射同态 <span class="math-inline" data-tex="f: G \rightarrow G^{\prime}">$f: G \rightarrow G^{\prime}$</span> 等价于从 <span class="math-inline" data-tex="G">$G$</span> 到 <span class="math-inline" data-tex="G^{\prime}">$G^{\prime}$</span> 的一个子群的同构。</p><p>定理 1.3.1 (凯莱定理)。设 <span class="math-inline" data-tex="G">$G$</span> 是一个有限群。那么存在一个 <span class="math-inline" data-tex="n \in \mathbb{N}">$n \in \mathbb{N}$</span> 使得 <span class="math-inline" data-tex="G">$G$</span> 同构于 <span class="math-inline" data-tex="S_{n}">$S_{n}$</span> 的一个子群。</p><p>注 1.3.2。(i) 证明将表明我们可以取 <span class="math-inline" data-tex="n=\#(G)">$n=\#(G)$</span>。</p><p>(ii) 在代数的早期，所有研究的有限群都明确地作为 <span class="math-inline" data-tex="S_{n}">$S_{n}$</span> 的子群给出，因此这个定理并没有什么真正的实质内容。</p><p>凯莱定理的证明。设 <span class="math-inline" data-tex="G">$G$</span> 是任意群，有限或无限。我们将构造一个单射同态 <span class="math-inline" data-tex="f: G \rightarrow S_{G}">$f: G \rightarrow S_{G}$</span>。令 <span class="math-inline" data-tex="H=\operatorname{Im} f">$H=\operatorname{Im} f$</span>，存在一个相应的同态（我们再次粗心地用 <span class="math-inline" data-tex="f">$f$</span> 表示）从 <span class="math-inline" data-tex="G">$G$</span> 到 <span class="math-inline" data-tex="H">$H$</span>。那么 <span class="math-inline" data-tex="f">$f$</span> 仍然是单射，并且根据定义它已经变为满射，因此它是一个同构。最后，取 <span class="math-inline" data-tex="G">$G$</span> 为有限群，将 <span class="math-inline" data-tex="G">$G$</span> 的元素列举为 <span class="math-inline" data-tex="g_{1}, \ldots, g_{n}">$g_{1}, \ldots, g_{n}$</span>，其中 <span class="math-inline" data-tex="n=\#(G)">$n=\#(G)$</span>，定义了一个同构 <span class="math-inline" data-tex="h: S_{G} \rightarrow S_{n}">$h: S_{G} \rightarrow S_{n}$</span>。用 <span class="math-inline" data-tex="h \circ f">$h \circ f$</span> 替换上面的同态 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span> 得到从 <span class="math-inline" data-tex="G">$G$</span> 到 <span class="math-inline" data-tex="S_{n}">$S_{n}$</span> 的一个子群的同构。</p><p>为了找到同态 <span class="math-inline" data-tex="f">$f$</span>，我们必须对于 <span class="math-inline" data-tex="G">$G$</span> 中的每个 <span class="math-inline" data-tex="g">$g$</span>，找到一个双射 <span class="math-inline" data-tex="\ell_{g}: G \rightarrow G">$\ell_{g}: G \rightarrow G$</span>。<span class="math-inline" data-tex="\ell_{g}">$\ell_{g}$</span> 的定义早在我们学习群论的最初几天就已预示：定义 <span class="math-inline" data-tex="\ell_{g}: G \rightarrow G">$\ell_{g}: G \rightarrow G$</span> 为 <span class="math-inline" data-tex="\ell_{g}(x)=g x">$\ell_{g}(x)=g x$</span>。因此函数 <span class="math-inline" data-tex="\ell_{g}">$\ell_{g}$</span> 是左乘 <span class="math-inline" data-tex="g">$g$</span> 的运算，这就是选择字母 <span class="math-inline" data-tex="\ell">$\ell$</span> 的原因。我们已经看到，对于每个 <span class="math-inline" data-tex="g">$g$</span>，<span class="math-inline" data-tex="\ell_{g}">$\ell_{g}$</span> 是一个双射，即是 <span class="math-inline" data-tex="S_{G}">$S_{G}$</span> 的一个元素（群讲义的推论 3.4）。然后定义 <span class="math-inline" data-tex="f: G \rightarrow S_{G}">$f: G \rightarrow S_{G}$</span> 为：</p><p><div class="math-block" data-tex="f(g)=\ell_{g}">$$
+    <h3><span class="section-number">2</span>同态、陪集和正规子群</h3>
+    
+</section>
+
+<section class="content-section" id="section-3">
+    <h3><span class="section-number">3</span>1. 同态</h3>
+    <p>1.1. 定义和例子。回顾一下，如果 <span class="math-inline" data-tex="G">$G$</span> 和 <span class="math-inline" data-tex="H">$H$</span> 是群，那么同构 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span> 是一个双射 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span>，使得对于所有 <span class="math-inline" data-tex="g_{1}, g_{2} \in G">$g_{1}, g_{2} \in G$</span>，</p>
+<p><div class="math-block" data-tex="f\left(g_{1} g_{2}\right)=f\left(g_{1}\right) f\left(g_{2}\right)">$$
+f\left(g_{1} g_{2}\right)=f\left(g_{1}\right) f\left(g_{2}\right)
+$$</div></p>
+<p>在许多情况下，我们给定的函数 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span> 不一定是双射，但 <span class="math-inline" data-tex="f">$f$</span> 仍然满足函数方程 <span class="math-inline" data-tex="f\left(g_{1} g_{2}\right)=f\left(g_{1}\right) f\left(g_{2}\right)">$f\left(g_{1} g_{2}\right)=f\left(g_{1}\right) f\left(g_{2}\right)$</span>。我们将其定义如下：</p>
+<p>定义 1.1.1。设 <span class="math-inline" data-tex="G">$G$</span> 和 <span class="math-inline" data-tex="H">$H$</span> 是群。同态 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span> 是一个函数 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span>，使得对于所有 <span class="math-inline" data-tex="g_{1}, g_{2} \in G">$g_{1}, g_{2} \in G$</span>，</p>
+<p><div class="math-block" data-tex="f\left(g_{1} g_{2}\right)=f\left(g_{1}\right) f\left(g_{2}\right)">$$
+f\left(g_{1} g_{2}\right)=f\left(g_{1}\right) f\left(g_{2}\right)
+$$</div></p>
+<p>例 1.1.2。同态有许多众所周知的例子：</p>
+<p>(1) 每个同构都是一个同态。</p>
+<p>(2) 如果 <span class="math-inline" data-tex="H">$H$</span> 是群 <span class="math-inline" data-tex="G">$G$</span> 的一个子群，且 <span class="math-inline" data-tex="i: H \rightarrow G">$i: H \rightarrow G$</span> 是内射，那么 <span class="math-inline" data-tex="i">$i$</span> 是一个同态，这本质上是说 <span class="math-inline" data-tex="H">$H$</span> 的群运算是由 <span class="math-inline" data-tex="G">$G$</span> 的群运算诱导的。注意 <span class="math-inline" data-tex="i">$i$</span> 总是单射，但它是一个满射 <span class="math-inline" data-tex="\Longleftrightarrow H=G">$\Longleftrightarrow H=G$</span> 且 <span class="math-inline" data-tex="i=\mathrm{Id}">$i=\mathrm{Id}$</span>。</p>
+<p>(3) 定义为对所有 <span class="math-inline" data-tex="g \in G">$g \in G$</span> 有 <span class="math-inline" data-tex="f(g)=1">$f(g)=1$</span> 的函数 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span> 是一个同态（平凡同态）。注意，如果 <span class="math-inline" data-tex="G">$G$</span> 不是平凡群，则 <span class="math-inline" data-tex="f">$f$</span> 不是单射；如果 <span class="math-inline" data-tex="H">$H$</span> 不是平凡群，则 <span class="math-inline" data-tex="f">$f$</span> 不是满射。</p>
+<p>(4) 行列式 <span class="math-inline" data-tex="\operatorname{det}: G L_{n}(\mathbb{R}) \rightarrow \mathbb{R}^{*}">$\operatorname{det}: G L_{n}(\mathbb{R}) \rightarrow \mathbb{R}^{*}$</span> 是一个同态。这是恒等式 <span class="math-inline" data-tex="\operatorname{det}(A B)=\operatorname{det} A \operatorname{det} B">$\operatorname{det}(A B)=\operatorname{det} A \operatorname{det} B$</span> 的内容。这里 det 是满射，因为对于每个非零实数 <span class="math-inline" data-tex="t">$t$</span>，我们都可以找到一个可逆的 <span class="math-inline" data-tex="n \times n">$n \times n$</span> 矩阵 <span class="math-inline" data-tex="A">$A$</span>，使得 <span class="math-inline" data-tex="\operatorname{det} A=t">$\operatorname{det} A=t$</span>。例如，可以将 <span class="math-inline" data-tex="A">$A$</span> 取为满足 <span class="math-inline" data-tex="A \mathbf{e}_{1}=t \mathbf{e}_{1}">$A \mathbf{e}_{1}=t \mathbf{e}_{1}$</span> 且对于 <span class="math-inline" data-tex="i&gt;1">$i&gt;1$</span> 有 <span class="math-inline" data-tex="A \mathbf{e}_{i}=\mathbf{e}_{i}">$A \mathbf{e}_{i}=\mathbf{e}_{i}$</span> 的对角矩阵。然而，当 <span class="math-inline" data-tex="n \geq 2">$n \geq 2$</span> 时，det 不是单射。</p>
+<p>(5) (复指数。) 定义 <span class="math-inline" data-tex="f: \mathbb{C} \rightarrow \mathbb{C}^{*}">$f: \mathbb{C} \rightarrow \mathbb{C}^{*}$</span> 为</p>
+<p><div class="math-block" data-tex="f(z)=e^{z}=\sum_{n=0}^{\infty} \frac{z^{n}}{n!}">$$
+f(z)=e^{z}=\sum_{n=0}^{\infty} \frac{z^{n}}{n!}
+$$</div></p>
+<p>这里，如果 <span class="math-inline" data-tex="z=x+i y">$z=x+i y$</span>，那么</p>
+<p><div class="math-block" data-tex="e^{z}=e^{x} e^{i y}=e^{x}(\cos y+i \sin y)">$$
+e^{z}=e^{x} e^{i y}=e^{x}(\cos y+i \sin y)
+$$</div></p>
+<p><span class="math-inline" data-tex="f">$f$</span> 是同态的事实遵循于恒等式</p>
+<p><div class="math-block" data-tex="e^{z_{1}+z_{2}}=e^{z_{1}} e^{z_{2}}">$$
+e^{z_{1}+z_{2}}=e^{z_{1}} e^{z_{2}}
+$$</div></p>
+<p>复指数是满射：<span class="math-inline" data-tex="\mathbb{C}^{*}">$\mathbb{C}^{*}$</span> 的每个元素都形如 <span class="math-inline" data-tex="e^{z}">$e^{z}$</span> (对于某个 <span class="math-inline" data-tex="z \in \mathbb{C}">$z \in \mathbb{C}$</span> )。但它不是单射。实际上，<span class="math-inline" data-tex="e^{z_{1}}=e^{z_{2}} \Longleftrightarrow z_{2}=z_{1}+2 n \pi i">$e^{z_{1}}=e^{z_{2}} \Longleftrightarrow z_{2}=z_{1}+2 n \pi i$</span> (对于某个 <span class="math-inline" data-tex="n \in \mathbb{Z}">$n \in \mathbb{Z}$</span> )。这与实指数 <span class="math-inline" data-tex="e^{x}: \mathbb{R} \rightarrow \mathbb{R}^{*}">$e^{x}: \mathbb{R} \rightarrow \mathbb{R}^{*}$</span> 形成对比，实指数是单射但不是满射（其像集是正实数子群）。</p>
+<p>(6) 绝对值函数 <span class="math-inline" data-tex="f: \mathbb{C}^{*} \rightarrow \mathbb{R}^{*}">$f: \mathbb{C}^{*} \rightarrow \mathbb{R}^{*}$</span> 是一个同态，因为</p>
+<p><div class="math-block" data-tex="\left|z_{1} z_{2}\right|=\left|z_{1}\right|\left|z_{2}\right|">$$
+\left|z_{1} z_{2}\right|=\left|z_{1}\right|\left|z_{2}\right|
+$$</div></p>
+<p>这里 <span class="math-inline" data-tex="f">$f$</span> 不是满射，因为它的像集是正实数集。它也不是单射：<span class="math-inline" data-tex="f\left(z_{1}\right)=f\left(z_{2}\right) \Longleftrightarrow\left|z_{1}\right|=\left|z_{2}\right| \Longleftrightarrow u=z_{2} / z_{1}">$f\left(z_{1}\right)=f\left(z_{2}\right) \Longleftrightarrow\left|z_{1}\right|=\left|z_{2}\right| \Longleftrightarrow u=z_{2} / z_{1}$</span> 的绝对值为 1，即是 <span class="math-inline" data-tex="U(1)">$U(1)$</span> 的一个元素 <span class="math-inline" data-tex="\Longleftrightarrow">$\Longleftrightarrow$</span> 存在一个 <span class="math-inline" data-tex="u \in U(1)">$u \in U(1)$</span> 使得 <span class="math-inline" data-tex="z_{2}=u z_{1}">$z_{2}=u z_{1}$</span>。</p>
+<p>(7) 存在与绝对值函数相关的同态。例如，符号函数 <span class="math-inline" data-tex="\operatorname{sign}: \mathbb{R}^{*} \rightarrow\{ \pm 1\}">$\operatorname{sign}: \mathbb{R}^{*} \rightarrow\{ \pm 1\}$</span> 定义为</p>
+<p><div class="math-block" data-tex="\operatorname{sign}(x)=\frac{x}{|x|}= \begin{cases}+1, &amp; \text { 如果 } x&gt;0 ; \\ -1, &amp; \text { 如果 } x&lt;0 .\end{cases}">$$
+\operatorname{sign}(x)=\frac{x}{|x|}= \begin{cases}+1, &amp; \text { 如果 } x&gt;0 ; \\ -1, &amp; \text { 如果 } x&lt;0 .\end{cases}
+$$</div></p>
+<p>同样，函数 <span class="math-inline" data-tex="F(z)=z /|z|">$F(z)=z /|z|$</span> 定义了一个同态 <span class="math-inline" data-tex="\mathbb{C}^{*} \rightarrow U(1)">$\mathbb{C}^{*} \rightarrow U(1)$</span>。</p>
+<p>(8) 如果 <span class="math-inline" data-tex="F: \mathbb{R}^{n} \rightarrow \mathbb{R}^{m}">$F: \mathbb{R}^{n} \rightarrow \mathbb{R}^{m}$</span> 是一个线性映射，对应于矩阵 <span class="math-inline" data-tex="A">$A$</span>，那么 <span class="math-inline" data-tex="F">$F$</span> 是一个同态（并且具有额外的性质，即对于所有 <span class="math-inline" data-tex="t \in \mathbb{R}">$t \in \mathbb{R}$</span> 和 <span class="math-inline" data-tex="\mathbf{v} \in \mathbb{R}^{n}">$\mathbf{v} \in \mathbb{R}^{n}$</span>，有 <span class="math-inline" data-tex="F(t \mathbf{v})=t F(\mathbf{v})">$F(t \mathbf{v})=t F(\mathbf{v})$</span>）。</p>
+<p>(9) 给定一个固定的整数 <span class="math-inline" data-tex="n">$n$</span>，由 <span class="math-inline" data-tex="f(t)=t^{n}">$f(t)=t^{n}$</span> 定义的函数 <span class="math-inline" data-tex="f: \mathbb{Q}^{*} \rightarrow \mathbb{Q}^{*}">$f: \mathbb{Q}^{*} \rightarrow \mathbb{Q}^{*}$</span> 是一个同态，因为 <span class="math-inline" data-tex="f\left(t_{1} t_{2}\right)=\left(t_{1} t_{2}\right)^{n}=t_{1}^{n} t_{2}^{n}=f\left(t_{1}\right) f\left(t_{2}\right)">$f\left(t_{1} t_{2}\right)=\left(t_{1} t_{2}\right)^{n}=t_{1}^{n} t_{2}^{n}=f\left(t_{1}\right) f\left(t_{2}\right)$</span>。相应的函数 <span class="math-inline" data-tex="f: \mathbb{R}^{*} \rightarrow \mathbb{R}^{*}">$f: \mathbb{R}^{*} \rightarrow \mathbb{R}^{*}$</span> 和 <span class="math-inline" data-tex="\mathbb{C}^{*} \rightarrow \mathbb{C}^{*}">$\mathbb{C}^{*} \rightarrow \mathbb{C}^{*}$</span> 也是同态。更一般地，如果 <span class="math-inline" data-tex="G">$G$</span> 是一个阿贝尔群（乘法表示）且 <span class="math-inline" data-tex="n \in \mathbb{Z}">$n \in \mathbb{Z}$</span> 是一个固定整数，那么由 <span class="math-inline" data-tex="f(g)=g^{n}">$f(g)=g^{n}$</span> 定义的函数 <span class="math-inline" data-tex="f: G \rightarrow G">$f: G \rightarrow G$</span> 是一个同态，根据阿贝尔群的指数定律：对于所有 <span class="math-inline" data-tex="g, h \in G">$g, h \in G$</span>，</p>
+<p><div class="math-block" data-tex="f(g h)=(g h)^{n}=g^{n} h^{n}=f(g) f(h) .">$$
+f(g h)=(g h)^{n}=g^{n} h^{n}=f(g) f(h) .
+$$</div></p>
+<p>例如，如果 <span class="math-inline" data-tex="G=\mathbb{R}^{*}">$G=\mathbb{R}^{*}$</span> 且 <span class="math-inline" data-tex="n \in \mathbb{N}">$n \in \mathbb{N}$</span>，那么当 <span class="math-inline" data-tex="n">$n$</span> 为奇数时 <span class="math-inline" data-tex="f">$f$</span> 是单射和满射。如果 <span class="math-inline" data-tex="n">$n$</span> 为偶数，那么 <span class="math-inline" data-tex="(-t)^{n}=t^{n}">$(-t)^{n}=t^{n}$</span>，因此 <span class="math-inline" data-tex="f">$f$</span> 不是单射，并且 <span class="math-inline" data-tex="f">$f$</span> 的像集是正实数集，因此 <span class="math-inline" data-tex="f">$f$</span> 也不是满射。</p>
+<p>(10) 设 <span class="math-inline" data-tex="G">$G$</span> 是一个群（乘法表示），且 <span class="math-inline" data-tex="g \in G">$g \in G$</span> 是固定的。那么由 <span class="math-inline" data-tex="f(a)=g^{a}">$f(a)=g^{a}$</span> 定义的函数 <span class="math-inline" data-tex="f: \mathbb{Z} \rightarrow G">$f: \mathbb{Z} \rightarrow G$</span> 是一个同态（指数定律）。对于加法群 <span class="math-inline" data-tex="G">$G$</span>，我们写成 <span class="math-inline" data-tex="f(a)=a \cdot g">$f(a)=a \cdot g$</span>。在这两种情况下，<span class="math-inline" data-tex="f">$f$</span> 的像集都是 <span class="math-inline" data-tex="\langle g\rangle">$\langle g\rangle$</span>。此示例的一个特例是由 <span class="math-inline" data-tex="f(a)=[a]=a \cdot[1]">$f(a)=[a]=a \cdot[1]$</span> 定义的同态 <span class="math-inline" data-tex="\mathbb{Z} \rightarrow \mathbb{Z} / n \mathbb{Z}">$\mathbb{Z} \rightarrow \mathbb{Z} / n \mathbb{Z}$</span>。类似地，假设 <span class="math-inline" data-tex="G">$G$</span> 是一个群，并且 <span class="math-inline" data-tex="g \in G">$g \in G$</span> 的阶是 <span class="math-inline" data-tex="n">$n$</span> 的因子，即 <span class="math-inline" data-tex="g^{n}=1">$g^{n}=1$</span>。那么由 <span class="math-inline" data-tex="f\left([a]_{n}\right)=g^{a}">$f\left([a]_{n}\right)=g^{a}$</span> 定义的函数 <span class="math-inline" data-tex="f: \mathbb{Z} / n \mathbb{Z} \rightarrow G">$f: \mathbb{Z} / n \mathbb{Z} \rightarrow G$</span> 是定义良好的，并且很容易验证它是一个同态（再次根据指数定律）。我们已经见过的一个例子是由 <span class="math-inline" data-tex="f\left([a]_{n}\right)=[a]_{m}">$f\left([a]_{n}\right)=[a]_{m}$</span> 定义的函数 <span class="math-inline" data-tex="f: \mathbb{Z} / n \mathbb{Z} \rightarrow \mathbb{Z} / m \mathbb{Z}">$f: \mathbb{Z} / n \mathbb{Z} \rightarrow \mathbb{Z} / m \mathbb{Z}$</span>，当且仅当 <span class="math-inline" data-tex="m">$m$</span> 整除 <span class="math-inline" data-tex="n">$n$</span> 时它是定义良好的；这里 <span class="math-inline" data-tex="G=\mathbb{Z} / m \mathbb{Z}">$G=\mathbb{Z} / m \mathbb{Z}$</span> 且 <span class="math-inline" data-tex="g=[1]_{m}">$g=[1]_{m}$</span>。在这个例子中，<span class="math-inline" data-tex="f">$f$</span> 是从 <span class="math-inline" data-tex="\mathbb{Z} / n \mathbb{Z}">$\mathbb{Z} / n \mathbb{Z}$</span> 到 <span class="math-inline" data-tex="\mathbb{Z} / m \mathbb{Z}">$\mathbb{Z} / m \mathbb{Z}$</span> 的一个满射同态。</p>
+<p>(11) 如果 <span class="math-inline" data-tex="G_{1}">$G_{1}$</span> 和 <span class="math-inline" data-tex="G_{2}">$G_{2}$</span> 是两个群，且 <span class="math-inline" data-tex="G_{1} \times G_{2}">$G_{1} \times G_{2}$</span> 是积群，那么由 <span class="math-inline" data-tex="\pi_{1}\left(g_{1}, g_{2}\right)=g_{1}">$\pi_{1}\left(g_{1}, g_{2}\right)=g_{1}$</span> 定义的 <span class="math-inline" data-tex="\pi_{1}: G_{1} \times G_{2} \rightarrow G_{1}">$\pi_{1}: G_{1} \times G_{2} \rightarrow G_{1}$</span> 是一个同态。这是群运算在乘积中定义方式的结果：</p>
+<p><div class="math-block" data-tex="\pi_{1}\left(\left(g_{1}, g_{2}\right)\left(h_{1}, h_{2}\right)\right)=\pi_{1}\left(g_{1} h_{1}, g_{2} h_{2}\right)=g_{1} h_{1}=\pi_{1}\left(g_{1}, g_{2}\right) \pi_{1}\left(h_{1}, h_{2}\right)">$$
+\pi_{1}\left(\left(g_{1}, g_{2}\right)\left(h_{1}, h_{2}\right)\right)=\pi_{1}\left(g_{1} h_{1}, g_{2} h_{2}\right)=g_{1} h_{1}=\pi_{1}\left(g_{1}, g_{2}\right) \pi_{1}\left(h_{1}, h_{2}\right)
+$$</div></p>
+<p>类似地，由 <span class="math-inline" data-tex="\pi_{1}\left(g_{1}, g_{2}\right)=g_{2}">$\pi_{1}\left(g_{1}, g_{2}\right)=g_{2}$</span> 定义的函数 <span class="math-inline" data-tex="\pi_{2}: G_{1} \times G_{2} \rightarrow G_{2}">$\pi_{2}: G_{1} \times G_{2} \rightarrow G_{2}$</span> 是一个同态。我们称 <span class="math-inline" data-tex="\pi_{1}">$\pi_{1}$</span> 和 <span class="math-inline" data-tex="\pi_{2}">$\pi_{2}$</span> 为到第一和第二因子的投影。</p>
+<p>(12) 第 3 章中讨论的函数 <span class="math-inline" data-tex="P: S_{n} \rightarrow G L_{n}(\mathbb{R})">$P: S_{n} \rightarrow G L_{n}(\mathbb{R})$</span>，定义为</p>
+<p><div class="math-block" data-tex="P(\sigma)\left(\mathbf{e}_{i}\right)=\mathbf{e}_{\sigma(i)}">$$
+P(\sigma)\left(\mathbf{e}_{i}\right)=\mathbf{e}_{\sigma(i)}
+$$</div></p>
+<p>是一个同态。</p>
+<p>(13) 对于群 <span class="math-inline" data-tex="S_{n}">$S_{n}$</span>，符号函数 <span class="math-inline" data-tex="\varepsilon: S_{n} \rightarrow\{ \pm 1\}">$\varepsilon: S_{n} \rightarrow\{ \pm 1\}$</span> 是一个同态。</p>
+<p>例 1.1.3。以下不是同态：</p>
+<p>(1) 由 <span class="math-inline" data-tex="f(n)=n+1">$f(n)=n+1$</span> 定义的函数 <span class="math-inline" data-tex="f: \mathbb{Z} \rightarrow \mathbb{Z}">$f: \mathbb{Z} \rightarrow \mathbb{Z}$</span>。在这种情况下。</p>
+<p><div class="math-block" data-tex="f(n+m)=n+m+1 \neq f(n)+f(m)=n+m+2 .">$$
+f(n+m)=n+m+1 \neq f(n)+f(m)=n+m+2 .
+$$</div></p>
+<p>(2) 由 <span class="math-inline" data-tex="f(n)=n^{2}">$f(n)=n^{2}$</span> 定义的函数 <span class="math-inline" data-tex="f: \mathbb{Z} \rightarrow \mathbb{Z}">$f: \mathbb{Z} \rightarrow \mathbb{Z}$</span>。在这种情况下，</p>
+<p><div class="math-block" data-tex="f(n+m)=(n+m)^{2}=n^{2}+2 n m+m^{2} \neq n^{2}+m^{2},">$$
+f(n+m)=(n+m)^{2}=n^{2}+2 n m+m^{2} \neq n^{2}+m^{2},
+$$</div></p>
+<p>除非 <span class="math-inline" data-tex="n, m">$n, m$</span> 中有一个是 0。类似例子也适用于 <span class="math-inline" data-tex="\mathbb{Q}, \mathbb{R}, \mathbb{C}">$\mathbb{Q}, \mathbb{R}, \mathbb{C}$</span>。</p>
+<p>(3) 欧拉 <span class="math-inline" data-tex="\phi">$\phi$</span>-函数 <span class="math-inline" data-tex="\mathbb{N} \rightarrow \mathbb{N}">$\mathbb{N} \rightarrow \mathbb{N}$</span> 不是同态。首先，<span class="math-inline" data-tex="\mathbb{N}">$\mathbb{N}$</span> 在乘法下甚至不是群。其次，公式 <span class="math-inline" data-tex="\phi(n m)=\phi(n) \phi(m)">$\phi(n m)=\phi(n) \phi(m)$</span> 仅在 <span class="math-inline" data-tex="n">$n$</span> 和 <span class="math-inline" data-tex="m">$m$</span> 互质时成立，而不是对所有 <span class="math-inline" data-tex="n">$n$</span> 和 <span class="math-inline" data-tex="m">$m$</span> 都成立。</p>
+<p>(4) 对于一般的群 <span class="math-inline" data-tex="G">$G$</span> (乘法表示)，如果 <span class="math-inline" data-tex="G">$G$</span> 不是阿贝尔群，则函数 <span class="math-inline" data-tex="f(g)=g^{-1}">$f(g)=g^{-1}$</span> 不是同态。类似地，<span class="math-inline" data-tex="f(g)=g^{2}">$f(g)=g^{2}$</span> 是同态 <span class="math-inline" data-tex="\Longleftrightarrow G">$\Longleftrightarrow G$</span> 是阿贝尔群，因为</p>
+<p><div class="math-block" data-tex="f(g h)=(g h)^{2}=g h g h,">$$
+f(g h)=(g h)^{2}=g h g h,
+$$</div></p>
+<p>且 <span class="math-inline" data-tex="g h g h=g^{2} h^{2} \Longleftrightarrow g h=h g">$g h g h=g^{2} h^{2} \Longleftrightarrow g h=h g$</span>。</p>
+<p>以下是同态的一个直接性质：</p>
+<p>命题 1.1.4。设 <span class="math-inline" data-tex="G">$G$</span> 和 <span class="math-inline" data-tex="H">$H$</span> 是群，乘法表示，且 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span> 是一个同态。那么</p>
+<p>(i) <span class="math-inline" data-tex="f(1)=1">$f(1)=1$</span>，其中左边的 1 是 <span class="math-inline" data-tex="G">$G$</span> 中的单位元，右边的 1 是 <span class="math-inline" data-tex="H">$H$</span> 中的单位元。换句话说，<span class="math-inline" data-tex="f">$f$</span> 将 <span class="math-inline" data-tex="G">$G$</span> 中的单位元映射到 <span class="math-inline" data-tex="H">$H$</span> 中的单位元。</p>
+<p>(ii) 对于所有 <span class="math-inline" data-tex="g \in G, f\left(g^{-1}\right)=(f(g))^{-1}">$g \in G, f\left(g^{-1}\right)=(f(g))^{-1}$</span>。</p>
+<p>证明。(i) 由于 <span class="math-inline" data-tex="1 \cdot 1=1, f(1 \cdot 1)=f(1)">$1 \cdot 1=1, f(1 \cdot 1)=f(1)$</span>。但 <span class="math-inline" data-tex="f(1 \cdot 1)=f(1) f(1)">$f(1 \cdot 1)=f(1) f(1)$</span>。因此 <span class="math-inline" data-tex="f(1) f(1)=f(1)">$f(1) f(1)=f(1)$</span>。消去后，我们得到 <span class="math-inline" data-tex="f(1)=1">$f(1)=1$</span>。(ii) 我们有 <span class="math-inline" data-tex="f\left(g g^{-1}\right)=f(1)=1">$f\left(g g^{-1}\right)=f(1)=1$</span>，由 (i) 得到。但 <span class="math-inline" data-tex="f\left(g g^{-1}\right)=f(g) f\left(g^{-1}\right)">$f\left(g g^{-1}\right)=f(g) f\left(g^{-1}\right)$</span>。因此 <span class="math-inline" data-tex="f(g) f\left(g^{-1}\right)=1">$f(g) f\left(g^{-1}\right)=1$</span>，所以 <span class="math-inline" data-tex="f\left(g^{-1}\right)=(f(g))^{-1}">$f\left(g^{-1}\right)=(f(g))^{-1}$</span>。</p>
+<p>该命题的许多例子应该都很熟悉。例如，对于上面 (4) 中的同态 <span class="math-inline" data-tex="\operatorname{det:} G L_{n}(\mathbb{R}) \rightarrow \mathbb{R}^{*}">$\operatorname{det:} G L_{n}(\mathbb{R}) \rightarrow \mathbb{R}^{*}$</span>，我们有熟悉的性质 <span class="math-inline" data-tex="\operatorname{det}(I)=1">$\operatorname{det}(I)=1$</span> 和 <span class="math-inline" data-tex="\operatorname{det}\left(A^{-1}\right)= (\operatorname{det} A)^{-1}">$\operatorname{det}\left(A^{-1}\right)= (\operatorname{det} A)^{-1}$</span>。类似地，对于实或复指数 <span class="math-inline" data-tex="e^{z}">$e^{z}$</span>，我们知道 <span class="math-inline" data-tex="e^{0}=1">$e^{0}=1$</span> 并且 <span class="math-inline" data-tex="e^{-z}=1 / e^{z}">$e^{-z}=1 / e^{z}$</span>。</p>
+<p>命题 1.1.5。设 <span class="math-inline" data-tex="G_{1}, G_{2}, G_{3}">$G_{1}, G_{2}, G_{3}$</span> 是群，且 <span class="math-inline" data-tex="f_{1}: G_{1} \rightarrow G_{2}">$f_{1}: G_{1} \rightarrow G_{2}$</span> 和 <span class="math-inline" data-tex="f_{2}: G_{2} \rightarrow G_{3}">$f_{2}: G_{2} \rightarrow G_{3}$</span> 是同态。那么 <span class="math-inline" data-tex="f_{2} \circ f_{1}: G_{1} \rightarrow G_{3}">$f_{2} \circ f_{1}: G_{1} \rightarrow G_{3}$</span> 是一个同态。换句话说，两个同态的复合仍然是同态。</p>
+<p>证明。这是一个直接的计算，留作练习。</p>
+<p>例如，假设 <span class="math-inline" data-tex="f: G_{1} \rightarrow H_{2}">$f: G_{1} \rightarrow H_{2}$</span> 是一个同态，并且 <span class="math-inline" data-tex="H_{2}">$H_{2}$</span> 是群 <span class="math-inline" data-tex="G_{2}">$G_{2}$</span> 的一个子群。设 <span class="math-inline" data-tex="i: H_{2} \rightarrow G_{2}">$i: H_{2} \rightarrow G_{2}$</span> 是内射，根据例 1.1.2 的 (2) 它是一个同态。那么 <span class="math-inline" data-tex="i \circ f">$i \circ f$</span> 是一个同态。同样，同态到子群的限制也是一个同态（定义在该子群上）。</p>
+</section>
+
+<section class="content-section" id="section-4">
+    <h4>1. 2. 核和像</h4>
+    <p>命题 1.2.1。设 <span class="math-inline" data-tex="G_{1}">$G_{1}$</span> 和 <span class="math-inline" data-tex="G_{2}">$G_{2}$</span> 是群，且 <span class="math-inline" data-tex="f: G_{1} \rightarrow G_{2}">$f: G_{1} \rightarrow G_{2}$</span> 是一个同态。</p>
+<p>(i) 如果 <span class="math-inline" data-tex="H_{1} \leq G_{1}">$H_{1} \leq G_{1}$</span>，那么 <span class="math-inline" data-tex="f\left(H_{1}\right) \leq G_{2}">$f\left(H_{1}\right) \leq G_{2}$</span>。换句话说，子群的像是一个子群。</p>
+<p>(ii) 如果 <span class="math-inline" data-tex="H_{2} \leq G_{2}">$H_{2} \leq G_{2}$</span>，那么 <span class="math-inline" data-tex="f^{-1}\left(H_{2}\right) \leq G_{1}">$f^{-1}\left(H_{2}\right) \leq G_{1}$</span>。换句话说，子群的原像是一个子群。</p>
+<p>证明。(i) 我们需要检查封闭性、单位元和逆元。封闭性：假设给出 <span class="math-inline" data-tex="f\left(H_{1}\right)">$f\left(H_{1}\right)$</span> 的两个元素，它们必然是形如 <span class="math-inline" data-tex="f(h)">$f(h)$</span> 和 <span class="math-inline" data-tex="f\left(h^{\prime}\right)">$f\left(h^{\prime}\right)$</span>，其中 <span class="math-inline" data-tex="h, h^{\prime} \in H_{1}">$h, h^{\prime} \in H_{1}$</span>。那么 <span class="math-inline" data-tex="f(h) f\left(h^{\prime}\right)= f\left(h h^{\prime}\right)">$f(h) f\left(h^{\prime}\right)= f\left(h h^{\prime}\right)$</span>。由于 <span class="math-inline" data-tex="H_{1}">$H_{1}$</span> 是 <span class="math-inline" data-tex="G_{1}">$G_{1}$</span> 的子群，<span class="math-inline" data-tex="h h^{\prime} \in H_{1}">$h h^{\prime} \in H_{1}$</span>。根据定义，<span class="math-inline" data-tex="f\left(h h^{\prime}\right) \in f\left(H_{1}\right)">$f\left(h h^{\prime}\right) \in f\left(H_{1}\right)$</span>。因此，乘积 <span class="math-inline" data-tex="f(h) f\left(h^{\prime}\right) \in f\left(H_{1}\right)">$f(h) f\left(h^{\prime}\right) \in f\left(H_{1}\right)$</span>，所以 <span class="math-inline" data-tex="f\left(H_{1}\right)">$f\left(H_{1}\right)$</span> 在乘法下是封闭的。单位元：由于 <span class="math-inline" data-tex="H_{1}">$H_{1}$</span> 是 <span class="math-inline" data-tex="G_{1}">$G_{1}$</span> 的子群，<span class="math-inline" data-tex="1 \in H_{1}">$1 \in H_{1}$</span>。那么 <span class="math-inline" data-tex="f(1) \in f\left(H_{1}\right)">$f(1) \in f\left(H_{1}\right)$</span>。根据命题 1.1.4 的 (i)，<span class="math-inline" data-tex="f(1)=1">$f(1)=1$</span>。因此 <span class="math-inline" data-tex="1 \in f\left(H_{1}\right)">$1 \in f\left(H_{1}\right)$</span>。逆元：给定 <span class="math-inline" data-tex="f\left(H_{1}\right)">$f\left(H_{1}\right)$</span> 的一个元素，必然是形如 <span class="math-inline" data-tex="f(h)">$f(h)$</span>，其中 <span class="math-inline" data-tex="h \in H_{1}">$h \in H_{1}$</span>，根据命题 1.1.4 的 (ii)，我们有 <span class="math-inline" data-tex="(f(h))^{-1}=f\left(h^{-1}\right)">$(f(h))^{-1}=f\left(h^{-1}\right)$</span>。由于 <span class="math-inline" data-tex="H_{1}">$H_{1}$</span> 是 <span class="math-inline" data-tex="G_{1}">$G_{1}$</span> 的子群，<span class="math-inline" data-tex="h^{-1} \in H_{1}">$h^{-1} \in H_{1}$</span>。因此 <span class="math-inline" data-tex="f\left(h^{-1}\right)=(f(h))^{-1} \in f\left(H_{1}\right)">$f\left(h^{-1}\right)=(f(h))^{-1} \in f\left(H_{1}\right)$</span>。因此 <span class="math-inline" data-tex="f\left(H_{1}\right)">$f\left(H_{1}\right)$</span> 在取逆元下是封闭的，所以是 <span class="math-inline" data-tex="G_{2}">$G_{2}$</span> 的一个子群。</p>
+<p>(ii) 回顾一下，根据定义，<span class="math-inline" data-tex="f^{-1}\left(H_{2}\right)=\left\{g \in G_{1}: f(g) \in H_{2}\right\}">$f^{-1}\left(H_{2}\right)=\left\{g \in G_{1}: f(g) \in H_{2}\right\}$</span>。同样我们必须检查封闭性、单位元和逆元。封闭性：假设给出 <span class="math-inline" data-tex="f^{-1}\left(H_{2}\right)">$f^{-1}\left(H_{2}\right)$</span> 的两个元素 <span class="math-inline" data-tex="g, g^{\prime}">$g, g^{\prime}$</span>。我们必须证明 <span class="math-inline" data-tex="g g^{\prime} \in f^{-1}\left(H_{2}\right)">$g g^{\prime} \in f^{-1}\left(H_{2}\right)$</span>。根据定义，<span class="math-inline" data-tex="f(g), f\left(g^{\prime}\right) \in H_{2}">$f(g), f\left(g^{\prime}\right) \in H_{2}$</span>，并且我们必须检查 <span class="math-inline" data-tex="f\left(g g^{\prime}\right) \in H_{2}">$f\left(g g^{\prime}\right) \in H_{2}$</span>。但是</p>
+<p><div class="math-block" data-tex="f\left(g g^{\prime}\right)=f(g) f\left(g^{\prime}\right) \in H_{2}">$$
+f\left(g g^{\prime}\right)=f(g) f\left(g^{\prime}\right) \in H_{2}
+$$</div></p>
+<p>因为 <span class="math-inline" data-tex="H_{2} \leq G_{2}">$H_{2} \leq G_{2}$</span> 且 <span class="math-inline" data-tex="f(g), f\left(g^{\prime}\right) \in H_{2}">$f(g), f\left(g^{\prime}\right) \in H_{2}$</span>。因此 <span class="math-inline" data-tex="g g^{\prime} \in f^{-1}\left(H_{2}\right)">$g g^{\prime} \in f^{-1}\left(H_{2}\right)$</span>。单位元：我们必须检查 <span class="math-inline" data-tex="1 \in f^{-1}\left(H_{2}\right)">$1 \in f^{-1}\left(H_{2}\right)$</span>，即 <span class="math-inline" data-tex="f(1) \in H_{2}">$f(1) \in H_{2}$</span>。但根据命题 1.1.4 的 (i)，<span class="math-inline" data-tex="f(1)=1">$f(1)=1$</span>，并且由于 <span class="math-inline" data-tex="H_{2} \leq G_{2}">$H_{2} \leq G_{2}$</span>，<span class="math-inline" data-tex="1 \in H_{2}">$1 \in H_{2}$</span>。因此 <span class="math-inline" data-tex="1 \in f^{-1}\left(H_{2}\right)">$1 \in f^{-1}\left(H_{2}\right)$</span>。逆元：假设 <span class="math-inline" data-tex="g \in f^{-1}\left(H_{2}\right)">$g \in f^{-1}\left(H_{2}\right)$</span>，即 <span class="math-inline" data-tex="f(g) \in H_{2}">$f(g) \in H_{2}$</span>。那么根据命题 1.1.4 的 (ii)，<span class="math-inline" data-tex="f\left(g^{-1}\right)=f(g)^{-1}">$f\left(g^{-1}\right)=f(g)^{-1}$</span>，并且由于 <span class="math-inline" data-tex="f(g) \in H_{2}">$f(g) \in H_{2}$</span> 且 <span class="math-inline" data-tex="H_{2} \leq G_{2}">$H_{2} \leq G_{2}$</span>，<span class="math-inline" data-tex="f(g)^{-1} \in H_{2}">$f(g)^{-1} \in H_{2}$</span>。因此 <span class="math-inline" data-tex="g^{-1} \in f^{-1}\left(H_{2}\right)">$g^{-1} \in f^{-1}\left(H_{2}\right)$</span>。由此可知 <span class="math-inline" data-tex="f^{-1}\left(H_{2}\right) \leq G_{1}">$f^{-1}\left(H_{2}\right) \leq G_{1}$</span>。</p>
+<p>定义 1.2.2。设 <span class="math-inline" data-tex="G_{1}">$G_{1}$</span> 和 <span class="math-inline" data-tex="G_{2}">$G_{2}$</span> 是群，且 <span class="math-inline" data-tex="f: G_{1} \rightarrow G_{2}">$f: G_{1} \rightarrow G_{2}$</span> 是一个同态。<span class="math-inline" data-tex="f">$f$</span> 的像集是子群 <span class="math-inline" data-tex="f\left(G_{1}\right) \leq G_{2}">$f\left(G_{1}\right) \leq G_{2}$</span>；根据命题 1.2.1 的 (i)，它是 <span class="math-inline" data-tex="G_{2}">$G_{2}$</span> 的一个子群。<span class="math-inline" data-tex="f">$f$</span> 的核是子群 <span class="math-inline" data-tex="f^{-1}(1) \leq G_{1}">$f^{-1}(1) \leq G_{1}$</span>，即 1 的原像（或等价地 <span class="math-inline" data-tex="\{1\}">$\{1\}$</span>）。根据命题 1.2.1 的 (ii)，它是 <span class="math-inline" data-tex="G_{1}">$G_{1}$</span> 的一个子群，因为 <span class="math-inline" data-tex="\{1\} \leq G_{2}">$\{1\} \leq G_{2}$</span>。我们分别用 <span class="math-inline" data-tex="\operatorname{Im} f">$\operatorname{Im} f$</span> 和 <span class="math-inline" data-tex="\operatorname{Ker} f">$\operatorname{Ker} f$</span> 表示 <span class="math-inline" data-tex="G_{2}">$G_{2}$</span> 的子群 <span class="math-inline" data-tex="\operatorname{Im} f">$\operatorname{Im} f$</span> 和 <span class="math-inline" data-tex="G_{1}">$G_{1}$</span> 的子群 <span class="math-inline" data-tex="\operatorname{Ker} f">$\operatorname{Ker} f$</span>。为了强调，我们回顾一下</p>
+<p><div class="math-block" data-tex="\operatorname{Ker} f=\left\{g \in G_{1}: f(g)=1\right\} .">$$
+\operatorname{Ker} f=\left\{g \in G_{1}: f(g)=1\right\} .
+$$</div></p>
+<p>如果 <span class="math-inline" data-tex="G_{2}">$G_{2}$</span> 是加法表示，我们将条件 <span class="math-inline" data-tex="f(g)=1">$f(g)=1$</span> 替换为 <span class="math-inline" data-tex="f(g)=0">$f(g)=0$</span>。</p>
+<p>例 1.2.3。我们现在回顾例 1.1.2 的例子，并描述核和像。</p>
+<p>(1) 如果 <span class="math-inline" data-tex="f: G_{1} \rightarrow G_{2}">$f: G_{1} \rightarrow G_{2}$</span> 是一个同构，那么 <span class="math-inline" data-tex="\operatorname{Ker} f=\{1\}">$\operatorname{Ker} f=\{1\}$</span> 且 <span class="math-inline" data-tex="\operatorname{Im} f=G_{2}">$\operatorname{Im} f=G_{2}$</span>。</p>
+<p>(2) 如果 <span class="math-inline" data-tex="i: H \rightarrow G">$i: H \rightarrow G$</span> 是子群的内射，那么 <span class="math-inline" data-tex="\operatorname{Ker} i=\{1\}">$\operatorname{Ker} i=\{1\}$</span> 且 <span class="math-inline" data-tex="\operatorname{Im} i=H">$\operatorname{Im} i=H$</span>。</p>
+<p>(3) 如果 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span> 是平凡同态，那么 <span class="math-inline" data-tex="\operatorname{Ker} f=G">$\operatorname{Ker} f=G$</span> 且 <span class="math-inline" data-tex="\operatorname{Im} f=\{1\}">$\operatorname{Im} f=\{1\}$</span>。显然，同态 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span> 是平凡同态 <span class="math-inline" data-tex="\Longleftrightarrow \operatorname{Ker} f=G">$\Longleftrightarrow \operatorname{Ker} f=G$</span>。</p>
+<p>(4) <span class="math-inline" data-tex="\operatorname{det}: G L_{n}(\mathbb{R}) \rightarrow \mathbb{R}^{*}">$\operatorname{det}: G L_{n}(\mathbb{R}) \rightarrow \mathbb{R}^{*}$</span> 的核按定义是 <span class="math-inline" data-tex="S L_{n}(\mathbb{R})">$S L_{n}(\mathbb{R})$</span>。det 的像集是 <span class="math-inline" data-tex="\mathbb{R}^{*}">$\mathbb{R}^{*}$</span>，因为 det 是满射。</p>
+<p>(5) 如果 <span class="math-inline" data-tex="f: \mathbb{C} \rightarrow \mathbb{C}^{*}">$f: \mathbb{C} \rightarrow \mathbb{C}^{*}$</span> 是复指数，<span class="math-inline" data-tex="f(z)=e^{z}">$f(z)=e^{z}$</span>，那么 <span class="math-inline" data-tex="\operatorname{Ker} f=\{2 n \pi i: n \in \mathbb{Z}\}=\langle 2 \pi i\rangle">$\operatorname{Ker} f=\{2 n \pi i: n \in \mathbb{Z}\}=\langle 2 \pi i\rangle$</span>，且 <span class="math-inline" data-tex="\operatorname{Im} f=\mathbb{C}^{*}">$\operatorname{Im} f=\mathbb{C}^{*}$</span> 因为复指数是满射。对于实指数 <span class="math-inline" data-tex="e^{x}: \mathbb{R} \rightarrow \mathbb{R}^{*}">$e^{x}: \mathbb{R} \rightarrow \mathbb{R}^{*}$</span>，<span class="math-inline" data-tex="\operatorname{Ker} e^{x}=\{0\}">$\operatorname{Ker} e^{x}=\{0\}$</span> 且 <span class="math-inline" data-tex="\operatorname{Im} e^{x}=\mathbb{R}^{&gt;0}">$\operatorname{Im} e^{x}=\mathbb{R}^{&gt;0}$</span>，即正实数子群。</p>
+<p>(6) 对于由 <span class="math-inline" data-tex="f(z)=|z|">$f(z)=|z|$</span> 定义的绝对值函数 <span class="math-inline" data-tex="f: \mathbb{C}^{*} \rightarrow \mathbb{R}^{*}">$f: \mathbb{C}^{*} \rightarrow \mathbb{R}^{*}$</span>，<span class="math-inline" data-tex="\operatorname{Ker} f=U(1)">$\operatorname{Ker} f=U(1)$</span> (按定义)，且 <span class="math-inline" data-tex="\operatorname{Im} f=\mathbb{R}^{&gt;0}">$\operatorname{Im} f=\mathbb{R}^{&gt;0}$</span>。</p>
+<p>(7) 对于符号函数 <span class="math-inline" data-tex="\operatorname{sign}: \mathbb{R}^{*} \rightarrow\{ \pm 1\}">$\operatorname{sign}: \mathbb{R}^{*} \rightarrow\{ \pm 1\}$</span>，<span class="math-inline" data-tex="\operatorname{Ker} \operatorname{sign}=\mathbb{R}^{&gt;0}">$\operatorname{Ker} \operatorname{sign}=\mathbb{R}^{&gt;0}$</span>，且 <span class="math-inline" data-tex="\operatorname{Im} \operatorname{sign}=\{ \pm 1\}">$\operatorname{Im} \operatorname{sign}=\{ \pm 1\}$</span>。</p>
+<p>(8) 如果 <span class="math-inline" data-tex="F: \mathbb{R}^{n} \rightarrow \mathbb{R}^{m}">$F: \mathbb{R}^{n} \rightarrow \mathbb{R}^{m}$</span> 是一个线性映射，对应于矩阵 <span class="math-inline" data-tex="A">$A$</span>，那么 <span class="math-inline" data-tex="\operatorname{Ker} F">$\operatorname{Ker} F$</span> 通常被称为 <span class="math-inline" data-tex="F">$F$</span> 的核或零空间。</p>
+<p>(9) 对于由 <span class="math-inline" data-tex="f(t)=t^{n}">$f(t)=t^{n}$</span> 定义的函数 <span class="math-inline" data-tex="f: \mathbb{Q}^{*} \rightarrow \mathbb{Q}^{*}">$f: \mathbb{Q}^{*} \rightarrow \mathbb{Q}^{*}$</span>，当 <span class="math-inline" data-tex="n">$n$</span> 为奇数时 <span class="math-inline" data-tex="\operatorname{Ker} f=\{1\}">$\operatorname{Ker} f=\{1\}$</span>，当 <span class="math-inline" data-tex="n">$n$</span> 为偶数时是 <span class="math-inline" data-tex="\{ \pm 1\}">$\{ \pm 1\}$</span>。<span class="math-inline" data-tex="f">$f$</span> 的像集较难描述；它是 <span class="math-inline" data-tex="n">$n$</span> 次幂的全体有理数集合。对于类似的函数 <span class="math-inline" data-tex="f: \mathbb{R}^{*} \rightarrow \mathbb{R}^{*}">$f: \mathbb{R}^{*} \rightarrow \mathbb{R}^{*}$</span> (我们粗心地也用 <span class="math-inline" data-tex="f">$f$</span> 表示)，仍然是当 <span class="math-inline" data-tex="n">$n$</span> 为奇数时 <span class="math-inline" data-tex="\operatorname{Ker} f=\{1\}">$\operatorname{Ker} f=\{1\}$</span>，当 <span class="math-inline" data-tex="n">$n$</span> 为偶数时是 <span class="math-inline" data-tex="\{ \pm 1\}">$\{ \pm 1\}$</span>。在这种情况下，当 <span class="math-inline" data-tex="n">$n$</span> 为奇数时 <span class="math-inline" data-tex="\operatorname{Im} f=\mathbb{R}^{*}">$\operatorname{Im} f=\mathbb{R}^{*}$</span>，当 <span class="math-inline" data-tex="n">$n$</span> 为偶数时 <span class="math-inline" data-tex="\operatorname{Im} f=\mathbb{R}^{&gt;0}">$\operatorname{Im} f=\mathbb{R}^{&gt;0}$</span>。最后，对于由 <span class="math-inline" data-tex="f(z)=z^{n}">$f(z)=z^{n}$</span> 定义的 <span class="math-inline" data-tex="f: \mathbb{C}^{*} \rightarrow \mathbb{C}^{*}">$f: \mathbb{C}^{*} \rightarrow \mathbb{C}^{*}$</span>，且 <span class="math-inline" data-tex="n&gt;0">$n&gt;0$</span>，<span class="math-inline" data-tex="\operatorname{Ker} f=\mu_{n}">$\operatorname{Ker} f=\mu_{n}$</span> (按定义)，其中 <span class="math-inline" data-tex="\#\left(\mu_{n}\right)=n">$\#\left(\mu_{n}\right)=n$</span>，且 <span class="math-inline" data-tex="\operatorname{Im} f=\mathbb{C}^{*}">$\operatorname{Im} f=\mathbb{C}^{*}$</span> (每个复数都是一个 <span class="math-inline" data-tex="n">$n$</span> 次幂)。如果 <span class="math-inline" data-tex="n&lt;0">$n&lt;0$</span> 会怎样？如果 <span class="math-inline" data-tex="n=0">$n=0$</span> 会怎样？对于任意阿贝尔群 <span class="math-inline" data-tex="G">$G$</span>，为简单起见取 <span class="math-inline" data-tex="n \in \mathbb{N}">$n \in \mathbb{N}$</span>，对于由 <span class="math-inline" data-tex="f(g)=g^{n}">$f(g)=g^{n}$</span> 定义的函数 <span class="math-inline" data-tex="f: G \rightarrow G">$f: G \rightarrow G$</span>，<span class="math-inline" data-tex="\operatorname{Ker} f">$\operatorname{Ker} f$</span> 是 <span class="math-inline" data-tex="G">$G$</span> 的 <span class="math-inline" data-tex="n">$n$</span>-挠点子群（这在练习 2.21 中定义），<span class="math-inline" data-tex="\operatorname{Im} f">$\operatorname{Im} f$</span> 是 <span class="math-inline" data-tex="n">$n$</span> 次幂的子群。</p>
+<p>(10) 给定一个群 <span class="math-inline" data-tex="G">$G$</span>（乘法表示）和一个元素 <span class="math-inline" data-tex="g \in G">$g \in G$</span>，对于由 <span class="math-inline" data-tex="f(n)=g^{n}">$f(n)=g^{n}$</span> 定义的函数 <span class="math-inline" data-tex="f: \mathbb{Z} \rightarrow G">$f: \mathbb{Z} \rightarrow G$</span>，如果 <span class="math-inline" data-tex="g">$g$</span> 有无限阶，则 <span class="math-inline" data-tex="\operatorname{Ker} f=\{0\}">$\operatorname{Ker} f=\{0\}$</span>；如果 <span class="math-inline" data-tex="g">$g$</span> 有有限阶 <span class="math-inline" data-tex="n">$n$</span>，则 <span class="math-inline" data-tex="\operatorname{Ker} f=\langle n\rangle">$\operatorname{Ker} f=\langle n\rangle$</span>。根据定义，<span class="math-inline" data-tex="\operatorname{Im} f=\langle g\rangle">$\operatorname{Im} f=\langle g\rangle$</span>。对于由 <span class="math-inline" data-tex="f(a)=[a]">$f(a)=[a]$</span> 定义的特殊情况 <span class="math-inline" data-tex="\mathbb{Z} \rightarrow \mathbb{Z} / n \mathbb{Z}">$\mathbb{Z} \rightarrow \mathbb{Z} / n \mathbb{Z}$</span>，<span class="math-inline" data-tex="\operatorname{Ker} f=\langle n\rangle">$\operatorname{Ker} f=\langle n\rangle$</span> 且 <span class="math-inline" data-tex="\operatorname{Im} f=\mathbb{Z} / n \mathbb{Z}">$\operatorname{Im} f=\mathbb{Z} / n \mathbb{Z}$</span>。</p>
+<p>(11) 对于由 <span class="math-inline" data-tex="\pi_{1}\left(g_{1}, g_{2}\right)=g_{1}">$\pi_{1}\left(g_{1}, g_{2}\right)=g_{1}$</span> 定义的 <span class="math-inline" data-tex="\pi_{1}: G_{1} \times G_{2} \rightarrow G_{1}">$\pi_{1}: G_{1} \times G_{2} \rightarrow G_{1}$</span>，<span class="math-inline" data-tex="\operatorname{Ker} \pi_{1}=\{1\} \times G_{2}">$\operatorname{Ker} \pi_{1}=\{1\} \times G_{2}$</span> 且 <span class="math-inline" data-tex="\operatorname{Im} \pi_{1}=G_{1}">$\operatorname{Im} \pi_{1}=G_{1}$</span>。类似地，<span class="math-inline" data-tex="\operatorname{Ker} \pi_{2}=G_{1} \times\{1\}">$\operatorname{Ker} \pi_{2}=G_{1} \times\{1\}$</span> 且 <span class="math-inline" data-tex="\operatorname{Im} \pi_{2}=G_{2}">$\operatorname{Im} \pi_{2}=G_{2}$</span>。</p>
+<p>(12) 对于由 <span class="math-inline" data-tex="P(\sigma)\left(\mathbf{e}_{i}\right)=\mathbf{e}_{\sigma(i)}">$P(\sigma)\left(\mathbf{e}_{i}\right)=\mathbf{e}_{\sigma(i)}$</span> 定义的同态 <span class="math-inline" data-tex="P: S_{n} \rightarrow G L_{n}(\mathbb{R})">$P: S_{n} \rightarrow G L_{n}(\mathbb{R})$</span>，很容易看出 <span class="math-inline" data-tex="P">$P$</span> 是单射。根据定义，<span class="math-inline" data-tex="\operatorname{Im} P">$\operatorname{Im} P$</span> 是 <span class="math-inline" data-tex="G L_{n}(\mathbb{R})">$G L_{n}(\mathbb{R})$</span> 中置换矩阵的子群。</p>
+<p>(13) 对于群 <span class="math-inline" data-tex="S_{n}">$S_{n}$</span> 和同态 <span class="math-inline" data-tex="\varepsilon: S_{n} \rightarrow\{ \pm 1\}">$\varepsilon: S_{n} \rightarrow\{ \pm 1\}$</span>，<span class="math-inline" data-tex="\operatorname{Ker} \varepsilon=A_{n}">$\operatorname{Ker} \varepsilon=A_{n}$</span> (按定义)，且只要 <span class="math-inline" data-tex="n \geq 2">$n \geq 2$</span>，<span class="math-inline" data-tex="\operatorname{Im} \varepsilon=\{ \pm 1\}">$\operatorname{Im} \varepsilon=\{ \pm 1\}$</span>。</p>
+<p>关于同态的一个重要事实如下（你可能在线性代数中见过线性映射的相应表述）：</p>
+<p>命题 1.2.4。设 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span> 是一个同态。那么 <span class="math-inline" data-tex="f">$f$</span> 是单射 <span class="math-inline" data-tex="\Longleftrightarrow \operatorname{Ker} f=\{1\}">$\Longleftrightarrow \operatorname{Ker} f=\{1\}$</span>。</p>
+<p>证明。<span class="math-inline" data-tex="\implies">$\implies$</span>: 假设 <span class="math-inline" data-tex="f">$f$</span> 是单射。我们必须证明 <span class="math-inline" data-tex="h \in \operatorname{Ker} f \Longleftrightarrow h=1">$h \in \operatorname{Ker} f \Longleftrightarrow h=1$</span>。注意 <span class="math-inline" data-tex="1 \in \operatorname{Ker} f">$1 \in \operatorname{Ker} f$</span>。反之，如果 <span class="math-inline" data-tex="h \in \operatorname{Ker} f">$h \in \operatorname{Ker} f$</span>，那么根据定义 <span class="math-inline" data-tex="f(h)=1=f(1)">$f(h)=1=f(1)$</span>。由于 <span class="math-inline" data-tex="f">$f$</span> 是单射，<span class="math-inline" data-tex="h=1">$h=1$</span>。</p>
+<p><span class="math-inline" data-tex="\Longleftarrow">$\Longleftarrow$</span>: 假设 <span class="math-inline" data-tex="\operatorname{Ker} f=\{1\}">$\operatorname{Ker} f=\{1\}$</span>。如果 <span class="math-inline" data-tex="f\left(g_{1}\right)=f\left(g_{2}\right)">$f\left(g_{1}\right)=f\left(g_{2}\right)$</span>，那么 <span class="math-inline" data-tex="\left(f\left(g_{1}\right)\right)^{-1} f\left(g_{2}\right)=1">$\left(f\left(g_{1}\right)\right)^{-1} f\left(g_{2}\right)=1$</span>。根据命题 1.1.4 的 (ii)，<span class="math-inline" data-tex="\left(f\left(g_{1}\right)\right)^{-1}=f\left(g_{1}^{-1}\right)">$\left(f\left(g_{1}\right)\right)^{-1}=f\left(g_{1}^{-1}\right)$</span>。因此</p>
+<p><div class="math-block" data-tex="1=\left(f\left(g_{1}\right)\right)^{-1} f\left(g_{2}\right)=f\left(g_{1}^{-1}\right) f\left(g_{2}\right)=f\left(g_{1}^{-1} g_{2}\right)">$$
+1=\left(f\left(g_{1}\right)\right)^{-1} f\left(g_{2}\right)=f\left(g_{1}^{-1}\right) f\left(g_{2}\right)=f\left(g_{1}^{-1} g_{2}\right)
+$$</div></p>
+<p>由此可知 <span class="math-inline" data-tex="g_{1}^{-1} g_{2} \in \operatorname{Ker} f">$g_{1}^{-1} g_{2} \in \operatorname{Ker} f$</span>，因此根据假设 <span class="math-inline" data-tex="g_{1}^{-1} g_{2}=1">$g_{1}^{-1} g_{2}=1$</span>。因此 <span class="math-inline" data-tex="g_{1}=g_{2}">$g_{1}=g_{2}$</span>，<span class="math-inline" data-tex="f">$f$</span> 是单射。</p>
+<p>注 1.2.5。上述证明更一般地表明，如果 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span> 是任意同态，且 <span class="math-inline" data-tex="g_{1}, g_{2} \in G">$g_{1}, g_{2} \in G$</span>，那么 <span class="math-inline" data-tex="f\left(g_{1}\right)=f\left(g_{2}\right) \Longleftrightarrow">$f\left(g_{1}\right)=f\left(g_{2}\right) \Longleftrightarrow$</span> 存在一个元素 <span class="math-inline" data-tex="k \in \operatorname{Ker} f">$k \in \operatorname{Ker} f$</span> 使得 <span class="math-inline" data-tex="g_{2}=g_{1} k">$g_{2}=g_{1} k$</span>。</p>
+</section>
+
+<section class="content-section" id="section-5">
+    <h4>1. 3. 凯莱定理</h4>
+    <p>一般而言，设 <span class="math-inline" data-tex="f: G \rightarrow G^{\prime}">$f: G \rightarrow G^{\prime}$</span> 是一个单射同态。那么 <span class="math-inline" data-tex="\operatorname{Im} f=H \leq G^{\prime}">$\operatorname{Im} f=H \leq G^{\prime}$</span> 是 <span class="math-inline" data-tex="G^{\prime}">$G^{\prime}$</span> 的一个子群，并且存在一个诱导同态（我们仍然粗心地用 <span class="math-inline" data-tex="f">$f$</span> 表示）从 <span class="math-inline" data-tex="G">$G$</span> 到 <span class="math-inline" data-tex="H">$H$</span>。这个诱导同态仍然是单射，并且根据定义它现在是满射，因此是一个同构。因此，一个单射同态 <span class="math-inline" data-tex="f: G \rightarrow G^{\prime}">$f: G \rightarrow G^{\prime}$</span> 定义了从 <span class="math-inline" data-tex="G">$G$</span> 到 <span class="math-inline" data-tex="G^{\prime}">$G^{\prime}$</span> 的一个子群的同构。反之，如果 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span> 是从 <span class="math-inline" data-tex="G">$G$</span> 到 <span class="math-inline" data-tex="G^{\prime}">$G^{\prime}$</span> 的一个子群 <span class="math-inline" data-tex="H">$H$</span> 的同构，且 <span class="math-inline" data-tex="i: H \rightarrow G^{\prime}">$i: H \rightarrow G^{\prime}$</span> 是内射同态，那么 <span class="math-inline" data-tex="i \circ f: G \rightarrow G^{\prime}">$i \circ f: G \rightarrow G^{\prime}$</span> 是一个单射同态。总而言之，一个单射同态 <span class="math-inline" data-tex="f: G \rightarrow G^{\prime}">$f: G \rightarrow G^{\prime}$</span> 等价于从 <span class="math-inline" data-tex="G">$G$</span> 到 <span class="math-inline" data-tex="G^{\prime}">$G^{\prime}$</span> 的一个子群的同构。</p>
+<p>定理 1.3.1 (凯莱定理)。设 <span class="math-inline" data-tex="G">$G$</span> 是一个有限群。那么存在一个 <span class="math-inline" data-tex="n \in \mathbb{N}">$n \in \mathbb{N}$</span> 使得 <span class="math-inline" data-tex="G">$G$</span> 同构于 <span class="math-inline" data-tex="S_{n}">$S_{n}$</span> 的一个子群。</p>
+<p>注 1.3.2。(i) 证明将表明我们可以取 <span class="math-inline" data-tex="n=\#(G)">$n=\#(G)$</span>。</p>
+<p>(ii) 在代数的早期，所有研究的有限群都明确地作为 <span class="math-inline" data-tex="S_{n}">$S_{n}$</span> 的子群给出，因此这个定理并没有什么真正的实质内容。</p>
+<p>凯莱定理的证明。设 <span class="math-inline" data-tex="G">$G$</span> 是任意群，有限或无限。我们将构造一个单射同态 <span class="math-inline" data-tex="f: G \rightarrow S_{G}">$f: G \rightarrow S_{G}$</span>。令 <span class="math-inline" data-tex="H=\operatorname{Im} f">$H=\operatorname{Im} f$</span>，存在一个相应的同态（我们再次粗心地用 <span class="math-inline" data-tex="f">$f$</span> 表示）从 <span class="math-inline" data-tex="G">$G$</span> 到 <span class="math-inline" data-tex="H">$H$</span>。那么 <span class="math-inline" data-tex="f">$f$</span> 仍然是单射，并且根据定义它已经变为满射，因此它是一个同构。最后，取 <span class="math-inline" data-tex="G">$G$</span> 为有限群，将 <span class="math-inline" data-tex="G">$G$</span> 的元素列举为 <span class="math-inline" data-tex="g_{1}, \ldots, g_{n}">$g_{1}, \ldots, g_{n}$</span>，其中 <span class="math-inline" data-tex="n=\#(G)">$n=\#(G)$</span>，定义了一个同构 <span class="math-inline" data-tex="h: S_{G} \rightarrow S_{n}">$h: S_{G} \rightarrow S_{n}$</span>。用 <span class="math-inline" data-tex="h \circ f">$h \circ f$</span> 替换上面的同态 <span class="math-inline" data-tex="f: G \rightarrow H">$f: G \rightarrow H$</span> 得到从 <span class="math-inline" data-tex="G">$G$</span> 到 <span class="math-inline" data-tex="S_{n}">$S_{n}$</span> 的一个子群的同构。</p>
+<p>为了找到同态 <span class="math-inline" data-tex="f">$f$</span>，我们必须对于 <span class="math-inline" data-tex="G">$G$</span> 中的每个 <span class="math-inline" data-tex="g">$g$</span>，找到一个双射 <span class="math-inline" data-tex="\ell_{g}: G \rightarrow G">$\ell_{g}: G \rightarrow G$</span>。<span class="math-inline" data-tex="\ell_{g}">$\ell_{g}$</span> 的定义早在我们学习群论的最初几天就已预示：定义 <span class="math-inline" data-tex="\ell_{g}: G \rightarrow G">$\ell_{g}: G \rightarrow G$</span> 为 <span class="math-inline" data-tex="\ell_{g}(x)=g x">$\ell_{g}(x)=g x$</span>。因此函数 <span class="math-inline" data-tex="\ell_{g}">$\ell_{g}$</span> 是左乘 <span class="math-inline" data-tex="g">$g$</span> 的运算，这就是选择字母 <span class="math-inline" data-tex="\ell">$\ell$</span> 的原因。我们已经看到，对于每个 <span class="math-inline" data-tex="g">$g$</span>，<span class="math-inline" data-tex="\ell_{g}">$\ell_{g}$</span> 是一个双射，即是 <span class="math-inline" data-tex="S_{G}">$S_{G}$</span> 的一个元素（群讲义的推论 3.4）。然后定义 <span class="math-inline" data-tex="f: G \rightarrow S_{G}">$f: G \rightarrow S_{G}$</span> 为：</p>
+<p><div class="math-block" data-tex="f(g)=\ell_{g}">$$
 f(g)=\ell_{g}
-$$</div></p><p>我们首先检查 <span class="math-inline" data-tex="f">$f$</span> 是否是同态。我们必须证明 <span class="math-inline" data-tex="f(g h)=f(g) f(h)">$f(g h)=f(g) f(h)$</span>，或等价地 <span class="math-inline" data-tex="\ell_{g h}=\ell_{g} \circ \ell_{h}">$\ell_{g h}=\ell_{g} \circ \ell_{h}$</span>。为了检查函数相等性，我们检查对于 <span class="math-inline" data-tex="G">$G$</span> 中的每个 <span class="math-inline" data-tex="x">$x$</span>，它们的值是否相等。但是</p><p><div class="math-block" data-tex="\begin{aligned}&#10;\ell_{g h}(x) &amp; =(g h) x \\&#10;\left(\ell_{g} \circ \ell_{h}\right)(x) &amp; =\ell_{g}\left(\ell_{h}(x)\right)=\ell_{g}(h x)=g(h x)=(g h) x .&#10;\end{aligned}">$$
+$$</div></p>
+<p>我们首先检查 <span class="math-inline" data-tex="f">$f$</span> 是否是同态。我们必须证明 <span class="math-inline" data-tex="f(g h)=f(g) f(h)">$f(g h)=f(g) f(h)$</span>，或等价地 <span class="math-inline" data-tex="\ell_{g h}=\ell_{g} \circ \ell_{h}">$\ell_{g h}=\ell_{g} \circ \ell_{h}$</span>。为了检查函数相等性，我们检查对于 <span class="math-inline" data-tex="G">$G$</span> 中的每个 <span class="math-inline" data-tex="x">$x$</span>，它们的值是否相等。但是</p>
+<p><div class="math-block" data-tex="\begin{aligned}&#10;\ell_{g h}(x) &amp; =(g h) x \\&#10;\left(\ell_{g} \circ \ell_{h}\right)(x) &amp; =\ell_{g}\left(\ell_{h}(x)\right)=\ell_{g}(h x)=g(h x)=(g h) x .&#10;\end{aligned}">$$
 \begin{aligned}
 \ell_{g h}(x) &amp; =(g h) x \\
 \left(\ell_{g} \circ \ell_{h}\right)(x) &amp; =\ell_{g}\left(\ell_{h}(x)\right)=\ell_{g}(h x)=g(h x)=(g h) x .
 \end{aligned}
-$$</div></p><p>因此 <span class="math-inline" data-tex="f">$f$</span> 是一个同态。最后，我们必须证明 <span class="math-inline" data-tex="f">$f$</span> 是单射。可以通过应用命题 1.2.4 来完成，但直接论证也很容易：如果 <span class="math-inline" data-tex="\ell_{g}=\ell_{h}">$\ell_{g}=\ell_{h}$</span>，那么函数 <span class="math-inline" data-tex="\ell_{g}">$\ell_{g}$</span> 和 <span class="math-inline" data-tex="\ell_{h}">$\ell_{h}$</span> 在 <span class="math-inline" data-tex="G">$G$</span> 中的任何 <span class="math-inline" data-tex="x">$x$</span> 上都具有相同的值，特别是对于 <span class="math-inline" data-tex="x=1">$x=1$</span>。因此 <span class="math-inline" data-tex="\ell_{g}(1)=\ell_{h}(1)">$\ell_{g}(1)=\ell_{h}(1)$</span>。另一方面，<span class="math-inline" data-tex="\ell_{g}(1)=g \cdot 1=g">$\ell_{g}(1)=g \cdot 1=g$</span>，类似地 <span class="math-inline" data-tex="\ell_{h}(1)=h">$\ell_{h}(1)=h$</span>。因此 <span class="math-inline" data-tex="g=h">$g=h$</span>，且 <span class="math-inline" data-tex="f">$f$</span> 是单射。</p><p>注 1.3.3。我们不必使用左乘，也可以尝试使用右乘 <span class="math-inline" data-tex="r_{g}: G \rightarrow G">$r_{g}: G \rightarrow G$</span>，定义为 <span class="math-inline" data-tex="r_{g}(x)=x g">$r_{g}(x)=x g$</span>。那么 <span class="math-inline" data-tex="r_{g}">$r_{g}$</span> 仍然是 <span class="math-inline" data-tex="S_{G}">$S_{G}$</span> 的一个元素。然而，由 <span class="math-inline" data-tex="F(g)=r_{g}">$F(g)=r_{g}$</span> 定义的函数 <span class="math-inline" data-tex="F: G \rightarrow S_{G}">$F: G \rightarrow S_{G}$</span> 通常不是同态！不过，很容易看出 <span class="math-inline" data-tex="F">$F$</span> 为什么不是同态，并修正 <span class="math-inline" data-tex="F">$F$</span> 的定义使其成为从 <span class="math-inline" data-tex="G">$G$</span> 到 <span class="math-inline" data-tex="S_{G}">$S_{G}$</span> 的同态。具体细节留作练习 4.9。</p><p>凯莱定理的证明可能看起来像是使用了障眼法。然而，我们将在后面看到这种证明方法的有趣变体。</p><p>我们已经看到，对于每个 <span class="math-inline" data-tex="n \in \mathbb{N}">$n \in \mathbb{N}$</span>，同态 <span class="math-inline" data-tex="P: S_{n} \rightarrow G L_{n}(\mathbb{R})">$P: S_{n} \rightarrow G L_{n}(\mathbb{R})$</span> 是单射。因此，给定一个有限群 <span class="math-inline" data-tex="G">$G$</span>，根据凯莱定理，存在一个从 <span class="math-inline" data-tex="G">$G$</span> 到某个 <span class="math-inline" data-tex="S_{n}">$S_{n}$</span> 的单射同态，并且存在一个单射同态 <span class="math-inline" data-tex="P: S_{n} \rightarrow G L_{n}(\mathbb{R})">$P: S_{n} \rightarrow G L_{n}(\mathbb{R})$</span>。因此，存在一个从 <span class="math-inline" data-tex="G">$G$</span> 到某个 <span class="math-inline" data-tex="G L_{n}(\mathbb{R})">$G L_{n}(\mathbb{R})$</span> 的单射同态。换句话说：</p><p>定理 1.3.4。设 <span class="math-inline" data-tex="G">$G$</span> 是一个有限群。那么存在一个 <span class="math-inline" data-tex="n \in \mathbb{N}">$n \in \mathbb{N}$</span> 使得 <span class="math-inline" data-tex="G">$G$</span> 同构于 <span class="math-inline" data-tex="G L_{n}(\mathbb{R})">$G L_{n}(\mathbb{R})$</span> 的一个子群。</p><p>更一般地，同态 <span class="math-inline" data-tex="f: G \rightarrow G L_{n}(\mathbb{R})">$f: G \rightarrow G L_{n}(\mathbb{R})$</span>（不一定是单射）被称为 <span class="math-inline" data-tex="G">$G$</span> 的一个实表示。（这里，事实证明，最好考察同态 <span class="math-inline" data-tex="f: G \rightarrow G L_{n}(\mathbb{C})">$f: G \rightarrow G L_{n}(\mathbb{C})$</span>，它们被称为复表示或简称为 <span class="math-inline" data-tex="G">$G$</span> 的表示。）表示理论的目标是描述群 <span class="math-inline" data-tex="G">$G$</span> 的所有表示，并利用这种描述来理解 <span class="math-inline" data-tex="G">$G$</span> 的性质。</p><h3>2. 陪集</h3><p>2.1. 陪集的定义。我们的目标是推广群 <span class="math-inline" data-tex="\mathbb{Z} / n \mathbb{Z}">$\mathbb{Z} / n \mathbb{Z}$</span> 的构造。其思想是从群 <span class="math-inline" data-tex="\mathbb{Z}">$\mathbb{Z}$</span> 和子群 <span class="math-inline" data-tex="n \mathbb{Z}=\langle n\rangle">$n \mathbb{Z}=\langle n\rangle$</span>（其中 <span class="math-inline" data-tex="n \in \mathbb{N}">$n \in \mathbb{N}$</span>）开始，然后构造一个集合 <span class="math-inline" data-tex="\mathbb{Z} / n \mathbb{Z}">$\mathbb{Z} / n \mathbb{Z}$</span>，它最终也成为一个群（在加法下）。(<span class="math-inline" data-tex="\mathbb{Z}">$\mathbb{Z}$</span> 上有两种二元运算 + 和 •，但 <span class="math-inline" data-tex="\mathbb{Z}">$\mathbb{Z}$</span> 只是一个加法群。因此，我们也可以在 <span class="math-inline" data-tex="\mathbb{Z} / n \mathbb{Z}">$\mathbb{Z} / n \mathbb{Z}$</span> 上定义乘法的事实在这里不起作用，但其自然推广在《现代代数 II》中非常重要。) 我们希望将上述构造，从模 <span class="math-inline" data-tex="n">$n$</span> 同余开始，推广到一般的群 <span class="math-inline" data-tex="G">$G$</span>（乘法表示）以及 <span class="math-inline" data-tex="G">$G$</span> 的子群 <span class="math-inline" data-tex="H">$H$</span> 的情况。然而，如果 <span class="math-inline" data-tex="G">$G$</span> 不是阿贝尔群，我们将不得不非常小心。</p>
+$$</div></p>
+<p>因此 <span class="math-inline" data-tex="f">$f$</span> 是一个同态。最后，我们必须证明 <span class="math-inline" data-tex="f">$f$</span> 是单射。可以通过应用命题 1.2.4 来完成，但直接论证也很容易：如果 <span class="math-inline" data-tex="\ell_{g}=\ell_{h}">$\ell_{g}=\ell_{h}$</span>，那么函数 <span class="math-inline" data-tex="\ell_{g}">$\ell_{g}$</span> 和 <span class="math-inline" data-tex="\ell_{h}">$\ell_{h}$</span> 在 <span class="math-inline" data-tex="G">$G$</span> 中的任何 <span class="math-inline" data-tex="x">$x$</span> 上都具有相同的值，特别是对于 <span class="math-inline" data-tex="x=1">$x=1$</span>。因此 <span class="math-inline" data-tex="\ell_{g}(1)=\ell_{h}(1)">$\ell_{g}(1)=\ell_{h}(1)$</span>。另一方面，<span class="math-inline" data-tex="\ell_{g}(1)=g \cdot 1=g">$\ell_{g}(1)=g \cdot 1=g$</span>，类似地 <span class="math-inline" data-tex="\ell_{h}(1)=h">$\ell_{h}(1)=h$</span>。因此 <span class="math-inline" data-tex="g=h">$g=h$</span>，且 <span class="math-inline" data-tex="f">$f$</span> 是单射。</p>
+<p>注 1.3.3。我们不必使用左乘，也可以尝试使用右乘 <span class="math-inline" data-tex="r_{g}: G \rightarrow G">$r_{g}: G \rightarrow G$</span>，定义为 <span class="math-inline" data-tex="r_{g}(x)=x g">$r_{g}(x)=x g$</span>。那么 <span class="math-inline" data-tex="r_{g}">$r_{g}$</span> 仍然是 <span class="math-inline" data-tex="S_{G}">$S_{G}$</span> 的一个元素。然而，由 <span class="math-inline" data-tex="F(g)=r_{g}">$F(g)=r_{g}$</span> 定义的函数 <span class="math-inline" data-tex="F: G \rightarrow S_{G}">$F: G \rightarrow S_{G}$</span> 通常不是同态！不过，很容易看出 <span class="math-inline" data-tex="F">$F$</span> 为什么不是同态，并修正 <span class="math-inline" data-tex="F">$F$</span> 的定义使其成为从 <span class="math-inline" data-tex="G">$G$</span> 到 <span class="math-inline" data-tex="S_{G}">$S_{G}$</span> 的同态。具体细节留作练习 4.9。</p>
+<p>凯莱定理的证明可能看起来像是使用了障眼法。然而，我们将在后面看到这种证明方法的有趣变体。</p>
+<p>我们已经看到，对于每个 <span class="math-inline" data-tex="n \in \mathbb{N}">$n \in \mathbb{N}$</span>，同态 <span class="math-inline" data-tex="P: S_{n} \rightarrow G L_{n}(\mathbb{R})">$P: S_{n} \rightarrow G L_{n}(\mathbb{R})$</span> 是单射。因此，给定一个有限群 <span class="math-inline" data-tex="G">$G$</span>，根据凯莱定理，存在一个从 <span class="math-inline" data-tex="G">$G$</span> 到某个 <span class="math-inline" data-tex="S_{n}">$S_{n}$</span> 的单射同态，并且存在一个单射同态 <span class="math-inline" data-tex="P: S_{n} \rightarrow G L_{n}(\mathbb{R})">$P: S_{n} \rightarrow G L_{n}(\mathbb{R})$</span>。因此，存在一个从 <span class="math-inline" data-tex="G">$G$</span> 到某个 <span class="math-inline" data-tex="G L_{n}(\mathbb{R})">$G L_{n}(\mathbb{R})$</span> 的单射同态。换句话说：</p>
+<p>定理 1.3.4。设 <span class="math-inline" data-tex="G">$G$</span> 是一个有限群。那么存在一个 <span class="math-inline" data-tex="n \in \mathbb{N}">$n \in \mathbb{N}$</span> 使得 <span class="math-inline" data-tex="G">$G$</span> 同构于 <span class="math-inline" data-tex="G L_{n}(\mathbb{R})">$G L_{n}(\mathbb{R})$</span> 的一个子群。</p>
+<p>更一般地，同态 <span class="math-inline" data-tex="f: G \rightarrow G L_{n}(\mathbb{R})">$f: G \rightarrow G L_{n}(\mathbb{R})$</span>（不一定是单射）被称为 <span class="math-inline" data-tex="G">$G$</span> 的一个实表示。（这里，事实证明，最好考察同态 <span class="math-inline" data-tex="f: G \rightarrow G L_{n}(\mathbb{C})">$f: G \rightarrow G L_{n}(\mathbb{C})$</span>，它们被称为复表示或简称为 <span class="math-inline" data-tex="G">$G$</span> 的表示。）表示理论的目标是描述群 <span class="math-inline" data-tex="G">$G$</span> 的所有表示，并利用这种描述来理解 <span class="math-inline" data-tex="G">$G$</span> 的性质。</p>
+</section>
+
+<section class="content-section" id="section-6">
+    <h3><span class="section-number">4</span>2. 陪集</h3>
+    <p>2.1. 陪集的定义。我们的目标是推广群 <span class="math-inline" data-tex="\mathbb{Z} / n \mathbb{Z}">$\mathbb{Z} / n \mathbb{Z}$</span> 的构造。其思想是从群 <span class="math-inline" data-tex="\mathbb{Z}">$\mathbb{Z}$</span> 和子群 <span class="math-inline" data-tex="n \mathbb{Z}=\langle n\rangle">$n \mathbb{Z}=\langle n\rangle$</span>（其中 <span class="math-inline" data-tex="n \in \mathbb{N}">$n \in \mathbb{N}$</span>）开始，然后构造一个集合 <span class="math-inline" data-tex="\mathbb{Z} / n \mathbb{Z}">$\mathbb{Z} / n \mathbb{Z}$</span>，它最终也成为一个群（在加法下）。(<span class="math-inline" data-tex="\mathbb{Z}">$\mathbb{Z}$</span> 上有两种二元运算 + 和 •，但 <span class="math-inline" data-tex="\mathbb{Z}">$\mathbb{Z}$</span> 只是一个加法群。因此，我们也可以在 <span class="math-inline" data-tex="\mathbb{Z} / n \mathbb{Z}">$\mathbb{Z} / n \mathbb{Z}$</span> 上定义乘法的事实在这里不起作用，但其自然推广在《现代代数 II》中非常重要。) 我们希望将上述构造，从模 <span class="math-inline" data-tex="n">$n$</span> 同余开始，推广到一般的群 <span class="math-inline" data-tex="G">$G$</span>（乘法表示）以及 <span class="math-inline" data-tex="G">$G$</span> 的子群 <span class="math-inline" data-tex="H">$H$</span> 的情况。然而，如果 <span class="math-inline" data-tex="G">$G$</span> 不是阿贝尔群，我们将不得不非常小心。</p>
 </section>
     </div>
 
     <!-- Footer -->
     <footer class="footer">
-        <p>第 4 章</p>
+        <p>4.1_同态、陪集与正规子群_同态.ZH</p>
     </footer>
 
 
@@ -2308,7 +2508,7 @@ $$</div></p><p>因此 <span class="math-inline" data-tex="f">$f$</span> 是一�
     <script>
         (function() {
             // ===== 常量和DOM元素 =====
-            var STORAGE_KEY = "user_highlights_4.1_\u540c\u6001\u3001\u966a\u96c6\u4e0e\u6b63\u89c4\u5b50\u7fa4_\u540c\u6001.ZH.html_a62d96552d4e";
+            var STORAGE_KEY = "user_highlights_4.1_\u540c\u6001\u3001\u966a\u96c6\u4e0e\u6b63\u89c4\u5b50\u7fa4_\u540c\u6001.ZH.html_865e582a053d";
             var NOTES_MODE_KEY = STORAGE_KEY + '_notes_mode';
             var notesToggle = document.getElementById('notesToggle');
             var notesPanel = document.getElementById('notesPanel');
@@ -3376,6 +3576,18 @@ $$</div></p><p>因此 <span class="math-inline" data-tex="f">$f$</span> 是一�
                 if (mode === 'markdown') {
                     return markdown || text;
                 }
+                // 纯文本模式：检查text是否缺少公式内容
+                // 如果markdown包含$符号（公式）而text不包含或长度明显更短，说明公式内容丢失
+                var hasMarkdownMath = markdown && (markdown.indexOf('$') !== -1);
+                var hasTextMath = text && (text.indexOf('$') !== -1);
+                if (hasMarkdownMath && !hasTextMath) {
+                    // text中公式内容丢失，使用markdown
+                    return markdown;
+                }
+                // 如果text比markdown短太多（超过50%），可能公式内容丢失
+                if (markdown && text && markdown.length > text.length * 1.5 && hasMarkdownMath) {
+                    return markdown;
+                }
                 return text || markdown;
             }
 
@@ -3494,7 +3706,11 @@ $$</div></p><p>因此 <span class="math-inline" data-tex="f">$f$</span> 是一�
                 html = html.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; height: auto;">');
                 html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
                 html = html.replace(/\n/g, '<br>');
-                return restoreMathPlaceholders(html, placeholders);
+                html = restoreMathPlaceholders(html, placeholders);
+                // 移除块级公式前后多余的<br>标签
+                html = html.replace(/<br>\s*(<div class="note-item-math-block">)/g, '$1');
+                html = html.replace(/(<\/div>)\s*<br>/g, '$1');
+                return html;
             }
 
             function normalizeMathText(value) {
@@ -4115,7 +4331,40 @@ $$</div></p><p>因此 <span class="math-inline" data-tex="f">$f$</span> 是一�
                 cacheSelection();
             }, { passive: true });
 
+            var __snapSelLock = false;
+
+            function snapSelectionToWholeMath() {
+              if (__snapSelLock) return;
+
+              var sel = window.getSelection();
+              if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
+
+              var r = sel.getRangeAt(0);
+              var changed = false;
+
+              var formulas = document.querySelectorAll('.math-inline, .math-block');
+              formulas.forEach(function(el) {
+                // 只在"选区起点/终点落在公式内部"时吸附
+                if (el.contains(r.startContainer)) {
+                  r.setStartBefore(el);
+                  changed = true;
+                }
+                if (el.contains(r.endContainer)) {
+                  r.setEndAfter(el);
+                  changed = true;
+                }
+              });
+
+              if (changed) {
+                __snapSelLock = true;
+                sel.removeAllRanges();
+                sel.addRange(r);
+                __snapSelLock = false;
+              }
+            }
+
             document.addEventListener('selectionchange', function() {
+                snapSelectionToWholeMath();
                 cacheSelection();
             });
 

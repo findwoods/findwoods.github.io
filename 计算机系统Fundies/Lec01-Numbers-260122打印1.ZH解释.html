@@ -242,6 +242,7 @@
     </style>
     <style>
         :root {
+            --root-font-size: 16px;
             --primary-color: #1a365d;
             --secondary-color: #2c5282;
             --accent-color: #3182ce;
@@ -271,12 +272,16 @@
             box-sizing: border-box;
         }
 
+        html {
+            font-size: var(--root-font-size);
+        }
+
         body {
             font-family: 'Noto Serif SC', 'Source Sans Pro', serif;
             background: var(--bg-color);
             color: var(--text-color);
             line-height: 1.8;
-            font-size: 18px;
+            font-size: 1.125rem;
         }
 
         /* Hero Header */
@@ -441,11 +446,16 @@
             word-break: break-word;
         }
 
-        .box-content strong, .box-content code {
+        .box-content strong, .box-content code, .box-content a {
             word-wrap: break-word;
             overflow-wrap: break-word;
             word-break: break-all;
             display: inline;
+        }
+
+        /* Global anchor styling for wrapping */
+        a {
+            word-break: break-all;
         }
 
         /* 逐步解释区 - 蓝色 */
@@ -719,6 +729,60 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            flex-wrap: wrap;
+            row-gap: 6px;
+        }
+
+        .imagination-controls {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .imagination-font-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: 1px solid var(--imagination-color);
+            background: #ffffff;
+            color: var(--imagination-color);
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s ease, background 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .imagination-font-btn:hover {
+            background: rgba(54, 130, 140, 0.12);
+            box-shadow: 0 2px 6px rgba(54, 130, 140, 0.2);
+        }
+
+        .imagination-font-btn:active {
+            transform: translateY(1px);
+        }
+
+        .imagination-font-btn:focus-visible {
+            outline: 2px solid rgba(54, 130, 140, 0.5);
+            outline-offset: 2px;
+        }
+
+        .imagination-box .imagination-controls {
+            margin-left: 8px;
+        }
+
+        .legend-imagination-controls {
+            margin-left: 6px;
+        }
+
+        .legend-imagination-controls .imagination-font-btn {
+            width: 22px;
+            height: 22px;
+            font-size: 14px;
         }
 
         .imagination-box .box-content {
@@ -2049,6 +2113,7 @@
             </div>
             <div class="notes-actions-row">
                 <button class="notes-action-btn" id="exportBackupBtn">💾 导出备份</button>
+                <button class="notes-action-btn" id="copyBackupBtn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">复制备份</button>
                 <button class="notes-action-btn" id="importBackupBtn">📥 导入备份</button>
                 <input type="file" id="importFileInput" accept=".json" style="display:none;">
             </div>
@@ -2170,9 +2235,13 @@
                     <div class="legend-bar intuition"></div>
                     <span>🧠 直觉心智模型</span>
                 </div>
-                <div class="legend-item">
+                <div class="legend-item legend-imagination-item">
                     <div class="legend-bar imagination"></div>
                     <span>💭 直观想象</span>
+                    <span class="imagination-controls legend-imagination-controls" role="group" aria-label="直观想象字号调整">
+                        <button class="imagination-font-btn" data-scope="all" data-step="-1" type="button" aria-label="减小字号">-</button>
+                        <button class="imagination-font-btn" data-scope="all" data-step="1" type="button" aria-label="增大字号">+</button>
+                    </span>
                 </div>
             </div>
         </div>
@@ -3843,7 +3912,7 @@ $$</div></p>
     <script>
         (function() {
             // ===== 常量和DOM元素 =====
-            var STORAGE_KEY = "user_highlights_Lec01-Numbers-260122\u6253\u53701.ZH\u89e3\u91ca.html_e0fdbdfa9b4a";
+            var STORAGE_KEY = "user_highlights_Lec01-Numbers-260122\u6253\u53701.ZH\u89e3\u91ca.html_605ce70c7f99";
             var NOTES_MODE_KEY = STORAGE_KEY + '_notes_mode';
             var notesToggle = document.getElementById('notesToggle');
             var notesPanel = document.getElementById('notesPanel');
@@ -3854,6 +3923,7 @@ $$</div></p>
             var notesList = document.getElementById('notesList');
             var exportMdBtn = document.getElementById('exportMdBtn');
             var exportBackupBtn = document.getElementById('exportBackupBtn');
+            var copyBackupBtn = document.getElementById('copyBackupBtn');
             var importBackupBtn = document.getElementById('importBackupBtn');
             var importFileInput = document.getElementById('importFileInput');
             var copyAllBtn = document.getElementById('copyAllBtn');
@@ -5822,6 +5892,38 @@ $$</div></p>
                     showToast('已复制 ' + highlights.length + ' 条笔记到剪贴板');
                 });
             });
+
+            // ===== 复制备份 JSON =====
+            copyBackupBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var highlights = getHighlights();
+                if (highlights.length === 0) {
+                    alert('暂无笔记可复制');
+                    return;
+                }
+
+                var backupData = {
+                    version: 1,
+                    exportTime: new Date().toISOString(),
+                    pageTitle: document.title || '',
+                    pathname: window.location.pathname || '',
+                    highlights: highlights
+                };
+                var json = JSON.stringify(backupData, null, 2);
+
+                navigator.clipboard.writeText(json).then(function() {
+                    showToast('笔记JSON复制成功');
+                }).catch(function(err) {
+                    console.error('复制失败:', err);
+                    var textarea = document.createElement('textarea');
+                    textarea.value = json;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    showToast('笔记JSON复制成功');
+                });
+            });
             
             // ===== 导出完整备份（JSON格式含定位信息）=====
             exportBackupBtn.addEventListener('click', function(e) {
@@ -6820,6 +6922,47 @@ $$</div></p>
             touchState.wrapper = null;
         }, { passive: true });
     })();
+    </script>
+    <!-- 直观想象字号调节 -->
+    <script>
+        (function() {
+            var STEP_PX = 1;
+            var MIN_PX = 12;
+            var MAX_PX = 24;
+
+            function clamp(value, min, max) {
+                return Math.min(max, Math.max(min, value));
+            }
+
+            function getRootSize() {
+                var root = document.documentElement;
+                var stored = root.getAttribute('data-font-size');
+                if (stored) {
+                    var num = parseFloat(stored);
+                    if (!isNaN(num)) return num;
+                }
+                var computed = window.getComputedStyle(root).fontSize;
+                var size = parseFloat(computed);
+                if (isNaN(size)) size = 16;
+                root.setAttribute('data-font-size', size);
+                return size;
+            }
+
+            function applyRootSize(size) {
+                var clamped = clamp(size, MIN_PX, MAX_PX);
+                document.documentElement.style.fontSize = clamped + 'px';
+                document.documentElement.setAttribute('data-font-size', clamped);
+            }
+
+            document.addEventListener('click', function(e) {
+                var btn = e.target.closest('.imagination-font-btn');
+                if (!btn) return;
+                var step = parseInt(btn.getAttribute('data-step'), 10);
+                if (isNaN(step) || step === 0) return;
+                var current = getRootSize();
+                applyRootSize(current + (step * STEP_PX));
+            });
+        })();
     </script>
 </body>
 </html>

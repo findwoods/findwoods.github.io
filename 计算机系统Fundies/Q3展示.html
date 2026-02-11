@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q3 · 交通信号灯控制器 — 组合电路设计</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #f8f9fc;
+    --surface: #ffffff;
+    --surface2: #f0f2f7;
+    --border: #dde1ea;
+    --text: #1e2330;
+    --text-dim: #6b7280;
+    --blue: #2563eb;
+    --blue-light: #dbeafe;
+    --purple: #7c3aed;
+    --purple-light: #ede9fe;
+    --pink: #db2777;
+    --pink-light: #fce7f3;
+    --green: #059669;
+    --green-light: #d1fae5;
+    --yellow: #d97706;
+    --yellow-light: #fef3c7;
+    --orange: #ea580c;
+    --orange-light: #ffedd5;
+    --cyan: #0891b2;
+    --cyan-light: #cffafe;
+    --red: #dc2626;
+    --red-light: #fee2e2;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans SC', 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+
+  /* ===== 顶部英雄区域 ===== */
+  .hero {
+    text-align: center;
+    padding: 50px 20px 36px;
+    background: linear-gradient(180deg, #e0e7ff 0%, var(--bg) 100%);
+    border-bottom: 1px solid var(--border);
+  }
+  .hero .badge {
+    display: inline-block;
+    padding: 4px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(37,99,235,0.25);
+    background: rgba(37,99,235,0.07);
+    color: var(--blue);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .hero h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+  .hero h1 span {
+    background: linear-gradient(135deg, #2563eb, #7c3aed, #db2777);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero .subtitle {
+    font-size: 0.95rem;
+    color: var(--text-dim);
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  /* ===== 步骤容器 ===== */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px 24px 60px;
+  }
+
+  /* ===== 步骤卡片 ===== */
+  .step {
+    position: relative;
+    margin-bottom: 24px;
+    border-radius: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: box-shadow 0.3s;
+  }
+  .step:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+  }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 22px;
+    cursor: pointer;
+    user-select: none;
+    background: var(--surface);
+  }
+  .step-number {
+    flex-shrink: 0;
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #fff;
+  }
+  .step:nth-child(1) .step-number { background: #2563eb; }
+  .step:nth-child(2) .step-number { background: #7c3aed; }
+  .step:nth-child(3) .step-number { background: #db2777; }
+  .step:nth-child(4) .step-number { background: #059669; }
+  .step:nth-child(5) .step-number { background: #d97706; }
+  .step:nth-child(6) .step-number { background: #ea580c; }
+  .step:nth-child(7) .step-number { background: #0891b2; }
+  .step:nth-child(8) .step-number { background: #dc2626; }
+
+  .step-title {
+    flex: 1;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .step-toggle {
+    color: var(--text-dim);
+    font-size: 1.2rem;
+    transition: transform 0.3s;
+  }
+  .step.open .step-toggle { transform: rotate(180deg); }
+
+  .step-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease;
+  }
+  .step.open .step-body {
+    max-height: 8000px;
+  }
+  .step-content {
+    padding: 0 22px 22px;
+    border-top: 1px solid var(--border);
+  }
+  .step-content p {
+    margin: 12px 0;
+    font-size: 0.92rem;
+    color: #374151;
+  }
+  .step-content h4 {
+    margin: 18px 0 10px;
+    font-size: 0.95rem;
+  }
+
+  /* ===== 关键词高亮 ===== */
+  .kw { color: var(--blue); font-weight: 600; }
+  .kw-en { color: var(--purple); font-family: 'JetBrains Mono', monospace; font-size: 0.85em; }
+  .kw-val {
+    color: #fff;
+    background: var(--blue);
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82em;
+    font-weight: 600;
+  }
+  .kw-yellow { color: var(--yellow); font-weight: 600; }
+  .kw-pink { color: var(--pink); font-weight: 600; }
+  .kw-orange { color: var(--orange); font-weight: 600; }
+  .kw-cyan { color: var(--cyan); font-weight: 600; }
+  .kw-green { color: var(--green); font-weight: 600; }
+  .kw-red { color: var(--red); font-weight: 600; }
+
+  /* ===== 公式块 ===== */
+  .formula-block {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 20px;
+    margin: 14px 0;
+    border-radius: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    font-weight: 600;
+    flex-wrap: wrap;
+    gap: 6px;
+    background: var(--blue-light);
+    border: 1px solid rgba(37,99,235,0.2);
+    color: var(--blue);
+  }
+  .formula-block.green { background: var(--green-light); border-color: rgba(5,150,105,0.2); color: var(--green); }
+  .formula-block.yellow { background: var(--yellow-light); border-color: rgba(217,119,6,0.2); color: var(--yellow); }
+  .formula-block.purple { background: var(--purple-light); border-color: rgba(124,58,237,0.2); color: var(--purple); }
+  .formula-block.pink { background: var(--pink-light); border-color: rgba(219,39,119,0.2); color: var(--pink); }
+  .formula-block.orange { background: var(--orange-light); border-color: rgba(234,88,12,0.2); color: var(--orange); }
+  .formula-block.red { background: var(--red-light); border-color: rgba(220,38,38,0.2); color: var(--red); }
+  .formula-block.cyan { background: var(--cyan-light); border-color: rgba(8,145,178,0.2); color: var(--cyan); }
+
+  /* ===== 信息卡 ===== */
+  .info-card {
+    display: flex;
+    gap: 12px;
+    padding: 14px 18px;
+    margin: 14px 0;
+    border-radius: 10px;
+    border-left: 4px solid;
+    font-size: 0.88rem;
+    color: #374151;
+  }
+  .info-card.blue { background: var(--blue-light); border-color: var(--blue); }
+  .info-card.green { background: var(--green-light); border-color: var(--green); }
+  .info-card.yellow { background: var(--yellow-light); border-color: var(--yellow); }
+  .info-card.pink { background: var(--pink-light); border-color: var(--pink); }
+  .info-card.orange { background: var(--orange-light); border-color: var(--orange); }
+  .info-card.cyan { background: var(--cyan-light); border-color: var(--cyan); }
+  .info-card .icon { font-size: 1.2rem; flex-shrink: 0; }
+
+  /* ===== 列表 ===== */
+  .bullet-list {
+    list-style: none;
+    padding-left: 8px;
+    margin: 10px 0;
+  }
+  .bullet-list li {
+    position: relative;
+    padding-left: 22px;
+    margin: 8px 0;
+    font-size: 0.9rem;
+    color: #374151;
+  }
+  .bullet-list li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--blue);
+    font-weight: 700;
+  }
+
+  /* ===== 表格 ===== */
+  .wire-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .wire-table th {
+    background: var(--surface2);
+    padding: 10px 14px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--blue);
+    border-bottom: 2px solid var(--border);
+  }
+  .wire-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    color: #374151;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    text-align: center;
+  }
+  .wire-table tr:hover td { background: rgba(37,99,235,0.03); }
+
+  /* 颜色行 */
+  .row-green td { background: rgba(5,150,105,0.06); }
+  .row-yellow td { background: rgba(217,119,6,0.06); }
+  .row-red td { background: rgba(220,38,38,0.06); }
+  .row-allred td { background: rgba(220,38,38,0.10); }
+
+  /* ===== 结论高亮框 ===== */
+  .conclusion {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    margin: 16px 0;
+    border-radius: 10px;
+    background: var(--green-light);
+    border: 1px solid rgba(5,150,105,0.25);
+    font-weight: 600;
+    font-size: 0.93rem;
+    color: var(--green);
+  }
+  .conclusion.blue {
+    background: var(--blue-light);
+    border-color: rgba(37,99,235,0.25);
+    color: var(--blue);
+  }
+
+  /* ===== 底部总结区 ===== */
+  .summary-section {
+    margin-top: 36px;
+    padding: 28px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--blue-light), var(--purple-light), var(--pink-light));
+    border: 1px solid rgba(124,58,237,0.15);
+    text-align: center;
+  }
+  .summary-section h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--purple);
+    margin-bottom: 14px;
+  }
+  .eq-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    max-width: 560px;
+    margin: 20px auto;
+  }
+  .eq-box {
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: 2px solid;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-align: center;
+  }
+  .eq-box.purple { background: var(--purple-light); border-color: rgba(124,58,237,0.3); color: var(--purple); }
+  .eq-box.pink { background: var(--pink-light); border-color: rgba(219,39,119,0.3); color: var(--pink); }
+  .eq-box.green { background: var(--green-light); border-color: rgba(5,150,105,0.3); color: var(--green); }
+  .eq-box.blue { background: var(--blue-light); border-color: rgba(37,99,235,0.3); color: var(--blue); }
+  .eq-box.orange { background: var(--orange-light); border-color: rgba(234,88,12,0.3); color: var(--orange); }
+  .eq-box .eq-label {
+    font-size: 0.72rem;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 4px;
+    opacity: 0.7;
+  }
+
+  /* ===== 交互式演示 ===== */
+  .demo-section {
+    margin-top: 28px;
+    padding: 24px;
+    border-radius: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .demo-section h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--cyan);
+    margin-bottom: 18px;
+    text-align: center;
+  }
+
+  .counter-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 8px;
+    margin: 14px 0;
+  }
+  .counter-btn {
+    padding: 10px 4px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    border-radius: 8px;
+    background: var(--surface2);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+    border: 2px solid transparent;
+    user-select: none;
+  }
+  .counter-btn:hover { border-color: var(--blue); background: var(--blue-light); }
+  .counter-btn.active { border-color: var(--blue); background: var(--blue-light); color: var(--blue); font-weight: 700; box-shadow: 0 0 8px rgba(37,99,235,0.15); }
+  .counter-btn .cnt-label { font-size: 0.68rem; display: block; margin-bottom: 2px; opacity: 0.6; }
+
+  .lights-display {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin: 24px 0;
+    flex-wrap: wrap;
+  }
+  .light-group {
+    text-align: center;
+  }
+  .light-group .dir-label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+  .traffic-light {
+    width: 60px;
+    padding: 10px 8px;
+    border-radius: 30px;
+    background: #1e2330;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin: 0 auto;
+  }
+  .light-bulb {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    transition: all 0.4s;
+    opacity: 0.2;
+  }
+  .light-bulb.red-bulb { background: #dc2626; }
+  .light-bulb.yellow-bulb { background: #eab308; }
+  .light-bulb.green-bulb { background: #22c55e; }
+  .light-bulb.active { opacity: 1; box-shadow: 0 0 20px currentColor; }
+  .light-bulb.red-bulb.active { box-shadow: 0 0 20px #dc2626; }
+  .light-bulb.yellow-bulb.active { box-shadow: 0 0 20px #eab308; }
+  .light-bulb.green-bulb.active { box-shadow: 0 0 20px #22c55e; }
+
+  .light-bits {
+    margin-top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+  }
+  .light-bits .bit-hl { font-weight: 700; }
+
+  .demo-info {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    min-height: 24px;
+    padding: 10px;
+    background: var(--surface2);
+    border-radius: 8px;
+  }
+
+  /* overline for complement */
+  .ov { text-decoration: overline; }
+
+  /* sub-step highlight */
+  .sub-step {
+    margin: 16px 0;
+    padding: 14px 18px;
+    border-radius: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+  }
+  .sub-step h5 {
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+  }
+
+  /* ===== 响应式 ===== */
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 1.4rem; }
+    .counter-grid { grid-template-columns: repeat(4, 1fr); }
+    .eq-grid { grid-template-columns: 1fr; }
+    .lights-display { gap: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== 英雄区域 ===== -->
+<div class="hero">
+  <div class="badge">Q3 · Combinational Circuit · 组合电路</div>
+  <h1>🚦 交通信号灯控制器<br><span>布尔方程设计与化简</span></h1>
+  <p class="subtitle">从"4 比特计数器输入"到"NSH / NSL / EWH / EWL"四个输出——完整的组合电路推导过程</p>
+</div>
+
+<!-- ===== 主内容 ===== -->
+<div class="container">
+
+  <!-- ========== Step 1 ========== -->
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <div class="step-number">1</div>
+      <div class="step-title">看到"每 5 秒变一次、4 比特计数 0→15"应该立刻做的判断</div>
+      <div class="step-toggle">▾</div>
+    </div>
+    <div class="step-body">
+      <div class="step-content">
+        <p><span class="kw">4 比特输入</span> <span class="kw-en">(4-bit input)</span> 是一个<span class="kw">计数器</span> <span class="kw-en">(counter)</span>，每 <span class="kw-val">5 秒</span>跳一次：</p>
+        <div class="formula-block">0000 → 0001 → ⋯ → 1111 → 0000</div>
+
+        <p>所以 <span class="kw-val">16</span> 个输入值一圈对应的总时长是：</p>
+        <div class="formula-block purple">16 × 5s = 80s</div>
+
+        <p>再看题目给的每盏灯的<span class="kw">时序要求</span> <span class="kw-en">(timing requirement)</span>：</p>
+        <ul class="bullet-list">
+          <li><span class="kw-green">绿 (green)</span> 30s</li>
+          <li><span class="kw-yellow">黄 (yellow)</span> 5s</li>
+          <li><span class="kw-red">红 (red)</span> 45s</li>
+        </ul>
+        <div class="formula-block green">30 + 5 + 45 = 80s ← 和计数器周期完全吻合！</div>
+
+        <div class="info-card green">
+          <span class="icon">💡</span>
+          <span>这意味着我们可以把 <strong>A B C D</strong> 直接当作"当前处于第几个 <strong>5 秒时间片 (5-second slot)</strong>"。不需要额外的时序电路，纯<strong>组合逻辑 (combinational logic)</strong> 就够了！</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 2 ========== -->
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <div class="step-number">2</div>
+      <div class="step-title">把"秒数"换成"计数值"的分段（最关键的一步）</div>
+      <div class="step-toggle">▾</div>
+    </div>
+    <div class="step-body">
+      <div class="step-content">
+        <p>因为每步是 5 秒，所以：</p>
+        <ul class="bullet-list">
+          <li>30s = <span class="kw-val">6</span> 个<span class="kw">时间片</span> <span class="kw-en">(slots)</span></li>
+          <li>5s = <span class="kw-val">1</span> 个时间片</li>
+          <li>45s = <span class="kw-val">9</span> 个时间片</li>
+        </ul>
+
+        <div class="info-card yellow">
+          <span class="icon">⚡</span>
+          <span>题目还说：有<strong>两个 5 秒间隔 (two 5-second intervals)</strong>"两边都红"。并且给定初始条件：当输入 <strong>0000</strong> 时，<strong>NS</strong>"刚变绿"，<strong>EW</strong>"已经红了 5 秒"。</span>
+        </div>
+
+        <p>这等价于：在 <span class="kw-val">0000</span> 之前的那个时间片应该是"全红"间隔；而 <span class="kw-val">1111→0000</span> 正好是环回，所以让 <span class="kw-val">15</span> 代表这个"全红间隔"。</p>
+
+        <h4 style="color: var(--purple);">📋 完整的相位序列 (phase sequence)</h4>
+        <table class="wire-table">
+          <tr><th>计数值 N</th><th>二进制 ABCD</th><th>NS 灯色</th><th>EW 灯色</th><th>持续</th></tr>
+          <tr class="row-green"><td>0 – 5</td><td>0000 – 0101</td><td style="color:var(--green);font-weight:700">🟢 绿</td><td style="color:var(--red);font-weight:700">🔴 红</td><td>30s</td></tr>
+          <tr class="row-yellow"><td>6</td><td>0110</td><td style="color:var(--yellow);font-weight:700">🟡 黄</td><td style="color:var(--red);font-weight:700">🔴 红</td><td>5s</td></tr>
+          <tr class="row-allred"><td>7</td><td>0111</td><td style="color:var(--red);font-weight:700">🔴 红</td><td style="color:var(--red);font-weight:700">🔴 红</td><td>5s</td></tr>
+          <tr class="row-green"><td>8 – 13</td><td>1000 – 1101</td><td style="color:var(--red);font-weight:700">🔴 红</td><td style="color:var(--green);font-weight:700">🟢 绿</td><td>30s</td></tr>
+          <tr class="row-yellow"><td>14</td><td>1110</td><td style="color:var(--red);font-weight:700">🔴 红</td><td style="color:var(--yellow);font-weight:700">🟡 黄</td><td>5s</td></tr>
+          <tr class="row-allred"><td>15</td><td>1111</td><td style="color:var(--red);font-weight:700">🔴 红</td><td style="color:var(--red);font-weight:700">🔴 红</td><td>5s</td></tr>
+        </table>
+
+        <div class="conclusion">✅ 这样 EW 在计数 15 开始红，到计数 0 时恰好"已红了 5 秒"——和初始条件一致！</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 3 ========== -->
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <div class="step-number">3</div>
+      <div class="step-title">把"颜色"换成"高位/低位"两比特（输出编码）</div>
+      <div class="step-toggle">▾</div>
+    </div>
+    <div class="step-body">
+      <div class="step-content">
+        <p>题目给的<span class="kw">编码表</span> <span class="kw-en">(encoding table)</span>：</p>
+        <table class="wire-table">
+          <tr><th>高位 (H)</th><th>低位 (L)</th><th>灯的颜色</th></tr>
+          <tr class="row-green"><td>0</td><td>0</td><td style="color:var(--green);font-weight:700">🟢 绿 (green)</td></tr>
+          <tr class="row-yellow"><td>0</td><td>1</td><td style="color:var(--yellow);font-weight:700">🟡 黄 (yellow)</td></tr>
+          <tr class="row-red"><td>1</td><td>0</td><td style="color:var(--red);font-weight:700">🔴 红 (red)</td></tr>
+          <tr class="row-red"><td>1</td><td>1</td><td style="color:var(--red);font-weight:700">🔴 红 (red)</td></tr>
+        </table>
+
+        <div class="info-card pink">
+          <span class="icon">🔑</span>
+          <span><strong>关键观察</strong>：红色时"低位 0 / 1 都行" ⇒ 低位对红色是<strong>无关 (don't care)</strong>。这允许我们用<strong>无关项 (don't care conditions)</strong> 去大幅化简低位输出！</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 4 ========== -->
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <div class="step-number">4</div>
+      <div class="step-title">列出"计数值 → 四个输出"的完整真值表</div>
+      <div class="step-toggle">▾</div>
+    </div>
+    <div class="step-body">
+      <div class="step-content">
+        <p>令 <span class="kw-val">A</span> 为最高位 <span class="kw-en">(MSB)</span>，<span class="kw-val">D</span> 为最低位 <span class="kw-en">(LSB)</span>，计数值 N = 8A + 4B + 2C + D：</p>
+
+        <table class="wire-table">
+          <tr><th>N</th><th>A</th><th>B</th><th>C</th><th>D</th><th>相位</th><th>NSH</th><th>NSL</th><th>EWH</th><th>EWL</th></tr>
+          <tr class="row-green"><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td style="font-size:0.76rem">NS绿</td><td>0</td><td>0</td><td>1</td><td>x</td></tr>
+          <tr class="row-green"><td>1</td><td>0</td><td>0</td><td>0</td><td>1</td><td style="font-size:0.76rem">NS绿</td><td>0</td><td>0</td><td>1</td><td>x</td></tr>
+          <tr class="row-green"><td>2</td><td>0</td><td>0</td><td>1</td><td>0</td><td style="font-size:0.76rem">NS绿</td><td>0</td><td>0</td><td>1</td><td>x</td></tr>
+          <tr class="row-green"><td>3</td><td>0</td><td>0</td><td>1</td><td>1</td><td style="font-size:0.76rem">NS绿</td><td>0</td><td>0</td><td>1</td><td>x</td></tr>
+          <tr class="row-green"><td>4</td><td>0</td><td>1</td><td>0</td><td>0</td><td style="font-size:0.76rem">NS绿</td><td>0</td><td>0</td><td>1</td><td>x</td></tr>
+          <tr class="row-green"><td>5</td><td>0</td><td>1</td><td>0</td><td>1</td><td style="font-size:0.76rem">NS绿</td><td>0</td><td>0</td><td>1</td><td>x</td></tr>
+          <tr class="row-yellow"><td>6</td><td>0</td><td>1</td><td>1</td><td>0</td><td style="font-size:0.76rem">NS黄</td><td>0</td><td style="color:var(--yellow);font-weight:700">1</td><td>1</td><td>x</td></tr>
+          <tr class="row-allred"><td>7</td><td>0</td><td>1</td><td>1</td><td>1</td><td style="font-size:0.76rem">全红</td><td style="color:var(--red);font-weight:700">1</td><td>x</td><td>1</td><td>x</td></tr>
+          <tr class="row-green"><td>8</td><td>1</td><td>0</td><td>0</td><td>0</td><td style="font-size:0.76rem">EW绿</td><td style="color:var(--red);font-weight:700">1</td><td>x</td><td>0</td><td>0</td></tr>
+          <tr class="row-green"><td>9</td><td>1</td><td>0</td><td>0</td><td>1</td><td style="font-size:0.76rem">EW绿</td><td style="color:var(--red);font-weight:700">1</td><td>x</td><td>0</td><td>0</td></tr>
+          <tr class="row-green"><td>10</td><td>1</td><td>0</td><td>1</td><td>0</td><td style="font-size:0.76rem">EW绿</td><td style="color:var(--red);font-weight:700">1</td><td>x</td><td>0</td><td>0</td></tr>
+          <tr class="row-green"><td>11</td><td>1</td><td>0</td><td>1</td><td>1</td><td style="font-size:0.76rem">EW绿</td><td style="color:var(--red);font-weight:700">1</td><td>x</td><td>0</td><td>0</td></tr>
+          <tr class="row-green"><td>12</td><td>1</td><td>1</td><td>0</td><td>0</td><td style="font-size:0.76rem">EW绿</td><td style="color:var(--red);font-weight:700">1</td><td>x</td><td>0</td><td>0</td></tr>
+          <tr class="row-green"><td>13</td><td>1</td><td>1</td><td>0</td><td>1</td><td style="font-size:0.76rem">EW绿</td><td style="color:var(--red);font-weight:700">1</td><td>x</td><td>0</td><td>0</td></tr>
+          <tr class="row-yellow"><td>14</td><td>1</td><td>1</td><td>1</td><td>0</td><td style="font-size:0.76rem">EW黄</td><td style="color:var(--red);font-weight:700">1</td><td>x</td><td>0</td><td style="color:var(--yellow);font-weight:700">1</td></tr>
+          <tr class="row-allred"><td>15</td><td>1</td><td>1</td><td>1</td><td>1</td><td style="font-size:0.76rem">全红</td><td style="color:var(--red);font-weight:700">1</td><td>x</td><td>1</td><td>x</td></tr>
+        </table>
+
+        <div class="info-card orange">
+          <span class="icon">📌</span>
+          <span>表中的 <strong>"x"</strong> 就是<strong>无关位 (don't care bit)</strong>——红色时低位 0 或 1 都算红色，可以自由选择以便化简。</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 5 ========== -->
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <div class="step-number">5</div>
+      <div class="step-title">逐个输出写成函数并化简</div>
+      <div class="step-toggle">▾</div>
+    </div>
+    <div class="step-body">
+      <div class="step-content">
+
+        <!-- NSH -->
+        <div class="sub-step">
+          <h5 style="color: var(--blue);">📘 5.1 NSH（NS 高位）— 什么时候为 1？</h5>
+          <p><span class="kw">NS 为红</span>时高位 = 1；NS 在计数 <span class="kw-val">7–15</span> 全是红。</p>
+          <div class="formula-block">NSH = Σ m(7, 8, 9, 10, 11, 12, 13, 14, 15)</div>
+          <p>化简观察（<span class="kw">K-map</span> 分组直觉）：</p>
+          <ul class="bullet-list">
+            <li>计数 <span class="kw-val">8–15</span> 的共同特征是 <span class="kw-val">A = 1</span> ⇒ 一项就是 <strong>A</strong></li>
+            <li>还缺的计数 <span class="kw-val">7</span> 是 0111，对应积项是 <strong>BCD</strong></li>
+          </ul>
+          <div class="formula-block green" style="font-size:1.15rem;">✅ NSH = A + BCD</div>
+        </div>
+
+        <!-- EWH -->
+        <div class="sub-step">
+          <h5 style="color: var(--purple);">📙 5.2 EWH（EW 高位）— 什么时候为 1？</h5>
+          <p><span class="kw">EW 为红</span>时高位 = 1；EW 在计数 <span class="kw-val">0–7</span> 和 <span class="kw-val">15</span> 是红。</p>
+          <div class="formula-block">EWH = Σ m(0, 1, 2, 3, 4, 5, 6, 7, 15)</div>
+          <p>先做"大片覆盖"的观察：</p>
+          <ul class="bullet-list">
+            <li><span class="kw-val">0–7</span> 的共同特征是 <span class="kw-val">A = 0</span> ⇒ 一项是 <strong><span class="ov">A</span></strong></li>
+            <li>再补 <span class="kw-val">15 = 1111</span> ⇒ 一项是 <strong>ABCD</strong></li>
+          </ul>
+          <div class="formula-block purple">EWH = <span class="ov">A</span> + ABCD</div>
+          <p>再用<span class="kw">布尔代数</span> <span class="kw-en">(Boolean algebra)</span> 恒等式：</p>
+          <div class="formula-block yellow"><span class="ov">X</span> + XY = <span class="ov">X</span> + Y</div>
+          <p>令 X = A, Y = BCD，则 <span class="ov">A</span> + A·(BCD) = <span class="ov">A</span> + BCD</p>
+          <div class="formula-block green" style="font-size:1.15rem;">✅ EWH = <span class="ov">A</span> + BCD</div>
+        </div>
+
+        <!-- NSL -->
+        <div class="sub-step">
+          <h5 style="color: var(--pink);">📕 5.3 NSL（NS 低位）— 带无关项的最小化</h5>
+          <ul class="bullet-list">
+            <li><span class="kw-yellow">NS 黄</span>只在计数 <span class="kw-val">6 (0110)</span>：低位<strong>必须 = 1</strong></li>
+            <li><span class="kw-green">NS 绿</span>在计数 <span class="kw-val">0–5</span>：低位<strong>必须 = 0</strong></li>
+            <li><span class="kw-red">NS 红</span>在计数 <span class="kw-val">7–15</span>：低位是<strong>无关 (don't care)</strong></li>
+          </ul>
+          <p>用 <span class="kw">K-map</span> 直觉：</p>
+          <ul class="bullet-list">
+            <li>N=6 是 <span class="kw-val">0110</span>：B=1, C=1, D=0</li>
+            <li>计数 <span class="kw-val">14</span> 是 <span class="kw-val">1110</span>：同样 B=1, C=1, D=0，而它处于 NS 红（无关），可以和 6 合并以<strong>消去 A</strong></li>
+          </ul>
+          <div class="formula-block green" style="font-size:1.15rem;">✅ NSL = BC<span class="ov">D</span></div>
+        </div>
+
+        <!-- EWL -->
+        <div class="sub-step">
+          <h5 style="color: var(--orange);">📒 5.4 EWL（EW 低位）— 同理</h5>
+          <ul class="bullet-list">
+            <li><span class="kw-yellow">EW 黄</span>只在计数 <span class="kw-val">14 (1110)</span>：低位<strong>必须 = 1</strong></li>
+            <li><span class="kw-green">EW 绿</span>在计数 <span class="kw-val">8–13</span>：低位<strong>必须 = 0</strong></li>
+            <li><span class="kw-red">EW 红</span>在计数 <span class="kw-val">0–7, 15</span>：低位<strong>无关</strong></li>
+          </ul>
+          <p>同样利用无关项，把 <span class="kw-val">14 (1110)</span> 和 <span class="kw-val">6 (0110)</span>（此时 EW 红，低位无关）合并，消去 A，得到同一个最简项：</p>
+          <div class="formula-block green" style="font-size:1.15rem;">✅ EWL = BC<span class="ov">D</span></div>
+        </div>
+
+        <div class="info-card cyan">
+          <span class="icon">🧠</span>
+          <span><strong>化简直觉总结</strong>：高位用"<strong>一位覆盖一大片 + 再补一个点</strong>"的 K-map 分组思路；低位利用"<strong>红色时无关</strong>"，通过合并无关项消去变量。</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== Step 6 ========== -->
+  <div class="step open">
+    <div class="step-header" onclick="toggleStep(this)">
+      <div class="step-number">6</div>
+      <div class="step-title">最终答案：四个布尔输出的化简方程</div>
+      <div class="step-toggle">▾</div>
+    </div>
+    <div class="step-body">
+      <div class="step-content">
+        <p>这些方程实现的<span class="kw">颜色序列</span> <span class="kw-en">(color sequence)</span> 与题目要求一致，并且在<span class="kw-red">红灯</span>时正确利用了"10/11 都是红"带来的<span class="kw">无关项</span> <span class="kw-en">(don't care)</span> 来最小化电路：</p>
+
+        <div class="eq-grid">
+          <div class="eq-box blue">
+            <span class="eq-label">NS 高位</span>
+            NSH = A + BCD
+          </div>
+          <div class="eq-box purple">
+            <span class="eq-label">NS 低位</span>
+            NSL = BC<span class="ov">D</span>
+          </div>
+          <div class="eq-box pink">
+            <span class="eq-label">EW 高位</span>
+            EWH = <span class="ov">A</span> + BCD
+          </div>
+          <div class="eq-box orange">
+            <span class="eq-label">EW 低位</span>
+            EWL = BC<span class="ov">D</span>
+          </div>
+        </div>
+
+        <div class="conclusion">✅ NSL 和 EWL 恰好相同，硬件上可以共用同一个门电路——这就是利用 don't care 化简得到的额外收益！</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 总结区 ========== -->
+  <div class="summary-section">
+    <h2>🎯 解题思路总结</h2>
+    <div style="text-align:left; max-width:600px; margin:0 auto; font-size:0.9rem; color:#374151;">
+      <ul class="bullet-list">
+        <li><strong>第一步</strong>：确认计数器周期 = 灯周期 = 80s → 纯组合电路</li>
+        <li><strong>第二步</strong>：按初始条件分配 16 个时间片到各相位</li>
+        <li><strong>第三步</strong>：用编码规则将颜色转成 H/L 二位输出</li>
+        <li><strong>第四步</strong>：列真值表，标出无关项 (don't care)</li>
+        <li><strong>第五步</strong>：K-map 或布尔代数化简每路输出</li>
+      </ul>
+    </div>
+
+    <div class="eq-grid" style="margin-top:20px;">
+      <div class="eq-box blue">NSH = A + BCD</div>
+      <div class="eq-box purple">NSL = BC<span class="ov">D</span></div>
+      <div class="eq-box pink">EWH = <span class="ov">A</span> + BCD</div>
+      <div class="eq-box orange">EWL = BC<span class="ov">D</span></div>
+    </div>
+  </div>
+
+  <!-- ========== 交互式演示 ========== -->
+  <div class="demo-section">
+    <h3>🎮 交互式演示 — 点击计数值，观察信号灯变化</h3>
+
+    <div class="counter-grid" id="counterGrid"></div>
+
+    <div class="lights-display">
+      <div class="light-group">
+        <div class="dir-label">🔼 NS（北-南）</div>
+        <div class="traffic-light">
+          <div class="light-bulb red-bulb" id="ns-red"></div>
+          <div class="light-bulb yellow-bulb" id="ns-yellow"></div>
+          <div class="light-bulb green-bulb" id="ns-green"></div>
+        </div>
+        <div class="light-bits" id="ns-bits"></div>
+      </div>
+      <div class="light-group">
+        <div class="dir-label">◀▶ EW（东-西）</div>
+        <div class="traffic-light">
+          <div class="light-bulb red-bulb" id="ew-red"></div>
+          <div class="light-bulb yellow-bulb" id="ew-yellow"></div>
+          <div class="light-bulb green-bulb" id="ew-green"></div>
+        </div>
+        <div class="light-bits" id="ew-bits"></div>
+      </div>
+    </div>
+
+    <div class="demo-info" id="demoInfo">点击上方的计数值按钮开始体验 ↑</div>
+  </div>
+
+</div><!-- container end -->
+
+<script>
+  // ===== 折叠/展开 =====
+  function toggleStep(header) {
+    header.parentElement.classList.toggle('open');
+  }
+
+  // ===== 交互式演示 =====
+  const phases = [
+    // N: [NS颜色, EW颜色]  颜色: 'green','yellow','red'
+    {ns:'green',ew:'red'},   // 0
+    {ns:'green',ew:'red'},   // 1
+    {ns:'green',ew:'red'},   // 2
+    {ns:'green',ew:'red'},   // 3
+    {ns:'green',ew:'red'},   // 4
+    {ns:'green',ew:'red'},   // 5
+    {ns:'yellow',ew:'red'},  // 6
+    {ns:'red',ew:'red'},     // 7
+    {ns:'red',ew:'green'},   // 8
+    {ns:'red',ew:'green'},   // 9
+    {ns:'red',ew:'green'},   // 10
+    {ns:'red',ew:'green'},   // 11
+    {ns:'red',ew:'green'},   // 12
+    {ns:'red',ew:'green'},   // 13
+    {ns:'red',ew:'yellow'},  // 14
+    {ns:'red',ew:'red'},     // 15
+  ];
+
+  const colorToCN = { green: '🟢 绿', yellow: '🟡 黄', red: '🔴 红' };
+  const colorToHL = {
+    green:  {h:0, l:0},
+    yellow: {h:0, l:1},
+    red:    {h:1, l:0}, // 默认用 10
+  };
+
+  // 用布尔方程计算实际输出
+  function computeOutputs(n) {
+    const A = (n >> 3) & 1;
+    const B = (n >> 2) & 1;
+    const C = (n >> 1) & 1;
+    const D = n & 1;
+    const NSH = A | (B & C & D);
+    const NSL = B & C & (1 - D);
+    const EWH = (1 - A) | (B & C & D);
+    const EWL = B & C & (1 - D);
+    return { NSH, NSL, EWH, EWL };
+  }
+
+  // 创建按钮
+  const grid = document.getElementById('counterGrid');
+  for (let i = 0; i < 16; i++) {
+    const btn = document.createElement('div');
+    btn.className = 'counter-btn';
+    const bin = i.toString(2).padStart(4, '0');
+    btn.innerHTML = `<span class="cnt-label">${bin}</span>${i}`;
+    btn.onclick = () => selectCounter(i);
+    btn.id = `cnt-${i}`;
+    grid.appendChild(btn);
+  }
+
+  function selectCounter(n) {
+    // 高亮按钮
+    document.querySelectorAll('.counter-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(`cnt-${n}`).classList.add('active');
+
+    const phase = phases[n];
+    const out = computeOutputs(n);
+    const bin = n.toString(2).padStart(4, '0');
+
+    // NS 灯
+    setLight('ns', phase.ns);
+    document.getElementById('ns-bits').innerHTML =
+      `H=<span class="bit-hl" style="color:${out.NSH ? 'var(--red)':'var(--green)'}">${out.NSH}</span>  L=<span class="bit-hl" style="color:${out.NSL ? 'var(--yellow)':'var(--text-dim)'}">${out.NSL}</span>`;
+
+    // EW 灯
+    setLight('ew', phase.ew);
+    document.getElementById('ew-bits').innerHTML =
+      `H=<span class="bit-hl" style="color:${out.EWH ? 'var(--red)':'var(--green)'}">${out.EWH}</span>  L=<span class="bit-hl" style="color:${out.EWL ? 'var(--yellow)':'var(--text-dim)'}">${out.EWL}</span>`;
+
+    // 信息
+    document.getElementById('demoInfo').innerHTML =
+      `计数 <strong>${n}</strong> (${bin}) → A=${bin[0]} B=${bin[1]} C=${bin[2]} D=${bin[3]}` +
+      ` | NS ${colorToCN[phase.ns]} | EW ${colorToCN[phase.ew]}` +
+      ` | NSH=${out.NSH} NSL=${out.NSL} EWH=${out.EWH} EWL=${out.EWL}`;
+  }
+
+  function setLight(dir, color) {
+    ['red','yellow','green'].forEach(c => {
+      const el = document.getElementById(`${dir}-${c}`);
+      el.classList.toggle('active', c === color);
+    });
+  }
+
+  // 默认选中 0
+  selectCounter(0);
+</script>
+</body>
+</html>

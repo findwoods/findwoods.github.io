@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>知识点Q1 交互式学习页面</title>
+<style>
+  :root{
+    --bg:#0b1020;
+    --panel:#121933;
+    --panel2:#0f1530;
+    --line:#2a3568;
+    --text:#edf2ff;
+    --muted:#a9b5df;
+    --accent:#6aa4ff;
+    --accent2:#8df0cf;
+    --warn:#ffc86e;
+    --danger:#ff8a8a;
+    --shadow:0 14px 40px rgba(0,0,0,.28);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:linear-gradient(180deg,#0a1020,#0b1020 40%,#0c1123);
+    color:var(--text);
+    font:16px/1.7 "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  .app{
+    display:grid;
+    grid-template-columns:280px minmax(0,1fr) 340px;
+    grid-template-rows:1fr 84px;
+    min-height:100vh;
+  }
+  .nav{
+    grid-column:1;
+    grid-row:1 / span 2;
+    background:rgba(16,24,52,.96);
+    border-right:1px solid var(--line);
+    padding:18px 14px;
+    overflow:auto;
+  }
+  .main{
+    grid-column:2;
+    grid-row:1;
+    padding:22px 26px 10px;
+    overflow:auto;
+  }
+  .aside{
+    grid-column:3;
+    grid-row:1;
+    background:rgba(15,21,48,.96);
+    border-left:1px solid var(--line);
+    padding:20px;
+    overflow:auto;
+  }
+  .controls{
+    grid-column:2 / 4;
+    grid-row:2;
+    border-top:1px solid var(--line);
+    background:rgba(10,16,32,.96);
+    display:flex;
+    gap:10px;
+    align-items:center;
+    padding:14px 18px;
+    position:sticky;
+    bottom:0;
+    backdrop-filter: blur(10px);
+  }
+  .brand{font-size:20px;font-weight:800;margin:0 0 8px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:14px}
+  .progress-box{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px;
+    margin-bottom:14px;
+    box-shadow:var(--shadow);
+  }
+  .progress-bar{
+    height:10px;
+    border-radius:999px;
+    background:#0c1431;
+    overflow:hidden;
+    border:1px solid var(--line);
+  }
+  .progress-fill{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    transition:width .3s ease;
+  }
+  .toc button{
+    width:100%;
+    text-align:left;
+    padding:10px 12px;
+    margin:0 0 8px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:var(--panel2);
+    color:var(--text);
+    cursor:pointer;
+  }
+  .toc button.active{
+    background:linear-gradient(180deg,#17306d,#122458);
+    outline:1px solid #7daeff66;
+  }
+  .section-chip{
+    display:inline-block;
+    padding:6px 10px;
+    font-size:12px;
+    color:#d4ddff;
+    border:1px solid var(--line);
+    border-radius:999px;
+    background:#0f1635;
+  }
+  .hero{
+    background:linear-gradient(135deg,#162a66,#10214c);
+    border:1px solid #6ea8ff33;
+    border-radius:22px;
+    padding:20px;
+    box-shadow:var(--shadow);
+  }
+  .hero h1{
+    margin:0 0 10px;
+    font-size:30px;
+    line-height:1.25;
+  }
+  .path{
+    color:#dce6ff;
+    background:rgba(255,255,255,.06);
+    border-left:4px solid var(--accent2);
+    padding:12px 14px;
+    border-radius:12px;
+  }
+  .step-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:18px;
+    box-shadow:var(--shadow);
+  }
+  .step-tag{
+    display:inline-block;
+    padding:6px 10px;
+    border-radius:999px;
+    background:#1b295b;
+    border:1px solid #7ea9ff55;
+    color:#dbe7ff;
+    font-weight:700;
+    margin-bottom:10px;
+  }
+  .cue{
+    margin:8px 0 14px;
+    padding:10px 12px;
+    border-radius:12px;
+    background:#122652;
+    border-left:4px solid var(--accent);
+    color:#d9e5ff;
+  }
+  .cue.warn{
+    background:#4b3010;
+    border-left-color:var(--warn);
+  }
+  p, li{color:var(--text)}
+  ul{padding-left:20px}
+  .math{
+    white-space:pre-wrap;
+    font-family:Consolas,monospace;
+    background:#0c1431;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px;
+    color:#d2f1ff;
+    overflow:auto;
+  }
+  .inline-math{
+    font-family:Consolas,monospace;
+    color:#b6f0ff;
+    background:#152049;
+    padding:1px 6px;
+    border-radius:8px;
+  }
+  .meta-grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+    margin-top:14px;
+  }
+  .meta-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:14px;
+  }
+  .aside h3{margin:0 0 8px}
+  .aside .speech{
+    background:linear-gradient(180deg,#182452,#121a38);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:16px;
+    box-shadow:var(--shadow);
+  }
+  .btn{
+    background:var(--panel);
+    color:var(--text);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:10px 14px;
+    cursor:pointer;
+  }
+  .btn.primary{
+    background:linear-gradient(180deg,#2454b6,#1c418f);
+    border-color:#78a9ff77;
+  }
+  .btn:disabled{
+    opacity:.45;
+    cursor:not-allowed;
+  }
+  .spacer{flex:1}
+  .hidden{display:none!important}
+  .footer-note{color:var(--muted);font-size:12px}
+  .jumpwrap select{
+    background:var(--panel);
+    color:var(--text);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:10px 12px;
+  }
+  .highlight{
+    color:#fff4b7;
+    background:rgba(255,210,84,.15);
+    padding:1px 6px;
+    border-radius:8px;
+  }
+  @media (max-width:1180px){
+    .app{
+      grid-template-columns:230px minmax(0,1fr);
+      grid-template-rows:auto 1fr 84px;
+    }
+    .aside{
+      grid-column:2;
+      grid-row:1;
+      border-left:none;
+      border-bottom:1px solid var(--line);
+    }
+    .main{
+      grid-column:2;
+      grid-row:2;
+    }
+    .controls{
+      grid-column:2;
+      grid-row:3;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="nav">
+    <div class="brand">知识点Q1 训练器</div>
+    <div class="sub">从“看到条件”到“形成条件反射式解题路径”</div>
+    <div class="progress-box">
+      <div id="locText">正在加载…</div>
+      <div class="sub" id="stepText"></div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+    <div class="toc" id="toc"></div>
+  </aside>
+
+  <main class="main">
+    <div class="section-chip" id="chapterChip"></div>
+    <div id="content"></div>
+  </main>
+
+  <aside class="aside" id="asidePane">
+    <h3>老师旁白</h3>
+    <div class="speech" id="asideText"></div>
+  </aside>
+
+  <div class="controls">
+    <button class="btn" id="prevBtn">上一步</button>
+    <button class="btn primary" id="nextBtn">下一步</button>
+    <button class="btn" id="autoBtn">自动播放</button>
+    <button class="btn" id="pauseBtn">暂停</button>
+    <button class="btn" id="resetBtn">重置本页</button>
+    <div class="jumpwrap">
+      <select id="jumpSel"></select>
+    </div>
+    <button class="btn" id="jumpBtn">跳转到本节</button>
+    <button class="btn" id="toggleAsideBtn">显示/隐藏旁白</button>
+    <div class="spacer"></div>
+    <div class="footer-note">步进顺序：标题 → 条件 → 知识点 → 公式 → 变量映射 → 数值示例 → 推理链 → 易错点 → 结论</div>
+  </div>
+</div>
+
+<script>
+const SOURCE = String.raw`# **知识点Q1+具体数值示例**
+
+## **Q1题型总览**
+
+这道题的本质，不是单纯画图，而是把三个课堂中的核心模式拼起来：
+
+1. **存储器接口**（memory interface）：地址、写使能、数据输入、数据输出。
+2. **多芯片扩展字长**（multi-chip memory / extend word size）：用两个 32-bit memory chip 并行构成 64-bit 行为。
+3. **重合选择**（coincident selection / bank selection）：当题目把一个额外的地址位拿出来时，这个额外位往往不是继续送进单个芯片，而是用来选择哪一个芯片工作。
+4. **多路选择器**（multiplexer, MUX）与**译码器**（decoder）的分工：
+   - MUX：决定“哪一路数据被送出去”。
+   - decoder / 选择逻辑：决定“哪一个单元/哪一个芯片被写入”。
+
+## **1. 先识别题目属于哪一类组合问题：扩字长 + 额外地址位选芯片**
+
+### **【题目示例】**
+题目给你两个
+$$
+2^k \\text{ addresses} \\times 32\\text{-bit words}
+$$
+的芯片，要求你构造一个既能表现成
+$$
+2^k \\text{ 个 }64\\text{-bit word}
+$$
+又能表现成
+$$
+2^{k+1} \\text{ 个 }32\\text{-bit word}
+$$
+的总芯片。
+
+### **【解题线索】**
+看到下面两句话，要立刻联想到两个不同机制：
+
+- “可存储 $2^k$ 个 64-bit word”  
+  ⇒ 这是扩字长（extend word size）。
+- “或者 存储 $2^{k+1}$ 个 32-bit word”  
+  ⇒ 这说明系统总共要区分 $k+1$ 位地址；但每个原始芯片只有 $k$-位地址输入，所以多出来的那 1 位不能直接进芯片地址口，而应拿去做芯片选择（chip select / bank select）。
+
+### **【知识点】**
+- 扩字长：多个较窄芯片并行存同一地址的不同位段。
+- 扩地址空间：额外高位地址常常用来选 bank / chip。
+- 题目混合模式：同一硬件在不同选择信号下切换“并行扩宽”与“分银行寻址”。
+
+### **【公式】**
+- 两片
+$$
+2^k \\times 32
+$$
+可并行为
+$$
+2^k \\times 64
+$$
+- 同样两片也可按银行划分为
+$$
+2 \\cdot 2^k = 2^{k+1}
+$$
+个 32-bit word。
+
+### **【套用公式与求解步骤】**
+1. 两个 32-bit chip 同时读/写同一个地址 A，可拼成一个 64-bit word。
+2. 若把两片看成两个 bank，则：
+   - chip 0 负责地址前缀为 0 的那一半；
+   - chip 1 负责地址前缀为 1 的那一半。
+3. 所以题目中的 $S_0$ 最自然就是额外地址位，即 bank-select bit。
+
+### **【知识点公式的每个变量对应题目条件中的哪个信息】**
+- $2^k$：每片原始芯片可区分的地址数。
+- 32：每片原始芯片的字长。
+- $2^{k+1}$：32位模式下总共需要区分的字数。
+- 额外的那一位：题目中明确给出的 $S_0$。
+
+### **【最终解答】**
+这道题首先应判定为：
+
+- 64位模式：两片并行、同地址工作；
+- 32位模式：$S_0$ 充当额外地址位，用来选 chip 0 或 chip 1。
+
+## **2. 存储器通用接口模型：读写时到底由哪些信号控制什么**
+
+### **【题目示例】**
+题目说明总芯片有：
+
+- 64-bit data input $I$
+- k-bit address input $A$
+- 1-bit write input $W$
+- 2-bit selector $S_1S_0$
+- 64-bit data output $O$
+
+并说明：
+
+- $W=1$ 时写入；
+- 否则读出。
+
+### **【解题线索】**
+看到这种表述，应立刻回忆 memory interface 的标准格式：
+$$
+\\text{Addr}, \\text{Write-Enable}, \\text{Data-In}, \\text{Data-Out}
+$$
+
+### **【知识点】**
+一个标准 memory 的接口逻辑是：
+
+- 地址（address）决定“访问哪一个字”；
+- 写使能（write enable）决定“读还是写”；
+- Data-In 只在写时真正起作用；
+- Data-Out 在读时反映被选中单元的内容。
+
+### **【公式】**
+一般地，$k$-位地址、$n$-位数据的 memory interface 可写成：
+$$
+\\text{Addr}=A \\in \\{0,1\\}^k,\\qquad
+\\text{DataIn}\\in \\{0,1\\}^n,\\qquad
+\\text{DataOut}\\in \\{0,1\\}^n
+$$
+
+- 若 $W=0$，输出为该地址处存储值；
+- 若 $W=1$，输入数据被写到该地址。
+
+### **【套用公式与求解步骤】**
+1. 原始每片芯片是
+$$
+2^k \\times 32
+$$
+的接口。
+2. 所以每片芯片自己的输入应该是：
+   - $k$-位 Addr
+   - 32-bit DataIn
+   - 1-bit W
+   - 32-bit DataOut
+3. 但总系统的输入是 64-bit $I$ 和 64-bit $O$，说明外层还需要做位切分与拼接。
+
+### **【知识点公式的每个变量对应题目条件中的哪个信息】**
+- $k$：题目给定的地址位数。
+- $n=32$：单个原始芯片的字长。
+- $I$：总系统的 64 位输入。
+- $O$：总系统的 64 位输出。
+
+### **【最终解答】**
+后面所有画图，都必须遵守一个原则：
+
+- 每个原始芯片只会看到 32-bit DataIn / DataOut；
+- 外部总系统才是 64-bit DataIn / DataOut。
+
+## **3. 位切分与高低半字：看到 64 位输入时先切成两段**
+
+### **【题目示例】**
+外部输入是一个 64-bit 的 $I$，而原始芯片每片只能接受 32-bit DataIn。
+
+### **【解题线索】**
+看到 “64位输入要进入32位芯片”，第一反应必须是：
+$$
+I = I_{63:32} \\, I_{31:0}
+$$
+也就是切成高32位（high-order 32 bits）和低32位（low-order 32 bits）。
+
+### **【知识点】**
+- bit slicing（位切片）
+- high-order bits / low-order bits
+- 宽数据总线接到窄数据总线时，必须明确每一段送到哪里。
+
+### **【公式】**
+把
+$$
+I = I_{63}I_{62}\\cdots I_1I_0
+$$
+切成两半：
+$$
+I_H = I_{63:32},\\qquad I_L = I_{31:0}
+$$
+
+同理，若两片芯片的输出分别是 $R_1,R_0$，则在64位模式下总输出可拼为：
+$$
+O = R_1 \\parallel R_0
+$$
+其中 $\\parallel$ 表示 concatenation（拼接）。
+
+### **【套用公式与求解步骤】**
+1. 在 64-bit mode 下，两片芯片必须共同完成一个64位字：
+   - 一片存高32位；
+   - 一片存低32位。
+2. 于是最自然的约定是：
+   - chip 0 存低32位；
+   - chip 1 存高32位。
+3. 后面所有公式都围绕这一定义展开。
+
+### **【知识点公式的每个变量对应题目条件中的哪个信息】**
+- $I_H=I_{63:32}$：题目中的“最高有效位的32位”。
+- $I_L=I_{31:0}$：题目中的“最低有效位的32位”。
+- $R_1,R_0$：两个原始芯片各自的32位输出。
+
+### **【最终解答】**
+本题中建议固定采用如下记号：
+$$
+I_H=I_{63:32},\\qquad I_L=I_{31:0}
+$$
+并约定：
+
+- chip 1 ↔ 高32位
+- chip 0 ↔ 低32位
+
+## **4. 64位模式的语义：两片芯片在同一地址并行工作**
+
+### **【题目示例】**
+题目说：
+- 当 $S_1=1$ 时，芯片从/向地址 $A$ 读取或写入 64-bit data。
+
+### **【解题线索】**
+看到 “当 $S_1=1$ 时读写64位数据”，就应判断：
+
+- 不是只启用其中一片；
+- 而是两片都访问相同地址 $A$，共同组成这个64位字。
+
+### **【知识点】**
+多芯片扩字长（extend word size across chips）的基本模式是：
+
+- 所有芯片共用同一个地址；
+- 所有芯片在写时同时被使能；
+- 每片负责整字中的一个位段。
+
+### **【公式】**
+在 64位模式（$S_1=1$）下：
+$$
+\\text{Addr}_0 = A,\\qquad \\text{Addr}_1 = A
+$$
+$$
+\\text{DataIn}_0 = I_{31:0},\\qquad \\text{DataIn}_1 = I_{63:32}
+$$
+$$
+W_0 = W,\\qquad W_1 = W
+$$
+$$
+O = R_1 \\parallel R_0
+$$
+
+### **【套用公式与求解步骤】**
+1. 地址相同，因为两片对应的是同一个64位字的两半。
+2. 低半字写到 chip 0，高半字写到 chip 1。
+3. 写时两片都要写，所以 $W_0=W_1=W$。
+4. 读时两片的输出拼接成64位输出。
+
+### **【知识点公式的每个变量对应题目条件中的哪个信息】**
+- $S_1=1$：题目指定“64位模式”。
+- $A$：题目给定的 $k$-位地址输入。
+- $I_{63:32}, I_{31:0}$：题目中的64位输入被分成两段。
+- $R_1,R_0$：两片芯片的读出值。
+
+### **【最终解答】**
+只要进入 $S_1=1$ 模式，就按下面理解：
+
+- 两片共享地址 $A$；
+- 两片同时写（若 $W=1$）；
+- 两片同时读并拼成64位输出。
+
+## **5. 32位模式的关键判断：额外地址位是 S0，不是送进单片地址口**
+
+### **【题目示例】**
+题目说当 $S_1=0$ 时：
+
+- 地址由
+$$
+S_0A_{k-1}A_{k-2}\\cdots A_1A_0
+$$
+指定，即这是一个 $k+1$-位地址。
+
+### **【解题线索】**
+这句话是全题最关键的判断点。
+
+原始芯片每片的地址输入只有 $k$ 位。  
+现在题目却要表达一个 $k+1$ 位地址。  
+所以：
+
+- 末尾那 $k$ 位 $A$ 仍然送入单片芯片的地址口；
+- 新增的最高位 $S_0$ 只能用来决定“选哪一片芯片”。
+
+### **【知识点】**
+这是典型的 banked memory（分银行存储器）逻辑：
+
+- 低 $k$ 位做片内地址；
+- 高 1 位做片选。
+
+### **【公式】**
+32位模式下，把逻辑地址写成：
+$$
+B = S_0A
+$$
+其中：
+- $B$ 是总的 $k+1$ 位地址；
+- $S_0$ 是最高位；
+- $A$ 是低 $k$ 位。
+
+于是：
+
+- 若 $S_0=0$，访问 chip 0 的地址 $A$
+- 若 $S_0=1$，访问 chip 1 的地址 $A$
+
+### **【套用公式与求解步骤】**
+1. 题目给定单片芯片只有 $k$-位地址口，这说明片内地址只能是 $A$。
+2. 题目又说32位模式总地址是 $S_0A$，所以 $S_0$ 不可能再进地址口。
+3. 因此 $S_0$ 的角色是 chip select：
+   - $S_0=0$ 选 chip 0
+   - $S_0=1$ 选 chip 1
+
+### **【知识点公式的每个变量对应题目条件中的哪个信息】**
+- $S_0$：题目明确给出的额外地址最高位。
+- $A$：单个芯片真正能接收的 $k$ 位地址。
+- $B=S_0A$：32位模式下总系统看到的 $k+1$ 位地址。
+
+### **【最终解答】**
+32位模式一定要理解成：
+$$
+\\boxed{\\text{片内地址}=A,\\qquad \\text{片选位}=S_0}
+$$
+
+## **6. (a) 中每片芯片的 Addr 输入应该接什么**
+
+### **【题目示例】**
+(a) 要求画出两个芯片各自的 DataIn 和 Addr 输入内容，用 $S_0,S_1,A,I$ 表示。
+
+### **【解题线索】**
+地址输入先不要想复杂。因为每片芯片物理上只有 $k$ 位地址口，所以无论在哪种模式下：
+$$
+\\text{Addr}_0 = A,\\qquad \\text{Addr}_1 = A
+$$
+真正变化的是“哪一片被启用”，不是地址口本身的位数。
+
+### **【知识点】**
+地址线（address lines）和片选线（chip select lines）不能混淆：
+
+- 地址线：决定选中该芯片内部哪个字；
+- 片选线：决定这个芯片是否参与当前访问。
+
+### **【公式】**
+对两片芯片统一有：
+$$
+\\boxed{\\text{Addr}_0=A,\\qquad \\text{Addr}_1=A}
+$$
+
+### **【套用公式与求解步骤】**
+1. 在64位模式，两片都访问地址 $A$。
+2. 在32位模式，被选中的那片访问地址 $A$，另一片虽然也“看到”地址 $A$，但由于未被选中，不参与写；读路径也不会被取用。
+3. 所以 (a) 的 Addr 部分最简答案就是两片都接 $A$。
+
+### **【知识点公式的每个变量对应题目条件中的哪个信息】**
+- $\\text{Addr}_0,\\text{Addr}_1$：两片原始芯片的地址输入端。
+- $A$：题目提供的 $k$-位地址输入。
+
+### **【最终解答】**
+(a) 中地址输入应写成：
+$$
+\\boxed{\\text{Addr}_0=A,\\qquad \\text{Addr}_1=A}
+$$
+
+## **7. (a) 中每片芯片的 DataIn 输入应该接什么**
+
+### **【题目示例】**
+(a) 还要求给出各芯片的 DataIn。
+
+题目特别说明，在32位模式写入时：
+
+- 只使用输入 $I$ 的最低32位；
+- 最高32位不用于写入。
+
+### **【解题线索】**
+所以一定要分情况：
+
+- 64位模式：chip 0 接低32位，chip 1 接高32位；
+- 32位模式：不管选中哪片，被写入的数据都来自 $I_{31:0}$。
+
+由此可知：
+- chip 0 的 DataIn 可以一直取 $I_{31:0}$；
+- chip 1 的 DataIn 必须在两种模式之间切换。
+
+### **【知识点】**
+这是典型的条件数据路由（conditional data routing）问题。  
+当同一芯片在不同模式下接收不同来源时，应使用 MUX。
+
+### **【公式】**
+定义：
+$$
+I_L = I_{31:0},\\qquad I_H = I_{63:32}
+$$
+则可取：
+$$
+\\boxed{\\text{DataIn}_0 = I_L}
+$$
+$$
+\\boxed{\\text{DataIn}_1 =
+\\begin{cases}
+I_H, & S_1=1\\\\
+I_L, & S_1=0
+\\end{cases}}
+$$
+等价地写成 MUX 形式：
+$$
+\\boxed{\\text{DataIn}_1 = S_1 ? I_H : I_L}
+$$
+
+### **【套用公式与求解步骤】**
+1. 若 $S_1=1$，总系统写64位：
+   - chip 0 写低半字 $I_L$
+   - chip 1 写高半字 $I_H$
+2. 若 $S_1=0$，总系统写32位：
+   - 题目规定只能写 $I_L$
+   - 被选中的那片收到 $I_L$
+3. 所以 chip 1 需要一个 2-to-1 MUX，由 $S_1$ 控制在 $I_H$ 与 $I_L$ 之间切换。
+
+### **【知识点公式的每个变量对应题目条件中的哪个信息】**
+- $I_L=I_{31:0}$：题目要求32位模式写入的来源。
+- $I_H=I_{63:32}$：64位模式下应写入高半字的来源。
+- $S_1$：模式控制位，决定当前是64位模式还是32位模式。
+
+### **【最终解答】**
+(a) 中 DataIn 最简写法可写为：
+$$
+\\boxed{\\text{DataIn}_0 = I_{31:0}}
+$$
+$$
+\\boxed{\\text{DataIn}_1 = S_1 ? I_{63:32} : I_{31:0}}
+$$
+
+## **8. (b) 写使能 Wi 的推理：谁应该在什么情况下被写**
+
+### **【题目示例】**
+(b) 要求给出输入到 chip $i$ 的 $W$ 端的代数表达式 $W_i$。
+
+### **【解题线索】**
+这里不要一上来就化简，先列真值语义：
+
+- 若总写入 $W=0$，谁都不写；
+- 若 $W=1,S_1=1$，64位模式，两片都写；
+- 若 $W=1,S_1=0,S_0=0$，只写 chip 0；
+- 若 $W=1,S_1=0,S_0=1$，只写 chip 1。
+
+### **【知识点】**
+这是一个标准的控制逻辑布尔表达式（control logic boolean expression）构造题。  
+做法是：
+
+1. 先写出“什么时候为1”；
+2. 再写成 SoP；
+3. 最后可选地代数化简。
+
+### **【公式】**
+对 chip 0：
+$$
+W_0 = 1
+$$
+当且仅当：
+- $W=1$ 且 $S_1=1$，或者
+- $W=1$ 且 $S_1=0$ 且 $S_0=0$
+
+因此：
+$$
+\\boxed{W_0 = W(S_1+\\overline{S_1}\\,\\overline{S_0})}
+$$
+化简：
+$$
+W_0 = W(S_1+\\overline{S_0})
+$$
+
+对 chip 1：
+$$
+W_1 = 1
+$$
+当且仅当：
+- $W=1$ 且 $S_1=1$，或者
+- $W=1$ 且 $S_1=0$ 且 $S_0=1$
+
+因此：
+$$
+\\boxed{W_1 = W(S_1+\\overline{S_1}S_0)}
+$$
+化简：
+$$
+W_1 = W(S_1+S_0)
+$$
+
+### **【套用公式与求解步骤】**
+先列语义表：
+
+| W | S1 | S0 | 应写 chip0? | 应写 chip1? |
+|---|---|---|---|---|
+| 0 | x | x | 0 | 0 |
+| 1 | 1 | x | 1 | 1 |
+| 1 | 0 | 0 | 1 | 0 |
+| 1 | 0 | 1 | 0 | 1 |
+
+再从表中直接写 SoP：
+$$
+W_0 = WS_1 + W\\overline{S_1}\\overline{S_0}
+$$
+$$
+W_1 = WS_1 + W\\overline{S_1}S_0
+$$
+然后提取 $W$。
+
+### **【知识点公式的每个变量对应题目条件中的哪个信息】**
+- $W$：总写使能输入。
+- $S_1$：64位/32位模式选择。
+- $S_0$：32位模式时选哪片芯片。
+- $W_0,W_1$：分别送往 chip 0 与 chip 1 的写使能。
+
+### **【最终解答】**
+(b) 推荐给出的答案是：
+$$
+\\boxed{W_0 = W(S_1+\\overline{S_1}\\,\\overline{S_0})}
+$$
+$$
+\\boxed{W_1 = W(S_1+\\overline{S_1}S_0)}
+$$
+若老师允许化简，也可写成：
+$$
+\\boxed{W_0 = W(S_1+\\overline{S_0}),\\qquad W_1 = W(S_1+S_0)}
+$$
+
+## **9. 为什么 (b) 中写使能用控制逻辑，而不是直接改地址线**
+
+### **【题目示例】**
+有同学看到 $S_0A$ 这个 $k+1$ 位地址后，可能会误以为要把 $S_0$ 硬塞进某种地址扩展线路。
+
+### **【解题线索】**
+但单片芯片地址口只有 $k$ 位。  
+所以多出来的位必须通过控制逻辑体现在：
+
+- 哪片芯片被写；
+- 哪片芯片的输出被送到总输出。
+
+### **【知识点】**
+在多芯片系统里，“扩展出的高位地址”常常被分拆为：
+
+- bank select：决定哪块芯片有效；
+- local address：决定芯片内部哪个地址有效。
+
+### **【公式】**
+局部地址：
+$$
+\\text{local address}=A
+$$
+片选逻辑：
+$$
+\\text{chip 0 selected in 32-bit mode} \\iff \\overline{S_0}
+$$
+$$
+\\text{chip 1 selected in 32-bit mode} \\iff S_0
+$$
+
+### **【套用公式与求解步骤】**
+1. 地址口宽度是硬约束，不能把 $k+1$ 位都送进单片。
+2. 因此只能把高位拆出去。
+3. 被拆出的最高位 $S_0$ 通过布尔逻辑进入：
+   - write-enable path
+   - read-output selection path
+
+### **【知识点公式的每个变量对应题目条件中的哪个信息】**
+- $A$：芯片内部地址。
+- $S_0$：总地址最高位。
+- selected 条件：被用于决定当前参与访问的芯片。
+
+### **【最终解答】**
+本题不是“改造地址宽度”，而是“把额外地址位转化成片选逻辑”。
+
+## **10. (c) 输出电路的核心：读路径和写路径是分开的**
+
+### **【题目示例】**
+(c) 要求单独画出“产生正在构建的芯片的 64-bit output” 的电路。
+
+### **【解题线索】**
+写路径讨论的是 DataIn 和 $W_i$。  
+而 (c) 专门问的是输出电路，所以必须只考虑：
+
+- 从两个芯片读出什么；
+- 怎样经由 MUX 和常数 0 组成最终的64位 $O$。
+
+### **【知识点】**
+数字系统里，read path 和 write path 往往独立分析：
+
+- write path：数据怎么写进去；
+- read path：数据怎么被选出来、拼起来、补零。
+
+### **【公式】**
+设两片芯片的输出分别为：
+$$
+R_0,\\ R_1 \\in \\{0,1\\}^{32}
+$$
+则总输出 $O\\in \\{0,1\\}^{64}$ 应满足：
+
+- 若 $S_1=1$（64位模式）：
+  $$
+  O = R_1 \\parallel R_0
+  $$
+- 若 $S_1=0,S_0=0$：
+  $$
+  O = 0^{32}\\parallel R_0
+  $$
+- 若 $S_1=0,S_0=1$：
+  $$
+  O = 0^{32}\\parallel R_1
+  $$
+
+### **【套用公式与求解步骤】**
+1. 先想低32位该来自哪里。
+2. 再想高32位在什么情况下为真正数据，什么情况下必须补 0。
+3. 注意题目明确规定32位模式读出时，高32位全 0。
+
+### **【知识点公式的每个变量对应题目条件中的哪个信息】**
+- $R_0,R_1$：两片芯片的32位输出。
+- $0^{32}$：题目要求32位模式读出时，高32位全置 0。
+- $S_1,S_0$：决定当前输出拼接方式。
+
+### **【最终解答】**
+(c) 不能只把两片输出直接拼起来，因为32位模式下高32位必须为0，而且低32位还要由 $S_0$ 选中对应芯片。
+
+## **11. (c) 的低32位输出该怎样画：先用 S0 选芯片，再用 S1 决定是否退回到 chip 0**
+
+### **【题目示例】**
+在32位模式中，低32位应该来自：
+
+- $S_0=0$ 时的 chip 0
+- $S_0=1$ 时的 chip 1
+
+在64位模式中，低32位必须固定来自 chip 0。
+
+### **【解题线索】**
+因此低32位的输出逻辑有两个层次：
+
+1. 先用 $S_0$ 在 $R_0,R_1$ 中选出“32位模式该读哪片”的结果；
+2. 再用 $S_1$ 决定当前是：
+   - 用这个“32位模式结果”，还是
+   - 直接用64位模式规定的 $R_0$。
+
+### **【知识点】**
+这是一个分层 MUX 设计（hierarchical MUX design）：
+
+- 第一层解决“哪片芯片被选中”；
+- 第二层解决“当前是哪种工作模式”。
+
+### **【公式】**
+先定义：
+$$
+M = S_0 ? R_1 : R_0
+$$
+也就是：
+$$
+M=
+\\begin{cases}
+R_0,& S_0=0\\\\
+R_1,& S_0=1
+\\end{cases}
+$$
+然后低32位输出：
+$$
+O_L = S_1 ? R_0 : M
+$$
+
+### **【套用公式与求解步骤】**
+- 当 $S_1=0$：
+  $$
+  O_L=M
+  $$
+  即按 $S_0$ 选 $R_0$ 或 $R_1$。
+- 当 $S_1=1$：
+  $$
+  O_L=R_0
+  $$
+  因为64位模式下低半字固定来自 chip 0。
+
+### **【知识点公式的每个变量对应题目条件中的哪个信息】**
+- $R_0,R_1$：两片芯片输出。
+- $S_0$：32位模式下哪一片被选中。
+- $S_1$：决定当前是否在64位模式。
+
+### **【最终解答】**
+(c) 中低32位可以画成：
+
+1. 一个 2-to-1 MUX，由 $S_0$ 控制，在 $R_0,R_1$ 中选择，得到 $M$；
+2. 再接一个 2-to-1 MUX，由 $S_1$ 控制，在 $M$ 与 $R_0$ 中选择，得到 $O_{31:0}$。
+
+## **12. (c) 的高32位输出该怎样画：64位模式输出 R1，32位模式输出全0**
+
+### **【题目示例】**
+题目明确要求：32位模式读出时，
+
+- 数据进入输出的低32位；
+- 高32位全部设为0。
+
+### **【解题线索】**
+所以高32位比低32位更简单：
+
+- 若 $S_1=1$，输出 $R_1$
+- 若 $S_1=0$，输出全0
+
+### **【知识点】**
+这是最典型的“数据 与 常数0 之间的 MUX”。
+
+### **【公式】**
+定义高32位输出为 $O_H$，则：
+$$
+O_H = S_1 ? R_1 : 0^{32}
+$$
+
+### **【套用公式与求解步骤】**
+1. 准备一路常量输入：
+   $$
+   0^{32}=000\\cdots 000
+   $$
+2. 准备一路真实数据输入 $R_1$。
+3. 用 $S_1$ 控制一个 2-to-1 MUX：
+   - $S_1=0$ 选 0
+   - $S_1=1$ 选 $R_1$
+
+### **【知识点公式的每个变量对应题目条件中的哪个信息】**
+- $R_1$：64位模式的高半字来源。
+- $0^{32}$：题目规定32位模式读出时高32位全零。
+- $S_1$：模式位。
+
+### **【最终解答】**
+(c) 中高32位可直接用一个 2-to-1 MUX 实现：
+$$
+\\boxed{O_{63:32}= S_1 ? R_1 : 0^{32}}
+$$
+
+## **13. (c) 的整体输出公式：把高低两段拼起来**
+
+### **【题目示例】**
+(c) 最终要求的是整个 64-bit output $O$。
+
+### **【解题线索】**
+高32位和低32位分别求出后，再做 concatenation 即可。
+
+### **【知识点】**
+多位总线输出常写成：
+$$
+O = O_H \\parallel O_L
+$$
+这能清楚表示“上半段”和“下半段”分别来自哪里。
+
+### **【公式】**
+综合前面结果：
+$$
+M = S_0 ? R_1 : R_0
+$$
+$$
+O_L = S_1 ? R_0 : M
+$$
+$$
+O_H = S_1 ? R_1 : 0^{32}
+$$
+因此：
+$$
+\\boxed{O = O_H \\parallel O_L}
+$$
+即：
+$$
+\\boxed{
+O =
+\\bigl(S_1 ? R_1 : 0^{32}\\bigr)
+\\parallel
+\\bigl(S_1 ? R_0 : (S_0 ? R_1 : R_0)\\bigr)
+}
+$$
+
+### **【套用公式与求解步骤】**
+分情况验算：
+
+1. $S_1=1$：
+   $$
+   O_H=R_1,\\quad O_L=R_0
+   \\Rightarrow O=R_1\\parallel R_0
+   $$
+2. $S_1=0,S_0=0$：
+   $$
+   O_H=0^{32},\\quad O_L=R_0
+   \\Rightarrow O=0^{32}\\parallel R_0
+   $$
+3. $S_1=0,S_0=1$：
+   $$
+   O_H=0^{32},\\quad O_L=R_1
+   \\Rightarrow O=0^{32}\\parallel R_1
+   $$
+
+### **【知识点公式的每个变量对应题目条件中的哪个信息】**
+- $R_0,R_1$：两片芯片的输出。
+- $S_0$：32位模式下选哪片。
+- $S_1$：64位/32位模式切换。
+- $0^{32}$：32位模式下的零扩展。
+
+### **【最终解答】**
+(c) 的总输出公式可整理为：
+$$
+\\boxed{
+O=
+\\bigl(S_1 ? R_1 : 0^{32}\\bigr)
+\\parallel
+\\bigl(S_1 ? R_0 : (S_0 ? R_1 : R_0)\\bigr)
+}
+$$
+
+## **14. 这道题最容易犯的错误与如何当场排错**
+
+### **【题目示例】**
+学生常犯的错误包括：
+
+1. 让两片芯片的地址输入不同；
+2. 以为32位模式也要把 $I_{63:32}$ 写进 chip 1；
+3. 忘记32位模式读出时高32位必须清零；
+4. 忘记64位模式时两片都要被写使能；
+5. 把 $S_0$ 同时当“地址位”和“数据路由位”却没有通过 MUX / enable 实现。
+
+### **【解题线索】**
+排错时只需要逐条核对三件事：
+
+- 地址口是不是都只接 $A$？
+- 32位模式写入是不是只用 $I_{31:0}$？
+- 32位模式输出高32位是不是全0？
+
+### **【知识点】**
+数字电路题的排错方法不是“凭感觉”，而是对照题目逐句检查语义约束是否落在电路上。
+
+### **【公式】**
+排错三原则：
+$$
+\\text{Addr}_0=\\text{Addr}_1=A
+$$
+$$
+S_1=0 \\implies \\text{written data}=I_{31:0}
+$$
+$$
+S_1=0 \\implies O_{63:32}=0^{32}
+$$
+
+### **【套用公式与求解步骤】**
+若你的电路图有任意一处违反上面三条，说明图一定有问题。
+
+### **【知识点公式的每个变量对应题目条件中的哪个信息】**
+- $A$：原始芯片地址口宽度只有 $k$ 位。
+- $I_{31:0}$：题目限定32位模式下写入来源。
+- $O_{63:32}$：题目限定32位模式下必须清零。
+
+### **【最终解答】**
+画完图后，用这三条检查，能快速抓出大部分错误。
+
+## **15. 总结版：真正可直接抄到题解中的答案骨架**
+
+### **【题目示例】**
+把整道题压缩成最后可交卷的结构化答案。
+
+### **【解题线索】**
+老师真正要看的，就是你是否把：
+
+- 地址
+- DataIn
+- 写使能
+- 输出电路
+
+这四块分开且正确写清楚。
+
+### **【知识点】**
+这是硬件构造题的标准答题骨架。
+
+### **【公式】**
+#### **(a) Addr 与 DataIn**
+$$
+\\boxed{\\text{Addr}_0=A,\\qquad \\text{Addr}_1=A}
+$$
+$$
+\\boxed{\\text{DataIn}_0=I_{31:0}}
+$$
+$$
+\\boxed{\\text{DataIn}_1=S_1?I_{63:32}:I_{31:0}}
+$$
+
+#### **(b) 写使能**
+$$
+\\boxed{W_0 = W(S_1+\\overline{S_1}\\,\\overline{S_0})}
+$$
+$$
+\\boxed{W_1 = W(S_1+\\overline{S_1}S_0)}
+$$
+
+#### **(c) 输出电路**
+设两片芯片输出为 $R_0,R_1$，则
+$$
+M=S_0?R_1:R_0
+$$
+$$
+O_{31:0}=S_1?R_0:M
+$$
+$$
+O_{63:32}=S_1?R_1:0^{32}
+$$
+$$
+\\boxed{O=O_{63:32}\\parallel O_{31:0}}
+$$
+
+### **【套用公式与求解步骤】**
+1. 先说明 chip 0 存低半字，chip 1 存高半字。
+2. 再说明 $S_0$ 是32位模式下的额外地址位，因此它用来选芯片。
+3. 把 (a)(b)(c) 三部分分开书写。
+4. 若画图：
+   - (a) 画数据分流和地址直连；
+   - (b) 画两个布尔控制表达式；
+   - (c) 画两个输出 MUX 与一个常数 $0^{32}$。
+
+### **【知识点公式的每个变量对应题目条件中的哪个信息】**
+- $I_{63:32},I_{31:0}$：输入 $I$ 的高/低半字。
+- $A$：单片地址。
+- $S_1$：64位/32位模式控制。
+- $S_0$：32位模式下的额外地址位/片选位。
+- $R_0,R_1$：两片芯片的输出。
+
+### **【最终解答】**
+本题最终最简洁、最稳妥的答案骨架就是上面四组框内公式。
+
+## **附：具体数值示例（整体联动验算）**
+
+### **【题目示例】**
+设 $k=2$，所以每片芯片有
+$$
+2^2=4
+$$
+个地址：$00,01,10,11$。
+
+设：
+
+- $A=10$
+- $I=\\texttt{0xAAAABBBBCCCCDDDD}$
+
+于是：
+$$
+I_H=\\texttt{0xAAAABBBB},\\qquad I_L=\\texttt{0xCCCCDDDD}
+$$
+
+### **【解题线索】**
+分别检查三种模式：
+
+1. 64位模式；
+2. 32位模式且 $S_0=0$；
+3. 32位模式且 $S_0=1$。
+
+### **【知识点】**
+数值例子最重要的作用是验证：
+
+- 数据是否写到正确芯片；
+- 输出是否零扩展正确；
+- 写使能公式是否与语义一致。
+
+### **【公式】**
+#### **情形1：$S_1=1$，64位模式**
+$$
+\\text{Addr}_0=\\text{Addr}_1=10
+$$
+$$
+\\text{DataIn}_0=\\texttt{0xCCCCDDDD}
+$$
+$$
+\\text{DataIn}_1=\\texttt{0xAAAABBBB}
+$$
+$$
+W_0=W_1=W
+$$
+若 $W=1$，则地址 $10$ 处：
+- chip 0 写入 $\\texttt{0xCCCCDDDD}$
+- chip 1 写入 $\\texttt{0xAAAABBBB}$
+
+读出时：
+$$
+O=\\texttt{0xAAAABBBBCCCCDDDD}
+$$
+
+#### **情形2：$S_1=0,S_0=0$，32位模式访问逻辑地址 $010$**
+$$
+\\text{selected chip}=0
+$$
+$$
+\\text{Addr}_0=\\text{Addr}_1=10
+$$
+$$
+\\text{DataIn}_0=\\texttt{0xCCCCDDDD}
+$$
+$$
+\\text{DataIn}_1=\\texttt{0xCCCCDDDD}
+$$
+但只有
+$$
+W_0= W,\\qquad W_1=0
+$$
+所以若 $W=1$，只有 chip 0 的地址 $10$ 被写。
+
+读出时：
+$$
+O= \\texttt{0x00000000CCCCDDDD}
+$$
+
+#### **情形3：$S_1=0,S_0=1$，32位模式访问逻辑地址 $110$**
+$$
+\\text{selected chip}=1
+$$
+$$
+W_0=0,\\qquad W_1=W
+$$
+所以若 $W=1$，只有 chip 1 的地址 $10$ 被写入
+$$
+\\texttt{0xCCCCDDDD}
+$$
+读出时：
+$$
+O= \\texttt{0x00000000CCCCDDDD}
+$$
+
+### **【套用公式与求解步骤】**
+这三个例子说明：
+
+- 64位模式：两片并行，读出是高半字拼低半字；
+- 32位模式：被选中的一片输出进入低32位，高32位清零；
+- 32位模式写入：无论写哪片，写进去的都是 $I_L$。
+
+### **【知识点公式的每个变量对应题目条件中的哪个信息】**
+- $k=2$：为了把地址数值例子写清楚。
+- $A=10$：片内地址。
+- $S_0$：决定逻辑地址落在 chip 0 还是 chip 1。
+- $I_H,I_L$：输入数据的高低半字。
+
+### **【最终解答】**
+只要你的公式在这三个数值例子下都成立，说明你的电路逻辑基本就是对的。`;
+
+function parseSource(md){
+  const lines = md.replace(/\r/g,'').split('\n');
+  const sections = [];
+  let current = null;
+  let module = null;
+
+  function pushModule(){
+    if(current && module){
+      current.modules.push(module);
+      module = null;
+    }
+  }
+  function pushSection(){
+    pushModule();
+    if(current){
+      sections.push(current);
+      current = null;
+    }
+  }
+
+  for(const line of lines){
+    const sec = line.match(/^## \*\*(.+?)\*\*$/);
+    const mod = line.match(/^### \*\*【(.+?)】\*\*$/);
+    if(sec){
+      pushSection();
+      current = { title: sec[1], modules: [], intro: "" };
+    }else if(mod){
+      pushModule();
+      module = { label: mod[1], text: "" };
+    }else{
+      if(module){
+        module.text += line + "\n";
+      }else if(current){
+        current.intro += line + "\n";
+      }
+    }
+  }
+  pushSection();
+  return sections;
+}
+
+function escapeHTML(str){
+  return str.replace(/[&<>"]/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'
+  }[c]));
+}
+
+function renderText(md){
+  let s = md.trim();
+
+  s = s.replace(/```([\s\S]*?)```/g, (_,m)=>`<pre>${escapeHTML(m.trim())}</pre>`);
+  s = s.replace(/\$\$([\s\S]*?)\$\$/g, (_,m)=>`<div class="math">${escapeHTML(m.trim())}</div>`);
+  s = s.replace(/\$(.+?)\$/g, (_,m)=>`<span class="inline-math">${escapeHTML(m)}</span>`);
+
+  const blocks = s.split(/\n\s*\n/).map(x=>x.trim()).filter(Boolean);
+  return blocks.map(block=>{
+    if(block.startsWith('- ')){
+      const items = block.split('\n').filter(Boolean).map(line=>{
+        if(line.startsWith('- ')) return `<li>${escapeHTML(line.slice(2))}</li>`;
+        return `<li>${escapeHTML(line)}</li>`;
+      }).join('');
+      return `<ul>${items}</ul>`;
+    }
+    if(/^\d+\./.test(block)){
+      const items = block.split('\n').filter(Boolean).map(line=>`<li>${escapeHTML(line.replace(/^\d+\.\s*/,'').trim())}</li>`).join('');
+      return `<ol>${items}</ol>`;
+    }
+    if(block.startsWith('####')){
+      return `<h4>${escapeHTML(block.replace(/^####\s*/,'').trim())}</h4>`;
+    }
+    return `<p>${escapeHTML(block).replace(/\n/g,'<br>')}</p>`;
+  }).join('\n');
+}
+
+const sections = parseSource(SOURCE);
+
+// 把每个 section 变成步进流程
+const course = sections.map((sec, sIndex)=>{
+  const steps = [];
+
+  steps.push({
+    label:'标题',
+    content: `
+      <div class="hero">
+        <h1>${escapeHTML(sec.title)}</h1>
+        <div class="path">
+          你现在先不要急着算。先看这节到底在训练什么。真正的高手不是先算，而是先识别结构、识别条件、识别哪一步应该先做。
+        </div>
+      </div>
+      <div style="height:14px"></div>
+      <div class="step-card">
+        <div class="step-tag">【本节导入】</div>
+        ${renderText(sec.intro || '本节无额外导入。')}
+      </div>
+    `,
+    aside: `你先只看标题和导入。你现在训练的不是“会做”，而是“看见这个标题，就能自动想起这一类题的核心结构”。`
+  });
+
+  sec.modules.forEach(mod=>{
+    let cue = '';
+    if(mod.label === '题目示例') cue = '你先看条件，不要先算。先拆输入、控制、输出。';
+    if(mod.label === '解题线索') cue = '你一看到这些线索，就要立刻联想到对应结构。';
+    if(mod.label === '知识点') cue = '这里不是死背定义，而是训练调用条件。';
+    if(mod.label === '公式') cue = '现在你要做的是：把每个变量钉回题目里的真实对象。';
+    if(mod.label === '套用公式与求解步骤') cue = '固定顺序：先分情况，再选工具，再代入变量，再收束结论。';
+    if(mod.label === '知识点公式的每个变量对应题目条件中的哪个信息') cue = '很多人不是不会公式，而是变量对不上；你现在就做变量落地。';
+    if(mod.label === '最终解答') cue = '现在是收束，不是跳跃；你要能回指前面的每个条件。';
+
+    steps.push({
+      label: mod.label,
+      content: `
+        <div class="step-card">
+          <div class="step-tag">【${escapeHTML(mod.label)}】</div>
+          <div class="cue ${mod.label==='最终解答'?'warn':''}">${escapeHTML(cue)}</div>
+          ${renderText(mod.text)}
+        </div>
+      `,
+      aside: {
+        '题目示例':'你现在先不要急着动笔。题目示例的作用，是帮你建立“输入—控制—输出”三段式观察法。先看谁是地址，谁是数据，谁是模式位，谁是写使能。',
+        '解题线索':'一看到这些线索，你就要做结构判断。不要等全部读完才想；真正高效的思维，是关键词一出现，知识点就自动被触发。',
+        '知识点':'你现在训练的是调用条件，而不是背诵定义。以后只要看到相同题面线索，你就应该自动想到这个知识点。',
+        '公式':'别只盯着公式的长相。你要马上问：这个公式适用于哪种结构？每个变量在题面里对应谁？',
+        '套用公式与求解步骤':'这一步最能拉开差距。你要把“条件 → 结构 → 公式 → 代入 → 中间结论 → 最终答案”固定成脑内流程。',
+        '知识点公式的每个变量对应题目条件中的哪个信息':'你现在做的是变量落地。只要变量与题目信息稳定对应，你的推理就不容易飘。',
+        '最终解答':'到这里你要最后检查一次：有没有遗漏高位清零、片选、写使能、读写分离这些关键前提？'
+      }[mod.label] || '继续按照当前模块向前推进。'
+    });
+  });
+
+  steps.push({
+    label:'易错点提醒',
+    content: `
+      <div class="step-card">
+        <div class="step-tag">【易错点提醒】</div>
+        <ul>
+          <li>不要把额外地址位和片内地址混为一谈。</li>
+          <li>不要忘记 32 位模式下高 32 位必须清零。</li>
+          <li>不要忘记读路径与写路径要分开分析。</li>
+          <li>不要在没有建立变量对应前直接套公式。</li>
+          <li>不要只看“公式长什么样”，要先看“当前模式是什么”。</li>
+        </ul>
+      </div>
+    `,
+    aside:'很多失分不是不会，而是太快。你只要在这里多检查一次：地址是谁、片选是谁、低高半字是谁、读写路径是否分开，错误率就会大幅下降。'
+  });
+
+  return { title: sec.title, steps };
+});
+
+let sectionIndex = 0;
+let stepIndex = 0;
+let timer = null;
+
+const toc = document.getElementById('toc');
+const content = document.getElementById('content');
+const asideText = document.getElementById('asideText');
+const chapterChip = document.getElementById('chapterChip');
+const locText = document.getElementById('locText');
+const stepText = document.getElementById('stepText');
+const progressFill = document.getElementById('progressFill');
+const jumpSel = document.getElementById('jumpSel');
+
+function renderNav(){
+  toc.innerHTML = '';
+  jumpSel.innerHTML = '';
+  course.forEach((sec, i)=>{
+    const btn = document.createElement('button');
+    btn.innerHTML = `${i+1}. ${escapeHTML(sec.title)}`;
+    if(i === sectionIndex) btn.classList.add('active');
+    btn.onclick = ()=>{
+      sectionIndex = i;
+      stepIndex = 0;
+      stopAuto();
+      renderAll();
+    };
+    toc.appendChild(btn);
+
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = `${i+1}. ${sec.title}`;
+    jumpSel.appendChild(opt);
+  });
+  jumpSel.value = sectionIndex;
+}
+
+function renderContent(){
+  const sec = course[sectionIndex];
+  const step = sec.steps[stepIndex];
+  chapterChip.textContent = `第 ${sectionIndex+1} 节 / 共 ${course.length} 节`;
+  content.innerHTML = `
+    <div class="meta-grid">
+      <div class="meta-card"><strong>当前主题</strong><br>${escapeHTML(sec.title)}</div>
+      <div class="meta-card"><strong>当前步骤</strong><br>${escapeHTML(step.label)}</div>
+      <div class="meta-card"><strong>训练目标</strong><br>看到什么 → 想到什么 → 为什么 → 怎么做 → 得到什么</div>
+    </div>
+    <div style="height:14px"></div>
+    ${step.content}
+  `;
+  asideText.innerHTML = step.aside;
+  locText.textContent = `当前位置：第 ${sectionIndex+1} 节《${sec.title}》`;
+  stepText.textContent = `当前步骤：${stepIndex+1} / ${sec.steps.length}`;
+  progressFill.style.width = `${((stepIndex+1)/sec.steps.length)*100}%`;
+}
+
+function renderAll(){
+  renderNav();
+  renderContent();
+  document.getElementById('prevBtn').disabled = (sectionIndex===0 && stepIndex===0);
+  document.getElementById('nextBtn').disabled =
+    (sectionIndex===course.length-1 && stepIndex===course[course.length-1].steps.length-1);
+}
+
+function nextStep(){
+  const sec = course[sectionIndex];
+  if(stepIndex < sec.steps.length - 1){
+    stepIndex++;
+  }else if(sectionIndex < course.length - 1){
+    sectionIndex++;
+    stepIndex = 0;
+  }else{
+    stopAuto();
+  }
+  renderAll();
+}
+
+function prevStep(){
+  if(stepIndex > 0){
+    stepIndex--;
+  }else if(sectionIndex > 0){
+    sectionIndex--;
+    stepIndex = course[sectionIndex].steps.length - 1;
+  }
+  renderAll();
+}
+
+function startAuto(){
+  stopAuto();
+  timer = setInterval(nextStep, 3500);
+}
+function stopAuto(){
+  if(timer) clearInterval(timer);
+  timer = null;
+}
+
+document.getElementById('nextBtn').onclick = nextStep;
+document.getElementById('prevBtn').onclick = prevStep;
+document.getElementById('autoBtn').onclick = startAuto;
+document.getElementById('pauseBtn').onclick = stopAuto;
+document.getElementById('resetBtn').onclick = ()=>{
+  stepIndex = 0;
+  stopAuto();
+  renderAll();
+};
+document.getElementById('jumpBtn').onclick = ()=>{
+  sectionIndex = Number(jumpSel.value);
+  stepIndex = 0;
+  stopAuto();
+  renderAll();
+};
+document.getElementById('toggleAsideBtn').onclick = ()=>{
+  document.getElementById('asidePane').classList.toggle('hidden');
+};
+
+renderAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>知识点Q1+具体数值示例 - 可视化训练版</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#121935;
+      --panel2:#182145;
+      --text:#eef3ff;
+      --muted:#b9c4e5;
+      --accent:#77d0ff;
+      --accent2:#9bffb1;
+      --warn:#ffd166;
+      --pink:#ff9ecf;
+      --line:#2d3b73;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+      background:linear-gradient(180deg,#08101f 0%,#0f1730 100%);
+      color:var(--text);
+      line-height:1.75;
+    }
+    .wrap{
+      width:min(1200px,92vw);
+      margin:0 auto;
+      padding:32px 0 72px;
+    }
+    .hero{
+      background:linear-gradient(135deg,#14204a 0%,#0f3d5d 100%);
+      border:1px solid #3659a8;
+      border-radius:24px;
+      padding:32px;
+      box-shadow:0 18px 60px rgba(0,0,0,.35);
+      margin-bottom:28px;
+    }
+    .hero h1{margin:0 0 10px;font-size:36px}
+    .hero p{margin:10px 0;color:var(--muted)}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+      margin:24px 0;
+    }
+    .card{
+      background:rgba(18,25,53,.95);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:22px;
+      box-shadow:0 10px 30px rgba(0,0,0,.22);
+    }
+    .section{
+      margin:28px 0;
+      background:rgba(18,25,53,.9);
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:28px;
+    }
+    h2{
+      margin:0 0 14px;
+      font-size:28px;
+      color:#dff3ff;
+    }
+    h3{
+      margin:22px 0 10px;
+      font-size:20px;
+      color:var(--accent);
+    }
+    .tag{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      background:#183566;
+      color:#bfe9ff;
+      font-size:13px;
+      margin-right:8px;
+      margin-bottom:8px;
+      border:1px solid #3765b7;
+    }
+    .box{
+      background:var(--panel2);
+      border-left:4px solid var(--accent);
+      border-radius:12px;
+      padding:14px 16px;
+      margin:12px 0;
+    }
+    .box.note{border-left-color:var(--accent2)}
+    .box.warn{border-left-color:var(--warn)}
+    .box.pink{border-left-color:var(--pink)}
+    .formula{
+      font-family:"Times New Roman",serif;
+      font-size:22px;
+      background:#0d1430;
+      border:1px solid #334b8f;
+      border-radius:14px;
+      padding:14px 18px;
+      overflow:auto;
+      margin:14px 0;
+    }
+    ul{margin:8px 0 8px 20px}
+    li{margin:6px 0}
+    .diagram{
+      display:grid;
+      gap:14px;
+      margin:16px 0;
+    }
+    .memrow{
+      display:grid;
+      grid-template-columns:120px 1fr 1fr;
+      gap:12px;
+      align-items:stretch;
+    }
+    .blk{
+      background:#0d1430;
+      border:1px solid #3b4f90;
+      border-radius:14px;
+      padding:14px;
+      text-align:center;
+    }
+    .small{
+      color:var(--muted);
+      font-size:14px;
+    }
+    .two{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:18px;
+    }
+    .speak{
+      margin-top:16px;
+      background:linear-gradient(135deg,#12254f,#153564);
+      border:1px solid #4d73c8;
+      border-radius:16px;
+      padding:16px 18px;
+    }
+    .speak strong{color:#fff5b8}
+    .footer{
+      color:#9eb2e0;
+      margin-top:24px;
+      text-align:center;
+      font-size:14px;
+    }
+    code{
+      background:#0d1430;
+      padding:2px 6px;
+      border-radius:6px;
+      color:#bde8ff;
+    }
+    @media (max-width:900px){
+      .grid,.two,.memrow{grid-template-columns:1fr}
+      .hero h1{font-size:28px}
+      h2{font-size:24px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <section class="hero">
+      <h1>Q1：存储器 / 重合选择 / 寄存器文件 —— 可视化训练版</h1>
+      <p>目标：把题目看到的每一条线索，瞬间映射到对应的知识点、公式、变量、芯片连线和输出逻辑。</p>
+      <div>
+        <span class="tag">64位字</span>
+        <span class="tag">32位字</span>
+        <span class="tag">双模式存储器</span>
+        <span class="tag">地址拼接</span>
+        <span class="tag">MUX</span>
+        <span class="tag">Decoder</span>
+        <span class="tag">Write Enable</span>
+        <span class="tag">Zero Extension</span>
+      </div>
+      <div class="speak">
+        <strong>旁白引导：</strong>
+        你看到这道题，第一反应不要急着画图。要先抓住三个核心：<br/>
+        ① 这是一个 <strong>模式切换题</strong>；<br/>
+        ② 这是一个 <strong>两片32位芯片拼成64位行为</strong> 的题；<br/>
+        ③ 这是一个 <strong>地址映射 + 写使能 + 输出拼接</strong> 的题。<br/>
+        一旦看出这三点，后面所有连线其实都只是“按模式分情况”展开。
+      </div>
+    </section>
+
+    <div class="grid">
+      <div class="card">
+        <h2>题目给出的外部接口</h2>
+        <ul>
+          <li>输入：<code>I</code>（64位数据）</li>
+          <li>输入：<code>A=A[k-1:0]</code>（k位地址）</li>
+          <li>输入：<code>W</code>（写使能）</li>
+          <li>输入：<code>S1 S0</code>（2位选择器）</li>
+          <li>输出：<code>O</code>（64位数据）</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>题目要求的三件事</h2>
+        <ul>
+          <li>(a) 画出两片芯片的 <code>DataIn</code> 与 <code>Addr</code></li>
+          <li>(b) 写出输入到芯片 <code>i</code> 的 <code>Wi</code> 代数式</li>
+          <li>(c) 画出最终 64 位输出 <code>O</code> 的电路</li>
+        </ul>
+      </div>
+    </div>
+
+    <section class="section">
+      <h2>1. 知识点：存储器接口的标准读写模型</h2>
+      <div class="box">
+        一个标准存储器接口由 <strong>地址</strong>、<strong>数据输入</strong>、<strong>写使能</strong>、<strong>数据输出</strong> 组成。<br/>
+        读：给地址，取出该地址内容。<br/>
+        写：给地址 + 给输入数据 + 令写使能为1。
+      </div>
+      <div class="formula">
+        Read: O = M[A] &nbsp;&nbsp;&nbsp;&nbsp; (当 W=0 时)<br/>
+        Write: M[A] ← I &nbsp;&nbsp;&nbsp;&nbsp; (当 W=1 时)
+      </div>
+      <h3>【题目线索就想到什么】</h3>
+      <ul>
+        <li>看到 <code>W=1</code>：马上想到“这是写，不是单纯读”。</li>
+        <li>看到 <code>Addr</code>：马上想到“最终每种模式都必须明确到底访问哪一个地址”。</li>
+        <li>看到 <code>DataOut</code>：马上想到“最终输出是否需要拼接、截断、补零”。</li>
+      </ul>
+      <h3>【题目示例】</h3>
+      <div class="box note">
+        例如若某个 32 位芯片地址为 <code>10110</code>，且 <code>W=1</code>，输入数据低 32 位为 <code>0x89ABCDEF</code>，那么该芯片把 <code>0x89ABCDEF</code> 写入地址 <code>10110</code>。
+      </div>
+      <div class="speak">
+        <strong>旁白引导：</strong>
+        你看这里，先不要陷入“64位”和“32位”的细节。第一层永远是最基本的存储器规律：<strong>读就是取 M[地址]，写就是改 M[地址]</strong>。<br/>
+        所以这题真正要解决的不是“存储器会不会读写”，而是：<strong>不同模式下，地址是谁、输入数据是谁、哪一片允许写、输出怎么组合。</strong>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>2. 知识点：容量与字长的关系</h2>
+      <div class="box">
+        同样的总比特容量，可以组织成“较少个宽字”，也可以组织成“较多个窄字”。
+      </div>
+      <div class="formula">
+        2^k 个 64 位字 = 2^(k+1) 个 32 位字
+      </div>
+      <h3>【为什么】</h3>
+      <div class="formula">
+        总比特数 = 2^k × 64 = 2^k × 2 × 32 = 2^(k+1) × 32
+      </div>
+      <h3>【题目线索】</h3>
+      <ul>
+        <li>看到 “可存 2^k 个64位字，或者 2^(k+1) 个32位字”，马上想到：这是同一块容量在两种组织方式下的切换。</li>
+        <li>于是自然想到：<strong>S1</strong> 应该在控制“按64位看”还是“按32位看”。</li>
+      </ul>
+      <h3>【具体数值示例】</h3>
+      <div class="box note">
+        若 <code>k=3</code>，那么：<br/>
+        <code>2^3=8</code> 个 64 位字，或者 <code>2^4=16</code> 个 32 位字。<br/>
+        总容量都是 <code>8×64=16×32=512 bit</code>。
+      </div>
+      <div class="speak">
+        <strong>旁白引导：</strong>
+        你看到这种“同容量双组织”描述，条件反射一定要想到：<strong>地址位数会跟着字长变化</strong>。<br/>
+        因为字更窄了，能放的字更多，所以地址空间扩大一倍，也就是多出 <strong>1位地址选择</strong>。这就是后面 <code>S0</code> 进入地址的根源。
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>3. 知识点：两片 32 位、2^k 地址芯片并行构成 64 位行为</h2>
+      <div class="box">
+        每片芯片本身是：<strong>2^k 个地址</strong>、每个地址存 <strong>32 位</strong>。<br/>
+        两片并行后，在 64 位模式下，同一个地址 <code>A</code> 同时访问两片：一片提供高 32 位，一片提供低 32 位。
+      </div>
+
+      <div class="diagram">
+        <div class="memrow">
+          <div class="blk"><strong>地址 A</strong></div>
+          <div class="blk"><strong>芯片1</strong><br/>存/取高32位</div>
+          <div class="blk"><strong>芯片0</strong><br/>存/取低32位</div>
+        </div>
+        <div class="memrow">
+          <div class="blk">A = 01101</div>
+          <div class="blk">I[63:32]</div>
+          <div class="blk">I[31:0]</div>
+        </div>
+      </div>
+
+      <h3>【题目线索】</h3>
+      <ul>
+        <li>看到“用两个32位字、2^k地址芯片构建”——马上想到：这不是“增加地址数”，而是先要“增加字宽”。</li>
+        <li>64位模式下两片一起工作；32位模式下则只写其中一片、只读其中一片。</li>
+      </ul>
+
+      <h3>【具体数值示例】</h3>
+      <div class="box note">
+        若 <code>I = 0x11223344_55667788</code>，则：
+        <ul>
+          <li>高 32 位：<code>I[63:32] = 0x11223344</code></li>
+          <li>低 32 位：<code>I[31:0] = 0x55667788</code></li>
+        </ul>
+        若当前为 64 位模式，地址为 <code>A</code>，则：
+        <ul>
+          <li><strong>芯片1</strong> 写/读 <code>0x11223344</code></li>
+          <li><strong>芯片0</strong> 写/读 <code>0x55667788</code></li>
+        </ul>
+      </div>
+
+      <div class="speak">
+        <strong>旁白引导：</strong>
+        你看这里要马上形成一个固定心像：<strong>两片32位并排，拼成一条64位总线</strong>。<br/>
+        一旦你脑中有这个图，(a) 的 <code>DataIn</code>、(c) 的 <code>Output</code> 就几乎自动出来了：<br/>
+        <strong>高半边给芯片1，低半边给芯片0；输出时再反向拼回去。</strong>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>4. 知识点：模式位 S1 的含义</h2>
+      <div class="formula">
+        S1 = 1 → 64位模式<br/>
+        S1 = 0 → 32位模式
+      </div>
+      <div class="two">
+        <div class="card">
+          <h3>64 位模式</h3>
+          <ul>
+            <li>地址就是 <code>A</code></li>
+            <li>两片同时参与</li>
+            <li>输入 64 位拆成高/低两半分别送入</li>
+            <li>输出由两片32位拼成64位</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>32 位模式</h3>
+          <ul>
+            <li>逻辑地址变成 <code>S0 A[k-1:0]</code></li>
+            <li><code>S0</code> 决定访问芯片1还是芯片0</li>
+            <li>写时只使用 <code>I[31:0]</code></li>
+            <li>读时只把读出的32位放到 <code>O[31:0]</code>，高32位清零</li>
+          </ul>
+        </div>
+      </div>
+      <div class="speak">
+        <strong>旁白引导：</strong>
+        这里最关键的不是背结论，而是建立反射：<br/>
+        <strong>S1 控制的是“宽度解释方式”</strong>。<br/>
+        所以当你后面写任何公式时，都要先问一句：<br/>
+        “我现在是在 64 位模式写整字，还是在 32 位模式只碰其中半字？”
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>5. 知识点：S0 在 32 位模式下进入地址解释</h2>
+      <div class="box">
+        题目明确说：当 <code>S1=0</code> 时，32位数据的地址由
+      </div>
+      <div class="formula">
+        S0 A[k-1] A[k-2] ... A1 A0
+      </div>
+      <div class="box">
+        指定。这说明：原本的 <code>k+1</code> 位逻辑地址，被拆成：
+        <ul>
+          <li>最高位 <code>S0</code>：决定上半区 / 下半区</li>
+          <li>其余 <code>k</code> 位 <code>A</code>：作为片内地址</li>
+        </ul>
+      </div>
+      <h3>【题目线索】</h3>
+      <ul>
+        <li>看到 <code>S0A[k-1:0]</code>：马上想到 <code>S0</code> 不是进芯片地址脚，而是“决定哪一片芯片被选中”。</li>
+        <li>因为每片芯片本身只有 <code>k</code> 位地址脚。</li>
+      </ul>
+      <h3>【具体数值示例】</h3>
+      <div class="box note">
+        设 <code>k=3</code>，则每片芯片有 8 个地址。<br/>
+        32 位模式时总共有 16 个 32 位地址：
+        <ul>
+          <li><code>0000 ~ 0111</code> 对应 <strong>芯片0</strong> 的地址 <code>000 ~ 111</code></li>
+          <li><code>1000 ~ 1111</code> 对应 <strong>芯片1</strong> 的地址 <code>000 ~ 111</code></li>
+        </ul>
+        所以：
+        <ul>
+          <li><code>S0=0</code> → 访问芯片0</li>
+          <li><code>S0=1</code> → 访问芯片1</li>
+        </ul>
+      </div>
+      <div class="speak">
+        <strong>旁白引导：</strong>
+        你看这里一定要马上想到“**片选**”。<br/>
+        因为逻辑地址是 <code>k+1</code> 位，但物理芯片地址只有 <code>k</code> 位，所以那多出来的最高位不可能再送进地址脚，它只能用来决定：<strong>到底是访问芯片0还是芯片1。</strong>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>6. (a) 两片芯片的 DataIn 和 Addr 应该怎么接</h2>
+
+      <h3>6.1 地址连接</h3>
+      <div class="formula">
+        Addr0 = A<br/>
+        Addr1 = A
+      </div>
+      <div class="box">
+        不管是 64 位模式还是 32 位模式，送进两片芯片内部的地址脚都只是 <code>A</code>。<br/>
+        真正决定“32位模式下访问哪一片”的不是地址脚本身，而是写使能与输出选择逻辑。
+      </div>
+
+      <h3>6.2 数据输入连接</h3>
+      <div class="formula">
+        DataIn0 = I[31:0]
+      </div>
+      <div class="formula">
+        DataIn1 =
+        \begin{cases}
+        I[63:32], & S1=1 \\
+        I[31:0], & S1=0
+        \end{cases}
+      </div>
+
+      <div class="box warn">
+        为什么 <strong>芯片1</strong> 在 32 位模式也接 <code>I[31:0]</code>？<br/>
+        因为 32 位模式下只允许写入“输入的低 32 位”。如果 <code>S0=1</code> 时要写的是芯片1，那么芯片1 也必须拿到低 32 位那份数据。
+      </div>
+
+      <h3>【具体电路思维】</h3>
+      <ul>
+        <li><strong>芯片0</strong> 的 DataIn 可直接接 <code>I[31:0]</code></li>
+        <li><strong>芯片1</strong> 的 DataIn 需要一个 2-to-1 MUX：
+          <ul>
+            <li><code>S1=1</code> 选 <code>I[63:32]</code></li>
+            <li><code>S1=0</code> 选 <code>I[31:0]</code></li>
+          </ul>
+        </li>
+      </ul>
+
+      <h3>【题目示例】</h3>
+      <div class="two">
+        <div class="card">
+          <h3>示例A：64位模式</h3>
+          <ul>
+            <li><code>S1=1</code></li>
+            <li><code>I=0xAAAABBBB_CCCCdddd</code></li>
+            <li><code>DataIn1=0xAAAABBBB</code></li>
+            <li><code>DataIn0=0xCCCCdddd</code></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>示例B：32位模式且 S0=1</h3>
+          <ul>
+            <li><code>S1=0, S0=1</code></li>
+            <li>要写高半区对应的 32 位字</li>
+            <li><code>DataIn1=I[31:0]</code></li>
+            <li><code>DataIn0</code> 虽也可能接着低32位，但不会写入，因为它的 <code>W0=0</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="speak">
+        <strong>旁白引导：</strong>
+        这一页最容易错在一个点：很多人会把 <strong>芯片1</strong> 永远接高 32 位。<br/>
+        但你一看到题目那句“32位模式写入时，只使用输入的最低 32 位”，就要立刻反应：<br/>
+        <strong>谁被选中写，谁就得收到 I[31:0]</strong>。<br/>
+        所以芯片1 的 DataIn 不能固定死，必须受 <code>S1</code> 控制。
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>7. (b) 写使能 Wi 的代数表达式</h2>
+
+      <div class="box">
+        写使能的核心逻辑：
+        <ul>
+          <li>64 位模式：两片一起写</li>
+          <li>32 位模式：只写由 <code>S0</code> 选中的那一片</li>
+        </ul>
+      </div>
+
+      <div class="formula">
+        W0 = W(S1 + \overline{S1}\,\overline{S0})
+      </div>
+      <div class="formula">
+        W1 = W(S1 + \overline{S1}\,S0)
+      </div>
+
+      <h3>【更直观的分情况写法】</h3>
+      <div class="formula">
+        \text{若 } S1=1,\; W0=W,\; W1=W
+      </div>
+      <div class="formula">
+        \text{若 } S1=0,\; 
+        \begin{cases}
+        S0=0 \Rightarrow W0=W,\; W1=0 \\
+        S0=1 \Rightarrow W0=0,\; W1=W
+        \end{cases}
+      </div>
+
+      <h3>【知识点公式的每个变量对应题目条件】</h3>
+      <ul>
+        <li><code>W</code>：题目给定的总写使能</li>
+        <li><code>S1</code>：模式位，1 表示 64 位模式</li>
+        <li><code>S0</code>：32 位模式下的半区选择位</li>
+        <li><code>Wi</code>：送到芯片 <code>i</code> 的片内写使能</li>
+      </ul>
+
+      <h3>【具体数值示例】</h3>
+      <div class="two">
+        <div class="card">
+          <h3>示例1</h3>
+          <div class="formula">
+            W=1,\; S1=1,\; S0=0
+          </div>
+          <div class="formula">
+            W0=1,\; W1=1
+          </div>
+          <p class="small">64 位模式，两片都写。</p>
+        </div>
+        <div class="card">
+          <h3>示例2</h3>
+          <div class="formula">
+            W=1,\; S1=0,\; S0=0
+          </div>
+          <div class="formula">
+            W0=1,\; W1=0
+          </div>
+          <p class="small">32 位模式，只写芯片0。</p>
+        </div>
+      </div>
+      <div class="two">
+        <div class="card">
+          <h3>示例3</h3>
+          <div class="formula">
+            W=1,\; S1=0,\; S0=1
+          </div>
+          <div class="formula">
+            W0=0,\; W1=1
+          </div>
+          <p class="small">32 位模式，只写芯片1。</p>
+        </div>
+        <div class="card">
+          <h3>示例4</h3>
+          <div class="formula">
+            W=0
+          </div>
+          <div class="formula">
+            W0=0,\; W1=0
+          </div>
+          <p class="small">不写存储器，只读。</p>
+        </div>
+      </div>
+
+      <div class="speak">
+        <strong>旁白引导：</strong>
+        你看写使能公式其实不是背出来的，而是由“模式 + 片选”直接翻译出来的。<br/>
+        训练时你要形成这个反射顺序：<br/>
+        <strong>先问当前是否写</strong> → 再问 <strong>是64位模式还是32位模式</strong> → 再问 <strong>32位模式下选哪一片</strong>。<br/>
+        这个顺序一清楚，代数式只是把逻辑文字压缩成布尔表达式。
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>8. (c) 最终 64 位输出 O 的构造</h2>
+
+      <h3>8.1 先定义两片芯片的读出</h3>
+      <div class="formula">
+        X0 = \text{Chip0Out}[31:0]
+      </div>
+      <div class="formula">
+        X1 = \text{Chip1Out}[31:0]
+      </div>
+
+      <h3>8.2 64 位模式输出</h3>
+      <div class="formula">
+        O = X1 \,\|\, X0 \qquad (S1=1)
+      </div>
+
+      <h3>8.3 32 位模式输出</h3>
+      <div class="formula">
+        O =
+        \begin{cases}
+        0^{32}\,\|\,X0, & S1=0,\;S0=0 \\
+        0^{32}\,\|\,X1, & S1=0,\;S0=1
+        \end{cases}
+      </div>
+
+      <h3>【等价的电路实现思路】</h3>
+      <ul>
+        <li>先用一个 2-to-1 MUX 根据 <code>S0</code> 在 <code>X0</code> 和 <code>X1</code> 中选出“32位模式下的有效32位输出”</li>
+        <li>再把该结果送到 <code>O[31:0]</code></li>
+        <li>同时把 <code>O[63:32]</code> 在 32 位模式强制接全 0</li>
+        <li>最后再用 <code>S1</code> 控制：输出是“64位拼接结果”还是“32位零扩展结果”</li>
+      </ul>
+
+      <div class="diagram">
+        <div class="memrow">
+          <div class="blk"><strong>输入</strong></div>
+          <div class="blk"><strong>64位模式分支</strong></div>
+          <div class="blk"><strong>32位模式分支</strong></div>
+        </div>
+        <div class="memrow">
+          <div class="blk">X1, X0</div>
+          <div class="blk">O64 = X1 || X0</div>
+          <div class="blk">O32 = 0^32 || MUX(S0; X0,X1)</div>
+        </div>
+        <div class="memrow">
+          <div class="blk">S1</div>
+          <div class="blk" colspan="2">O = MUX(S1; O32, O64)</div>
+        </div>
+      </div>
+
+      <h3>【具体数值示例】</h3>
+      <div class="two">
+        <div class="card">
+          <h3>示例A：64位模式读取</h3>
+          <ul>
+            <li><code>X1=0x12345678</code></li>
+            <li><code>X0=0xABCDEF00</code></li>
+            <li><code>S1=1</code></li>
+            <li><code>O=0x12345678ABCDEF00</code></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>示例B：32位模式读取芯片1</h3>
+          <ul>
+            <li><code>X1=0x13579BDF</code></li>
+            <li><code>S1=0, S0=1</code></li>
+            <li><code>O[31:0]=0x13579BDF</code></li>
+            <li><code>O[63:32]=0x00000000</code></li>
+            <li><code>O=0x0000000013579BDF</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="speak">
+        <strong>旁白引导：</strong>
+        这一页的关键词是 <strong>零扩展</strong>。<br/>
+        题目已经明说：32 位模式读出来之后，数据只放在输出低 32 位，高 32 位全部设 0。<br/>
+        所以你看到“读取32位数据却输出64位总线”时，要立刻想到：<br/>
+        <strong>不是符号扩展，不是复制高位，而是强制补 0。</strong>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>9. 完整解题模板：看到题目后如何秒切到答案</h2>
+
+      <h3>【解题线索】</h3>
+      <ol>
+        <li>先认出这是“同容量双组织”的 <strong>模式切换存储器</strong> 题。</li>
+        <li>再认出构件是“两片32位芯片并行”。</li>
+        <li>再分三层写：
+          <ul>
+            <li>(a) 地址与输入数据怎么接</li>
+            <li>(b) 写使能怎么分配</li>
+            <li>(c) 输出怎么构造</li>
+          </ul>
+        </li>
+      </ol>
+
+      <h3>【套用公式与求解步骤】</h3>
+      <div class="box pink">
+        <strong>Step 1：</strong> 地址脚先写成最简单形式：两片都接 <code>A</code><br/>
+        <strong>Step 2：</strong> 64 位模式时两片并行：<code>Chip1←I[63:32]</code>，<code>Chip0←I[31:0]</code><br/>
+        <strong>Step 3：</strong> 32 位模式时被选中的芯片必须接到 <code>I[31:0]</code><br/>
+        <strong>Step 4：</strong> 写使能按“64位两片全开 / 32位只开一片”写成布尔式<br/>
+        <strong>Step 5：</strong> 输出按“64位拼接 / 32位零扩展”画两条分支，再用 <code>S1</code> 选
+      </div>
+
+      <h3>【最终标准答案】</h3>
+
+      <div class="formula">
+        \textbf{(a)}\quad Addr0=A,\; Addr1=A
+      </div>
+      <div class="formula">
+        \textbf{(a)}\quad DataIn0=I[31:0]
+      </div>
+      <div class="formula">
+        \textbf{(a)}\quad DataIn1=
+        \begin{cases}
+        I[63:32], & S1=1 \\
+        I[31:0], & S1=0
+        \end{cases}
+      </div>
+
+      <div class="formula">
+        \textbf{(b)}\quad W0 = W(S1+\overline{S1}\,\overline{S0})
+      </div>
+      <div class="formula">
+        \textbf{(b)}\quad W1 = W(S1+\overline{S1}\,S0)
+      </div>
+
+      <div class="formula">
+        \textbf{(c)}\quad O64 = X1 \,\|\, X0
+      </div>
+      <div class="formula">
+        \textbf{(c)}\quad O32 = 0^{32}\,\|\,MUX(S0;X0,X1)
+      </div>
+      <div class="formula">
+        \textbf{(c)}\quad O = MUX(S1; O32, O64)
+      </div>
+
+      <div class="speak">
+        <strong>旁白引导：</strong>
+        训练的目标不是这题会做一次，而是下一次看到同类题，能在几秒内自动分类：<br/>
+        <strong>“这是双模式存储器题 → 先分模式 → 再分地址/写/输出三部分。”</strong><br/>
+        只要这个心智模型固定下来，你不仅能做这题，也能迁移到 <strong>寄存器文件</strong>、<strong>多银行存储器</strong>、<strong>字宽扩展</strong>、<strong>地址空间扩展</strong> 的题。
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>10. 最强条件反射清单</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>看到 “2^k 个64位字 / 2^(k+1) 个32位字”</h3>
+          <p>马上想到：<strong>同容量双组织，地址会多1位。</strong></p>
+        </div>
+        <div class="card">
+          <h3>看到 “两个32位芯片”</h3>
+          <p>马上想到：<strong>64位模式并行拼接，32位模式片选访问。</strong></p>
+        </div>
+        <div class="card">
+          <h3>看到 “S0 A...”</h3>
+          <p>马上想到：<strong>S0 是高位逻辑地址，最终落成片选。</strong></p>
+        </div>
+        <div class="card">
+          <h3>看到 “读32位但输出64位”</h3>
+          <p>马上想到：<strong>低32位放数据，高32位补0。</strong></p>
+        </div>
+      </div>
+
+      <div class="speak">
+        <strong>旁白引导：</strong>
+        真正的高手不是会推一遍，而是看到线索就自动激活模板。<br/>
+        你要训练到这种程度：题目还没看完，你脑中已经出现 <strong>两片芯片 + 两条模式分支 + 一条输出MUX树</strong> 的结构图。
+      </div>
+    </section>
+
+    <div class="footer">
+      训练建议：先遮住“最终答案”，只看“题目线索”和“旁白引导”，自己把 (a)(b)(c) 重建一遍。
+    </div>
+
+  </div>
+</body>
+</html>

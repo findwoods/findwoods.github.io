@@ -1,4 +1,4 @@
-name: Temporary translation model package
+name: Temporary translation tokenizer package
 
 on:
   issues:
@@ -10,7 +10,7 @@ permissions:
   issues: write
 
 jobs:
-  package-model:
+  package-tokenizer:
     runs-on: ubuntu-latest
     steps:
       - name: Report workflow run ID
@@ -21,37 +21,19 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `nllb-split-model-run-id: ${context.runId}`
+              body: `nllb-tokenizer-run-id: ${context.runId}`
             })
-      - name: Install converters
-        run: pip install --quiet 'transformers[torch]' sentencepiece ctranslate2
-      - name: Download, convert, and split model
+      - name: Download tokenizer
         run: |
-          python - <<'PY'
-          from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
-          name = 'facebook/nllb-200-distilled-600M'
-          out = 'nllb-hf'
-          AutoModelForSeq2SeqLM.from_pretrained(name).save_pretrained(out)
-          AutoTokenizer.from_pretrained(name, use_fast=False).save_pretrained(out)
-          PY
-          ct2-transformers-converter --model nllb-hf --output_dir nllb-ct2-int8 --quantization int8 --force
-          find nllb-hf -maxdepth 1 -type f -name '*.model' -exec cp -a {} nllb-ct2-int8/ \;
-          cp -a nllb-hf/tokenizer_config.json nllb-ct2-int8/
-          cp -a nllb-hf/special_tokens_map.json nllb-ct2-int8/ || true
-          tar -cf nllb-model.tar nllb-ct2-int8
-          split -b 350M -d -a 2 nllb-model.tar nllb-model.tar.part-
-          ls -lh nllb-model.tar.part-*
-      - name: Upload part 00
+          curl -L --fail --retry 3 \
+            'https://huggingface.co/facebook/nllb-200-distilled-600M/resolve/main/sentencepiece.bpe.model?download=true' \
+            -o sentencepiece.bpe.model
+          sha256sum sentencepiece.bpe.model
+          ls -lh sentencepiece.bpe.model
+      - name: Upload tokenizer
         uses: actions/upload-artifact@v4
         with:
-          name: nllb-model-part-00
-          path: nllb-model.tar.part-00
-          compression-level: 0
-          retention-days: 1
-      - name: Upload part 01
-        uses: actions/upload-artifact@v4
-        with:
-          name: nllb-model-part-01
-          path: nllb-model.tar.part-01
+          name: nllb-sentencepiece-tokenizer
+          path: sentencepiece.bpe.model
           compression-level: 0
           retention-days: 1

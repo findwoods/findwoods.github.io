@@ -1,4 +1,4 @@
-name: Temporary translation tokenizer package
+name: Temporary mBART translation model package
 
 on:
   issues:
@@ -10,7 +10,7 @@ permissions:
   issues: write
 
 jobs:
-  package-tokenizer:
+  package-model:
     runs-on: ubuntu-latest
     steps:
       - name: Report workflow run ID
@@ -21,19 +21,35 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `nllb-tokenizer-run-id: ${context.runId}`
+              body: `mbart-split-model-run-id: ${context.runId}`
             })
-      - name: Download tokenizer
+      - name: Install converters
+        run: pip install --quiet 'transformers[torch]<5' sentencepiece ctranslate2
+      - name: Download, convert, and split model
         run: |
-          curl -L --fail --retry 3 \
-            'https://huggingface.co/facebook/nllb-200-distilled-600M/resolve/main/sentencepiece.bpe.model?download=true' \
-            -o sentencepiece.bpe.model
-          sha256sum sentencepiece.bpe.model
-          ls -lh sentencepiece.bpe.model
-      - name: Upload tokenizer
+          python - <<'PY'
+          from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+          name = 'facebook/mbart-large-50-many-to-many-mmt'
+          out = 'mbart-hf'
+          AutoModelForSeq2SeqLM.from_pretrained(name).save_pretrained(out)
+          AutoTokenizer.from_pretrained(name, use_fast=False).save_pretrained(out)
+          PY
+          ct2-transformers-converter --model mbart-hf --output_dir mbart-ct2-int8 --quantization int8 --force
+          find mbart-hf -maxdepth 1 -type f \( -name '*.model' -o -name 'tokenizer_config.json' -o -name 'special_tokens_map.json' -o -name 'sentencepiece.bpe.model' \) -exec cp -a {} mbart-ct2-int8/ \;
+          tar -cf mbart-model.tar mbart-ct2-int8
+          split -b 350M -d -a 2 mbart-model.tar mbart-model.tar.part-
+          ls -lh mbart-model.tar.part-*
+      - name: Upload part 00
         uses: actions/upload-artifact@v4
         with:
-          name: nllb-sentencepiece-tokenizer
-          path: sentencepiece.bpe.model
+          name: mbart-model-part-00
+          path: mbart-model.tar.part-00
+          compression-level: 0
+          retention-days: 1
+      - name: Upload part 01
+        uses: actions/upload-artifact@v4
+        with:
+          name: mbart-model-part-01
+          path: mbart-model.tar.part-01
           compression-level: 0
           retention-days: 1

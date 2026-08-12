@@ -1,0 +1,16 @@
+{
+  "requiredLabels": ["ipad", "ipad-light", "arm64"],
+  "requiredCapabilities": ["python-3.13-ios", "files"],
+  "artifactPaths": ["ipad-output"],
+  "steps": [
+    {
+      "id": "site-static-check",
+      "name": "Validate static site inputs",
+      "kind": "python",
+      "script": "from pathlib import Path\nimport json\n\nroot = Path('.')\nrequired = [root / 'index.html']\nmissing = [str(path) for path in required if not path.is_file()]\nif missing:\n    raise SystemExit(f'missing required site files: {missing}')\nif (root / '_config.yml').is_file():\n    (root / '_config.yml').read_text(encoding='utf-8')\noutput = root / 'ipad-output'\noutput.mkdir(exist_ok=True)\n(output / 'static-site-report.json').write_text(json.dumps({\n    'repository': 'findwoods/findwoods.github.io',\n    'indexBytes': (root / 'index.html').stat().st_size,\n    'configPresent': (root / '_config.yml').is_file()\n}, sort_keys=True) + '\\n', encoding='utf-8')\nprint('static site inputs ok')\n",
+      "args": [],
+      "env": {},
+      "headers": {}
+    }
+  ]
+}

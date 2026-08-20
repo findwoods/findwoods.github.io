@@ -1,0 +1,42 @@
+name: One-shot Actions artifact cleanup
+
+on:
+  push:
+    paths:
+      - ".github/workflows/cleanup-actions-artifacts.yml"
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete all repository Actions artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          deleted=0
+          while true; do
+            response="$(curl --fail-with-body --silent --show-error \
+              -H "Accept: application/vnd.github+json" \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "X-GitHub-Api-Version: 2026-03-10" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100")"
+            ids="$(printf '%s' "$response" | jq -r '.artifacts[].id')"
+            if [ -z "$ids" ]; then
+              break
+            fi
+            for id in $ids; do
+              curl --fail-with-body --silent --show-error \
+                -X DELETE \
+                -H "Accept: application/vnd.github+json" \
+                -H "Authorization: Bearer ${GH_TOKEN}" \
+                -H "X-GitHub-Api-Version: 2026-03-10" \
+                "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/artifacts/${id}"
+              deleted=$((deleted + 1))
+            done
+          done
+          echo "Deleted ${deleted} Actions artifact(s)."

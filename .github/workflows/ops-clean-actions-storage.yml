@@ -3,15 +3,18 @@ name: One-shot Actions storage cleanup
 on:
   issues:
     types: [opened]
+  pull_request:
+    types: [opened]
 
 permissions:
   actions: write
   issues: write
+  pull-requests: write
   contents: read
 
 jobs:
   cleanup:
-    if: github.event.issue.title == 'ops: cleanup actions storage'
+    if: (github.event_name == 'issues' && github.event.issue.title == 'ops: cleanup actions storage') || (github.event_name == 'pull_request' && github.event.pull_request.title == 'ops: cleanup actions storage')
     runs-on: ubuntu-latest
     steps:
       - name: Delete artifacts and caches, then report
@@ -20,7 +23,6 @@ jobs:
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-
             async function listArtifacts() {
               const all = [];
               for (let page = 1; ; page++) {
@@ -30,7 +32,6 @@ jobs:
               }
               return all;
             }
-
             async function listCaches() {
               const all = [];
               for (let page = 1; ; page++) {
@@ -40,35 +41,28 @@ jobs:
               }
               return all;
             }
-
             const artifactsBefore = await listArtifacts();
             const cachesBefore = await listCaches();
             const artifactBytesBefore = artifactsBefore.reduce((n, x) => n + (x.size_in_bytes || 0), 0);
             const cacheBytesBefore = cachesBefore.reduce((n, x) => n + (x.size_in_bytes || 0), 0);
-
-            for (const a of artifactsBefore) {
-              await github.request('DELETE /repos/{owner}/{repo}/actions/artifacts/{artifact_id}', {owner, repo, artifact_id: a.id});
-            }
-            for (const c of cachesBefore) {
-              await github.request('DELETE /repos/{owner}/{repo}/actions/caches/{cache_id}', {owner, repo, cache_id: c.id});
-            }
-
+            for (const a of artifactsBefore) await github.request('DELETE /repos/{owner}/{repo}/actions/artifacts/{artifact_id}', {owner, repo, artifact_id: a.id});
+            for (const c of cachesBefore) await github.request('DELETE /repos/{owner}/{repo}/actions/caches/{cache_id}', {owner, repo, cache_id: c.id});
             const artifactsAfter = await listArtifacts();
             const cachesAfter = await listCaches();
             const artifactBytesAfter = artifactsAfter.reduce((n, x) => n + (x.size_in_bytes || 0), 0);
             const cacheBytesAfter = cachesAfter.reduce((n, x) => n + (x.size_in_bytes || 0), 0);
-
-            await github.rest.issues.createComment({
-              owner,
-              repo,
-              issue_number: context.issue.number,
-              body: [
-                'ACTIONS_STORAGE_CLEANUP_COMPLETE',
-                `artifacts_deleted=${artifactsBefore.length}`,
-                `artifact_bytes_before=${artifactBytesBefore}`,
-                `artifact_bytes_after=${artifactBytesAfter}`,
-                `caches_deleted=${cachesBefore.length}`,
-                `cache_bytes_before=${cacheBytesBefore}`,
-                `cache_bytes_after=${cacheBytesAfter}`
-              ].join('\n')
-            });
+            core.info(`artifacts_deleted=${artifactsBefore.length}`);
+            core.info(`artifact_bytes_before=${artifactBytesBefore}`);
+            core.info(`artifact_bytes_after=${artifactBytesAfter}`);
+            core.info(`caches_deleted=${cachesBefore.length}`);
+            core.info(`cache_bytes_before=${cacheBytesBefore}`);
+            core.info(`cache_bytes_after=${cacheBytesAfter}`);
+            await github.rest.issues.createComment({owner, repo, issue_number: context.issue.number, body: [
+              'ACTIONS_STORAGE_CLEANUP_COMPLETE',
+              `artifacts_deleted=${artifactsBefore.length}`,
+              `artifact_bytes_before=${artifactBytesBefore}`,
+              `artifact_bytes_after=${artifactBytesAfter}`,
+              `caches_deleted=${cachesBefore.length}`,
+              `cache_bytes_before=${cacheBytesBefore}`,
+              `cache_bytes_after=${cacheBytesAfter}`
+            ].join('\n')});
